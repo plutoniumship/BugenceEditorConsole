@@ -1,0 +1,122 @@
+﻿@page
+@model PrivacyModel
+@{
+    ViewData["Title"] = "Privacy & Data Protection";
+    ViewData["BodyClass"] = "bg-canvas profile-dark insights-dark";
+}
+
+<section class="space-y-10 px-6 sm:px-10 md:px-16 lg:px-20 py-12 relative text-white">
+
+    <!-- HERO -->
+    <header class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#0B111A]/90 via-[#0F1824]/90 to-[#0C0F17]/90 p-10 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+        <div class="absolute inset-0 opacity-70 pointer-events-none">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_-10%,rgba(99,255,217,0.16),transparent_65%)]"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_88%_20%,rgba(255,171,76,0.18),transparent_60%)]"></div>
+        </div>
+
+        <div class="relative z-10 space-y-3">
+            <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[12px] uppercase tracking-[0.25em] text-amber-200 ring-1 ring-white/10">
+                <i class="fa-solid fa-shield-halved text-amber-400"></i>
+                Privacy & Credentials
+            </span>
+            <h1 class="text-4xl font-black bg-gradient-to-r from-amber-300 via-rose-300 to-sky-300 bg-clip-text text-transparent">
+                Your data. Protected by design.
+            </h1>
+            <p class="text-white/70 max-w-3xl">
+                How Bugence handles authentication, audit trails, retention, and user rights for Bugence experiences.
+                This page reflects the current policy; align final language with your legal counsel.
+            </p>
+        </div>
+    </header>
+
+    <!-- SUMMARY GRID -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="glass-card">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-white/60">Retention</p>
+            <h3 class="text-2xl font-bold text-amber-300 mt-2">Rolling 180d</h3>
+            <p class="text-sm text-white/60">Content + audit events retained 6 months unless extended by contract.</p>
+        </div>
+        <div class="glass-card">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-white/60">Backups</p>
+            <h3 class="text-2xl font-bold text-emerald-300 mt-2">Daily</h3>
+            <p class="text-sm text-white/60">Encrypted at rest; restores subject to access approvals.</p>
+        </div>
+        <div class="glass-card">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-white/60">Access</p>
+            <h3 class="text-2xl font-bold text-rose-300 mt-2">Least privilege</h3>
+            <p class="text-sm text-white/60">Role-based access; operator actions fully logged.</p>
+        </div>
+        <div class="glass-card">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-white/60">Support</p>
+            <h3 class="text-2xl font-bold text-sky-300 mt-2">SLA guided</h3>
+            <p class="text-sm text-white/60">Privacy requests routed through Bugence operators with audit.</p>
+        </div>
+    </div>
+
+    <!-- POLICY BODY -->
+    <div class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-lg grid gap-8 lg:grid-cols-[1.4fr,1fr]">
+        <div class="space-y-4">
+            <h2 class="text-xl font-semibold text-amber-300">Policy overview</h2>
+            <p class="text-sm text-white/70">
+                Bugence Edit Console processes content updates, audit logs, and operator metadata to deliver secure publishing for Bugence.
+                Replace the bullets below with your final legal language.
+            </p>
+            <ul class="space-y-3 text-sm text-white/80">
+                <li><strong>Data retention:</strong> Content, media metadata, and audit entries retained for 180 days unless extended by agreement.</li>
+                <li><strong>Access controls:</strong> Authentication via Bugence SSO; role-based authorization. Operators act under least privilege.</li>
+                <li><strong>Encryption:</strong> Data encrypted in transit (TLS) and at rest; keys rotated per platform policy.</li>
+                <li><strong>Audit trails:</strong> All publishes, edits, unlocks, and credential resets are logged with user, timestamp, and IP.</li>
+                <li><strong>User rights:</strong> Contact support@bugence.io to request export, correction, or deletion subject to retention rules.</li>
+            </ul>
+        </div>
+        <div class="space-y-4">
+            <h2 class="text-xl font-semibold text-sky-300">Security playbook</h2>
+            <div class="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                    <span class="fa-solid fa-circle-check text-emerald-300 mt-1"></span>
+                    <div>
+                        <p class="font-semibold text-white">Incident workflow</p>
+                        <p class="text-sm text-white/70">Report via Support. Bugence triages, contains, and documents mitigation.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="fa-solid fa-user-lock text-amber-300 mt-1"></span>
+                    <div>
+                        <p class="font-semibold text-white">Credentials & OTP</p>
+                        <p class="text-sm text-white/70">Password resets issue 5-minute OTP to the verified email on file.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="fa-solid fa-database text-rose-300 mt-1"></span>
+                    <div>
+                        <p class="font-semibold text-white">Data minimization</p>
+                        <p class="text-sm text-white/70">Only fields required for publishing and audit are stored; purge unused artifacts.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="fa-solid fa-handshake text-sky-300 mt-1"></span>
+                    <div>
+                        <p class="font-semibold text-white">Escalation</p>
+                        <p class="text-sm text-white/70">For contractual overrides (e.g., retention changes), coordinate with Bugence ops.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="rounded-3xl border border-white/10 bg-gradient-to-br from-[#141820]/90 via-[#0c1016]/95 to-[#0b0e14]/90 backdrop-blur-xl p-8 shadow-lg">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-[12px] uppercase tracking-[0.2em] text-slate-300">Need help?</p>
+                <h3 class="text-2xl font-bold text-white mt-1">Contact Bugence operators</h3>
+                <p class="text-sm text-white/70">For privacy requests or incidents, email <a href="mailto:support@bugence.io" class="underline underline-offset-4 text-amber-200 hover:text-amber-100">support@bugence.io</a>.</p>
+            </div>
+            <a asp-page="/Support"
+               class="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-2.5 text-sm font-semibold text-black shadow-lg hover:bg-amber-400">
+                <span class="fa-solid fa-life-ring"></span>
+                Open support
+            </a>
+        </div>
+    </div>
+</section>

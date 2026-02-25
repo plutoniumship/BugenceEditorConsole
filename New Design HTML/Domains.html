@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domains | Bugence</title>
+    
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* --- CORE THEME --- */
+        :root { 
+            --bg: #050505; 
+            --surface: #0a0a0a; 
+            --border: rgba(255,255,255,0.08); 
+            --text: #ffffff; 
+            --muted: #a1a1aa; 
+            --accent: #06b6d4; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b;
+        }
+
+        /* --- GLOBAL RESET --- */
+        * { box-sizing: border-box; outline: none; }
+        body { margin:0; background: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; display:flex; height: 100vh; overflow: hidden; }
+
+        /* --- LAYOUT --- */
+        .shell { display:flex; width:100%; height:100%; }
+        
+        aside { 
+            width: 260px; flex-shrink: 0; background: var(--bg); 
+            border-right: 1px solid var(--border); padding: 24px; 
+            display: flex; flex-direction: column; z-index: 10; 
+        }
+        
+        main { 
+            flex-grow: 1; padding: 40px 60px; overflow-y: auto; 
+            background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); 
+            position: relative; 
+        }
+
+        /* --- SIDEBAR COMPONENTS --- */
+        .brand { font-family: 'Cabinet Grotesk', sans-serif; font-weight:800; font-size: 1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background: rgba(6,182,212,0.1); color:var(--accent); }
+
+        /* --- HEADER --- */
+        .header { margin-bottom: 40px; }
+        .header h1 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.5rem; margin: 0 0 10px; }
+        
+        /* --- PROJECT SWITCHER (ENHANCED) --- */
+        .project-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 8px; display: block; font-weight: 500; }
+        
+        .project-switcher {
+            display: inline-flex; align-items: center; 
+            background: var(--surface); border: 1px solid var(--border); 
+            border-radius: 10px; cursor: pointer; transition: 0.2s;
+            position: relative; width: 100%; max-width: 300px;
+        }
+        .project-switcher:hover { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(6,182,212,0.1); }
+        
+        .project-select {
+            appearance: none; -webkit-appearance: none;
+            background: transparent; border: none; color: white; 
+            font-family: inherit; font-weight: 700; font-size: 1rem; 
+            cursor: pointer; width: 100%; padding: 12px 40px 12px 16px;
+            z-index: 2; position: relative;
+        }
+        
+        /* Style the internal options for readability */
+        .project-select option {
+            background-color: #111; /* Dark background for dropdown */
+            color: white;           /* Readable text */
+            padding: 12px;
+        }
+
+        .select-arrow { 
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%); 
+            pointer-events: none; color: var(--muted); font-size: 0.8rem; z-index: 1; 
+        }
+
+        /* --- DOMAIN CARDS --- */
+        .section-title { font-size: 0.9rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+
+        .primary-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; 
+            padding: 30px; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 40px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
+            position: relative; overflow: hidden; transition: opacity 0.2s;
+        }
+        .primary-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--success); }
+
+        .domain-info h3 { margin: 0 0 5px; font-size: 1.5rem; color: white; display: flex; align-items: center; gap: 10px; }
+        .domain-info p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+        
+        .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-primary { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+
+        .btn-visit { background: white; color: black; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: 0.2s; }
+        .btn-visit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+
+        /* --- ADD DOMAIN --- */
+        .add-domain-wrapper { display: flex; gap: 10px; margin-bottom: 30px; max-width: 600px; }
+        .input-group { flex: 1; position: relative; }
+        .domain-input { width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px 14px 14px 45px; border-radius: 10px; color: white; outline: none; transition: 0.2s; font-family: monospace; font-size: 1rem; }
+        .domain-input:focus { border-color: var(--accent); }
+        .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+        
+        .btn-add { background: var(--surface); border: 1px solid var(--border); color: white; padding: 0 24px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-add:hover { background: var(--accent); border-color: var(--accent); color: black; }
+
+        /* --- DOMAIN LIST TABLE --- */
+        .domain-table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); transition: opacity 0.2s; }
+        .domain-table th { text-align: left; padding: 18px 25px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); color: var(--muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        .domain-table td { padding: 20px 25px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+        .domain-table tr:last-child td { border-bottom: none; }
+
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .dot-success { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .dot-warning { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+        .dot-error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+        .dns-record { font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; color: #ddd; font-size: 0.85rem; }
+
+        .btn-icon { background: transparent; border: 1px solid var(--border); color: var(--muted); width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-icon:hover { color: white; border-color: white; }
+        .btn-icon.delete:hover { color: var(--danger); border-color: var(--danger); }
+
+        /* Configuration Drawer (Simulated) */
+        .config-details { display: none; background: #0c0c0c; padding: 20px; margin: 10px 25px 20px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem; color: #ccc; }
+        .config-details.open { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .copy-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #222; }
+        .copy-row:last-child { border: none; margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="shell">
+        <aside>
+            <a href="/Dashboard/Index" class="brand"><i class="fa-solid fa-bug" style="color:var(--accent)"></i> BUGENCE</a>
+            
+            <a href="/Dashboard/Index" class="nav-item active"><i class="fa-solid fa-layer-group"></i> Overview</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-folder"></i> Projects</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Analytics</a>
+            
+            <div class="menu-cat">Tools</div>
+            <a href="#" class="nav-item"><i class="fa-solid fa-book"></i> Library</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-file-code"></i> Text Editor</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-eye"></i> Live Preview</a>
+            
+            <div class="menu-cat">Configuration</div>
+            <a href="/ProjectHub/Team" class="nav-item"><i class="fa-solid fa-users"></i> Team</a>
+            <a href="/ProjectHub/Domains" class="nav-item active" style="background: rgba(6,182,212,0.1); color:var(--accent);"><i class="fa-solid fa-globe"></i> Domains</a>
+            <a href="/ProjectHub/GlobalSettings" class="nav-item"><i class="fa-solid fa-gear"></i> Global Settings</a>
+        </aside>
+
+        <main>
+            <div class="header">
+                <div style="font-size:0.9rem; color:var(--accent); margin-bottom:10px; font-weight:600;">
+                    <i class="fa-solid fa-arrow-left"></i> <a href="/Dashboard/Index" style="color:inherit; text-decoration:none;">Back to Dashboard</a>
+                </div>
+                <h1>Domains</h1>
+                
+                <div style="margin-top:20px;">
+                    <span class="project-label">Select Project to Manage</span>
+                    <div class="project-switcher">
+                        <select id="projectSelect" class="project-select" onchange="switchProject()">
+                            <option value="2">High-Tech Heroes</option>
+                            <option value="3">Bugence Static</option>
+                            <option value="4">SaaS Dashboard</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down select-arrow"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="domainContent">
+                
+                <div class="section-title">Primary Domain</div>
+                <div class="primary-card">
+                    <div class="domain-info">
+                        <h3 id="primaryDomain">hightech-heroes.bugence.app <span class="badge badge-primary">Primary</span></h3>
+                        <p>Assigned automatically. Serves as the default endpoint.</p>
+                    </div>
+                    <a id="visitLink" href="https://hightech-heroes.bugence.app" target="_blank" class="btn-visit">
+                        Visit Site <i class="fa-solid fa-external-link-alt" style="font-size:0.8rem;"></i>
+                    </a>
+                </div>
+
+                <div class="section-title">Custom Domains</div>
+                <div class="add-domain-wrapper">
+                    <div class="input-group">
+                        <i class="fa-solid fa-globe input-icon"></i>
+                        <input type="text" class="domain-input" id="newDomainInput" placeholder="e.g. www.mywebsite.com">
+                    </div>
+                    <button class="btn-add" onclick="addDomain()">Add</button>
+                </div>
+
+                <table class="domain-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Domain</th>
+                            <th>Configuration</th>
+                            <th>SSL Status</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="domainList">
+                        </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // --- 1. MOCK DATA FOR PROJECTS ---
+        const projects = {
+            "2": {
+                name: "High-Tech Heroes",
+                primary: "hightech-heroes.bugence.app",
+                domains: [
+                    { id: 1, name: 'www.hightechheroes.com', status: 'valid', type: 'CNAME', value: 'cname.bugence.app', ssl: true },
+                    { id: 2, name: 'hightechheroes.com', status: 'invalid', type: 'A Record', value: '76.76.21.21', ssl: false }
+                ]
+            },
+            "3": {
+                name: "Bugence Static",
+                primary: "bugence-static.bugence.app",
+                domains: [
+                    { id: 101, name: 'static.bugence.com', status: 'valid', type: 'CNAME', value: 'cname.bugence.app', ssl: true }
+                ]
+            },
+            "4": {
+                name: "SaaS Dashboard",
+                primary: "saas-dash.bugence.app",
+                domains: [] // Empty state test
+            }
+        };
+
+        // --- 2. SWITCH LOGIC ---
+        function switchProject() {
+            const select = document.getElementById('projectSelect');
+            const pid = select.value;
+            const data = projects[pid];
+
+            // Fade Animation
+            const content = document.getElementById('domainContent');
+            content.style.opacity = '0.5';
+
+            setTimeout(() => {
+                // Update Primary Domain
+                document.getElementById('primaryDomain').innerHTML = `${data.primary} <span class="badge badge-primary">Primary</span>`;
+                document.getElementById('visitLink').href = `https://${data.primary}`;
+
+                // Update List
+                renderDomains(data.domains);
+                
+                content.style.opacity = '1';
+            }, 200);
+        }
+
+        // --- 3. RENDER FUNCTION ---
+        function renderDomains(domainList) {
+            const tbody = document.getElementById('domainList');
+            tbody.innerHTML = '';
+
+            if(domainList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px; color:#666;">No custom domains added yet.</td></tr>`;
+                return;
+            }
+
+            domainList.forEach(d => {
+                const isConfigured = d.status === 'valid';
+                const statusDot = isConfigured ? 'dot-success' : 'dot-warning';
+                const statusText = isConfigured ? 'Valid Configuration' : 'Invalid Configuration';
+                const sslIcon = isConfigured ? '<i class="fa-solid fa-lock" style="color:var(--success)"></i> Active' : '<i class="fa-solid fa-spinner fa-spin" style="color:var(--warning)"></i> Pending';
+
+                // Main Row
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight:700; font-size:1rem; margin-bottom:4px;">${d.name}</div>
+                        <div style="font-size:0.85rem; color:var(--muted);"><span class="status-dot ${statusDot}"></span> ${statusText}</div>
+                    </td>
+                    <td>
+                        ${isConfigured 
+                            ? '<span style="color:var(--success); font-size:0.9rem;"><i class="fa-solid fa-check"></i> Connected</span>' 
+                            : `<button class="btn-icon" onclick="toggleConfig(${d.id})" style="width:auto; padding:0 12px; font-size:0.8rem;">Show DNS Records</button>`}
+                    </td>
+                    <td>${sslIcon}</td>
+                    <td style="text-align:right;">
+                        <button class="btn-icon" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
+                        <button class="btn-icon delete" title="Remove"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+
+                // Config Detail Row
+                if (!isConfigured) {
+                    const configRow = document.createElement('tr');
+                    configRow.innerHTML = `
+                        <td colspan="4" style="padding:0; border:none;">
+                            <div class="config-details" id="config-${d.id}">
+                                <div style="margin-bottom:15px; color:var(--warning); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Action Required</div>
+                                <div class="copy-row">
+                                    <span>Type</span>
+                                    <span class="dns-record">${d.type}</span>
+                                </div>
+                                <div class="copy-row">
+                                    <span>Name</span>
+                                    <span class="dns-record">@</span>
+                                </div>
+                                <div class="copy-row">
+                                    <span>Value</span>
+                                    <span class="dns-record">${d.value}</span>
+                                </div>
+                                <div style="margin-top:15px; text-align:right;">
+                                    <span style="font-size:0.8rem; color:#888; margin-right:10px;">Add this record to your DNS provider</span>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(configRow);
+                }
+            });
+        }
+
+        // --- 4. UTILS ---
+        function toggleConfig(id) {
+            const el = document.getElementById(`config-${id}`);
+            el.classList.toggle('open');
+        }
+
+        function addDomain() {
+            const input = document.getElementById('newDomainInput');
+            const pid = document.getElementById('projectSelect').value;
+            
+            if(input.value) {
+                // Add to current project array
+                projects[pid].domains.push({ 
+                    id: Date.now(), 
+                    name: input.value, 
+                    status: 'invalid', 
+                    type: 'CNAME', 
+                    value: 'cname.bugence.app', 
+                    ssl: false 
+                });
+                
+                // Re-render
+                renderDomains(projects[pid].domains);
+                input.value = '';
+            }
+        }
+
+        // Init with default project (High-Tech Heroes)
+        renderDomains(projects["2"].domains);
+    </script>
+</body>
+</html>

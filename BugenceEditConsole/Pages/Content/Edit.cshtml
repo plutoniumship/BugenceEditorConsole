@@ -1,0 +1,1024 @@
+﻿@page "{pageId:guid}"
+@model BugenceEditConsole.Pages.Content.EditModel
+@{
+    ViewData["Title"] = $"Edit | {Model.Page?.Name ?? "Page"}";
+    ViewData["BodyClass"] = "bg-slate-950";
+    var pageName = Model.Page?.Name ?? "Untitled page";
+    var pageSlug = Model.Page?.Slug ?? "unavailable";
+    var pageDescription = Model.Page?.Description;
+    var sectionLabel = Model.SectionCount == 1 ? "section" : "sections";
+    var lastPublishedStamp = Model.LastPublishedAtUtc?.ToLocalTime().ToString("MMM dd, yyyy - HH:mm") ?? "Not yet published";
+    var pageSwitcherSlugSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "index", "meet-pete-d", "book-pete-d", "join-community" };
+    var pageSwitcherOrder = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["index"] = 0,
+        ["meet-pete-d"] = 1,
+        ["book-pete-d"] = 2,
+        ["join-community"] = 3
+    };
+    var pageIconMap = new Dictionary<string, (string Icon, string AccentClass)>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["index"] = ("fa-solid fa-file-lines", "text-emerald-200"),
+        ["meet-pete-d"] = ("fa-solid fa-user-tie", "text-sky-200"),
+        ["book-pete-d"] = ("fa-solid fa-calendar-check", "text-amber-200"),
+        ["join-community"] = ("fa-solid fa-users", "text-violet-200")
+    };
+    var pageSwitcherOptions = Model.PageOptions
+        .Where(p => pageSwitcherSlugSet.Contains(p.Slug))
+        .OrderBy(p => pageSwitcherOrder.TryGetValue(p.Slug, out var order) ? order : 999)
+        .ToList();
+}
+
+@section Head {
+    <script src="https://cdn.tailwindcss.com"></script>
+}
+
+<div class="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 lg:px-8" data-page-shell>
+    @* status toasts *@
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="flex items-start gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/5 px-5 py-4 text-sm text-emerald-100 shadow-lg">
+            <span class="fa-solid fa-circle-check mt-0.5 text-emerald-300"></span>
+            <span class="font-medium leading-6">@Model.StatusMessage</span>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="flex items-start gap-3 rounded-2xl border border-red-500/40 bg-red-500/5 px-5 py-4 text-sm text-red-100 shadow-lg">
+            <span class="fa-solid fa-circle-exclamation mt-0.5 text-red-300"></span>
+            <span class="font-medium leading-6">@Model.ErrorMessage</span>
+        </div>
+    }
+
+    @* top tabs (Editor / Details / History) *@
+    <div class="sticky top-3 z-40 flex items-center justify-between gap-4 rounded-2xl border border-slate-800/80 bg-slate-900/50 px-4 py-3 backdrop-blur" data-topbar>
+        <div class="flex items-center gap-2">
+            <a asp-page="/Content/Edit" asp-route-pageId="@Model.Page?.Id"
+               class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-950 shadow-sm">
+                <span class="fa-solid fa-pen-to-square text-[11px]"></span>
+                Editor
+            </a>
+            <button type="button" data-panel-trigger="details"
+                    class="inline-flex items-center gap-2 rounded-full bg-transparent px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-200 hover:bg-slate-800/80">
+                <span class="fa-regular fa-file-lines text-[11px]"></span>
+                Details
+            </button>
+            <button type="button" data-panel-trigger="history"
+                    class="inline-flex items-center gap-2 rounded-full bg-transparent px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-200 hover:bg-slate-800/80">
+                <span class="fa-solid fa-clock-rotate-left text-[11px]"></span>
+                History
+            </button>
+        </div>
+        <p class="text-[11px] text-slate-400">Last published: <span class="text-slate-100 font-medium">@lastPublishedStamp</span></p>
+    </div>
+
+    @* HERO / PAGE SUMMARY + PUBLISH PANEL *@
+    <section class="rounded-3xl border border-slate-800/60 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900/70 p-7 shadow-[0_20px_40px_rgba(0,0,0,0.35)] lg:p-10 relative">
+        <div class="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
+            <div class="flex-1 space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-200 ring-1 ring-slate-700">
+                        <span class="fa-solid fa-sparkles text-[11px] text-amber-200"></span>
+                        Content Editor
+                    </span>
+
+                    @* NEW PAGE SWITCHER DROPDOWN *@
+                    <div class="relative" data-page-switcher>
+                        <button type="button"
+                                class="inline-flex items-center gap-3 rounded-full bg-slate-950/30 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-100 ring-1 ring-slate-700/60 hover:bg-slate-900/70 transition"
+                                data-page-switcher-button>
+                            <span class="fa-solid fa-layer-group text-[10px] text-amber-200"></span>
+                            <span class="flex flex-col items-start leading-tight">
+                                <span>Switch page</span>
+                                <span class="text-[10px] font-normal uppercase tracking-widest text-slate-400">@pageName</span>
+                            </span>
+                            <span class="fa-solid fa-chevron-down text-[9px] transition-transform" data-page-switcher-caret></span>
+                        </button>
+                        <div class="pointer-events-none absolute right-0 top-10 w-60 translate-y-2 scale-95 rounded-2xl border border-slate-800/70 bg-slate-950/95 p-2 opacity-0 shadow-2xl backdrop-blur-lg transition-all duration-150 ease-out"
+                             data-page-switcher-menu>
+                            <p class="px-3 pb-2 pt-1 text-[10px] uppercase tracking-wide text-slate-400">Switch text editor view</p>
+                            @foreach (var option in pageSwitcherOptions)
+                            {
+                                var isCurrent = Model.Page?.Id == option.Id;
+                                var iconMeta = pageIconMap.TryGetValue(option.Slug ?? string.Empty, out var meta)
+                                    ? meta
+                                    : ("fa-solid fa-file-lines", "text-slate-300");
+                                var iconClass = iconMeta.Item1;
+                                var accentClass = iconMeta.Item2;
+                                var baseClasses = "flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm text-slate-50 hover:bg-slate-900/70 transition group";
+                                var itemClasses = isCurrent ? $"{baseClasses} bg-slate-900/60 ring-1 ring-amber-300/30" : baseClasses;
+                            <a asp-page="/Content/Edit"
+                               asp-route-pageId="@option.Id"
+                               data-target-page="@option.Slug"
+                               class="@itemClasses">
+                                <span class="flex items-center gap-2">
+                                    <span class="@($"{iconClass} text-[11px] {accentClass}")"></span>
+                                    <span class="font-medium">@option.Name</span>
+                                    @if (isCurrent)
+                                    {
+                                        <span class="text-[10px] uppercase tracking-wide text-amber-300">Current</span>
+                                    }
+                                </span>
+                                <span class="fa-solid fa-arrow-right text-[9px] text-slate-500 group-hover:text-amber-200"></span>
+                            </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h1 class="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">@pageName</h1>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="inline-flex items-center gap-2 rounded-full bg-slate-900/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-200 ring-1 ring-slate-700">
+                            <span class="fa-solid fa-hashtag text-[10px]"></span>
+                            @pageSlug
+                        </span>
+                        <span class="inline-flex items-center gap-2 rounded-full bg-amber-400/10 px-3 py-1 text-[11px] font-semibold text-amber-100 ring-1 ring-amber-400/40">
+                            <span class="h-2 w-2 rounded-full bg-amber-200"></span>
+                            Draft workspace
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(pageDescription))
+                    {
+                        <p class="max-w-3xl text-sm leading-6 text-slate-200/70">
+                            @pageDescription
+                        </p>
+                    }
+                </div>
+
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-4">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950/60 text-white ring-1 ring-slate-700">
+                            <span class="fa-solid fa-layer-group"></span>
+                        </span>
+                        <div>
+                            <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Sections</p>
+                            <p class="text-base font-semibold text-white">@Model.SectionCount @sectionLabel</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-4">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-100 ring-1 ring-emerald-500/50">
+                            <span class="fa-solid fa-unlock"></span>
+                        </span>
+                        <div>
+                            <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Editable blocks</p>
+                            <p class="text-base font-semibold text-white">@Model.EditableSectionCount</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-4">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-400/10 text-amber-200 ring-1 ring-amber-400/50">
+                            <span class="fa-solid fa-lock"></span>
+                        </span>
+                        <div>
+                            <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Locked blocks</p>
+                            <p class="text-base font-semibold text-white">@Model.LockedSectionCount</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-4">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950/40 text-slate-100 ring-1 ring-slate-700">
+                            <span class="fa-regular fa-clock"></span>
+                        </span>
+                        <div>
+                            <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Last published</p>
+                            <p class="text-sm font-semibold text-white">@lastPublishedStamp</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* publish panel (white + mustard) *@
+            <div class="relative lg:ml-6 lg:w-[270px]">
+                <div class="publish-panel rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-slate-200">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-3">Publish panel</p>
+                    <p class="text-xs text-slate-500 mb-4">Review, preview and publish. Publishing pushes changes immediately.</p>
+                       class="mb-3 inline-flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+                        <span class="flex items-center gap-2">
+                            <span class="fa-solid fa-eye"></span>
+                            Live preview
+                        </span>
+                        <span class="fa-solid fa-chevron-right text-[10px] text-slate-400"></span>
+                    </a>
+                    <form method="post" asp-page-handler="Publish" class="flex flex-col gap-3">
+                        <input type="hidden" name="pageId" value="@Model.Page?.Id" />
+                        <button type="submit"
+                                class="publish-cta inline-flex items-center justify-center gap-2 rounded-xl bg-[#C38C1A] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#a57310] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C38C1A]">
+                            <span class="fa-solid fa-rocket-launch"></span>
+                            Publish to live
+                        </button>
+                    </form>
+                    <div class="publish-meta mt-4 rounded-xl bg-slate-50 p-3 text-[11px] text-slate-500">
+                        <p class="font-semibold text-slate-700 mb-1">Last published</p>
+                        <p>@lastPublishedStamp</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* SEARCH + PAGINATION BAR *@
+    <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-slate-900/40 px-4 py-4">
+        <div class="flex items-center gap-3">
+            <label class="relative block">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 fa-solid fa-magnifying-glass text-xs"></span>
+                <input id="section-search"
+                       type="text"
+                       class="pl-9 pr-3 py-2 rounded-xl bg-slate-950/70 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#C38C1A]/60"
+                       placeholder="Search section title, key, text..." />
+            </label>
+            <p id="section-count-label" class="text-[11px] text-slate-300">Showing all sections</p>
+        </div>
+        <div class="flex items-center gap-3 text-[11px] text-slate-200">
+            <span>Rows per page:</span>
+            <select id="section-page-size"
+                    class="rounded-lg border border-slate-700 bg-slate-950/70 px-2 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#C38C1A]">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="8">8</option>
+                <option value="9999">All</option>
+            </select>
+            <div class="flex items-center gap-2">
+                <button id="section-prev" type="button"
+                        class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-950/40 text-slate-200 hover:bg-slate-700/70">
+                    <span class="fa-solid fa-chevron-left text-[10px]"></span>
+                </button>
+                <span id="section-page-indicator" class="text-[11px] text-slate-200">1 / 1</span>
+                <button id="section-next" type="button"
+                        class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-950/40 text-slate-200 hover:bg-slate-700/70">
+                    <span class="fa-solid fa-chevron-right text-[10px]"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @* SECTION CARDS (WHITE) *@
+    <section id="section-cards" class="space-y-6">
+        @foreach (var block in Model.Sections)
+        {
+            var updatedStamp = block.UpdatedAtUtc.ToLocalTime().ToString("MMM dd - HH:mm");
+            var publishedStamp = block.LastPublishedAtUtc?.ToLocalTime().ToString("MMM dd - HH:mm") ?? "Not yet";
+            var editorId = $"content-{block.Id}";
+            var toolbarId = $"toolbar-{block.Id}";
+            var metricsId = $"metrics-{block.Id}";
+
+            <article class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 transition hover:shadow-2xl"
+                     data-section-card
+                     data-section-title="@block.Title"
+                     data-section-key="@block.SectionKey">
+
+                <header class="flex flex-col gap-6 border-b border-slate-100 p-6 lg:flex-row lg:items-start lg:justify-between lg:p-8">
+                    <div class="space-y-3">
+                        <span class="inline-flex items-center gap-2 rounded-full bg-black px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                            <span class="fa-solid fa-cube text-amber-300 text-[10px]"></span>
+                            @block.SectionKey
+                            <span class="text-slate-200/70">/ @block.DisplayOrder</span>
+                        </span>
+                        <div class="space-y-1">
+                            <h2 class="text-xl font-semibold tracking-tight text-slate-900">@block.Title</h2>
+                            <p class="text-xs text-slate-400">Updated @updatedStamp</p>
+                        </div>
+                    </div>
+                    <div class="grid gap-3 text-xs text-slate-700 sm:grid-cols-2">
+                        <div class="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-100/70">
+                            <span class="fa-solid fa-layer-group text-slate-400"></span>
+                            <div>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Display order</p>
+                                <p class="font-semibold text-slate-900">@block.DisplayOrder</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-100/70">
+                            <span class="fa-solid @(block.IsLocked ? "fa-lock" : "fa-unlock") text-slate-400"></span>
+                            <div>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Status</p>
+                                <p class="font-semibold text-slate-900">@(block.IsLocked ? "Locked" : "Editable")</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 sm:col-span-2 ring-1 ring-slate-100/70">
+                            <span class="fa-regular fa-clock text-slate-400"></span>
+                            <div>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Last published</p>
+                                <p class="font-semibold text-slate-900">@publishedStamp</p>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                @if (block.IsLocked)
+                {
+                    <div class="border-t border-amber-200 bg-amber-50 px-6 py-8 lg:px-8 rounded-b-3xl">
+                        <div class="flex items-start gap-4 text-sm text-amber-900">
+                            <span class="fa-solid fa-lock text-lg"></span>
+                            <div class="space-y-1">
+                                <p class="text-base font-semibold">Locked by Bugence</p>
+                                <p>This block is managed by the Bugence core team. Contact support to unlock.</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <form method="post" enctype="multipart/form-data" asp-page-handler="Save" class="space-y-8 p-6 lg:p-8" data-editor-root>
+                        <input type="hidden" name="pageId" value="@Model.Page?.Id" />
+                        <input type="hidden" name="Input.SectionId" value="@(block.Id)" />
+
+                        @{
+                            var isContentEditable = block.ContentType == SectionContentType.Text
+                            || block.ContentType == SectionContentType.RichText
+                            || block.ContentType == SectionContentType.Html;
+                            var editorMode = block.GetEditorMode();
+                            var initialHtml = block.ToEditorHtml();
+                        }
+
+                        <div class="space-y-8">
+                            @if (isContentEditable)
+                            {
+                                <div class="space-y-3">
+                                    <label class="text-sm font-semibold text-slate-700" for="@editorId">Narrative</label>
+                                    <div class="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-inner"
+                                         data-editor
+                                         data-editor-mode="@editorMode"
+                                         data-editor-surface="#@editorId"
+                                         data-editor-toolbar="#@toolbarId"
+                                         data-editor-metrics="#@metricsId">
+
+                                        @* TOOLBAR *@
+                                        <div id="@toolbarId" class="flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-white p-3" role="toolbar" aria-label="Formatting controls">
+                                            <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">History</span>
+                                                <button type="button" data-command="undo" class="btn-editor">
+                                                    <span class="fa-solid fa-rotate-left text-[12px]"></span>
+                                                </button>
+                                                <button type="button" data-command="redo" class="btn-editor">
+                                                    <span class="fa-solid fa-rotate-right text-[12px]"></span>
+                                                </button>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Type</span>
+                                                <button type="button" data-command="bold" class="btn-editor"><span class="fa-solid fa-bold"></span></button>
+                                                <button type="button" data-command="italic" class="btn-editor"><span class="fa-solid fa-italic"></span></button>
+                                                <button type="button" data-command="underline" class="btn-editor"><span class="fa-solid fa-underline"></span></button>
+                                                <button type="button" data-command="strikeThrough" class="btn-editor"><span class="fa-solid fa-strikethrough"></span></button>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Structure</span>
+                                                <button type="button" data-command="formatBlock" data-value="h2" class="btn-editor"><span class="fa-solid fa-heading"></span></button>
+                                                <button type="button" data-command="formatBlock" data-value="h3" class="btn-editor"><span class="fa-solid fa-heading fa-xs"></span></button>
+                                                <button type="button" data-command="formatBlock" data-value="p" class="btn-editor"><span class="fa-solid fa-paragraph"></span></button>
+                                                <button type="button" data-command="insertHorizontalRule" class="btn-editor"><span class="fa-solid fa-minus"></span></button>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Layout</span>
+                                                <button type="button" data-command="insertUnorderedList" class="btn-editor"><span class="fa-solid fa-list-ul"></span></button>
+                                                <button type="button" data-command="insertOrderedList" class="btn-editor"><span class="fa-solid fa-list-ol"></span></button>
+                                                <button type="button" data-command="justifyLeft" class="btn-editor"><span class="fa-solid fa-align-left"></span></button>
+                                                <button type="button" data-command="justifyCenter" class="btn-editor"><span class="fa-solid fa-align-center"></span></button>
+                                                <button type="button" data-command="justifyRight" class="btn-editor"><span class="fa-solid fa-align-right"></span></button>
+                                                <button type="button" data-command="justifyFull" class="btn-editor"><span class="fa-solid fa-align-justify"></span></button>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Links</span>
+                                                <button type="button" data-command="createLink" class="btn-editor"><span class="fa-solid fa-link"></span></button>
+                                                <button type="button" data-command="unlink" class="btn-editor"><span class="fa-solid fa-link-slash"></span></button>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100 max-w-[380px]">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Palette</span>
+                                                <button type="button" data-command="foreColor" data-value="#0f172a" class="swatch-editor" style="background:#0f172a"></button>
+                                                <button type="button" data-command="foreColor" data-value="#111827" class="swatch-editor" style="background:#111827"></button>
+                                                <button type="button" data-command="foreColor" data-value="#1f2937" class="swatch-editor" style="background:#1f2937"></button>
+                                                <button type="button" data-command="foreColor" data-value="#C38C1A" class="swatch-editor" style="background:#C38C1A"></button>
+                                                <button type="button" data-command="foreColor" data-value="#f97316" class="swatch-editor" style="background:#f97316"></button>
+                                                <button type="button" data-command="foreColor" data-value="#22d3ee" class="swatch-editor" style="background:#22d3ee"></button>
+                                                <button type="button" data-command="foreColor" data-value="#6366f1" class="swatch-editor" style="background:#6366f1"></button>
+                                                <button type="button" data-command="foreColor" data-value="#ec4899" class="swatch-editor" style="background:#ec4899"></button>
+                                                <button type="button" data-command="foreColor" data-value="#0ea5e9" class="swatch-editor" style="background:#0ea5e9"></button>
+                                                <button type="button" data-command="foreColor" data-value="#059669" class="swatch-editor" style="background:#059669"></button>
+                                                <button type="button" data-command="foreColor" data-value="#ffffff" class="swatch-editor ring-1 ring-slate-200" style="background:#ffffff"></button>
+                                                <button type="button" data-command="HiliteColor" data-value="#fef08a" class="swatch-editor ring-1 ring-slate-200" style="background:#fef08a"></button>
+                                                <button type="button" data-command="HiliteColor" data-value="#d9f99d" class="swatch-editor ring-1 ring-slate-200" style="background:#d9f99d"></button>
+                                                <button type="button" data-command="HiliteColor" data-value="#bfdbfe" class="swatch-editor ring-1 ring-slate-200" style="background:#bfdbfe"></button>
+                                                <button type="button" data-command="HiliteColor" data-value="#fee2e2" class="swatch-editor ring-1 ring-slate-200" style="background:#fee2e2"></button>
+                                                <button type="button" data-command="HiliteColor" data-value="transparent" class="swatch-editor ring-1 ring-slate-200" style="background:transparent"></button>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Utilities</span>
+                                                <button type="button" data-command="removeFormat" class="btn-editor"><span class="fa-solid fa-eraser"></span></button>
+                                                @if (block.ContentType == SectionContentType.Html)
+                                                {
+                                                    <button type="button" data-command="toggle-code" class="btn-editor"><span class="fa-solid fa-code"></span></button>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        @* EDITOR SURFACE *@
+                                        <div id="@editorId"
+                                             class="min-h-64 rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-base leading-relaxed text-slate-900 focus:outline-none"
+                                             contenteditable="true"
+                                             data-editor-surface
+                                             data-placeholder="Craft the story block with rich formatting">
+                                            @Html.Raw(initialHtml)
+                                        </div>
+
+                                        @* metrics *@
+                                        <div id="@metricsId" class="flex flex-wrap gap-3 text-[10px] font-semibold uppercase tracking-wide text-slate-500" data-editor-metrics>
+                                            <span data-editor-words class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
+                                                <span class="fa-solid fa-text-width text-[9px]"></span> 0 words
+                                            </span>
+                                            <span data-editor-chars class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1">0 characters</span>
+                                            <span data-editor-read class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1">0 min read</span>
+                                        </div>
+
+                                        @if (block.ContentType == SectionContentType.Html)
+                                        {
+                                            <textarea class="hidden rich-editor__code w-full rounded-2xl bg-slate-950/90 p-4 font-mono text-xs text-slate-100"
+                                      data-editor-code
+                                      spellcheck="false">@block.ContentValue</textarea>
+                                        }
+
+                                        <input type="hidden" name="Input.ContentValue" value="@block.ContentValue" data-editor-input />
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" name="Input.ContentValue" value="@block.ContentValue" />
+                            }
+
+                            @if (block.ContentType == SectionContentType.Image)
+                            {
+                                <div class="space-y-3">
+                                    <label class="text-sm font-semibold text-slate-700" for="image-@(block.Id)">Imagery</label>
+                                    <div class="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:flex-row">
+                                        <div class="flex flex-1 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-slate-200 bg-white p-6">
+                                            @if (!string.IsNullOrWhiteSpace(block.MediaPath))
+                                            {
+                                                <img src="@(block.MediaPath)" alt="@(block.MediaAltText)" class="max-h-64 w-full rounded-xl object-contain" />
+                                            }
+                                            else
+                                            {
+                                                <div class="flex flex-col items-center gap-2 text-center text-slate-400">
+                                                    <span class="fa-regular fa-image text-3xl"></span>
+                                                    <p>No media uploaded yet</p>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="flex flex-1 flex-col gap-3">
+                                            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500" for="image-@(block.Id)">Upload replacement</label>
+                                            <input id="image-@(block.Id)" type="file" name="Input.Image" accept="image/*"
+                                                   class="block w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300/60" />
+                                            <p class="text-xs text-slate-400">JPG, PNG, WEBP, SVG — Max 10 MB.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-slate-700" for="alt-@(block.Id)">
+                                    @(block.ContentType == SectionContentType.Image ? "Alt text" : "Visual alt text")
+                                </label>
+                                <input id="alt-@(block.Id)" name="Input.MediaAltText" value="@(block.MediaAltText)"
+                                       class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200/50"
+                                       placeholder="@(block.ContentType == SectionContentType.Image ? "Describe the imagery for accessibility" : "Optional: describe supporting visuals")" />
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+                            <p class="text-[11px] font-medium text-slate-500">Autosave is disabled. Save and then publish to push content live.</p>
+                            <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-[#C38C1A] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#a57310]">
+                                <span class="fa-solid fa-floppy-disk"></span>
+                                Save section
+                            </button>
+                        </div>
+                    </form>
+                }
+            </article>
+        }
+    </section>
+</div>
+
+@* OVERLAY *@
+<div class="fixed inset-0 z-[80] hidden" data-sidepanel-overlay></div>
+
+@* DETAILS SIDEBAR *@
+<aside class="fixed right-0 top-0 z-[90] h-full w-[420px] max-w-full translate-x-full bg-slate-950/95 text-slate-50 shadow-2xl ring-1 ring-slate-800/60 backdrop-blur-xl transition-transform duration-300 ease-out"
+       data-sidepanel="details">
+    <header class="flex items-center justify-between gap-3 border-b border-slate-800/70 bg-slate-950/40 px-5 py-4">
+        <div>
+            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400">@pageName</p>
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-200 ring-1 ring-emerald-400/40">
+                    <span class="fa-solid fa-circle-info"></span>
+                </span>
+                Details
+            </h2>
+        </div>
+        <button type="button"
+                class="h-8 w-8 rounded-full bg-slate-900 text-slate-100 flex items-center justify-center hover:bg-slate-800"
+                data-panel-close>
+            <span class="fa-solid fa-xmark text-sm"></span>
+        </button>
+    </header>
+    <div class="flex-1 space-y-5 overflow-y-auto px-5 py-5">
+        <div class="rounded-2xl bg-white/95 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-1">page name</p>
+            <p class="text-sm font-semibold text-slate-900">@pageName</p>
+            <p class="text-[11px] text-slate-500 mt-2">Landing deck for Bugence with a cinematic mission console experience.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+                <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-1">slug</p>
+                <p class="text-sm font-semibold">@pageSlug</p>
+            </div>
+            <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+                <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-1">last published</p>
+                <p class="text-sm font-semibold leading-tight">@lastPublishedStamp</p>
+            </div>
+            <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200 flex flex-col gap-1">
+                <p class="text-[10px] uppercase tracking-wide text-slate-400">sections</p>
+                <p class="text-2xl font-bold text-slate-950">@Model.SectionCount</p>
+                <p class="text-[11px] text-slate-500">In this page</p>
+            </div>
+            <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200 flex flex-col gap-1">
+                <p class="text-[10px] uppercase tracking-wide text-slate-400">editable</p>
+                <p class="text-2xl font-bold text-emerald-500">@Model.EditableSectionCount</p>
+                <p class="text-[11px] text-slate-500">Unlocked blocks</p>
+            </div>
+        </div>
+        <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-2">description</p>
+            <p class="text-sm text-slate-700">@((string.IsNullOrWhiteSpace(pageDescription) ? "No description provided." : pageDescription))</p>
+        </div>
+        <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-2">quick actions</p>
+            <div class="flex flex-col gap-2">
+                   class="inline-flex items-center justify-between gap-3 rounded-xl bg-slate-900/90 px-3 py-2 text-sm font-medium text-white hover:bg-slate-900">
+                    <span class="flex items-center gap-2">
+                        <span class="fa-solid fa-eye"></span>
+                        Open live preview
+                    </span>
+                    <span class="fa-solid fa-chevron-right text-[10px]"></span>
+                </a>
+                <form method="post" asp-page-handler="Publish">
+                    <input type="hidden" name="pageId" value="@Model.Page?.Id" />
+                    <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#C38C1A] px-3 py-2 text-sm font-semibold text-white hover:bg-[#a57310]">
+                        <span class="fa-solid fa-rocket-launch"></span>
+                        Publish to live
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-2">meta</p>
+            <dl class="space-y-2 text-sm">
+                <div class="flex items-center justify-between gap-4">
+                    <dt class="text-slate-500">Workspace</dt>
+                    <dd class="font-medium text-slate-900">Draft</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <dt class="text-slate-500">Owner</dt>
+                    <dd class="font-medium text-slate-900">Bugence edit console</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <dt class="text-slate-500">Locked blocks</dt>
+                    <dd class="font-medium text-amber-500">@Model.LockedSectionCount</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</aside>
+
+@* HISTORY SIDEBAR *@
+<aside class="fixed right-0 top-0 z-[90] h-full w-[420px] max-w-full translate-x-full bg-slate-950/95 text-slate-50 shadow-2xl ring-1 ring-slate-800/60 backdrop-blur-xl transition-transform duration-300 ease-out"
+       data-sidepanel="history">
+    <header class="flex items-center justify-between gap-3 border-b border-slate-800/70 bg-slate-950/40 px-5 py-4">
+        <div>
+            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400">@pageName</p>
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-400/10 text-sky-200 ring-1 ring-sky-400/40">
+                    <span class="fa-solid fa-clock-rotate-left"></span>
+                </span>
+                History
+            </h2>
+        </div>
+        <button type="button"
+                class="h-8 w-8 rounded-full bg-slate-900 text-slate-100 flex items-center justify-center hover:bg-slate-800"
+                data-panel-close>
+            <span class="fa-solid fa-xmark text-sm"></span>
+        </button>
+    </header>
+    <div class="flex-1 space-y-5 overflow-y-auto px-5 py-5">
+        <div class="rounded-2xl bg-white/95 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200 flex items-start gap-3">
+            <span class="mt-1 h-8 w-8 flex items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500 ring-1 ring-emerald-300/60">
+                <span class="fa-solid fa-circle-check"></span>
+            </span>
+            <div>
+                <p class="text-sm font-semibold">Page published to live site</p>
+                <p class="text-[11px] text-slate-500">@lastPublishedStamp</p>
+                <p class="mt-2 text-[11px] text-slate-500">Skipped: hero_image (locked by system).</p>
+            </div>
+        </div>
+        <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-2">Change log</p>
+            <ol class="space-y-3">
+                <li class="flex gap-2">
+                    <span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                    <div>
+                        <p class="text-sm font-medium text-slate-900">Updated narrative in <strong>hero_story</strong></p>
+                        <p class="text-[11px] text-slate-500">Oct 25 - 11:15</p>
+                    </div>
+                </li>
+                <li class="flex gap-2">
+                    <span class="mt-1 h-1.5 w-1.5 rounded-full bg-amber-400"></span>
+                    <div>
+                        <p class="text-sm font-medium text-slate-900">Edited image alt text in <strong>hero_image</strong></p>
+                        <p class="text-[11px] text-slate-500">Oct 25 - 10:58</p>
+                    </div>
+                </li>
+                <li class="flex gap-2">
+                    <span class="mt-1 h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                    <div>
+                        <p class="text-sm font-medium text-slate-900">Section order re-validated</p>
+                        <p class="text-[11px] text-slate-500">Oct 25 - 10:49</p>
+                    </div>
+                </li>
+            </ol>
+        </div>
+        <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-2">System status</p>
+            <p class="flex items-center gap-2 text-sm text-slate-900">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.35)]"></span>
+                Live: Bugence
+            </p>
+            <p class="text-[11px] text-slate-500 mt-2">All pipelines healthy. Last sync: @DateTime.UtcNow.ToString("MMM dd, yyyy - HH:mm") UTC</p>
+        </div>
+        <div class="rounded-2xl bg-white/90 p-4 text-slate-900 shadow-sm ring-1 ring-slate-200">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400 mb-2">Recent publishers</p>
+            <ul class="space-y-2 text-sm">
+                <li class="flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <span class="h-6 w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px]">BB</span>
+                        <span>Bugence Ops</span>
+                    </span>
+                    <span class="text-[11px] text-slate-500">2m ago</span>
+                </li>
+                <li class="flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <span class="h-6 w-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[10px]">PT</span>
+                        <span>Pete D.</span>
+                    </span>
+                    <span class="text-[11px] text-slate-500">1h ago</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</aside>
+
+<style>
+    :root {
+        --editor-bg: #050505;
+        --editor-panel: #0a0a0a;
+        --editor-border: rgba(255,255,255,0.08);
+        --editor-text: #e5e7eb;
+        --editor-muted: #9ca3af;
+    }
+
+    [data-page-shell] {
+        color: var(--editor-text);
+    }
+    [data-topbar] {
+        background: var(--editor-panel) !important;
+        border-color: var(--editor-border) !important;
+    }
+    [data-topbar] a,
+    [data-topbar] button {
+        color: var(--editor-text) !important;
+        background: transparent !important;
+    }
+    [data-topbar] a.bg-white,
+    [data-topbar] button.bg-white {
+        background: var(--editor-panel) !important;
+        color: var(--editor-text) !important;
+        border: 1px solid var(--editor-border) !important;
+    }
+
+    [data-page-shell] section:first-of-type {
+        background: var(--editor-bg) !important;
+        border-color: var(--editor-border) !important;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.45) !important;
+    }
+
+    [data-page-shell] [class*="bg-slate-900"],
+    [data-page-shell] [class*="bg-slate-950"],
+    [data-page-shell] [class*="bg-slate-800"] {
+        background: var(--editor-panel) !important;
+    }
+
+    [data-page-shell] [class*="ring-slate-"],
+    [data-page-shell] [class*="border-slate-"] {
+        border-color: var(--editor-border) !important;
+    }
+
+    .publish-panel {
+        background: var(--editor-panel) !important;
+        color: var(--editor-text) !important;
+        border-color: var(--editor-border) !important;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
+    }
+    .publish-panel p,
+    .publish-panel span {
+        color: var(--editor-muted) !important;
+    }
+    .publish-panel a,
+    .publish-panel button {
+        background: #111111 !important;
+        color: #f8fafc !important;
+        border: 1px solid var(--editor-border) !important;
+    }
+    .publish-panel .publish-cta {
+        background: #111111 !important;
+        color: #f8fafc !important;
+        border: 1px solid var(--editor-border) !important;
+    }
+    .publish-panel .publish-meta {
+        background: #0b0b0b !important;
+        color: var(--editor-muted) !important;
+    }
+
+    .btn-editor {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 2rem;
+        width: 2rem;
+        border-radius: 9999px;
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, .07);
+        color: #0f172a;
+        transition: all .12s ease-out;
+        font-size: .7rem;
+        cursor: pointer;
+    }
+
+        .btn-editor:hover {
+            background: rgba(195, 140, 26, 0.12);
+            border-color: rgba(195, 140, 26, 0.25);
+        }
+
+    .swatch-editor {
+        height: 1.6rem;
+        width: 1.6rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(15, 23, 42, .07);
+        cursor: pointer;
+    }
+
+    [data-sidepanel-overlay].is-open {
+        display: block;
+        background: radial-gradient(circle at top, rgba(15,23,42,.45), rgba(15,23,42,.95));
+        backdrop-filter: blur(4px);
+    }
+
+    [data-sidepanel].is-open {
+        transform: translateX(0);
+    }
+
+    [data-page-switcher] [data-page-switcher-menu].is-open {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+</style>
+
+<script>
+    // WYSIWYG
+    (function () {
+        const editors = document.querySelectorAll('[data-editor]');
+        editors.forEach(function (root) {
+            const surfaceSel = root.getAttribute('data-editor-surface') || '[data-editor-surface]';
+            const toolbarSel = root.getAttribute('data-editor-toolbar') || '[role="toolbar"]';
+            const metricsSel = root.getAttribute('data-editor-metrics') || '[data-editor-metrics]';
+
+            const surface = root.querySelector(surfaceSel) || document.querySelector(surfaceSel);
+            const toolbar = root.querySelector(toolbarSel) || document.querySelector(toolbarSel);
+            const metrics = root.querySelector(metricsSel) || document.querySelector(metricsSel);
+            const hiddenInput = root.querySelector('[data-editor-input]');
+            const codeEl = root.querySelector('[data-editor-code]');
+
+            if (!surface || !toolbar) {
+                return;
+            }
+
+            surface.addEventListener('click', function () {
+                surface.focus();
+            });
+
+            function updateMetrics() {
+                if (!metrics) return;
+                const text = surface.innerText || '';
+                const words = text.trim().length ? text.trim().split(/\s+/).length : 0;
+                const chars = text.length;
+                const read = Math.max(1, Math.ceil(words / 200));
+                const wEl = metrics.querySelector('[data-editor-words]');
+                const cEl = metrics.querySelector('[data-editor-chars]');
+                const rEl = metrics.querySelector('[data-editor-read]');
+                if (wEl) wEl.innerHTML = '<span class="fa-solid fa-text-width text-[9px]"></span> ' + words + ' words';
+                if (cEl) cEl.textContent = chars + ' characters';
+                if (rEl) rEl.textContent = read + ' min read';
+            }
+
+            function updateHidden() {
+                if (hiddenInput) {
+                    hiddenInput.value = surface.innerHTML.trim();
+                }
+            }
+
+            function exec(surface, cmd, value) {
+                const sel = window.getSelection();
+                if (!sel || sel.rangeCount === 0) {
+                    const range = document.createRange();
+                    range.selectNodeContents(surface);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+                surface.focus();
+                document.execCommand(cmd, false, value);
+                updateMetrics();
+                updateHidden();
+            }
+
+            toolbar.querySelectorAll('[data-command]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const cmd = btn.getAttribute('data-command');
+                    const value = btn.getAttribute('data-value') || null;
+
+                    if (cmd === 'toggle-code') {
+                        if (codeEl) {
+                            const isHidden = codeEl.classList.contains('hidden') || codeEl.hasAttribute('hidden');
+                            if (isHidden) {
+                                codeEl.classList.remove('hidden');
+                                codeEl.removeAttribute('hidden');
+                                codeEl.value = surface.innerHTML.trim();
+                            } else {
+                                codeEl.classList.add('hidden');
+                                codeEl.setAttribute('hidden', 'hidden');
+                                surface.innerHTML = codeEl.value;
+                            }
+                        }
+                        return;
+                    }
+
+                    if (cmd === 'createLink') {
+                        const url = prompt('Enter URL');
+                        if (url) {
+                            exec(surface, 'createLink', url);
+                        }
+                        return;
+                    }
+
+                    exec(surface, cmd, value);
+                });
+            });
+
+            surface.addEventListener('input', function () {
+                updateMetrics();
+                updateHidden();
+            });
+
+            updateMetrics();
+            updateHidden();
+        });
+    })();
+
+    // PAGINATION + SEARCH
+    (function () {
+        const cardsContainer = document.getElementById('section-cards');
+        if (!cardsContainer) return;
+        const cards = Array.from(cardsContainer.querySelectorAll('[data-section-card]'));
+        const searchInput = document.getElementById('section-search');
+        const pageSizeSelect = document.getElementById('section-page-size');
+        const prevBtn = document.getElementById('section-prev');
+        const nextBtn = document.getElementById('section-next');
+        const pageIndicator = document.getElementById('section-page-indicator');
+        const countLabel = document.getElementById('section-count-label');
+
+        let filtered = cards.slice();
+        let currentPage = 1;
+        let pageSize = parseInt(pageSizeSelect.value, 10);
+
+        function applyVisibility() {
+            const total = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            if (currentPage > totalPages) currentPage = totalPages;
+            cards.forEach(c => c.style.display = 'none');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const toShow = filtered.slice(start, end);
+            toShow.forEach(c => c.style.display = '');
+            pageIndicator.textContent = currentPage + ' / ' + totalPages;
+            countLabel.textContent = 'Showing ' + filtered.length + ' section(s)';
+        }
+
+        function runFilter() {
+            const term = (searchInput.value || '').toLowerCase();
+            if (!term) {
+                filtered = cards.slice();
+            } else {
+                filtered = cards.filter(c => {
+                    const title = (c.getAttribute('data-section-title') || '').toLowerCase();
+                    const key = (c.getAttribute('data-section-key') || '').toLowerCase();
+                    const bodyText = (c.innerText || '').toLowerCase();
+                    return title.includes(term) || key.includes(term) || bodyText.includes(term);
+                });
+            }
+            currentPage = 1;
+            applyVisibility();
+        }
+
+        searchInput.addEventListener('input', runFilter);
+        pageSizeSelect.addEventListener('change', function () {
+            pageSize = parseInt(this.value, 10) || 5;
+            currentPage = 1;
+            applyVisibility();
+        });
+        prevBtn.addEventListener('click', function () {
+            if (currentPage > 1) {
+                currentPage--;
+                applyVisibility();
+            }
+        });
+        nextBtn.addEventListener('click', function () {
+            const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+            if (currentPage < totalPages) {
+                currentPage++;
+                applyVisibility();
+            }
+        });
+        applyVisibility();
+    })();
+
+    // SIDE PANELS
+    (function () {
+        const overlay = document.querySelector('[data-sidepanel-overlay]');
+        const panels = document.querySelectorAll('[data-sidepanel]');
+        const triggers = document.querySelectorAll('[data-panel-trigger]');
+        const closes = document.querySelectorAll('[data-panel-close]');
+
+        function openPanel(name) {
+            panels.forEach(p => {
+                if (p.getAttribute('data-sidepanel') === name) {
+                    p.classList.add('is-open');
+                } else {
+                    p.classList.remove('is-open');
+                }
+            });
+            if (name === 'none') {
+                overlay.classList.remove('is-open');
+            } else {
+                overlay.classList.add('is-open');
+            }
+        }
+
+        triggers.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const name = btn.getAttribute('data-panel-trigger');
+                openPanel(name);
+            });
+        });
+
+        closes.forEach(btn => btn.addEventListener('click', () => openPanel('none')));
+        if (overlay) overlay.addEventListener('click', () => openPanel('none'));
+    })();
+
+    // PAGE SWITCHER (Index, MeetPeteD, BookPeteD, JoinCommunity)
+    (function () {
+        const switcher = document.querySelector('[data-page-switcher]');
+        if (!switcher) return;
+
+        const btn = switcher.querySelector('[data-page-switcher-button]');
+        const menu = switcher.querySelector('[data-page-switcher-menu]');
+        const caret = switcher.querySelector('[data-page-switcher-caret]');
+        const items = menu.querySelectorAll('[data-target-page]');
+
+        function toggle(open) {
+            if (open) {
+                menu.classList.add('is-open');
+                caret && (caret.style.transform = 'rotate(180deg)');
+            } else {
+                menu.classList.remove('is-open');
+                caret && (caret.style.transform = 'rotate(0deg)');
+            }
+        }
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = menu.classList.contains('is-open');
+            toggle(!isOpen);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!switcher.contains(e.target)) toggle(false);
+        });
+
+        items.forEach(it => {
+            it.addEventListener('click', () => toggle(false));
+        });
+    })();
+</script>

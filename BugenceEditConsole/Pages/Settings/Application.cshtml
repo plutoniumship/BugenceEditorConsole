@@ -1,0 +1,127 @@
+@page
+@model BugenceEditConsole.Pages.Settings.ApplicationModel
+@{
+    ViewData["Title"] = "Application Settings";
+    ViewData["BodyClass"] = "bg-canvas profile-dark settings-dark";
+}
+
+<section class="space-y-12 px-6 sm:px-10 md:px-16 lg:px-20 py-12 relative">
+
+    <!-- === HERO SECTION === -->
+    <header class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#0B111A]/90 via-[#141A24]/90 to-[#1E1A1A]/90 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)] backdrop-blur-xl p-10 sm:p-14 text-white">
+        <div class="absolute inset-0 pointer-events-none opacity-70">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_15%_20%,rgba(255,126,95,0.15),transparent_70%)]"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_90%_-10%,rgba(254,180,123,0.12),transparent_60%)]"></div>
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-10 relative z-10">
+            <div class="max-w-2xl space-y-3">
+                <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[12px] uppercase tracking-[0.25em] text-amber-200 ring-1 ring-white/10">
+                    <span class="fa-solid fa-sliders text-amber-300"></span>
+                    System settings
+                </span>
+                <h1 class="text-4xl font-black tracking-tight bg-gradient-to-r from-rose-400 via-amber-300 to-orange-400 bg-clip-text text-transparent">
+                    Operations blueprint
+                </h1>
+                <p class="text-white/70 leading-relaxed">
+                    Reference the core technical configuration for the Bugence × Bugence editor. Ship this dossier to engineering when requesting escalations.
+                </p>
+            </div>
+
+            <!-- HERO METRICS -->
+            <div class="flex flex-wrap gap-6 md:gap-8 lg:gap-12">
+                <article class="p-5 rounded-2xl border border-white/10 bg-white/10 backdrop-blur-md shadow-md hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
+                    <h3 class="text-[13px] uppercase tracking-[0.25em] text-white/60 font-semibold">App version</h3>
+                    <p class="text-2xl font-bold text-white pt-2">@Model.AppVersion</p>
+                    <p class="text-[13px] text-white/50">Assembly build currently deployed.</p>
+                </article>
+                <article class="p-5 rounded-2xl border border-white/10 bg-white/10 backdrop-blur-md shadow-md hover:bg-white/15 transition-all duration-300 hover:-translate-y-1">
+                    <h3 class="text-[13px] uppercase tracking-[0.25em] text-white/60 font-semibold">Environment</h3>
+                    <p class="text-2xl font-bold text-white pt-2">@Model.EnvironmentName</p>
+                    <p class="text-[13px] text-white/50">Runtime mode for diagnostics.</p>
+                </article>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- === GRID SECTION === -->
+    <section class="grid gap-10 md:grid-cols-2">
+
+        <!-- STORAGE CARD -->
+        <article class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#121820]/90 via-[#0F0D0D]/95 to-[#1A120F]/90 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)] backdrop-blur-xl p-8 sm:p-10 text-white transition-all hover:-translate-y-1">
+            <div class="absolute inset-0 pointer-events-none opacity-60">
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_-20%,rgba(255,126,95,0.2),transparent_60%)]"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_100%,rgba(254,180,123,0.15),transparent_60%)]"></div>
+            </div>
+
+            <header class="flex items-start gap-4 mb-6 relative z-10">
+                <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-amber-500 to-orange-500 text-white text-xl shadow-lg">
+                    <i class="fa-solid fa-database"></i>
+                </span>
+                <div>
+                    <h2 class="text-xl font-bold text-white">Storage backbone</h2>
+                    <p class="text-white/70 text-[15px]">Primary locations the console relies on for content delivery.</p>
+                </div>
+            </header>
+
+            <dl class="grid gap-5 relative z-10">
+                <div>
+                    <dt class="text-sm text-white/60 uppercase tracking-wider">Content root</dt>
+                    <dd><code class="inline-block mt-1 rounded bg-black/40 px-3 py-1 text-white text-[13px]">@Model.ContentRoot</code></dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-white/60 uppercase tracking-wider">Content database</dt>
+                    <dd><code class="inline-block mt-1 rounded bg-black/40 px-3 py-1 text-white text-[13px]">@Model.DatabasePath</code></dd>
+                </div>
+            </dl>
+
+            <aside class="mt-8 flex items-start gap-3 p-4 rounded-2xl bg-white/5 ring-1 ring-amber-500/20 relative z-10">
+                <span class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></span>
+                <div>
+                    <strong class="text-white">Pro tip</strong>
+                    <p class="text-white/70 text-[14px] mt-1">Snapshot these directories before major releases to guarantee fast rollback.</p>
+                </div>
+            </aside>
+        </article>
+
+
+        <!-- QUICK OPERATIONS CARD -->
+        <article class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#141A24]/90 via-[#1A1110]/90 to-[#0D0F12]/90 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)] backdrop-blur-xl p-8 sm:p-10 text-white transition-all hover:-translate-y-1">
+            <div class="absolute inset-0 pointer-events-none opacity-60">
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(255,126,95,0.18),transparent_60%)]"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_120%,rgba(254,180,123,0.12),transparent_60%)]"></div>
+            </div>
+
+            <header class="flex items-start gap-4 mb-6 relative z-10">
+                <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-amber-500 to-orange-500 text-white text-xl shadow-lg">
+                    <i class="fa-solid fa-rocket"></i>
+                </span>
+                <div>
+                    <h2 class="text-xl font-bold text-white">Quick operations</h2>
+                    <p class="text-white/70 text-[15px]">Jump straight into the most common follow-up tasks.</p>
+                </div>
+            </header>
+
+            <div class="space-y-4 relative z-10">
+                <a asp-page="/Insights/Logs" class="group flex items-center gap-4 rounded-2xl bg-white/10 ring-1 ring-white/10 px-5 py-4 hover:bg-gradient-to-r hover:from-rose-500/10 hover:to-amber-500/10 transition-all duration-300">
+                    <span class="fa-solid fa-chart-line text-amber-400 text-lg"></span>
+                    <div>
+                        <strong class="text-white group-hover:text-amber-200">Review change logs</strong>
+                        <p class="text-[13px] text-white/70">Audit who shipped what, and when.</p>
+                    </div>
+                </a>
+                    <span class="fa-solid fa-sitemap text-orange-300 text-lg"></span>
+                    <div>
+                        <strong class="text-white group-hover:text-amber-200">Open page library</strong>
+                        <p class="text-[13px] text-white/70">Jump into content assets and templates.</p>
+                    </div>
+                </a>
+            </div>
+
+            <p class="mt-6 text-[13px] text-white/60 relative z-10">
+                Need to adjust infrastructure-level knobs (SMTP, CDN, analytics)? Loop in Bugence infra for a coordinated change window.
+            </p>
+        </article>
+    </section>
+</section>

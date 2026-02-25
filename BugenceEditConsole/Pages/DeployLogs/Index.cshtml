@@ -1,0 +1,137 @@
+@page
+@model BugenceEditConsole.Pages.DeployLogs.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+    ViewData["BodyClass"] = "page-deploylogs-index";
+}
+
+@section Head {
+<style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
+        main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); position:relative; }
+        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:32px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:16px 0 6px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:10px; margin-bottom:4px; transition:0.2s; font-size:0.95rem; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background: rgba(6,182,212,0.12); color:var(--accent); }
+        .header { margin-bottom:30px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.4rem; margin:0 0 6px; }
+        .header p { color:var(--muted); margin:0; }
+        .toolbar { display:flex; gap:12px; flex-wrap:wrap; }
+        .search-box { position:relative; flex:1; min-width:280px; max-width:420px; }
+        .search-input { width:100%; background:var(--surface); border:1px solid var(--border); padding:12px 12px 12px 40px; border-radius:10px; color:white; outline:none; transition:0.2s; }
+        .search-input:focus { border-color:var(--accent); }
+        .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#555; }
+        .filter-group { display:flex; gap:6px; }
+        .filter-btn { background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:10px 16px; border-radius:8px; font-weight:700; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:8px;}
+        .filter-btn:hover { color:white; border-color:#444; }
+        .filter-btn.active { background:#111620; color:white; border-color:#555; }
+        .sync-btn { background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; padding:10px 16px; border-radius:10px; font-weight:700; display:inline-flex; gap:8px; align-items:center; cursor:pointer; }
+        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 20px 40px -10px rgba(0,0,0,0.5); }
+        table { width:100%; border-collapse:collapse; table-layout:fixed; }
+        th { text-align:left; padding:18px 26px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+        td { padding:20px 26px; border-bottom:1px solid var(--border); vertical-align:middle; color:var(--text); }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.03); }
+        .status-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:20px; font-weight:800; font-size:0.8rem; text-transform:uppercase; white-space:nowrap; text-decoration:none; }
+        .status-Success { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+        .status-Failed { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+        .dot { width:6px; height:6px; border-radius:50%; background: currentColor; }
+        .commit-wrapper { display:flex; flex-direction:column; gap:6px; }
+        .commit-msg { font-weight:800; color:white; font-size:0.98rem; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+        .commit-meta { font-size:0.8rem; color:var(--muted); font-family:monospace; display:flex; align-items:center; gap:10px; }
+        .commit-hash { color:var(--accent); background:rgba(6,182,212,0.1); padding:2px 6px; border-radius:4px; }
+        .branch-icon { color:#666; margin-right:5px; }
+        .user-info { display:flex; align-items:center; gap:10px; }
+        .avatar { width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,#06b6d4,#22d3ee); display:grid; place-items:center; font-weight:800; color:#00131a; }
+        .user-meta { display:flex; flex-direction:column; gap:4px; }
+        .user-name { font-weight:700; }
+        .user-role { color:var(--muted); font-size:0.8rem; }
+        .actions { text-align:right; white-space:nowrap; }
+        .link-btn { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: white; padding: 10px 16px; border-radius: 10px; text-decoration: none; font-weight: 800; display:inline-flex; align-items:center; gap:8px; }
+        .profile-toggle { cursor: pointer; position: relative; }
+        .profile-toggle .chevron { color: var(--muted); }
+        .profile-menu { display:none; position:absolute; left:0; right:0; top:110%; background: var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:10px; box-shadow:0 15px 40px rgba(0,0,0,0.35); }
+        .profile-menu a { display:block; color: white; text-decoration:none; padding:8px 10px; border-radius:8px; font-weight:600; }
+        .profile-menu a:hover { background: rgba(255,255,255,0.05); }
+    </style>
+}
+
+<div class="header">
+                <div>
+                    <a href="/Dashboard/Index" style="color:var(--muted); text-decoration:none; display:inline-flex; gap:6px; align-items:center; font-weight:700; margin-bottom:6px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+                    <h1>Deploy Logs</h1>
+                </div>
+                <button class="sync-btn"><i class="fa-solid fa-rotate"></i> Sync Repo</button>
+            </div>
+
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchBox" placeholder="Search by commit or message...">
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="success"><i class="fa-solid fa-circle text-success" style="color: var(--success);"></i>Success</button>
+                    <button class="filter-btn" data-filter="failed"><i class="fa-solid fa-circle" style="color: var(--danger);"></i>Failed</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 16%;">Status</th>
+                            <th style="width: 32%;">Commit Information</th>
+                            <th style="width: 18%;">Triggered By</th>
+                            <th style="width: 10%;">Duration</th>
+                            <th style="width: 14%;">Date</th>
+                            <th style="width: 10%; text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsBody">
+                        @foreach (var log in Model.Logs)
+                        {
+                            <tr data-status="@log.Status.ToLower()" data-text="@($"{log.Message} {log.ProjectName} {log.Branch} {log.Hash} {log.UserName}".ToLower())">
+                                <td>
+                                    <a class="status-badge status-@log.Status" href="@log.Link" target="_blank" rel="noopener">
+                                        <span class="dot"></span> @log.Status
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="commit-wrapper">
+                                        <span class="commit-msg">@log.Message</span>
+                                        <div class="commit-meta">
+                                            <span class="branch-icon fa-solid fa-code-branch"></span>@log.Branch
+                                            <span class="commit-hash">@log.Hash</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="avatar">@log.UserInitials</div>
+                                        <div class="user-meta">
+                                            <span class="user-name">@log.UserName</span>
+                                            <span class="user-role">@log.Role</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@log.Duration</td>
+                                <td>@log.Time</td>
+                                <td class="actions">
+                                    <a class="link-btn" href="@log.Link" target="_blank" rel="noopener">Details</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+
+
+

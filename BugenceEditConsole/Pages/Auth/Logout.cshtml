@@ -1,0 +1,50 @@
+@page
+@model BugenceEditConsole.Pages.Auth.LogoutModel
+@{
+    ViewData["Title"] = "Signed Out";
+    Layout = "/Pages/Shared/_AuthLayout.cshtml";
+}
+
+<div class="grid items-stretch gap-10 md:grid-cols-2">
+    <section class="tilt animate-fadeUp rounded-3xl border border-white/10 bg-white/[0.03] p-8 md:p-10 backdrop-blur-lg shadow-soft">
+        <div class="shine rounded-3xl"></div>
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold ring-1 ring-white/10">
+                <span class="h-2 w-2 rounded-full bg-glow/80"></span>
+                Session ended
+            </div>
+            <h2 class="mt-5 text-3xl font-black tracking-tight text-white md:text-4xl">
+                You are safely signed out<br />
+                <span class="text-white/70">and the console is locked.</span>
+            </h2>
+            <p class="mt-6 text-sm text-white/70 max-w-xl">
+                Close the tab or sign back in whenever you are ready to orchestrate the next launch window.
+            </p>
+            <div aria-hidden="true" class="pointer-events-none absolute -right-12 bottom-6 h-32 w-32 rounded-full bg-gradient-to-br from-glow/25 via-white/5 to-transparent blur-2xl animate-float"></div>
+        </div>
+    </section>
+    <section class="relative grid gap-8">
+        <article class="on-white tilt animate-fadeUp rounded-3xl bg-card text-ink shadow-2xl ring-1 ring-black/5" role="status" aria-labelledby="logoutTitle">
+            <div class="shine rounded-3xl"></div>
+            <div class="relative p-8 md:p-10 space-y-6">
+                <div>
+                    <span class="inline-flex items-center gap-2 rounded-full bg-black/5 px-3 py-1 text-[11px] font-semibold text-black/70 ring-1 ring-black/10">
+                        <span class="fa-solid fa-circle-check text-accent"></span>
+                        Mission complete
+                    </span>
+                    <h2 id="logoutTitle" class="mt-4 text-2xl font-extrabold tracking-tight text-black sm:text-3xl">
+                        Thanks for keeping Bugence secure
+                    </h2>
+                    <p class="mt-2 text-sm text-black/60">
+                        The session has been cleared. Log back in to pick up exactly where you left off.
+                    </p>
+                </div>
+                <a asp-page="/Auth/Login" class="ripple inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3 font-semibold text-white shadow-lg shadow-black/20 transition hover:-translate-y-px hover:shadow-xl active:translate-y-0">
+                    <span class="fa-solid fa-arrow-right text-xs"></span>
+                    Return to login
+                </a>
+            </div>
+        </article>
+    </section>
+</div>
+

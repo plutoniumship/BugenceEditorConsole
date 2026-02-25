@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bugence Visual Editor — Guide for Pete Dulcamara</title>
+  <style>
+    :root {
+      --ink: #0e1116;
+      --accent: #1f7aea;
+      --accent-2: #ff7a1a;
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --muted: #4b5563;
+      --border: #e5e7eb;
+      --radius: 14px;
+      --shadow: 0 16px 50px rgba(12, 18, 38, 0.14);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 22px 60px;
+      display: flex;
+      justify-content: center;
+      background: radial-gradient(90% 90% at 10% 20%, rgba(31, 122, 234, 0.05), transparent),
+                  radial-gradient(70% 80% at 80% 10%, rgba(255, 122, 26, 0.06), transparent),
+                  var(--bg);
+    }
+    .page {
+      max-width: 900px;
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    header {
+      padding: 24px 28px;
+      background: linear-gradient(135deg, rgba(31, 122, 234, 0.12), rgba(255, 122, 26, 0.10));
+      border-bottom: 1px solid var(--border);
+    }
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    h1 {
+      margin: 6px 0 4px;
+      font-size: 28px;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    main {
+      padding: 26px 28px 34px;
+      display: grid;
+      gap: 18px;
+    }
+    section {
+      padding: 18px 18px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+    section h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    ol, ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    li { margin: 4px 0; }
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 122, 234, 0.35);
+      background: rgba(31, 122, 234, 0.08);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .tip {
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      margin-top: 10px;
+      background: rgba(31, 122, 234, 0.05);
+      color: var(--muted);
+      border-radius: 8px;
+    }
+    .grid-2 {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 122, 26, 0.08);
+      border: 1px solid rgba(255, 122, 26, 0.28);
+      color: #b45309;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="eyebrow">Bugence → Pete</div>
+      <h1>Visual Editor Quick Guide</h1>
+      <p class="subtitle">How to log in, edit in canvas, and publish with confidence.</p>
+    </header>
+    <main>
+      <section>
+        <span class="tag">Access</span>
+        <h2>1) Getting to the dashboard</h2>
+        <ol>
+          <li>In your browser, go to <strong>https://Hightechheroes.ai</strong> (landing page).</li>
+          <li>In the address bar, append <strong>/login</strong> so it becomes <strong>https://Hightechheroes.ai/login</strong>.</li>
+          <li>Press Enter to open the Bugence Visual Editor login page.</li>
+        </ol>
+      </section>
+
+      <section>
+        <span class="tag">Login</span>
+        <h2>2) Login details</h2>
+        <ul>
+          <li><strong>Email:</strong> pete@petedulcamara.com</li>
+          <li><strong>Password:</strong> Bugence!2025</li>
+        </ul>
+      </section>
+
+      <section>
+        <span class="tag">Canvas</span>
+        <h2>3) Editing pages in canvas mode</h2>
+        <ol>
+          <li><strong>Open the Library:</strong> From the dashboard top bar or left sidebar, click <strong>Library</strong>. If searching, choose <strong>Content/Library</strong> to view page cards.</li>
+          <li><strong>Pick a page card:</strong> Find your page, click its <strong>Edit</strong> action to open the right sidebar.</li>
+          <li><strong>Launch canvas:</strong> In the sidebar, click <strong>Edit in Canvas</strong> (top). The page opens with the overlay.</li>
+          <li><strong>Work in canvas:</strong> Hover blocks to see an outline, then double-click to open the editor popup.</li>
+          <li><strong>Locked areas:</strong> Navbar/sidebar are locked (view-only).</li>
+          <li><strong>Text:</strong> Edit content and links, then save and publish.</li>
+          <li><strong>Images:</strong> Upload/replace, set alt text, save, then publish.</li>
+        </ol>
+      </section>
+
+      <section>
+        <div class="grid-2">
+          <div>
+            <span class="tag">Text editor</span>
+            <h2>Canvas text editor popup</h2>
+            <ul>
+              <li>Rich text: bold, italic, headings, lists, links, undo/redo.</li>
+              <li>Meta bar: word count, characters, estimated read time.</li>
+              <li>Revert: back to last saved or previous revision (if available).</li>
+              <li>Save: stores a draft; publish to push live.</li>
+            </ul>
+          </div>
+          <div>
+            <span class="tag">Image editor</span>
+            <h2>Canvas image editor popup</h2>
+            <ul>
+              <li>Upload/replace with live preview (type/size validation).</li>
+              <li>Alt text with quality meter.</li>
+              <li>Revert to previous image/alt in one click.</li>
+              <li>Save: stores a draft; publish to push live.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="tag">Password reset</span>
+        <h2>4) Resetting your password (OTP-based)</h2>
+        <ol>
+          <li>On login, click <strong>Forgot password</strong>.</li>
+          <li>Enter <strong>pete@petedulcamara.com</strong>.</li>
+          <li>Receive a one-time OTP (valid 5 minutes) at that email.</li>
+          <li>Enter OTP → go to <strong>Change Password</strong>.</li>
+          <li>Set and confirm a new password, then log in.</li>
+        </ol>
+        <p class="small"><strong>If you forget after changing it in Settings:</strong> use the same Forgot Password flow; request a new OTP if the 5-minute window expires.</p>
+      </section>
+
+      <section>
+        <span class="tag">Publish</span>
+        <h2>5) Publishing changes</h2>
+        <ul>
+          <li>Edits save as drafts.</li>
+          <li>Click <strong>Publish Live</strong> in the right sidebar to push updates.</li>
+          <li>Confirm publish; a success toast means it’s live.</li>
+        </ul>
+      </section>
+
+      <section>
+        <span class="tag">Capabilities</span>
+        <h2>6) What you can do in Bugence Visual Editor</h2>
+        <ul>
+          <li><strong>Canvas overlay:</strong> highlight to edit, quick “Edit” badge, draft vs live control.</li>
+          <li><strong>Text editing:</strong> formatting, links, undo/redo, meta stats.</li>
+          <li><strong>Image editing:</strong> replace, preview, alt text quality meter.</li>
+          <li><strong>Locks:</strong> Navbar/sidebar and flagged regions remain read-only.</li>
+          <li><strong>Sidebar tools:</strong> Draft status, last publish, section count, Publish Live, Open Dashboard, View Live Page.</li>
+          <li><strong>Live verification:</strong> Use <em>View Live Page</em> to confirm after publishing.</li>
+        </ul>
+      </section>
+
+      <section>
+        <span class="tag">Tips</span>
+        <h2>7) Quick tips</h2>
+        <div class="grid-2">
+          <div>
+            <div class="pill">Alt text</div>
+            <p class="small">Keep alt text concise (5–15 words) describing subject and context.</p>
+          </div>
+          <div>
+            <div class="pill">Quality check</div>
+            <p class="small">Use the meta bar (words/chars/read time) before publishing.</p>
+          </div>
+          <div>
+            <div class="pill">Verify live</div>
+            <p class="small">After publishing, open “View Live Page” and refresh to confirm changes.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

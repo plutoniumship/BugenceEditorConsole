@@ -1,0 +1,73 @@
+.bugence-toolbar {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  background: rgba(15, 23, 42, 0.04);
+  border-radius: var(--bugence-radius-lg);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--bugence-shadow-sm);
+}
+
+.bugence-toolbar__group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bugence-toolbar__group-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.bugence-toolbar__group-body {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.bugence-toolbar__divider {
+  display: inline-block;
+  width: 1px;
+  height: 1.75rem;
+  background: rgba(15, 23, 42, 0.15);
+}
+
+.bugence-toolbar__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--bugence-radius-sm);
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--bugence-color-ink);
+  cursor: pointer;
+  transition: background var(--bugence-transition-base), transform var(--bugence-transition-base);
+}
+
+.bugence-toolbar__button:hover {
+  background: rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
+}
+
+.bugence-toolbar__button:active {
+  transform: translateY(0);
+}
+
+.bugence-toolbar__button--active {
+  background: var(--bugence-color-emerald);
+  color: var(--bugence-color-midnight);
+}
+
+.bugence-toolbar__icon {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,274 @@
+@page
+@model BugenceEditConsole.Pages.Support.ChangeLogModel
+@{
+    ViewData["Title"] = "ChangeLog";
+    ViewData["BodyClass"] = "page-support-changelog";
+}
+
+@section Head {
+<style>
+    :root { --bg:#050505; --surface:#0a0a0a; --surface-hover:#121212; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --diff-add:rgba(16,185,129,0.15); --diff-add-text:#10b981; --diff-rem:rgba(239,68,68,0.15); --diff-rem-text:#ef4444; }
+    .activity-shell { padding:28px 24px; }
+    .header-row { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:18px; }
+    .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.2rem; margin:0 0 4px; }
+    .header p { color:var(--muted); margin:0; }
+    .project-switcher { display:inline-flex; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:10px; position:relative; min-width:280px; }
+    .project-select { appearance:none; background:transparent; border:none; color:white; font-family:inherit; font-weight:700; font-size:0.95rem; width:100%; padding:10px 40px 10px 14px; }
+    .project-select:disabled { opacity:.6; cursor:not-allowed; }
+    .select-arrow { position:absolute; right:14px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--muted); font-size:0.8rem; }
+    .summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
+    .summary-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+    .summary-label { color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; }
+    .summary-value { margin-top:4px; font-size:1.35rem; font-weight:800; }
+    .controls { display:flex; gap:12px; margin-bottom:18px; align-items:center; flex-wrap:wrap; }
+    .search-box { position:relative; flex:1; min-width:240px; max-width:360px; }
+    .search-input { width:100%; background:var(--surface); border:1px solid var(--border); padding:10px 12px 10px 34px; border-radius:8px; color:white; }
+    .search-input:focus { border-color:var(--accent); }
+    .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#666; }
+    .filter-select { background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:10px 12px; border-radius:8px; min-width:170px; }
+    .btn-export { margin-left:auto; background:transparent; border:1px solid var(--border); color:white; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer; display:inline-flex; gap:8px; align-items:center; }
+    .btn-export:hover { border-color:#fff; }
+    .timeline-container { position:relative; padding-left:28px; }
+    .timeline-line { position:absolute; left:13px; top:8px; bottom:0; width:1px; background:rgba(255,255,255,0.1); }
+    .date-group { margin-bottom:18px; }
+    .date-separator { position:relative; margin:0 0 14px -28px; display:flex; align-items:center; gap:12px; }
+    .date-badge { background:#202020; border:1px solid var(--border); padding:5px 12px; border-radius:999px; font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+    .date-line { flex:1; height:1px; background:var(--border); }
+    .activity-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; position:relative; }
+    .activity-card:hover { border-color:rgba(255,255,255,0.2); background:var(--surface-hover); }
+    .timeline-dot { position:absolute; left:-33px; top:20px; width:10px; height:10px; border-radius:50%; border:2px solid var(--muted); background:var(--bg); }
+    .type-code .timeline-dot { border-color:var(--accent); background:var(--accent); }
+    .type-config .timeline-dot { border-color:var(--warning); background:var(--warning); }
+    .type-delete .timeline-dot { border-color:var(--danger); background:var(--danger); }
+    .act-header { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .user-meta { display:flex; gap:10px; align-items:flex-start; }
+    .avatar { width:34px; height:34px; border-radius:8px; background:#18212a; border:1px solid rgba(6,182,212,0.35); display:grid; place-items:center; color:#7ee7ff; font-weight:800; }
+    .act-title { font-size:.95rem; font-weight:700; color:#fff; }
+    .act-title span { color:var(--muted); font-weight:500; }
+    .act-time { margin-top:2px; font-size:.78rem; color:var(--muted); }
+    .act-subtitle { margin-top:8px; color:#d4d4d8; font-size:.9rem; }
+    .action-row { display:flex; gap:8px; }
+    .btn-action { background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 10px; border-radius:6px; font-size:.75rem; font-weight:700; text-decoration:none; cursor:pointer; }
+    .btn-action:hover { color:white; border-color:white; }
+    .act-details { background:#080808; border:1px solid var(--border); border-radius:8px; overflow:hidden; font-family:'JetBrains Mono',monospace; font-size:.78rem; margin-top:10px; display:none; }
+    .act-details.open { display:block; }
+    .diff-line { display:flex; padding:4px 10px; line-height:1.45; color:#d4d4d8; }
+    .line-num { width:28px; color:#52525b; text-align:right; margin-right:10px; user-select:none; }
+    .empty-state { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; color:var(--muted); }
+    .hidden { display:none !important; }
+    @@media (max-width: 980px) {
+        .activity-shell { padding:16px 12px; }
+        .header-row { flex-direction:column; align-items:stretch; }
+        .project-switcher { min-width:0; width:100%; }
+        .summary-grid { grid-template-columns:1fr; }
+        .btn-export { margin-left:0; }
+    }
+</style>
+}
+
+<div class="activity-shell">
+    <div class="header-row">
+        <div class="header">
+            <h1>Project Activity</h1>
+            <p>Audit trail and change history for <span id="headerProjectName" style="color:white; font-weight:700;">@Model.SelectedProjectName</span></p>
+        </div>
+        <div class="project-switcher">
+            <select id="projectSelect" class="project-select" @(Model.Projects.Count == 0 ? "disabled" : null)>
+                @foreach (var project in Model.Projects)
+                {
+                    if (project.Id == Model.SelectedProjectId)
+                    {
+                        <option value="@project.Id" selected>@project.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@project.Id">@project.Name</option>
+                    }
+                }
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-label">Total Events</div>
+            <div class="summary-value">@Model.TotalEvents</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Past 24 Hours</div>
+            <div class="summary-value">@Model.Last24hEvents</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Dynamic VE Events</div>
+            <div class="summary-value">@Model.DynamicEvents</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="search-box">
+            <i class="fa-solid fa-search search-icon"></i>
+            <input type="text" class="search-input" id="searchLog" placeholder="Search by action, user, source, path..." />
+        </div>
+
+        <select class="filter-select" id="memberFilter">
+            <option value="all">All Members</option>
+            @foreach (var member in Model.Members)
+            {
+                <option value="@member">@member</option>
+            }
+        </select>
+
+        <select class="filter-select" id="typeFilter">
+            <option value="all">All Event Types</option>
+            @foreach (var type in Model.EventTypes)
+            {
+                var label = string.IsNullOrWhiteSpace(type) ? type : char.ToUpperInvariant(type[0]) + type.Substring(1);
+                <option value="@type">@label</option>
+            }
+        </select>
+
+        <button class="btn-export" id="exportBtn" @(Model.Entries.Count == 0 ? "disabled" : null)><i class="fa-solid fa-download"></i> Export CSV</button>
+    </div>
+
+    <div class="timeline-container" id="timelineFeed">
+        <div class="timeline-line"></div>
+
+        @if (Model.Entries.Count == 0)
+        {
+            <div class="empty-state">No activity found for this project yet.</div>
+        }
+        else
+        {
+            @foreach (var group in Model.Groups)
+            {
+                <div class="date-group" data-date-group>
+                    <div class="date-separator">
+                        <span class="date-badge">@group.Label</span>
+                        <div class="date-line"></div>
+                    </div>
+
+                    @foreach (var entry in group.Entries)
+                    {
+                        var detailId = $"details-{entry.EntryId}";
+                        <article class="activity-card @entry.CardTypeClass"
+                                 data-entry
+                                 data-member="@entry.Actor"
+                                 data-type="@entry.TypeKey"
+                                 data-search="@entry.SearchText">
+                            <div class="timeline-dot"></div>
+
+                            <div class="act-header">
+                                <div class="user-meta">
+                                    <div class="avatar">@entry.ActorInitials</div>
+                                    <div>
+                                        <div class="act-title">@entry.Actor <span>- @entry.Title</span></div>
+                                        <div class="act-time" title="@entry.LocalTimeText">@entry.RelativeTime</div>
+                                    </div>
+                                </div>
+
+                                <div class="action-row">
+                                    @if (entry.DetailLines.Count > 0)
+                                    {
+                                        <button type="button" class="btn-action" data-toggle-details data-target="@detailId"><i class="fa-solid fa-code"></i> Details</button>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(entry.DeployLogsUrl))
+                                    {
+                                        <a class="btn-action" href="@entry.DeployLogsUrl"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Logs</a>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="act-subtitle">@entry.Subtitle</div>
+
+                            @if (entry.DetailLines.Count > 0)
+                            {
+                                <div class="act-details" id="@detailId">
+                                    @for (var i = 0; i < entry.DetailLines.Count; i++)
+                                    {
+                                        <div class="diff-line"><span class="line-num">@(i + 1)</span><span>@entry.DetailLines[i]</span></div>
+                                    }
+                                </div>
+                            }
+                        </article>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(() => {
+    const projectSelect = document.getElementById('projectSelect');
+    const searchInput = document.getElementById('searchLog');
+    const memberFilter = document.getElementById('memberFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const exportBtn = document.getElementById('exportBtn');
+    const entries = Array.from(document.querySelectorAll('[data-entry]'));
+    const groups = Array.from(document.querySelectorAll('[data-date-group]'));
+
+    const updateProject = () => {
+        const projectId = projectSelect?.value;
+        if (!projectId) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set('projectId', projectId);
+        window.location.href = url.toString();
+    };
+
+    const applyFilters = () => {
+        const member = (memberFilter?.value || 'all').toLowerCase();
+        const type = (typeFilter?.value || 'all').toLowerCase();
+        const q = (searchInput?.value || '').trim().toLowerCase();
+
+        entries.forEach((entry) => {
+            const entryMember = (entry.dataset.member || '').toLowerCase();
+            const entryType = (entry.dataset.type || '').toLowerCase();
+            const search = (entry.dataset.search || '').toLowerCase();
+
+            const memberPass = member === 'all' || entryMember === member;
+            const typePass = type === 'all' || entryType === type;
+            const searchPass = q.length === 0 || search.includes(q);
+            entry.classList.toggle('hidden', !(memberPass && typePass && searchPass));
+        });
+
+        groups.forEach((group) => {
+            const visibleInGroup = group.querySelectorAll('[data-entry]:not(.hidden)').length;
+            group.classList.toggle('hidden', visibleInGroup === 0);
+        });
+    };
+
+    const exportCsv = () => {
+        const projectId = projectSelect?.value || '';
+        const member = memberFilter?.value || 'all';
+        const type = typeFilter?.value || 'all';
+        const q = searchInput?.value || '';
+
+        const url = new URL(window.location.origin + '/Support/ChangeLog');
+        url.searchParams.set('handler', 'Export');
+        if (projectId) url.searchParams.set('projectId', projectId);
+        if (member && member !== 'all') url.searchParams.set('member', member);
+        if (type && type !== 'all') url.searchParams.set('type', type);
+        if (q.trim().length > 0) url.searchParams.set('q', q.trim());
+        window.location.href = url.toString();
+    };
+
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-toggle-details]');
+        if (!trigger) return;
+        const targetId = trigger.getAttribute('data-target');
+        if (!targetId) return;
+        const panel = document.getElementById(targetId);
+        if (!panel) return;
+        panel.classList.toggle('open');
+    });
+
+    projectSelect?.addEventListener('change', updateProject);
+    searchInput?.addEventListener('input', applyFilters);
+    memberFilter?.addEventListener('change', applyFilters);
+    typeFilter?.addEventListener('change', applyFilters);
+    exportBtn?.addEventListener('click', exportCsv);
+})();
+</script>
+}

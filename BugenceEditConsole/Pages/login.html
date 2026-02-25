@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Bugence - Visual Editor Console</title>
+    <meta name="description" content="Sign in to the Bugence Editor Console and keep your hero narratives on orbit." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/lib/tailwind/tailwind.min.css" />
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css" />
+    <link rel="stylesheet" href="/css/theme.css" />
+    <!-- ✅ jQuery must come first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- ✅ Then load jQuery Validate -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+
+    <!-- ✅ Then load Unobtrusive Validation -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
+
+    <!-- ✅ Then Bootstrap or your custom JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .font-display {
+            font-family: 'Clash Display', 'Inter', sans-serif;
+        }
+
+        .tracking-mission {
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        .tracking-tightcaps {
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .text-xxs {
+            font-size: 0.7rem;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: radial-gradient(60rem 40rem at 10% 10%, rgba(96, 165, 250, 0.1), transparent 60%), radial-gradient(55rem 35rem at 90% 25%, rgba(94, 234, 212, 0.1), transparent 65%), #080a12;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        .login-shell {
+            position: relative;
+            border-radius: 2rem;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(8, 12, 24, 0.85);
+            box-shadow: 0 40px 120px -60px rgba(15, 23, 42, 0.65);
+            overflow: hidden;
+        }
+
+            .login-shell::before {
+                content: "";
+                position: absolute;
+                inset: -40% -10% auto -10%;
+                height: 60%;
+                background: radial-gradient(60% 50% at 15% 20%, rgba(99, 255, 217, 0.18), transparent 70%);
+                filter: blur(80px);
+                opacity: 0.75;
+                pointer-events: none;
+            }
+
+        .login-form label {
+            font-size: 0.8rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: rgba(226, 232, 240, 0.6);
+            font-weight: 600;
+        }
+
+        .login-form input {
+            width: 100%;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(15, 23, 42, 0.6);
+            padding: 0.85rem 1rem;
+            color: #f8fafc;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .login-form input:focus {
+                outline: none;
+                border-color: rgba(99, 255, 217, 0.6);
+                box-shadow: 0 0 0 4px rgba(99, 255, 217, 0.15);
+            }
+
+        .login-form button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
+            width: 100%;
+            border-radius: 999px;
+            padding: 0.95rem 1.2rem;
+            border: none;
+            background: linear-gradient(145deg, rgba(99, 255, 217, 0.85), rgba(56, 251, 217, 0.7));
+            color: #021217;
+            font-size: 0.82rem;
+            letter-spacing: 0.26em;
+            text-transform: uppercase;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .login-form button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 30px 70px -30px rgba(56, 251, 217, 0.65);
+            }
+    </style>
+</head>
+<body>
+  <div class="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center gap-12 px-6 py-16 lg:flex-row lg:items-center lg:gap-16">
+    <div class="max-w-xl space-y-6 text-slate-100">
+      <span class="inline-flex items-center gap-3 rounded-full border border-slate-700 px-3 py-1 text-xs uppercase tracking-mission text-slate-300">
+        <span class="fa-solid fa-satellite"></span>
+        Bugence Mission Control
+      </span>
+      <h1 class="font-display text-4xl font-semibold leading-tight text-slate-50 sm:text-5xl">
+        One console for orchestrating every hero narrative.
+      </h1>
+      <p class="text-base leading-7 text-slate-300">
+        Launch premium hero experiences with concierge-grade tooling, realtime previews, and automated rollbacks. Sign in to keep your creative teams in perfect sync.
+      </p>
+      <ul class="grid gap-4 text-sm text-slate-300 sm:grid-cols-2">
+        <li class="flex items-center gap-3">
+          <span class="fa-solid fa-sparkles text-emerald-300"></span>
+          Live deployment orchestration
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="fa-solid fa-shield-halved text-emerald-300"></span>
+          Zero-trust workflow guardrails
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="fa-solid fa-chart-line text-emerald-300"></span>
+          Mission analytics in real time
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="fa-solid fa-headset text-emerald-300"></span>
+          Concierge support in under 15 minutes
+        </li>
+      </ul>
+    </div>
+    <div class="login-shell relative w-full max-w-md backdrop-blur">
+      <div class="relative z-10 space-y-8 p-10">
+        <header class="space-y-3 text-center">
+          <img src="/images/bugence-logo.svg" alt="Bugence" class="mx-auto h-12 w-12" />
+          <h2 class="font-display text-2xl font-semibold text-slate-50">Welcome back, storyteller</h2>
+          <p class="text-sm text-slate-300">Continue shaping the Bugence experience from mission control.</p>
+        </header>
+        <form class="login-form space-y-6" method="post" action="/Auth/Login">
+          <div class="space-y-2">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@studio.com" />
+          </div>
+          <div class="space-y-2">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter your access key" />
+          </div>
+          <div class="flex items-center justify-between text-xs uppercase tracking-tightcaps text-slate-400">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" name="rememberMe" class="h-4 w-4 rounded border-slate-600 bg-slate-900" />
+              Remember me
+            </label>
+            <a href="/Auth/ForgotPassword" class="text-emerald-300 hover:text-emerald-200">Reset access</a>
+          </div>
+          <button type="submit">
+            <span class="fa-solid fa-right-to-bracket"></span>
+            Enter mission control
+          </button>
+        </form>
+        <p class="text-center text-xs uppercase tracking-tightcaps text-slate-400">
+          Need an invite? <a href="mailto:concierge@bugence.com" class="text-emerald-300 hover:text-emerald-200">Contact concierge</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

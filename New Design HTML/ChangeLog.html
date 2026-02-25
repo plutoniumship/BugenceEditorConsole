@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Activity | Bugence</title>
+    
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* --- CORE THEME --- */
+        :root { 
+            --bg: #050505; 
+            --surface: #0a0a0a; 
+            --surface-hover: #121212;
+            --border: rgba(255,255,255,0.08); 
+            --text: #ffffff; 
+            --muted: #a1a1aa; 
+            
+            --accent: #06b6d4; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b;
+            --purple: #8b5cf6;
+            
+            --diff-add: rgba(16, 185, 129, 0.15);
+            --diff-add-text: #10b981;
+            --diff-rem: rgba(239, 68, 68, 0.15);
+            --diff-rem-text: #ef4444;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+        body { margin:0; background: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; display:flex; height: 100vh; overflow: hidden; }
+
+        /* --- LAYOUT --- */
+        .shell { display:flex; width:100%; height:100%; }
+        
+        aside { 
+            width: 260px; flex-shrink: 0; background: var(--bg); 
+            border-right: 1px solid var(--border); padding: 24px; 
+            display: flex; flex-direction: column; z-index: 10; 
+        }
+        
+        main { 
+            flex-grow: 1; padding: 40px 60px; overflow-y: auto; 
+            background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.03), transparent 60%); 
+            position: relative; 
+        }
+
+        /* --- SIDEBAR --- */
+        .brand { font-family: 'Cabinet Grotesk', sans-serif; font-weight:800; font-size: 1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background: rgba(6,182,212,0.1); color:var(--accent); }
+
+        /* --- HEADER & SWITCHER --- */
+        .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .header h1 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.5rem; margin: 0 0 5px; }
+        .header p { color: var(--muted); margin: 0; }
+
+        .project-switcher {
+            display: inline-flex; align-items: center; 
+            background: var(--surface); border: 1px solid var(--border); 
+            border-radius: 10px; cursor: pointer; transition: 0.2s;
+            position: relative; width: 250px;
+        }
+        .project-switcher:hover { border-color: var(--accent); }
+        .project-select {
+            appearance: none; background: transparent; border: none; color: white; 
+            font-family: inherit; font-weight: 700; font-size: 0.95rem; 
+            cursor: pointer; width: 100%; padding: 10px 40px 10px 16px;
+            z-index: 2; position: relative;
+        }
+        .project-select option { background-color: #111; color: white; padding: 12px; }
+        .select-arrow { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); font-size: 0.8rem; z-index: 1; }
+
+        /* --- CONTROL BAR --- */
+        .controls { display: flex; gap: 15px; margin-bottom: 30px; align-items: center; }
+        .search-box { position: relative; flex: 1; max-width: 300px; }
+        .search-input { width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 10px 10px 10px 35px; border-radius: 8px; color: white; outline: none; transition: 0.2s; }
+        .search-input:focus { border-color: var(--accent); }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #666; }
+
+        .filter-select { background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 10px 15px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; outline: none; }
+        .filter-select:hover { border-color: #444; color: white; }
+        .btn-export { margin-left: auto; background: transparent; border: 1px solid var(--border); color: white; padding: 10px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn-export:hover { background: white; color: black; }
+
+        /* --- TIMELINE LAYOUT --- */
+        .timeline-container { position: relative; padding-left: 30px; }
+        .timeline-line { position: absolute; left: 15px; top: 10px; bottom: 0; width: 1px; background: rgba(255,255,255,0.1); }
+
+        .date-separator { 
+            position: relative; margin: 30px 0 20px -30px; 
+            display: flex; align-items: center; gap: 15px; 
+        }
+        .date-badge { 
+            background: #222; border: 1px solid var(--border); padding: 6px 16px; 
+            border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+        }
+        .date-line { flex: 1; height: 1px; background: var(--border); }
+
+        /* --- ACTIVITY CARD --- */
+        .activity-card { 
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px; 
+            padding: 20px; margin-bottom: 20px; position: relative; transition: 0.2s;
+        }
+        .activity-card:hover { border-color: rgba(255,255,255,0.2); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+        
+        .timeline-dot { 
+            position: absolute; left: -36px; top: 24px; width: 12px; height: 12px; 
+            background: var(--bg); border: 2px solid var(--muted); border-radius: 50%; z-index: 2; 
+        }
+        .type-code .timeline-dot { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 10px var(--accent-dim); }
+        .type-config .timeline-dot { border-color: var(--warning); background: var(--warning); }
+        .type-delete .timeline-dot { border-color: var(--danger); background: var(--danger); }
+
+        .act-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .user-meta { display: flex; gap: 12px; align-items: center; }
+        .avatar { width: 36px; height: 36px; border-radius: 8px; background: #222; display: grid; place-items: center; font-weight: 700; font-size: 0.9rem; color: white; border: 1px solid var(--border); }
+        
+        .act-title { font-size: 0.95rem; font-weight: 600; color: white; }
+        .act-title span { color: var(--muted); font-weight: 400; }
+        .act-time { font-size: 0.8rem; color: var(--muted); }
+
+        /* Diff / Details Box */
+        .act-details { 
+            background: #080808; border: 1px solid var(--border); border-radius: 8px; 
+            overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; 
+            margin-top: 15px; display: none; /* Hidden by default */
+        }
+        .act-details.open { display: block; animation: slideDown 0.2s; }
+        
+        .diff-line { display: flex; padding: 4px 10px; line-height: 1.5; }
+        .diff-line.added { background: var(--diff-add); color: var(--diff-add-text); }
+        .diff-line.removed { background: var(--diff-rem); color: var(--diff-rem-text); text-decoration: line-through; opacity: 0.7; }
+        .diff-line.context { color: #555; }
+        .line-num { width: 30px; color: #444; user-select: none; text-align: right; margin-right: 15px; }
+
+        .btn-action { 
+            background: transparent; border: 1px solid var(--border); color: var(--muted); 
+            padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; 
+            cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; 
+        }
+        .btn-action:hover { color: white; border-color: white; }
+        .btn-revert:hover { border-color: var(--danger); color: var(--danger); }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="shell">
+        <aside>
+            <a href="/Dashboard/Index" class="brand"><i class="fa-solid fa-bug" style="color:var(--accent)"></i> BUGENCE</a>
+            
+            <a href="/Dashboard/Index" class="nav-item active"><i class="fa-solid fa-grid-2 nav-icon"></i> Overview</a>
+            <a href="/Dashboard/Projects" class="nav-item"><i class="fa-solid fa-layer-group nav-icon"></i> Projects</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Analytics</a>
+            
+            <div class="menu-label">Support</div>
+            <a href="/Dashboard/ChangeLog" class="nav-item" style="background: rgba(6,182,212,0.1); color:var(--accent);"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Change Log</a>
+            
+            <div style="margin-top:auto;">
+                <a href="/ProjectHub/GlobalSettings" class="nav-item"><i class="fa-solid fa-gear nav-icon"></i> Settings</a>
+            </div>
+        </aside>
+
+        <main>
+            <div class="header-row">
+                <div class="header">
+                    <h1>Project Activity</h1>
+                    <p>Audit trail and change history for <span id="headerProjectName" style="color:white; font-weight:700;">High-Tech Heroes</span></p>
+                </div>
+                
+                <div class="project-switcher">
+                    <select id="projectSelect" class="project-select" onchange="switchProject()">
+                        <option value="2">High-Tech Heroes</option>
+                        <option value="3">Bugence Static</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="search-box">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchLog" placeholder="Search by file, user, or action..." onkeyup="filterLog()">
+                </div>
+                
+                <select class="filter-select" onchange="filterLog()">
+                    <option value="all">All Members</option>
+                    <option value="Administrator">Administrator</option>
+                    <option value="Sarah">Sarah Des</option>
+                </select>
+
+                <select class="filter-select" onchange="filterLog()">
+                    <option value="all">All Event Types</option>
+                    <option value="code">Code Changes</option>
+                    <option value="config">Configuration</option>
+                    <option value="assets">Assets</option>
+                </select>
+
+                <button class="btn-export"><i class="fa-solid fa-download"></i> Export CSV</button>
+            </div>
+
+            <div class="timeline-container" id="timelineFeed">
+                <div class="timeline-line"></div>
+                
+                </div>
+
+        </main>
+    </div>
+
+    <script>
+        // --- 1. MOCK DATA ---
+        const projectLogs = {
+            "2": [ // High-Tech Heroes
+                {
+                    id: 101,
+                    user: "Administrator",
+                    avatar: "A",
+                    action: "Updated",
+                    target: "index.html",
+                    desc: "Modified hero section headline text.",
+                    time: "2 hours ago",
+                    type: "code",
+                    dateGroup: "Today",
+                    hasDiff: true,
+                    diff: [
+                        { type: 'context', line: 45, text: '<div class="hero-content">' },
+                        { type: 'removed', line: 46, text: '  <h1>Welcome to the Future</h1>' },
+                        { type: 'added', line: 46, text: '  <h1>Build Faster with Bugence</h1>' },
+                        { type: 'context', line: 47, text: '  <p>Start your journey today.</p>' }
+                    ]
+                },
+                {
+                    id: 102,
+                    user: "Sarah Des",
+                    avatar: "S",
+                    action: "Added asset",
+                    target: "logo-white.svg",
+                    desc: "Uploaded new logo file to /assets/images",
+                    time: "5 hours ago",
+                    type: "assets",
+                    dateGroup: "Today",
+                    hasDiff: false
+                },
+                {
+                    id: 103,
+                    user: "Mike Dev",
+                    avatar: "M",
+                    action: "Changed Config",
+                    target: "Settings",
+                    desc: "Updated custom domain DNS records.",
+                    time: "Yesterday at 4:20 PM",
+                    type: "config",
+                    dateGroup: "Yesterday",
+                    hasDiff: true,
+                    diff: [
+                        { type: 'removed', line: 1, text: 'CNAME: old-lb.bugence.app' },
+                        { type: 'added', line: 1, text: 'CNAME: edge-lb.bugence.app' }
+                    ]
+                }
+            ],
+            "3": [ // Bugence Static
+                {
+                    id: 201,
+                    user: "Administrator",
+                    avatar: "A",
+                    action: "Initial Commit",
+                    target: "Project",
+                    desc: "Created project and uploaded initial files.",
+                    time: "3 days ago",
+                    type: "code",
+                    dateGroup: "Previous",
+                    hasDiff: false
+                }
+            ]
+        };
+
+        // --- 2. RENDER LOGIC ---
+        function renderLogs(logs) {
+            const container = document.getElementById('timelineFeed');
+            container.innerHTML = '<div class="timeline-line"></div>'; // Reset
+
+            let currentGroup = '';
+
+            logs.forEach(log => {
+                // Date Separator
+                if (log.dateGroup !== currentGroup) {
+                    currentGroup = log.dateGroup;
+                    container.innerHTML += `
+                        <div class="date-separator">
+                            <div class="date-badge">${currentGroup}</div>
+                            <div class="date-line"></div>
+                        </div>
+                    `;
+                }
+
+                // Diff HTML Generation
+                let diffHtml = '';
+                if(log.hasDiff) {
+                    diffHtml = `<div class="act-details" id="diff-${log.id}">`;
+                    log.diff.forEach(d => {
+                        diffHtml += `<div class="diff-line ${d.type}"><span class="line-num">${d.line}</span> ${d.text.replace(/</g, '&lt;')}</div>`;
+                    });
+                    diffHtml += `</div>`;
+                }
+
+                // Action Buttons
+                const viewBtn = log.hasDiff ? `<button class="btn-action" onclick="toggleDiff(${log.id})"><i class="fa-solid fa-code"></i> View Diff</button>` : '';
+                const revertBtn = `<button class="btn-action btn-revert" onclick="alert('Rolling back ${log.target}...')"><i class="fa-solid fa-rotate-left"></i> Revert</button>`;
+
+                // Log Card
+                const item = document.createElement('div');
+                item.className = `activity-card type-${log.type}`;
+                item.innerHTML = `
+                    <div class="timeline-dot"></div>
+                    <div class="act-header">
+                        <div class="user-meta">
+                            <div class="avatar">${log.avatar}</div>
+                            <div>
+                                <div class="act-title">${log.user} <span style="margin:0 4px;">•</span> ${log.action} <span style="color:var(--accent);">${log.target}</span></div>
+                                <div class="act-time">${log.time}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            ${viewBtn}
+                            ${revertBtn}
+                        </div>
+                    </div>
+                    <div style="color:#ccc; font-size:0.9rem; margin-left:48px;">${log.desc}</div>
+                    <div style="margin-left:48px;">${diffHtml}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // --- 3. INTERACTIONS ---
+        function switchProject() {
+            const pid = document.getElementById('projectSelect').value;
+            const name = document.getElementById('projectSelect').options[document.getElementById('projectSelect').selectedIndex].text;
+            
+            document.getElementById('headerProjectName').innerText = name;
+            
+            // Fade out
+            const container = document.getElementById('timelineFeed');
+            container.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                renderLogs(projectLogs[pid]);
+                container.style.opacity = '1';
+            }, 200);
+        }
+
+        function toggleDiff(id) {
+            const el = document.getElementById(`diff-${id}`);
+            const isOpen = el.classList.contains('open');
+            
+            // Close others (optional)
+            // document.querySelectorAll('.act-details').forEach(d => d.classList.remove('open'));
+
+            if(isOpen) el.classList.remove('open');
+            else el.classList.add('open');
+        }
+
+        function filterLog() {
+            const search = document.getElementById('searchLog').value.toLowerCase();
+            const cards = document.querySelectorAll('.activity-card');
+            
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                if(text.includes(search)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Init
+        renderLogs(projectLogs["2"]);
+    </script>
+</body>
+</html>

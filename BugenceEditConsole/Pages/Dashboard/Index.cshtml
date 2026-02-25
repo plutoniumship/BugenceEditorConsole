@@ -1,0 +1,876 @@
+@page
+@model BugenceEditConsole.Pages.Dashboard.IndexModel
+@{
+    ViewData["Title"] = "Bugence Dashboard";
+    ViewData["BodyClass"] = "page-dashboard-index";
+
+    string FormatStorage(long bytes)
+    {
+        var normalized = Math.Max(0L, bytes);
+        if (normalized < 1024)
+        {
+            return $"{normalized} B";
+        }
+
+        var kb = normalized / 1024d;
+        if (kb < 1024)
+        {
+            return $"{kb:0.#} KB";
+        }
+
+        var mb = kb / 1024d;
+        if (mb < 1024)
+        {
+            return $"{mb:0.#} MB";
+        }
+
+        var gb = mb / 1024d;
+        return $"{gb:0.##} GB";
+    }
+
+    var projectCount = Model.ProjectSummaries?.Count ?? 0;
+    var deploymentCount = Model.UploadedProjects?.Count ?? 0;
+    var totalSizeBytes = Model.ProjectSummaries?.Sum(p => p.SizeBytes) ?? 0;
+    var totalSizeDisplay = FormatStorage(totalSizeBytes);
+    var storageLimitBytes = 100L * 1024 * 1024 * 1024;
+    var storagePercent = storageLimitBytes > 0
+        ? Math.Clamp((totalSizeBytes / (double)storageLimitBytes) * 100d, 0d, 100d)
+        : 0d;
+    var storagePercentStyle = storagePercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+@section Head {
+<style>
+        :root {
+            --bg: #020202;
+            --surface: #0a0a0a;
+            --surface-hover: #121212;
+            --border: rgba(255,255,255,0.08);
+            --text: #e5e5e5;
+            --muted: #737373;
+            --accent: #06b6d4;
+            --accent-dim: rgba(6,182,212,0.1);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; outline: none; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        body { margin:0; background: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; display:flex; height: 100vh; overflow: hidden; }
+
+        .shell { display:flex; width:100%; height:100%; }
+        aside {
+            width: 260px; flex-shrink: 0; background: #050505;
+            border-right: 1px solid var(--border); padding: 24px;
+            display: flex; flex-direction: column; z-index: 20;
+        }
+        .sidebar-scroll {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            padding-right: 8px;
+            margin-right: -8px;
+        }
+        .sidebar-scroll::-webkit-scrollbar { width: 8px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.12);
+            border-radius: 999px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        main { flex-grow: 1; padding: 0; overflow-y: auto; background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.04), transparent 50%); position: relative; }
+        .content-container { max-width: 1400px; margin: 0 auto; padding: 40px; }
+
+        .brand { font-family: 'Cabinet Grotesk', sans-serif; font-weight:800; font-size: 1.2rem; color:white; text-decoration:none; margin-bottom:24px; display:flex; gap:10px; align-items:center; letter-spacing: -0.5px; }
+        .brand-trigger {
+            width: 100%;
+            justify-content: flex-start;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+        }
+        .brand-trigger .brand-chevron {
+            margin-left: auto;
+            font-size: 0.72rem;
+            color: #7f8795;
+            transition: transform 0.22s ease, color 0.22s ease;
+        }
+        .brand-trigger:hover .brand-chevron {
+            color: #c9d2df;
+        }
+        .brand-dropdown-wrapper {
+            margin-bottom: 18px;
+        }
+        .brand-trigger[aria-expanded="true"] .brand-chevron {
+            transform: rotate(180deg);
+            color: #d7e6ff;
+        }
+        #brandDropdown.dropdown-menu {
+            right: auto;
+            left: 0;
+            top: calc(100% - 10px);
+            width: 240px;
+        }
+        #brandDropdown.brand-dropdown-menu {
+            background: linear-gradient(160deg, rgba(8, 12, 16, 0.44), rgba(3, 6, 12, 0.36));
+            border: 1px solid rgba(255,255,255,0.14);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            padding: 8px;
+            border-radius: 14px;
+        }
+        .brand-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #f3f6fb;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: -0.2px;
+            border-radius: 10px;
+            padding: 10px 11px;
+            border: 1px solid transparent;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .brand-option:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.16);
+            color: #ffffff;
+        }
+        .brand-option i {
+            width: 16px;
+            text-align: center;
+            font-size: 0.92rem;
+        }
+        .brand-option .brand-word {
+            line-height: 1;
+        }
+        .menu-label { font-size:0.7rem; color:#444; font-weight:700; margin:20px 0 8px 12px; text-transform:uppercase; letter-spacing:1px; }
+        .text-secondary { color: var(--muted); }
+        .text-center { text-align: center; }
+        .d-flex { display: flex; }
+        .hidden { display: none !important; }
+        .sidebar-footer { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .avatar-chip { width: 100%; background: linear-gradient(160deg, rgba(10,14,18,0.96), rgba(5,7,10,0.96)); border: 1px solid rgba(255,255,255,0.12); display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; color:white; cursor:pointer; transition:0.2s; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03), 0 8px 22px rgba(0,0,0,0.35); }
+        .avatar-chip:hover { border-color: rgba(6,182,212,0.45); box-shadow: inset 0 0 0 1px rgba(6,182,212,0.2), 0 10px 26px rgba(0,0,0,0.42); }
+        .avatar-dot { width:36px; height:36px; border-radius:12px; background: linear-gradient(140deg, #20d3ff, #0ea5e9); color:#051018; font-weight:900; display:grid; place-items:center; box-shadow: 0 4px 14px rgba(14,165,233,0.35); }
+        .avatar-meta { display:flex; flex-direction:column; line-height:1.15; min-width: 0; flex: 1 1 auto; }
+        .avatar-name { font-size:0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .avatar-email { font-size:0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .avatar-live-pill { margin-left: auto; display:inline-flex; align-items:center; gap:6px; color:#9ca3af; font-size:0.72rem; font-weight:700; white-space: nowrap; }
+        .avatar-live-pill .live-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 8px rgba(34,197,94,0.7); }
+        .nav-item {
+            padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center;
+            font-weight:600; border-radius:10px; margin-bottom:4px; transition:0.2s; font-size:0.9rem;
+        }
+        .nav-item:hover { background: var(--surface-hover); color: white; }
+        .nav-item.active { background: var(--surface-hover); color: white; border: 1px solid var(--border); }
+        .nav-icon { width: 20px; text-align: center; }
+
+        
+        .icon-btn {
+            background: var(--surface); border: 1px solid var(--border); width: 40px; height: 40px;
+            border-radius: 10px; display: grid; place-items: center; color: var(--muted); cursor: pointer;
+            transition: 0.2s; position: relative;
+        }
+        .icon-btn:hover, .icon-btn.active { color: white; border-color: #444; background: #1a1a1a; }
+        .primary-btn {
+            background: #ff9900;
+            color: black;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dropdown-wrapper { position: relative; }
+        .dropdown-menu {
+            position: absolute; top: 120%; right: 0; width: 320px;
+            background: #0c0c0c; border: 1px solid var(--border); border-radius: 16px;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.8);
+            opacity: 0; transform: translateY(-10px); pointer-events: none;
+            transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100;
+            overflow: hidden;
+        }
+        .dropdown-menu.top-open {
+            top: auto;
+            bottom: 120%;
+            transform: translateY(10px);
+        }
+        .dropdown-menu.top-open.show {
+            transform: translateY(0);
+        }
+        .dropdown-menu.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .dd-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.9rem; }
+        .dd-body { max-height: 300px; overflow-y: auto; padding: 5px; }
+        .dd-item { display: flex; gap: 12px; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; align-items: center; color: #ccc; text-decoration: none; }
+        .dd-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .profile-header { padding: 20px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+        .profile-info { display: flex; gap: 15px; align-items: center; }
+        .profile-pic { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: black; display: grid; place-items: center; font-weight: 700; font-size: 1.2rem; }
+        .profile-details div { font-weight: 700; color: white; }
+        .profile-details span { font-size: 0.8rem; color: var(--muted); }
+        .plan-badge { display: inline-block; background: rgba(16,185,129,0.1); color: var(--success); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.2); margin-top: 4px; }
+        .profile-dd { border-radius: 16px; }
+        .profile-dd .dd-body { padding: 10px; }
+        .profile-dd .profile-option {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 10px; text-decoration: none;
+            color: #e5e7eb; font-weight: 600; transition: 0.2s;
+        }
+        .profile-dd .profile-option:hover { background: rgba(255,255,255,0.06); color: white; }
+        .profile-dd .profile-option i { width: 18px; text-align: center; color: var(--muted); }
+        .profile-dd .profile-option:hover i { color: white; }
+        #sidebarProfileDropdown { width: 240px; left: 0; right: auto; }
+        #sidebarProfileDropdown .dd-body { display: flex; flex-direction: column; gap: 6px; }
+        #sidebarProfileDropdown .profile-option { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+        #sidebarProfileDropdown .profile-option:hover { border-color: rgba(255,255,255,0.2); }
+        #settingsMenu { z-index: 1000; }
+
+        .metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; transition: 0.2s; }
+        .metric-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); }
+        .metric-head { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
+        .metric-val { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.8rem; font-weight: 800; color: white; }
+        .trend { font-size: 0.8rem; display: flex; align-items: center; gap: 6px; color: var(--muted); }
+        .trend.up { color: var(--success); }
+
+        .bento-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 18px; margin-bottom: 24px; }
+        .bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 14px; }
+        #projectCard { overflow: visible; }
+        .spotlight-card { background: linear-gradient(160deg, #0f0f0f, #050505); min-height: 360px; }
+        .spotlight-bg { position: absolute; top: 0; right: 0; width: 60%; height: 100%; background: radial-gradient(circle at 100% 0%, rgba(6,182,212,0.08), transparent 70%); pointer-events: none; }
+        .proj-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; z-index: 2; position: relative; }
+        .proj-title { font-size: 2rem; font-weight: 800; margin: 0; color: white; letter-spacing: -0.5px; }
+        .proj-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; }
+        .status-pill { background: rgba(16,185,129,0.1); color: var(--success); padding: 6px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16,185,129,0.2); display: inline-flex; align-items: center; gap: 6px; height: fit-content; }
+        .pulse-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+        .hero-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; z-index:2; position: relative; }
+        .select-wrap { position: relative; }
+        .select-wrap select { appearance: none; -webkit-appearance: none; -moz-appearance: none; }
+        .select-wrap .select-arrow { position:absolute; right:12px; top:50%; transform: translateY(-50%); color:var(--muted); pointer-events:none; font-size:0.8rem; }
+        .pill-input { width: 100%; background: rgb(0 0 0); border: 1px solid rgba(255, 255, 255, 0.12); color: #ffffff; padding: 10px 12px; border-radius: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+        .pill-input:focus { border-color: rgba(6,182,212,0.7); box-shadow: 0 0 0 3px rgba(6,182,212,0.2); outline: none; }
+        .terminal-window { background: linear-gradient(180deg, #05070b 0%, #020305 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #93a1b2; min-height: 178px; overflow: hidden; position: relative; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02); }
+        .terminal-header { display: flex; gap: 6px; margin-bottom: 10px; }
+        .t-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
+        .cmd-line { display: block; margin-bottom: 4px; }
+        .cmd-success { color: var(--success); }
+        .cmd-info { color: var(--accent); }
+        .terminal-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:10px; }
+        .terminal-badges { display:flex; gap:8px; flex-wrap:wrap; }
+        .terminal-badge { font-size:0.7rem; color:#d1d5db; border:1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); border-radius:999px; padding:3px 8px; }
+        .terminal-stat { font-size:0.72rem; color:#7dd3fc; }
+
+        .health-card { display: flex; flex-direction: column; gap: 12px; }
+        .upload-panel { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+        .upload-drop { border: 2px dashed rgba(255,255,255,0.12); border-radius: 14px; display: grid; place-items: center; color: var(--muted); background: rgba(255,255,255,0.02); transition: 0.25s ease; cursor: pointer; min-height: 150px; text-align: center; padding: 16px; }
+        .upload-drop:hover { border-color: var(--accent); color: var(--accent); background: rgba(6,182,212,0.06); }
+        .upload-drop.dragover { border-color: var(--accent); background: rgba(33,199,255,0.08); color: var(--accent); }
+        .progress-block { display:none; }
+        .bar { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+        .bar span { display: block; height: 100%; background: linear-gradient(90deg, #06b6d4, #22c55e); width: 0%; transition: width 0.2s ease; }
+        .storage { padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .action-tile { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; color: var(--muted); }
+        .action-tile:hover { background: var(--surface-hover); color: white; border-color: #444; }
+        .tile-icon { font-size: 1.2rem; margin-bottom: 8px; color: var(--text); }
+        .tile-name { font-size: 0.8rem; font-weight: 600; }
+
+        .table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow: visible; margin-bottom: 24px; }
+        .d-table { overflow: visible; }
+        .section-head { padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .section-title { font-weight: 700; font-size: 1rem; color: white; display:flex; align-items:center; gap:10px; }
+        .section-badge { font-size:0.7rem; background:#222; padding:2px 8px; border-radius:6px; color:var(--muted); }
+        .d-table { width: 100%; border-collapse: collapse; }
+        .d-table th { text-align: left; padding: 15px 25px; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.01); font-weight: 700; letter-spacing: 0.5px; }
+        .d-table td { padding: 18px 25px; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; color: #ccc; }
+        .d-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .d-table tr:last-child td { border-bottom: none; }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .st-success { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+        .st-warn { background: rgba(245,158,11,0.1); color: var(--warning); border: 1px solid rgba(245,158,11,0.2); }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
+        .badge.published { background: rgba(34,197,94,0.16); color: var(--success); }
+        .badge.processing { background: rgba(245,158,11,0.16); color: var(--warning); }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .actions-cell { position: relative; text-align: right; }
+        .actions-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 10px; padding: 6px 8px; cursor: pointer; }
+        .actions-menu { position: absolute; right: 0; top: 100%; margin-top: 6px; background: #11141b; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 6px; display: none; z-index: 30; min-width: 170px; box-shadow: 0 12px 30px rgba(0,0,0,0.45); }
+        .actions-menu.show { display: block; }
+        .actions-menu button { background: transparent; border: none; color: var(--text-secondary); text-align: left; width: 100%; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+        .actions-menu button:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .actions-menu .action-deploy { color: #22c55e; }
+        .actions-menu .action-deploy:hover { background: rgba(34,197,94,0.12); color: #86efac; }
+        .actions-menu .action-rename { color: #fbbf24; }
+        .actions-menu .action-rename:hover { background: rgba(251,191,36,0.12); color: #fde68a; }
+        .actions-menu .action-delete { color: #f87171; font-weight: 600; }
+        .actions-menu .action-delete:hover { background: rgba(248,113,113,0.12); color: #fecaca; }
+        .nav-actions { display:flex; gap:10px; align-items:center; }
+        .nav-btn { background:#111; border:1px solid var(--border); color:white; padding:8px 12px; border-radius:8px; font-size:0.85rem; cursor:pointer; font-weight:600; }
+        .file-icon { width: 32px; height: 32px; border-radius: 6px; background: #222; display: grid; place-items: center; font-size: 0.9rem; margin-right: 10px; border: 1px solid var(--border); vertical-align: -0.05em; }
+        .file-name { font-weight: 600; color: white; }
+        .file-meta { font-size: 0.8rem; color: var(--muted); }
+        .dropdown-menu.profile-dd { width: 240px; }
+        .profile-option { display:flex; align-items:center; gap:10px; padding:10px 12px; color:#ccc; text-decoration:none; border-radius:10px; }
+        .profile-option:hover { background: rgba(255,255,255,0.05); color:white; }
+
+        .toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #111; border: 1px solid var(--border); color: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s forwards; min-width: 300px; }
+        @@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        #confirmOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 16px; }
+        #confirmOverlay.show { display: flex; backdrop-filter: blur(4px); }
+        #confirmCard { background: #0b0e14; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px 20px; width: min(420px, 95vw); box-shadow: 0 25px 60px rgba(0,0,0,0.65); }
+        #confirmCard h4 { margin: 0 0 6px; font-family:'Cabinet Grotesk',sans-serif; }
+        #confirmCard p { margin: 0 0 14px; color: var(--muted); }
+        #confirmActions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; margin-top:8px; }
+        #confirmError { color:#fca5a5; font-weight:600; display:none; }
+        .progress-line { height: 6px; background: #1f2937; border-radius: 6px; overflow: hidden; display:none; margin-top: 12px; }
+        .progress-line span { display:block; height:100%; width:0%; background: linear-gradient(90deg,#06b6d4,#22c55e); transition: width 0.2s ease; }
+        .btn-soft { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: white; border-radius: 10px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+        .btn-danger { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.4); color: #fca5a5; }
+
+        #uploadConfirmOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.76); display: none; align-items: center; justify-content: center; z-index: 10001; padding: 16px; }
+        #uploadConfirmOverlay.show { display: flex; backdrop-filter: blur(4px); }
+        #uploadConfirmCard { background: radial-gradient(circle at 20% 20%, rgba(6,182,212,0.12), transparent 35%), #0b0e14; border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; width: min(520px, 94vw); box-shadow: 0 24px 70px rgba(0,0,0,0.7); }
+        #uploadConfirmHeader { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
+        #uploadConfirmHeader h4 { margin:0; font-family:'Cabinet Grotesk',sans-serif; }
+        #uploadConfirmBody { padding:16px 18px 18px; color:#d1d5db; display:flex; flex-direction:column; gap:12px; }
+        #uploadConfirmMeta { display:flex; align-items:center; gap:10px; font-size:0.85rem; color:var(--muted); }
+        #uploadConfirmFiles { background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:10px 12px; font-size:0.85rem; max-height:180px; overflow:auto; }
+        #uploadConfirmActions { display:flex; justify-content:flex-end; gap:10px; }
+        .upload-confirm-icon { width:38px; height:38px; border-radius:10px; background: rgba(6,182,212,0.16); color: var(--accent); display:grid; place-items:center; }
+
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; z-index: 9999; padding: 0; }
+        .modal-backdrop.show { display: block; opacity: 1; backdrop-filter: blur(2px); }
+        .modal {
+            position: fixed; right: 0; top: 0; transform: translateX(100%);
+            background: #050505; border-left: 1px solid rgba(255,255,255,0.08);
+            width: min(460px, 92vw); height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column; box-shadow: -30px 0 60px rgba(0,0,0,0.6);
+            margin: 0; padding-bottom: 0; transition: transform 0.25s ease;
+        }
+        .modal.show { transform: translateX(0); }
+        .modal-header { padding: 22px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #050505; }
+        .modal-body {
+            padding: 20px 24px 24px;
+            overflow-y: auto;
+            background: #050505;
+            color: #e5e7eb;
+            gap: 12px;
+            flex: 1;
+            max-height: calc(100vh - 160px);
+        }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #050505;
+            position: sticky;
+            bottom: 0;
+        }
+        @@media (max-width: 1200px) {
+            .modal { width: min(420px, 94vw); }
+        }
+        @@media (max-width: 900px) {
+            .modal { width: min(360px, 96vw); }
+            .modal-body { max-height: calc(100vh - 140px); }
+        }
+        .grid-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .stack-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+        .stack-chip { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 10px 12px; border-radius: 10px; cursor: pointer; color: #e5e7eb; transition: border-color 0.2s, transform 0.1s; }
+        .stack-chip:hover { border-color: rgba(6,182,212,0.5); transform: translateY(-1px); }
+        .stack-chip input { accent-color: var(--accent); }
+        .modal-upload { border: 1px dashed rgba(255,255,255,0.2); border-radius: 14px; padding: 18px; text-align: center; background: rgba(255,255,255,0.04); cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+        .modal-upload.dragover { border-color: #e5e7eb; background: rgba(255,255,255,0.08); }
+        #uploadSummaryOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10002; padding: 16px; }
+        #uploadSummaryOverlay.show { display: flex; backdrop-filter: blur(4px); }
+        #uploadSummaryCard { background: #0b0e14; border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; width: min(520px, 94vw); box-shadow: 0 30px 80px rgba(0,0,0,0.7); padding: 18px; }
+        #uploadSummaryCard h4 { margin: 0 0 8px; font-family: 'Cabinet Grotesk', sans-serif; }
+        .summary-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.9rem; }
+        .summary-row:last-child { border-bottom: 0; }
+        .zip-btn { border: 1px dashed rgba(255,255,255,0.25); border-radius: 12px; padding: 10px 12px; background: rgba(255,255,255,0.04); color: #cbd5f5; font-weight: 700; cursor: pointer; display:inline-flex; gap:8px; align-items:center; }
+        .zip-btn:hover { border-color: rgba(6,182,212,0.5); color: white; }
+        .error-text { color: #f87171; font-size: 0.9rem; margin-top: 6px; }
+        body.modal-open { overflow: hidden; }
+        .project-drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 10, 0.72);
+            backdrop-filter: blur(3px);
+            display: none;
+            z-index: 10030;
+        }
+        .project-drawer-overlay.show {
+            display: block;
+        }
+        .project-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: min(520px, 95vw);
+            height: 100vh;
+            background: #050607;
+            border-left: 1px solid rgba(148,163,184,0.2);
+            box-shadow: -30px 0 80px rgba(0,0,0,0.7);
+            transform: translateX(100%);
+            transition: transform 0.22s ease;
+            z-index: 10031;
+            display: flex;
+            flex-direction: column;
+        }
+        .project-drawer.show {
+            transform: translateX(0);
+        }
+        .project-drawer .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 0;
+            padding: 20px 22px;
+            border-bottom: 1px solid rgba(148,163,184,0.16);
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+        }
+        .project-drawer .drawer-header h3 {
+            margin: 0;
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-size: 1.3rem;
+            color: #f8fafc;
+        }
+        .project-drawer-sub {
+            margin-top: 2px;
+            color: #94a3b8;
+            font-size: 0.82rem;
+        }
+        .project-drawer-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 18px 22px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .project-drawer-body::-webkit-scrollbar { width: 8px; }
+        .project-drawer-body::-webkit-scrollbar-track { background: transparent; }
+        .project-drawer-body::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 999px; }
+        .project-drawer-body::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.4); }
+        .drawer-section {
+            border: 1px solid rgba(148,163,184,0.12);
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(10,13,18,0.98), rgba(5,7,11,0.98));
+            padding: 14px;
+        }
+        .drawer-section h4 {
+            margin: 0 0 10px;
+            font-size: 0.92rem;
+            color: #e2e8f0;
+        }
+        .drawer-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .drawer-field:last-child { margin-bottom: 0; }
+        .drawer-label {
+            font-size: 0.76rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+        .drawer-input {
+            width: 100%;
+            background: #0a0e14;
+            border: 1px solid rgba(148,163,184,0.2);
+            color: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.88rem;
+        }
+        .drawer-input:focus {
+            outline: none;
+            border-color: rgba(6,182,212,0.68);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
+        }
+        textarea.drawer-input { min-height: 90px; resize: vertical; }
+        .drawer-stack-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .drawer-stack-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(148,163,184,0.18);
+            border-radius: 10px;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.02);
+            color: #cbd5e1;
+            font-size: 0.84rem;
+        }
+        .drawer-stack-chip input { accent-color: var(--accent); }
+        .drawer-upload-drop {
+            border: 1px dashed rgba(148,163,184,0.32);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            color: #94a3b8;
+            cursor: pointer;
+            background: rgba(255,255,255,0.02);
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .drawer-upload-drop:hover,
+        .drawer-upload-drop.dragover {
+            border-color: rgba(6,182,212,0.7);
+            background: rgba(6,182,212,0.08);
+            color: #67e8f9;
+        }
+        .drawer-upload-list {
+            margin-top: 10px;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            min-height: 20px;
+        }
+        .drawer-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 14px 22px 16px;
+            border-top: 1px solid rgba(148,163,184,0.16);
+            background: #050607;
+        }
+        .drawer-close-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: 1px solid rgba(148,163,184,0.26);
+            background: rgba(255,255,255,0.02);
+            color: #cbd5e1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .drawer-close-btn:hover {
+            color: #fff;
+            border-color: rgba(148,163,184,0.44);
+        }
+        #projectCreateError {
+            color: #fca5a5;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: none;
+        }
+        .file-icon-folder { color: #fbbf24; }
+        .file-icon-code { color: #38bdf8; }
+        .file-icon-markup { color: #fb923c; }
+        .file-icon-image { color: #f472b6; }
+        .file-icon-archive { color: #a78bfa; }
+        .file-icon-pdf { color: #f87171; }
+        .file-icon-generic { color: #67e8f9; }
+
+        @@media (max-width: 1200px) { .bento-grid { grid-template-columns: 1fr; } }
+        @@media (max-width: 720px) { .content-container { padding: 20px 16px 32px; } }
+    </style>
+}
+
+<div class="content-container">
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-head">Active Projects</div>
+                        <div class="metric-val">@projectCount</div>
+                        <div class="trend up"><i class="fa-solid fa-arrow-trend-up"></i> Tracking @deploymentCount deployments</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-head">Storage Used</div>
+                        <div class="metric-val">@totalSizeDisplay</div>
+                        <div class="trend"><span style="color:var(--muted)">Across uploaded projects</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-head">Last Publish</div>
+                        <div class="metric-val">@(Model.LastPublishedUtc?.ToLocalTime().ToString("MMM dd") ?? "-")</div>
+                        <div class="trend"><i class="fa-solid fa-clock"></i> Content updates monitored</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-head">Team</div>
+                        <div class="metric-val">Live</div>
+                        <div class="trend up"><i class="fa-solid fa-user-plus"></i> Invite teammates from sidebar</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-head">Publish Success (7d)</div>
+                        <div class="metric-val">@Model.PublishSuccessRate7d</div>
+                        <div class="trend"><i class="fa-solid fa-shield-check"></i> Reliability baseline</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-head">Blocked Publishes (7d)</div>
+                        <div class="metric-val">@Model.BlockedPublishes7d</div>
+                        <div class="trend"><span style="color:var(--muted)">Preflight prevented risky pushes</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-head">Rollbacks (30d)</div>
+                        <div class="metric-val">@Model.Rollbacks30d</div>
+                        <div class="trend"><i class="fa-solid fa-rotate-left"></i> Mean recovery @Model.MeanRecoveryTime</div>
+                    </div>
+                </div>
+
+                <div class="bento-grid">
+                    <div class="bento-card spotlight-card" id="projectCard">
+                        <div class="spotlight-bg"></div>
+                            <div class="proj-header">
+                            <div>
+                                <p style="margin:0; color:var(--muted); font-weight:700; letter-spacing:0.05em; text-transform:uppercase;">Project Hub</p>
+                                <h2 class="proj-title" id="heroName">-</h2>
+                                <a href="#" id="heroDomain" class="proj-link" target="_blank" rel="noopener noreferrer">-</a>
+                            </div>
+                            <span class="status-pill"><div class="pulse-dot"></div> Production</span>
+                        </div>
+                        <div class="grid-two" style="z-index:2;">
+                            <div>
+                                <label style="color:var(--muted); font-size:0.85rem;">Switch Project</label>
+                                <div class="select-wrap">
+                                    <select id="projectSelect" class="pill-input" style="padding-right:36px;"></select>
+                                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="color:var(--muted); font-size:0.85rem;">Deployment</label>
+                                <div id="heroDeploy" style="margin-top:6px; color:#e5e5e5; min-height:48px; line-height:1.4;">-</div>
+                            </div>
+                        </div>
+                        <div class="hero-actions">
+                            <a class="primary-btn" id="heroOverview" href="/ProjectHub/Index"><i class="fa-solid fa-link"></i> Project Overview</a>
+                            <div class="dropdown-wrapper" style="position:relative;">
+                                <button type="button" class="icon-btn" id="settingsToggle" style="width:auto; padding:0 12px; gap:8px; display:flex; align-items:center;"><i class="fa-solid fa-gear"></i> <span style="font-weight:700;">Settings</span></button>
+                                <div class="dropdown-menu profile-dd" id="settingsMenu" style="width:220px; left:auto; right:0;">
+                                    <div class="dd-body" style="padding:6px;">
+                                        <a href="/DeployLogs/Index" id="settingsUploadBuildLink" class="profile-option"><i class="fa-solid fa-upload"></i> Upload build</a>
+                                        <a href="/ProjectHub/Index" id="settingsProjectSettingsLink" class="profile-option"><i class="fa-solid fa-sliders"></i> Project settings</a>
+                                        <a href="/DeployLogs/Index" id="settingsDeployLogsLink" class="profile-option"><i class="fa-solid fa-list-check"></i> Deploy logs</a>
+                                        <a href="/Insights/Logs" class="profile-option"><i class="fa-solid fa-clock-rotate-left"></i> Deployment history</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="terminal-window">
+                            <div class="terminal-header"><div class="t-dot" style="background:#ff5f56"></div><div class="t-dot" style="background:#ffbd2e"></div><div class="t-dot" style="background:#27c93f"></div></div>
+                            <div class="terminal-meta">
+                                <div class="terminal-badges">
+                                    <span class="terminal-badge">Pipeline: Ready</span>
+                                    <span class="terminal-badge">Branch: master</span>
+                                </div>
+                                <span class="terminal-stat">Deploy monitor</span>
+                            </div>
+                            <div style="opacity:0.85;">
+                                <span class="cmd-line">bugence-cli v2.4.0</span>
+                                <span class="cmd-line cmd-info">-> Fetching updates from master...</span>
+                                <span class="cmd-line cmd-success">-> Build pipeline ready</span>
+                                <span class="cmd-line" style="color:var(--accent);">_</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="health-card">
+                        <form method="post" enctype="multipart/form-data" id="uploadForm" class="upload-panel">
+                            @Html.AntiForgeryToken()
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:700;">Upload Build</div>
+                                    <p style="margin:4px 0 0; color:var(--muted); font-size:0.9rem;">Drag a folder to deploy instantly.</p>
+                                </div>
+                                <button type="button" class="icon-btn" onclick="showToast('Attach your compiled site folder', 'info')"><i class="fa-solid fa-circle-info"></i></button>
+                            </div>
+                            <div class="upload-drop" id="uploadDrop">
+                                <div>
+                                    <div class="fa-solid fa-cloud-arrow-up" style="font-size: 1.4rem; margin-bottom:8px;"></div>
+                                    <div>Drag folder here</div>
+                                    <input type="file" name="upload" id="uploadInput" webkitdirectory directory multiple style="display:none;" />
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <button type="button" class="zip-btn" id="uploadZipBtn"><i class="fa-solid fa-file-zipper"></i> Upload .zip/.rar</button>
+                                <input type="file" id="uploadZipInput" accept=".zip,.rar" style="display:none;" />
+                                <input type="file" id="reuploadInputGlobal" webkitdirectory directory multiple style="display:none;" />
+                                <span style="color:var(--muted); font-size:0.8rem;">Zip or RAR for faster confirmation.</span>
+                            </div>
+                            <div class="progress-block" id="uploadProgress">
+                                <div class="d-flex" style="display:flex; justify-content:space-between; color:var(--muted); font-size:0.85rem; margin-bottom:6px;">
+                                    <span>Uploading...</span><span id="uploadPercent">0%</span>
+                                </div>
+                                <div class="bar"><span id="uploadBar"></span></div>
+                            </div>
+                            <div class="storage">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="color:var(--muted); font-size:0.85rem;">Storage</span>
+                                    <span style="color:white; font-weight:700;">@totalSizeDisplay</span>
+                                </div>
+                                <div class="bar" style="margin-top:8px;"><span style="width:@storagePercentStyle%;"></span></div>
+                                <div style="display:flex; justify-content:space-between; color:var(--muted); font-size:0.8rem; margin-top:4px;">
+                                    <span>Bandwidth</span><span>@totalSizeDisplay / 100 GB</span>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="actions-grid">
+                            <div class="action-tile" onclick="showToast('Starting new build...', 'info')"><i class="fa-solid fa-cloud-arrow-up tile-icon"></i><div class="tile-name">New Build</div></div>
+                            <div class="action-tile" onclick="location.href='/Settings/Domains'"><i class="fa-solid fa-globe tile-icon"></i><div class="tile-name">Domains</div></div>
+                            <div class="action-tile" onclick="location.href='/Settings/Teams'"><i class="fa-solid fa-user-plus tile-icon"></i><div class="tile-name">Teams</div></div>
+                            <div class="action-tile" onclick="location.href='/Settings/GlobalSettings'"><i class="fa-solid fa-gear tile-icon"></i><div class="tile-name">Global Settings</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="section-head">
+                        <div class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Deployment History</div>
+                        <a href="/Insights/Logs" style="color:var(--muted); text-decoration:none; font-size:0.85rem; font-weight:600;">View All</a>
+                    </div>
+                    <table class="d-table" id="deployTable">
+                        <thead>
+                            <tr>
+                                <th style="width:30%;">Deployment</th>
+                                <th>Context</th>
+                                <th>Editor</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (Model.UploadedProjects.Any())
+                        {
+                            foreach (var proj in Model.UploadedProjects)
+                            {
+                                <tr class="clickable-row searchable-row" data-project-row data-project-id="@proj.Id">
+                                    <td>
+                                        <div style="font-weight:700; color:white;">@proj.FolderName</div>
+                                        <div style="font-size:0.8rem; color:var(--muted); font-family:monospace;">@proj.OriginalFileName</div>
+                                    </td>
+                                    <td><i class="fa-solid fa-cloud-arrow-up"></i> Upload</td>
+                                    <td>@Model.UserDisplayName</td>
+                                    <td>@proj.UploadedAtUtc.ToLocalTime().ToString("g")</td>
+                                    <td><span class="status-badge st-success"><span class="dot"></span> @proj.Status</span></td>
+                                    <td class="actions-cell">
+                                        <button class="actions-btn" type="button"><i class="fa-solid fa-ellipsis"></i></button>
+                                        <div class="actions-menu">
+                                            <button type="button" class="action-deploy" data-action="deploy" data-id="@proj.Id" data-name="@proj.FolderName">Deploy Latest Files</button>
+                                            <button type="button" class="action-deploy" data-action="reupload" data-id="@proj.Id" data-name="@proj.FolderName">Re-upload Folder</button>
+                                            <button type="button" class="action-rename" data-action="rename" data-id="@proj.Id" data-name="@proj.FolderName">Rename</button>
+                                            <button type="button" class="action-delete" data-action="delete" data-id="@proj.Id" data-name="@proj.FolderName">Delete Project</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="6" class="text-center" style="color:var(--muted);">No recent deploys.</td></tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-container">
+                    <div class="section-head">
+                        <div class="section-title">
+                            <i class="fa-solid fa-folder-open"></i> Uploaded Projects &amp; Files
+                            <span class="section-badge" id="filesSectionBadge">@projectCount Projects</span>
+                        </div>
+                        <div class="nav-actions">
+                            <button class="nav-btn" id="navRoot">Root</button>
+                            <button class="nav-btn" id="navBack">Back</button>
+                            <div class="text-secondary" id="currentPath">/</div>
+                        </div>
+                    </div>
+                    <table class="d-table" id="filesTable">
+                        <thead>
+                            <tr>
+                                <th style="width:40%;">Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Uploaded</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" class="text-center" style="color:var(--muted);">No uploads yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="project-drawer-overlay" id="projectCreateDrawerOverlay"></div>
+            <aside class="project-drawer" id="projectCreateDrawer" aria-hidden="true">
+                <div class="drawer-header">
+                    <div>
+                        <h3>Create New Project</h3>
+                        <div class="project-drawer-sub">Use the same dark command drawer workflow used in console tools.</div>
+                    </div>
+                    <button type="button" class="drawer-close-btn" id="projectCreateClose" aria-label="Close create project panel">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="project-drawer-body">
+                    <div class="drawer-section">
+                        <h4>Project Details</h4>
+                        <div class="drawer-field">
+                            <label class="drawer-label" for="projectCreateName">Project Name</label>
+                            <input class="drawer-input" id="projectCreateName" type="text" placeholder="e.g. Biz Bridge Connect" />
+                        </div>
+                        <div class="drawer-field">
+                            <label class="drawer-label" for="projectCreateDescription">Description</label>
+                            <textarea class="drawer-input" id="projectCreateDescription" placeholder="Short summary of this deployment project."></textarea>
+                        </div>
+                        <div class="drawer-field">
+                            <label class="drawer-label" for="projectCreateRepo">Repository URL (optional)</label>
+                            <input class="drawer-input" id="projectCreateRepo" type="url" placeholder="https://github.com/org/repo" />
+                        </div>
+                    </div>
+
+                    <div class="drawer-section">
+                        <h4>Tech Stack</h4>
+                        <div class="drawer-stack-list">
+                            <label class="drawer-stack-chip"><input type="checkbox" value="HTML/CSS" data-project-stack /> HTML/CSS</label>
+                            <label class="drawer-stack-chip"><input type="checkbox" value="JavaScript" data-project-stack /> JavaScript</label>
+                            <label class="drawer-stack-chip"><input type="checkbox" value="React" data-project-stack /> React</label>
+                            <label class="drawer-stack-chip"><input type="checkbox" value=".NET" data-project-stack /> .NET</label>
+                            <label class="drawer-stack-chip"><input type="checkbox" value="Node" data-project-stack /> Node</label>
+                            <label class="drawer-stack-chip"><input type="checkbox" value="Other" data-project-stack /> Other</label>
+                        </div>
+                    </div>
+
+                    <div class="drawer-section">
+                        <h4>Upload Build</h4>
+                        <div class="drawer-upload-drop" id="projectCreateDrop">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.1rem; margin-bottom:8px;"></i>
+                            <div>Drag a folder or zip file here</div>
+                            <div style="font-size:0.76rem; color:#64748b; margin-top:4px;">or click to select files</div>
+                            <input type="file" id="projectCreateUploadInput" webkitdirectory directory multiple style="display:none;" />
+                            <input type="file" id="projectCreateZipInput" accept=".zip,.rar" style="display:none;" />
+                        </div>
+                        <div class="drawer-upload-list" id="projectCreateUploadList">No files selected.</div>
+                        <div style="display:flex; gap:8px; margin-top:8px;">
+                            <button type="button" class="btn-soft" id="projectCreateSelectFolder">Select Folder</button>
+                            <button type="button" class="btn-soft" id="projectCreateSelectZip">Select Zip/RAR</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="drawer-actions">
+                    <span id="projectCreateError"></span>
+                    <button type="button" class="btn-soft" id="projectCreateCancel">Cancel</button>
+                    <button type="button" class="primary-btn" id="projectCreateSubmit"><i class="fa-solid fa-plus"></i> Create Project</button>
+                </div>
+            </aside>
+
+
+
+

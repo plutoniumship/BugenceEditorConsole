@@ -1,0 +1,1037 @@
+﻿@page
+@model BugenceEditConsole.Pages.DynamicVE.IndexModel
+@{
+    ViewData["Title"] = "Dynamic VE";
+    ViewData["BodyClass"] = "page-dynamic-ve";
+}
+
+@section Head {
+<style>
+    .dve-root { display:grid; grid-template-columns:300px 1fr 360px; gap:12px; min-height: calc(100vh - 170px); }
+    .dve-panel { background:#080808; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; overflow:auto; }
+    .dve-canvas { background:#040404; border:1px solid rgba(255,255,255,.08); border-radius:14px; overflow:hidden; min-height:760px; position:relative; }
+    .dve-frame { width:100%; height:100%; min-height:760px; border:0; background:#fff; }
+    .dve-label { display:block; font-size:.75rem; color:#9ca3af; margin-bottom:6px; text-transform:uppercase; letter-spacing:.06em; }
+    .dve-select, .dve-input, .dve-textarea { width:100%; background:#050505; border:1px solid rgba(255,255,255,.12); color:#fff; border-radius:10px; padding:8px 10px; }
+    .dve-textarea { min-height:80px; resize:vertical; }
+    .dve-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .dve-btn { border:1px solid rgba(255,255,255,.15); background:#0d0d0d; color:#e5e7eb; border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer; width:100%; }
+    .dve-btn.primary { border-color:rgba(6,182,212,.45); color:#67e8f9; }
+    .dve-btn.publish { border-color:rgba(16,185,129,.45); color:#86efac; }
+    .dve-btn.warn { border-color:rgba(245,158,11,.45); color:#fcd34d; }
+    .dve-btn:disabled { opacity:.55; cursor:not-allowed; }
+    .dve-help { color:#94a3b8; font-size:.84rem; line-height:1.45; }
+    .dve-chip { border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:4px 8px; font-size:.75rem; color:#cbd5e1; display:inline-flex; align-items:center; gap:6px; }
+    .dve-toolbar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+    .template-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .template-card { border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:9px; cursor:pointer; background:#090909; }
+    .template-card:hover, .template-card.active { border-color:rgba(6,182,212,.6); }
+    .template-card .title { font-weight:700; font-size:.86rem; }
+    .template-card .meta { color:#94a3b8; font-size:.75rem; margin-top:3px; }
+    .dve-section-title { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:#a3a3a3; margin:10px 0 8px; }
+    .divider { border:0; height:1px; background:rgba(255,255,255,.08); margin:10px 0; }
+    .selection-box { margin-top:8px; padding:8px; border:1px solid rgba(6,182,212,.25); border-radius:10px; background:rgba(3,10,14,.45); }
+    .rail-hint { margin-top:8px; padding:6px 8px; border:1px dashed rgba(6,182,212,.4); border-radius:8px; font-size:.76rem; color:#93c5fd; background:rgba(2,6,23,.6); }
+    .trace-meta { font-size:.8rem; color:#cbd5e1; margin-bottom:6px; }
+    .trace-list { margin:0; padding-left:18px; color:#a5b4fc; font-size:.8rem; }
+    .trace-list li { margin:2px 0; line-height:1.35; }
+    .diag-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 0; }
+    .diag-card { border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:8px; background:#020617; }
+    .diag-card .k { font-size:.72rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; }
+    .diag-card .v { font-size:1rem; color:#e2e8f0; font-weight:700; margin-top:3px; }
+    .list-title { font-size:.76rem; color:#cbd5e1; margin:8px 0 4px; text-transform:uppercase; letter-spacing:.05em; }
+    .modal-list { margin:0; padding-left:18px; color:#cbd5e1; font-size:.82rem; max-height:140px; overflow:auto; }
+    .modal-list li { margin:2px 0; line-height:1.35; }
+</style>
+}
+
+<div class="dve-toolbar">
+    <span class="dve-chip"><i class="fa-solid fa-wand-magic-sparkles"></i> Dynamic VE</span>
+    <span class="dve-chip">Project: @Model.ProjectName</span>
+    <span class="dve-chip" id="statusChip">Ready</span>
+    <button class="dve-btn" style="width:auto;padding:6px 10px;" id="undoBtn" type="button"><i class="fa-solid fa-rotate-left"></i> Undo</button>
+    <button class="dve-btn" style="width:auto;padding:6px 10px;" id="redoBtn" type="button"><i class="fa-solid fa-rotate-right"></i> Redo</button>
+</div>
+
+<div class="dve-root">
+    <section class="dve-panel">
+        <label class="dve-label">Project</label>
+        <select class="dve-select" id="projectSelect">
+            @foreach (var p in Model.Projects)
+            {
+                if (p.Id == Model.ProjectId)
+                {
+                    <option value="@p.Id" selected>@p.Name</option>
+                }
+                else
+                {
+                    <option value="@p.Id">@p.Name</option>
+                }
+            }
+        </select>
+        <div style="height:10px"></div>
+        <label class="dve-label">Page</label>
+        <select class="dve-select" id="fileSelect">
+            @foreach (var f in Model.Files)
+            {
+                if (string.Equals(f, Model.File, StringComparison.OrdinalIgnoreCase))
+                {
+                    <option value="@f" selected>@f</option>
+                }
+                else
+                {
+                    <option value="@f">@f</option>
+                }
+            }
+        </select>
+        <div style="height:8px"></div>
+        <button class="dve-btn" id="reloadBtn" type="button"><i class="fa-solid fa-rotate"></i> Reload Canvas</button>
+
+        <hr class="divider" />
+        <div class="dve-section-title">Add Section</div>
+        <div class="template-grid" id="templateGrid"></div>
+        <div style="height:8px"></div>
+        <button class="dve-btn warn" id="cancelInsertBtn" type="button">Cancel Insert Mode</button>
+        <p class="dve-help">Pick a template then click insertion rails (before/after/inside). Invalid targets are blocked.</p>
+        <div class="rail-hint" id="railHint">Rail intent: select a template to enable insertion rails.</div>
+
+        <hr class="divider" />
+        <div class="dve-section-title">Actions</div>
+        <label class="dve-label">Action Type</label>
+        <select class="dve-select" id="actionType">
+            <option value="navigate">Navigate URL</option>
+            <option value="workflow">Workflow</option>
+            <option value="hybrid">Hybrid</option>
+        </select>
+        <div style="height:8px"></div>
+        <label class="dve-label">Workflow ID</label>
+        <input class="dve-input" id="workflowId" placeholder="Workflow GUID" />
+        <div style="height:8px"></div>
+        <label class="dve-label">Navigate URL</label>
+        <input class="dve-input" id="navigateUrl" placeholder="https://... or /path" />
+        <div style="height:8px"></div>
+        <div class="dve-row">
+            <button class="dve-btn primary" id="bindActionBtn" type="button">Bind Action</button>
+            <button class="dve-btn" id="testBindingBtn" type="button">Test Binding</button>
+        </div>
+        <div style="height:8px"></div>
+        <div class="selection-box">
+            <div class="trace-meta" id="bindingDebugMeta">No binding test yet.</div>
+            <ol class="trace-list" id="bindingDebugTrace"><li>No trace events.</li></ol>
+        </div>
+    </section>
+
+    <section class="dve-canvas">
+        <iframe id="dveFrame" class="dve-frame" src="@Model.PreviewUrl"></iframe>
+    </section>
+
+    <section class="dve-panel">
+        <div class="dve-section-title">Selection</div>
+        <div class="selection-box">
+            <div class="dve-help" id="selectionPath">No selection</div>
+            <div class="dve-help" id="selectionKey">ElementKey: -</div>
+            <div class="dve-help" id="selectionCount">Selected: 0</div>
+            <div class="dve-help" id="selectionConfidence">Confidence: -</div>
+        </div>
+
+        <hr class="divider" />
+        <div class="dve-section-title">Rules</div>
+        <div class="dve-row">
+            <div>
+                <label class="dve-label">Breakpoint</label>
+                <select class="dve-select" id="breakpointSelect">
+                    <option value="desktop">Desktop</option>
+                    <option value="tablet">Tablet</option>
+                    <option value="mobile">Mobile</option>
+                </select>
+            </div>
+            <div>
+                <label class="dve-label">State</label>
+                <select class="dve-select" id="stateSelect">
+                    <option value="base">Base</option>
+                    <option value="hover">Hover</option>
+                    <option value="focus">Focus</option>
+                    <option value="active">Active</option>
+                </select>
+            </div>
+        </div>
+        <div style="height:8px"></div>
+        <label class="dve-label">Text Color</label>
+        <input id="textColor" class="dve-input" type="color" value="#ffffff" />
+        <div style="height:8px"></div>
+        <label class="dve-label">Background</label>
+        <input id="bgColor" class="dve-input" type="color" value="#000000" />
+        <div style="height:8px"></div>
+        <label class="dve-label">Font Size (px)</label>
+        <input id="fontSize" class="dve-input" type="number" min="8" max="200" value="16" />
+        <div style="height:8px"></div>
+        <div class="dve-row">
+            <div>
+                <label class="dve-label">Line Height</label>
+                <input id="lineHeight" class="dve-input" type="number" min="1" max="4" step="0.1" value="1.4" />
+            </div>
+            <div>
+                <label class="dve-label">Letter Spacing</label>
+                <input id="letterSpacing" class="dve-input" type="number" min="-4" max="20" step="0.1" value="0" />
+            </div>
+        </div>
+        <div style="height:8px"></div>
+        <div class="dve-row">
+            <div>
+                <label class="dve-label">Font Weight</label>
+                <input id="fontWeight" class="dve-input" type="number" min="100" max="900" step="100" value="400" />
+            </div>
+            <div>
+                <label class="dve-label">Text Align</label>
+                <select id="textAlign" class="dve-select">
+                    <option value="">(skip)</option>
+                    <option value="left">left</option>
+                    <option value="center">center</option>
+                    <option value="right">right</option>
+                </select>
+            </div>
+        </div>
+        <div style="height:8px"></div>
+        <div class="dve-row">
+            <div>
+                <label class="dve-label">Margin</label>
+                <input id="marginAll" class="dve-input" type="number" min="-200" max="400" value="0" />
+            </div>
+            <div>
+                <label class="dve-label">Padding</label>
+                <input id="paddingAll" class="dve-input" type="number" min="0" max="400" value="0" />
+            </div>
+        </div>
+        <div style="height:8px"></div>
+        <div class="dve-row">
+            <div>
+                <label class="dve-label">Border Radius</label>
+                <input id="borderRadius" class="dve-input" type="number" min="0" max="250" value="0" />
+            </div>
+            <div>
+                <label class="dve-label">Box Shadow</label>
+                <input id="boxShadow" class="dve-input" placeholder="0 8px 24px rgba(...)" />
+            </div>
+        </div>
+        <div style="height:8px"></div>
+        <button class="dve-btn primary" id="applyRuleBtn" type="button">Apply Style Rule</button>
+        <div style="height:8px"></div>
+        <div class="dve-row">
+            <button class="dve-btn" id="alignLeftBtn" type="button">Align Left</button>
+            <button class="dve-btn" id="alignCenterBtn" type="button">Align Center</button>
+        </div>
+        <div style="height:8px"></div>
+        <button class="dve-btn" id="alignRightBtn" type="button">Align Right</button>
+
+        <hr class="divider" />
+        <div class="dve-section-title">Text</div>
+        <textarea class="dve-textarea" id="textEditor" placeholder="Edit selected element text"></textarea>
+        <div style="height:8px"></div>
+        <button class="dve-btn primary" id="applyTextBtn" type="button">Apply Text Patch</button>
+
+        <hr class="divider" />
+        <div class="dve-row">
+            <button class="dve-btn primary" id="saveDraftBtn" type="button">Save Draft</button>
+            <button class="dve-btn publish" id="publishBtn" type="button">Publish</button>
+        </div>
+        <div style="height:8px"></div>
+        <button class="dve-btn" id="rollbackBtn" type="button">Rollback Last Live</button>
+    </section>
+</div>
+
+<div class="dve-panel" id="preflightModal" style="display:none; position:fixed; inset:12% 18%; z-index:12000; background:#030712;">
+    <div class="dve-section-title">Preflight Diagnostics</div>
+    <div class="dve-help" id="preflightSummary"></div>
+    <div class="diag-grid">
+        <div class="diag-card"><div class="k">Unresolved Elements</div><div class="v" id="diagUnresolvedElements">0</div></div>
+        <div class="diag-card"><div class="k">Unresolved Bindings</div><div class="v" id="diagUnresolvedBindings">0</div></div>
+        <div class="diag-card"><div class="k">Invalid Sections</div><div class="v" id="diagInvalidSections">0</div></div>
+        <div class="diag-card"><div class="k">Low Confidence Maps</div><div class="v" id="diagLowConfidence">0</div></div>
+    </div>
+    <div class="list-title">Blockers</div>
+    <ul class="modal-list" id="preflightBlockers"></ul>
+    <div class="list-title">Warnings</div>
+    <ul class="modal-list" id="preflightWarnings"></ul>
+    <div class="dve-row">
+        <button class="dve-btn" id="preflightCloseBtn" type="button">Close</button>
+        <button class="dve-btn publish" id="preflightForcePublishBtn" type="button">Publish Anyway</button>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(() => {
+  const frame = document.getElementById('dveFrame');
+  const projectSelect = document.getElementById('projectSelect');
+  const fileSelect = document.getElementById('fileSelect');
+  const statusChip = document.getElementById('statusChip');
+  const textColor = document.getElementById('textColor');
+  const bgColor = document.getElementById('bgColor');
+  const fontSize = document.getElementById('fontSize');
+  const breakpointSelect = document.getElementById('breakpointSelect');
+  const stateSelect = document.getElementById('stateSelect');
+  const selectionPath = document.getElementById('selectionPath');
+  const selectionKey = document.getElementById('selectionKey');
+  const selectionCount = document.getElementById('selectionCount');
+  const selectionConfidence = document.getElementById('selectionConfidence');
+  const textEditor = document.getElementById('textEditor');
+  const bindingDebugMeta = document.getElementById('bindingDebugMeta');
+  const bindingDebugTrace = document.getElementById('bindingDebugTrace');
+  const railHint = document.getElementById('railHint');
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  const testBindingBtn = document.getElementById('testBindingBtn');
+
+  const lineHeight = document.getElementById('lineHeight');
+  const letterSpacing = document.getElementById('letterSpacing');
+  const fontWeight = document.getElementById('fontWeight');
+  const textAlign = document.getElementById('textAlign');
+  const marginAll = document.getElementById('marginAll');
+  const paddingAll = document.getElementById('paddingAll');
+  const borderRadius = document.getElementById('borderRadius');
+  const boxShadow = document.getElementById('boxShadow');
+  const alignLeftBtn = document.getElementById('alignLeftBtn');
+  const alignCenterBtn = document.getElementById('alignCenterBtn');
+  const alignRightBtn = document.getElementById('alignRightBtn');
+
+  const preflightModal = document.getElementById('preflightModal');
+  const preflightSummary = document.getElementById('preflightSummary');
+  const preflightBlockers = document.getElementById('preflightBlockers');
+  const preflightWarnings = document.getElementById('preflightWarnings');
+  const preflightCloseBtn = document.getElementById('preflightCloseBtn');
+  const preflightForcePublishBtn = document.getElementById('preflightForcePublishBtn');
+  const diagUnresolvedElements = document.getElementById('diagUnresolvedElements');
+  const diagUnresolvedBindings = document.getElementById('diagUnresolvedBindings');
+  const diagInvalidSections = document.getElementById('diagInvalidSections');
+  const diagLowConfidence = document.getElementById('diagLowConfidence');
+
+  const BREAKPOINT_MEDIA = {
+    desktop: null,
+    tablet: '(min-width: 768px) and (max-width: 1024px)',
+    mobile: '(max-width: 767px)'
+  };
+
+  const templates = (() => {
+    const defs = [
+      ['hero-dark','Hero Dark','Heading + CTA'],['features-grid','Features Grid','3 columns'],['cta-band','CTA Band','Horizontal CTA'],['testimonials','Testimonials','Client proof'],
+      ['faq-stack','FAQ Stack','Details'],['pricing-cards','Pricing Cards','3 plans'],['form-contact','Contact Form','Lead capture'],['stats-strip','Stats Strip','KPIs'],
+      ['logos-wall','Logos Wall','Brands'],['team-grid','Team Grid','Profiles'],['timeline','Timeline','Milestones'],['gallery','Gallery','Image cards'],
+      ['split-content','Split Content','Image + text'],['video-hero','Video Hero','Media focus'],['newsletter','Newsletter','Email signup'],['blog-grid','Blog Grid','Articles'],
+      ['quote-banner','Quote Banner','Large quote'],['process-steps','Process Steps','How it works'],['service-cards','Service Cards','Offerings'],['footer-extended','Footer Extended','Rich footer']
+    ];
+    return defs.map((d, idx) => ({
+      id: d[0],
+      title: d[1],
+      meta: d[2],
+      html: `<section class="bgv-${d[0]}" style="padding:56px 24px;background:${idx % 2 === 0 ? '#07090f' : '#0b0b0b'};color:#fff;"><h3 style="margin:0 0 10px;">${d[1]}</h3><p style="margin:0;opacity:.84;">${d[2]} section for Dynamic VE.</p></section>`
+    }));
+  })();
+
+  const state = {
+    selectedNode: null,
+    selectedNodes: [],
+    selectedSelector: '',
+    selectedKey: '',
+    selectedConfidence: null,
+    elementRegistry: new Map(),
+    overlay: { rules: [], textPatches: [], sections: [], bindings: [], elementMaps: [] },
+    resolutionSummary: [],
+    insertTemplate: null,
+    rails: [],
+    observer: null,
+    outline: null,
+    reconcileQueued: false,
+    commandStack: [],
+    redoStack: [],
+    lastPreflight: null
+  };
+
+  const notify = (msg) => {
+    statusChip.textContent = msg;
+    if (window.showToast) window.showToast(msg);
+  };
+
+  const pushCommand = (command) => {
+    state.commandStack.push(command);
+    if (state.commandStack.length > 120) state.commandStack.shift();
+    state.redoStack = [];
+  };
+
+  const undo = async () => {
+    const command = state.commandStack.pop();
+    if (!command) return;
+    if (typeof command.undo === 'function') await command.undo();
+    state.redoStack.push(command);
+    notify('Undo applied.');
+  };
+
+  const redo = async () => {
+    const command = state.redoStack.pop();
+    if (!command) return;
+    if (typeof command.redo === 'function') await command.redo();
+    state.commandStack.push(command);
+    notify('Redo applied.');
+  };
+
+  const openPreflightModal = (payload) => {
+    state.lastPreflight = payload;
+    const diagnostics = payload?.dveDiagnostics || {};
+    preflightSummary.textContent = `Safe: ${payload.safe ? 'Yes' : 'No'} | Score: ${payload.score} | Blockers: ${(payload.blockers || []).length} | Warnings: ${(payload.warnings || []).length}`;
+    diagUnresolvedElements.textContent = String(diagnostics.unresolvedElements ?? 0);
+    diagUnresolvedBindings.textContent = String(diagnostics.unresolvedBindings ?? 0);
+    diagInvalidSections.textContent = String(diagnostics.invalidSections ?? 0);
+    diagLowConfidence.textContent = String(diagnostics.lowConfidenceCount ?? 0);
+    preflightBlockers.innerHTML = '';
+    preflightWarnings.innerHTML = '';
+    const blockers = payload.blockers || [];
+    const warnings = payload.warnings || [];
+    if (!blockers.length) {
+      const li = document.createElement('li');
+      li.textContent = 'No blocking issues detected.';
+      preflightBlockers.appendChild(li);
+    }
+    blockers.forEach((item) => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      preflightBlockers.appendChild(li);
+    });
+    if (!warnings.length) {
+      const li = document.createElement('li');
+      li.textContent = 'No warnings.';
+      preflightWarnings.appendChild(li);
+    }
+    warnings.forEach((item) => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      preflightWarnings.appendChild(li);
+    });
+    preflightModal.style.display = 'block';
+  };
+
+  const closePreflightModal = () => { preflightModal.style.display = 'none'; };
+
+  const activeProject = () => Number(projectSelect.value || 0);
+  const activeFile = () => fileSelect.value || 'index.html';
+
+  const api = async (url, method = 'GET', payload) => {
+    const res = await fetch(url, {
+      method,
+      headers: method === 'GET' ? undefined : { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: payload ? JSON.stringify(payload) : undefined
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.success === false) throw new Error(data?.message || 'Request failed');
+    return data;
+  };
+
+  const rgbToHex = (rgb) => {
+    if (!rgb || rgb === 'transparent') return '#000000';
+    const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (!m) return '#000000';
+    return '#' + [m[1], m[2], m[3]].map((x) => Number(x).toString(16).padStart(2, '0')).join('');
+  };
+
+  const hash = async (v) => {
+    const b = new TextEncoder().encode(v || '');
+    const d = await crypto.subtle.digest('SHA-256', b);
+    return Array.from(new Uint8Array(d)).slice(0, 8).map((x) => x.toString(16).padStart(2, '0')).join('');
+  };
+
+  const selectorFor = (el) => {
+    if (!el || el.nodeType !== 1) return '';
+    if (el.id) return `#${CSS.escape(el.id)}`;
+    const parts = [];
+    let node = el;
+    while (node && node.nodeType === 1 && parts.length < 6) {
+      let token = node.tagName.toLowerCase();
+      if (node.classList?.length) token += '.' + Array.from(node.classList).slice(0, 2).map((x) => CSS.escape(x)).join('.');
+      const parent = node.parentElement;
+      if (parent) {
+        const siblings = Array.from(parent.children).filter((x) => x.tagName === node.tagName);
+        if (siblings.length > 1) token += `:nth-of-type(${siblings.indexOf(node) + 1})`;
+      }
+      parts.unshift(token);
+      node = parent;
+    }
+    return parts.join(' > ');
+  };
+
+  const selectorCandidatesFor = (el) => {
+    if (!el || el.nodeType !== 1) return [];
+    const list = [];
+    if (el.id) list.push(`#${CSS.escape(el.id)}`);
+    if (el.hasAttribute('name')) list.push(`${el.tagName.toLowerCase()}[name="${CSS.escape(el.getAttribute('name'))}"]`);
+    if (el.classList?.length) {
+      const shortClass = Array.from(el.classList).slice(0, 2).map((x) => `.${CSS.escape(x)}`).join('');
+      if (shortClass) list.push(`${el.tagName.toLowerCase()}${shortClass}`);
+    }
+    list.push(selectorFor(el));
+    return Array.from(new Set(list.filter((x) => x && x.length < 512)));
+  };
+
+  const resolveRegistryNode = (key) => {
+    const reg = state.elementRegistry.get(key);
+    const doc = frame.contentDocument;
+    if (!doc || !reg) return null;
+    for (const sel of reg.selectors || []) {
+      try { const node = doc.querySelector(sel); if (node) return node; } catch {}
+    }
+    if (key) {
+      const byKey = doc.querySelector(`[data-bugence-node="${CSS.escape(key)}"]`);
+      if (byKey) return byKey;
+    }
+    const pool = Array.from(doc.querySelectorAll(reg.tag || '*'));
+    return pool.find((x) => (x.textContent || '').trim().slice(0, 80) === reg.textSample) || null;
+  };
+
+  const updateOutline = () => {
+    const doc = frame.contentDocument;
+    if (!doc || !state.outline || !state.selectedNode || !doc.contains(state.selectedNode)) return;
+    const rect = state.selectedNode.getBoundingClientRect();
+    const view = doc.defaultView;
+    state.outline.style.left = `${rect.left + view.scrollX}px`;
+    state.outline.style.top = `${rect.top + view.scrollY}px`;
+    state.outline.style.width = `${rect.width}px`;
+    state.outline.style.height = `${rect.height}px`;
+  };
+
+  const ensureKey = async (node, selector) => {
+    if (node.hasAttribute('data-bugence-node')) return node.getAttribute('data-bugence-node');
+    const textSample = (node.textContent || '').trim().slice(0, 80);
+    const key = `el_${await hash(`${activeFile()}::${selector}::${node.tagName.toLowerCase()}::${textSample}`)}`;
+    const fallbackSelectors = selectorCandidatesFor(node);
+    const fingerprintHash = await hash(`${node.tagName.toLowerCase()}::${textSample}`);
+    const anchorHash = await hash(`${activeFile()}::${textSample}`);
+    node.setAttribute('data-bugence-node', key);
+    state.elementRegistry.set(key, { selectors: fallbackSelectors, tag: node.tagName.toLowerCase(), textSample, fingerprintHash, anchorHash });
+    const resolved = await api('/api/dve/element/resolve', 'POST', {
+      projectId: activeProject(),
+      pagePath: activeFile(),
+      elementKey: key,
+      selector,
+      fallbackSelectors,
+      fingerprintHash,
+      anchorHash
+    }).catch(() => null);
+    if (resolved?.confidence != null) {
+      state.selectedConfidence = Number(resolved.confidence);
+    }
+    return key;
+  };
+
+  const selectNode = async (node, additive = false) => {
+    state.selectedNode = node;
+    state.selectedSelector = selectorFor(node);
+    state.selectedKey = await ensureKey(node, state.selectedSelector);
+    if (additive) {
+      const exists = state.selectedNodes.find((x) => x.key === state.selectedKey);
+      if (!exists) state.selectedNodes.push({ key: state.selectedKey, selector: state.selectedSelector, node });
+    } else {
+      state.selectedNodes = [{ key: state.selectedKey, selector: state.selectedSelector, node }];
+    }
+    const cs = frame.contentWindow.getComputedStyle(node);
+    textColor.value = rgbToHex(cs.color);
+    bgColor.value = rgbToHex(cs.backgroundColor);
+    fontSize.value = parseInt(cs.fontSize || '16', 10) || 16;
+    lineHeight.value = parseFloat(cs.lineHeight || '1.4') || 1.4;
+    letterSpacing.value = parseFloat(cs.letterSpacing || '0') || 0;
+    fontWeight.value = parseInt(cs.fontWeight || '400', 10) || 400;
+    textAlign.value = cs.textAlign || '';
+    textEditor.value = node.textContent || '';
+    state.selectedConfidence = Number((state.resolutionSummary || []).find((x) => x.elementKey === state.selectedKey)?.confidence ?? 0);
+    selectionPath.textContent = state.selectedSelector || 'No selection';
+    selectionKey.textContent = `ElementKey: ${state.selectedKey}`;
+    selectionCount.textContent = `Selected: ${state.selectedNodes.length}`;
+    selectionConfidence.textContent = state.selectedConfidence ? `Confidence: ${(state.selectedConfidence * 100).toFixed(0)}%` : 'Confidence: -';
+    updateOutline();
+  };
+
+  const applyOverlay = () => {
+    const doc = frame.contentDocument;
+    if (!doc) return;
+    const old = doc.getElementById('bugence-dve-editor-style');
+    if (old) old.remove();
+
+    const style = doc.createElement('style');
+    style.id = 'bugence-dve-editor-style';
+    const grouped = new Map();
+    (state.overlay.rules || []).forEach((rule) => {
+      const bp = (rule.breakpoint || 'desktop').toLowerCase();
+      const st = (rule.state || 'base').toLowerCase();
+      const sel = rule.selector || '';
+      const prop = (rule.property || '').trim();
+      if (!sel || !prop) return;
+      const key = `${bp}|${st}|${sel}`;
+      if (!grouped.has(key)) grouped.set(key, { bp, st, sel, props: [] });
+      grouped.get(key).props.push(`${prop}:${rule.value};`);
+    });
+
+    const cssParts = [];
+    grouped.forEach((bucket) => {
+      const pseudo = bucket.st === 'base' ? '' : `:${bucket.st}`;
+      const block = `${bucket.sel}${pseudo}{${bucket.props.join('')}}`;
+      const media = BREAKPOINT_MEDIA[bucket.bp] ?? null;
+      if (media) cssParts.push(`@@media ${media}{${block}}`);
+      else cssParts.push(block);
+    });
+    style.textContent = cssParts.join('\n');
+    doc.head.appendChild(style);
+
+    (state.overlay.textPatches || []).forEach((patch) => {
+      const node = resolveRegistryNode(patch.elementKey) || (patch.selector ? doc.querySelector(patch.selector) : null);
+      if (node) node.textContent = patch.content || '';
+    });
+  };
+
+  const clearRails = () => { state.rails.forEach((rail) => rail.remove()); state.rails = []; };
+
+  const insideAllowed = (node) => !['IMG','INPUT','TEXTAREA','SELECT','OPTION','TABLE','TBODY','THEAD','TR','TD','TH','UL','OL','LI','H1','H2','H3','H4','H5','H6','P','SPAN','A','BUTTON','LABEL'].includes(node.tagName);
+
+  const guardInsertTarget = (target, mode) => {
+    if (!target || !target.parentElement) return 'No valid insertion target.';
+    if ((mode === 'inside-start' || mode === 'inside-end') && !insideAllowed(target)) return `Cannot insert inside <${target.tagName.toLowerCase()}>.`;
+    if (target.closest('[data-bugence-editor="true"]')) return 'Cannot insert inside editor controls.';
+    return '';
+  };
+
+  const addRail = (target, mode) => {
+    const doc = frame.contentDocument;
+    const rail = doc.createElement('div');
+    rail.setAttribute('data-dve-rail', 'true');
+    rail.style.position = 'absolute';
+    rail.style.height = '14px';
+    rail.style.display = 'flex';
+    rail.style.alignItems = 'center';
+    rail.style.justifyContent = 'center';
+    rail.style.fontSize = '10px';
+    rail.style.color = '#e2e8f0';
+    rail.style.background = mode === 'inside-start' || mode === 'inside-end' ? 'rgba(16,185,129,.75)' : 'rgba(6,182,212,.86)';
+    rail.style.zIndex = '2147483000';
+    rail.style.pointerEvents = 'auto';
+    rail.style.cursor = 'copy';
+    rail.style.borderRadius = '8px';
+    rail.style.border = '1px solid rgba(255,255,255,.3)';
+    rail.style.boxShadow = '0 4px 16px rgba(0,0,0,.45)';
+    rail.textContent = mode === 'inside-end' ? 'insert inside' : `insert ${mode}`;
+    const rect = target.getBoundingClientRect();
+    const view = doc.defaultView;
+    rail.style.left = `${rect.left + view.scrollX}px`;
+    rail.style.width = `${rect.width}px`;
+    rail.style.top = `${(mode === 'before' ? rect.top - 3 : mode === 'after' ? rect.bottom - 3 : rect.top + 6) + view.scrollY}px`;
+
+    const initialGuard = guardInsertTarget(target, mode);
+    if (initialGuard) {
+      rail.style.background = 'rgba(239,68,68,.78)';
+      rail.style.cursor = 'not-allowed';
+      rail.textContent = 'invalid target';
+      rail.title = initialGuard;
+    }
+
+    rail.addEventListener('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!state.insertTemplate) return;
+      const guard = guardInsertTarget(target, mode);
+      if (guard) {
+        rail.title = guard;
+        notify(guard);
+        return;
+      }
+      const selector = selectorFor(target);
+      const key = await ensureKey(target, selector);
+      await api('/api/dve/section/insert', 'POST', {
+        projectId: activeProject(),
+        pagePath: activeFile(),
+        templateId: state.insertTemplate.id,
+        insertMode: mode,
+        targetElementKey: key,
+        markup: state.insertTemplate.html,
+        css: '',
+        js: ''
+      });
+
+      const template = doc.createElement('template');
+      template.innerHTML = state.insertTemplate.html;
+      const fragment = template.content.cloneNode(true);
+      if (mode === 'before') target.parentElement.insertBefore(fragment, target);
+      else if (mode === 'after') target.parentElement.insertBefore(fragment, target.nextSibling);
+      else if (mode === 'inside-start') target.prepend(fragment);
+      else target.append(fragment);
+
+      pushCommand({ type: 'section-insert', undo: async () => window.location.reload(), redo: async () => {} });
+
+      state.insertTemplate = null;
+      document.querySelectorAll('.template-card').forEach((card) => card.classList.remove('active'));
+      clearRails();
+      notify('Section inserted.');
+    }, true);
+
+    doc.body.appendChild(rail);
+    state.rails.push(rail);
+  };
+
+  const showRails = (target) => {
+    clearRails();
+    if (!state.insertTemplate || !target) return;
+    railHint.textContent = `Rail intent on <${target.tagName.toLowerCase()}>. Click a rail to insert ${state.insertTemplate.title}.`;
+    addRail(target, 'before');
+    addRail(target, 'after');
+    if (insideAllowed(target)) {
+      addRail(target, 'inside-end');
+    }
+  };
+
+  const queueReconcile = () => {
+    if (state.reconcileQueued) return;
+    state.reconcileQueued = true;
+    requestAnimationFrame(() => {
+      state.reconcileQueued = false;
+      applyOverlay();
+      if (state.selectedKey && (!state.selectedNode || !frame.contentDocument.contains(state.selectedNode))) {
+        const resolved = resolveRegistryNode(state.selectedKey);
+        if (resolved) {
+          state.selectedNode = resolved;
+          state.selectedSelector = selectorFor(resolved);
+          selectionPath.textContent = state.selectedSelector;
+        }
+      }
+      updateOutline();
+    });
+  };
+
+  const bindCanvas = () => {
+    const doc = frame.contentDocument;
+    const win = frame.contentWindow;
+    if (!doc || !win) return;
+
+    const oldOutline = doc.getElementById('bugence-dve-outline');
+    if (oldOutline) oldOutline.remove();
+    state.outline = doc.createElement('div');
+    state.outline.id = 'bugence-dve-outline';
+    state.outline.style.position = 'absolute';
+    state.outline.style.border = '2px solid #06b6d4';
+    state.outline.style.pointerEvents = 'none';
+    state.outline.style.zIndex = '2147482999';
+    doc.body.appendChild(state.outline);
+
+    doc.addEventListener('click', async (event) => {
+      const target = event.target.closest('body *');
+      if (!target || target.id === 'bugence-dve-outline' || target.hasAttribute('data-dve-rail')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      await selectNode(target, event.shiftKey);
+    }, true);
+
+    doc.addEventListener('mousemove', (event) => {
+      if (!state.insertTemplate) return;
+      const target = event.target.closest('body *');
+      if (!target || target.hasAttribute('data-dve-rail')) return;
+      showRails(target);
+    }, true);
+
+    doc.addEventListener('scroll', () => {
+      updateOutline();
+      clearRails();
+    }, true);
+    win.addEventListener('resize', () => {
+      updateOutline();
+      clearRails();
+    });
+
+    if (state.observer) state.observer.disconnect();
+    state.observer = new MutationObserver(() => queueReconcile());
+    state.observer.observe(doc.documentElement, { childList: true, subtree: true, attributes: true, characterData: true });
+
+    applyOverlay();
+  };
+
+  const renderTemplates = () => {
+    const grid = document.getElementById('templateGrid');
+    grid.innerHTML = '';
+    templates.forEach((tpl) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'template-card';
+      card.innerHTML = `<div class="title">${tpl.title}</div><div class="meta">${tpl.meta}</div>`;
+      card.addEventListener('click', () => {
+        state.insertTemplate = tpl;
+        document.querySelectorAll('.template-card').forEach((node) => node.classList.toggle('active', node === card));
+        notify(`Insert mode: ${tpl.title}`);
+      });
+      grid.appendChild(card);
+    });
+  };
+
+  const withLock = async (button, run) => {
+    button.disabled = true;
+    try { await run(); } finally { button.disabled = false; }
+  };
+
+  document.getElementById('reloadBtn').addEventListener('click', () => {
+    window.location.href = `/DynamicVE/Index?projectId=${encodeURIComponent(activeProject())}&file=${encodeURIComponent(activeFile())}`;
+  });
+
+  projectSelect?.addEventListener('change', () => {
+    const projectId = Number(projectSelect.value || 0);
+    if (!projectId) return;
+    window.location.href = `/DynamicVE/Index?projectId=${encodeURIComponent(projectId)}`;
+  });
+
+  fileSelect?.addEventListener('change', () => {
+    const projectId = Number(projectSelect.value || 0);
+    const file = fileSelect.value || '';
+    if (!projectId) return;
+    window.location.href = `/DynamicVE/Index?projectId=${encodeURIComponent(projectId)}&file=${encodeURIComponent(file)}`;
+  });
+
+  document.getElementById('cancelInsertBtn').addEventListener('click', () => {
+    state.insertTemplate = null;
+    document.querySelectorAll('.template-card').forEach((node) => node.classList.remove('active'));
+    clearRails();
+    railHint.textContent = 'Rail intent: select a template to enable insertion rails.';
+    notify('Insert mode cancelled.');
+  });
+
+  document.getElementById('applyRuleBtn').addEventListener('click', async () => {
+    if (!state.selectedNodes.length) return notify('Select an element first.');
+    await withLock(document.getElementById('applyRuleBtn'), async () => {
+      const updates = [
+        { property: 'color', value: textColor.value },
+        { property: 'background-color', value: bgColor.value },
+        { property: 'font-size', value: `${Number(fontSize.value || 16)}px` },
+        { property: 'line-height', value: `${Number(lineHeight.value || 1.4)}` },
+        { property: 'letter-spacing', value: `${Number(letterSpacing.value || 0)}px` },
+        { property: 'font-weight', value: `${Number(fontWeight.value || 400)}` },
+        { property: 'text-align', value: textAlign.value || '' },
+        { property: 'margin', value: `${Number(marginAll.value || 0)}px` },
+        { property: 'padding', value: `${Number(paddingAll.value || 0)}px` },
+        { property: 'border-radius', value: `${Number(borderRadius.value || 0)}px` },
+        { property: 'box-shadow', value: boxShadow.value || '' }
+      ].filter((x) => x.value !== '');
+      const applied = [];
+      for (const nodeRef of state.selectedNodes) {
+        const base = {
+          projectId: activeProject(),
+          pagePath: activeFile(),
+          elementKey: nodeRef.key,
+          selector: nodeRef.selector,
+          breakpoint: breakpointSelect.value,
+          state: stateSelect.value
+        };
+        for (const update of updates) {
+          await api('/api/dve/edit/style', 'POST', { ...base, property: update.property, value: update.value });
+          state.overlay.rules = state.overlay.rules.filter((x) => !(x.elementKey === base.elementKey && x.breakpoint === base.breakpoint && x.state === base.state && x.property === update.property));
+          state.overlay.rules.push({ ...base, property: update.property, value: update.value });
+          applied.push({ ...base, property: update.property, value: update.value });
+        }
+      }
+      applyOverlay();
+      pushCommand({
+        type: 'style-set',
+        undo: async () => {
+          state.overlay.rules = state.overlay.rules.filter((x) => !applied.some((a) => a.elementKey === x.elementKey && a.breakpoint === x.breakpoint && a.state === x.state && a.property === x.property));
+          applyOverlay();
+        },
+        redo: async () => {
+          state.overlay.rules.push(...applied);
+          applyOverlay();
+        }
+      });
+      await api('/api/dve/ops/append', 'POST', { projectId: activeProject(), operation: 'style-set', count: applied.length }).catch(() => {});
+      notify(`Rules updated (${breakpointSelect.value}/${stateSelect.value}).`);
+    });
+  });
+
+  document.getElementById('applyTextBtn').addEventListener('click', async () => {
+    if (!state.selectedNode) return notify('Select an element first.');
+    await withLock(document.getElementById('applyTextBtn'), async () => {
+      const content = textEditor.value || '';
+      const previous = state.selectedNode.textContent || '';
+      await api('/api/dve/edit/text', 'POST', {
+        projectId: activeProject(),
+        pagePath: activeFile(),
+        elementKey: state.selectedKey,
+        selector: state.selectedSelector,
+        content,
+        textMode: 'plain'
+      });
+      state.selectedNode.textContent = content;
+      state.overlay.textPatches = state.overlay.textPatches.filter((x) => !(x.elementKey === state.selectedKey && x.textMode === 'plain'));
+      state.overlay.textPatches.push({ elementKey: state.selectedKey, selector: state.selectedSelector, textMode: 'plain', content });
+      pushCommand({
+        type: 'text-set',
+        undo: async () => { if (state.selectedNode) state.selectedNode.textContent = previous; },
+        redo: async () => { if (state.selectedNode) state.selectedNode.textContent = content; }
+      });
+      notify('Text updated.');
+    });
+  });
+
+  document.getElementById('bindActionBtn').addEventListener('click', async () => {
+    if (!state.selectedNode) return notify('Select an element first.');
+    const mode = document.getElementById('actionType').value;
+    const workflowIdRaw = (document.getElementById('workflowId').value || '').trim();
+    const navigateUrl = (document.getElementById('navigateUrl').value || '').trim();
+    if ((mode === 'workflow' || mode === 'hybrid') && !workflowIdRaw) return notify('Workflow ID required.');
+    if ((mode === 'navigate' || mode === 'hybrid') && !navigateUrl) return notify('Navigate URL required.');
+    await withLock(document.getElementById('bindActionBtn'), async () => {
+      const payload = {
+        projectId: activeProject(),
+        pagePath: activeFile(),
+        elementKey: state.selectedKey,
+        actionType: mode,
+        workflowId: workflowIdRaw || null,
+        navigateUrl: navigateUrl || null,
+        behavior: { source: 'inspector', openInNewTab: false }
+      };
+      await api('/api/dve/bind/action', 'POST', {
+        ...payload
+      });
+      state.overlay.bindings = state.overlay.bindings.filter((x) => x.elementKey !== state.selectedKey);
+      state.overlay.bindings.push(payload);
+      pushCommand({ type: 'action-bind', undo: async () => {}, redo: async () => {} });
+      notify('Action binding saved.');
+    });
+  });
+
+  testBindingBtn.addEventListener('click', async () => {
+    if (!state.selectedKey) return notify('Select a bound element first.');
+    await withLock(testBindingBtn, async () => {
+      const result = await api('/api/dve/bind/test', 'POST', {
+        projectId: activeProject(),
+        pagePath: activeFile(),
+        elementKey: state.selectedKey,
+        mockFields: { firstname: 'Test', lastname: 'User', email: 'qa@example.com' },
+        mockEmail: 'qa@example.com'
+      });
+      bindingDebugMeta.textContent = `Trace ${result.traceId} | Result: ${result.ok ? 'PASS' : 'FAIL'}`;
+      const events = [];
+      const path = Array.isArray(result.executionPath) ? result.executionPath : [];
+      if (path.length) {
+        path.forEach((step, index) => {
+          events.push(`${index + 1}. ${step}`);
+        });
+      } else {
+        events.push('1. No execution path emitted.');
+      }
+      const errors = Array.isArray(result.errors) ? result.errors.filter(Boolean) : [];
+      if (errors.length) {
+        errors.forEach((errorText, index) => events.push(`${path.length + index + 1}. ERROR: ${errorText}`));
+      } else {
+        events.push(`${path.length + 1}. Completed with no errors.`);
+      }
+      bindingDebugTrace.innerHTML = '';
+      events.forEach((entry) => {
+        const li = document.createElement('li');
+        li.textContent = entry;
+        bindingDebugTrace.appendChild(li);
+      });
+      notify(result.ok ? 'Binding test passed.' : 'Binding test failed.');
+    });
+  });
+
+  document.getElementById('saveDraftBtn').addEventListener('click', async () => {
+    await withLock(document.getElementById('saveDraftBtn'), async () => {
+      await api('/api/dve/save-draft', 'POST', { projectId: activeProject(), pagePath: activeFile() });
+      notify('Draft saved.');
+    });
+  });
+
+  document.getElementById('publishBtn').addEventListener('click', async () => {
+    await withLock(document.getElementById('publishBtn'), async () => {
+      const preflight = await api('/api/dve/preflight', 'POST', { projectId: activeProject(), pagePath: activeFile(), overrideRisk: false });
+      openPreflightModal(preflight);
+      if (preflight.safe && (!preflight.blockers || preflight.blockers.length === 0)) {
+        closePreflightModal();
+        await api('/api/dve/publish', 'POST', { projectId: activeProject(), pagePath: activeFile(), overrideRisk: true });
+        notify('Published with runtime attach.');
+      }
+    });
+  });
+
+  preflightCloseBtn.addEventListener('click', () => closePreflightModal());
+  preflightForcePublishBtn.addEventListener('click', async () => {
+    closePreflightModal();
+    await api('/api/dve/publish', 'POST', { projectId: activeProject(), pagePath: activeFile(), overrideRisk: true });
+    notify('Published with override.');
+  });
+
+  document.getElementById('rollbackBtn').addEventListener('click', async () => {
+    if (!window.confirm('Rollback Dynamic VE to previous published revision?')) return;
+    await withLock(document.getElementById('rollbackBtn'), async () => {
+      await api('/api/dve/rollback', 'POST', { projectId: activeProject(), pagePath: activeFile() });
+      notify('Rollback complete.');
+    });
+  });
+
+  alignLeftBtn.addEventListener('click', () => { textAlign.value = 'left'; document.getElementById('applyRuleBtn').click(); });
+  alignCenterBtn.addEventListener('click', () => { textAlign.value = 'center'; document.getElementById('applyRuleBtn').click(); });
+  alignRightBtn.addEventListener('click', () => { textAlign.value = 'right'; document.getElementById('applyRuleBtn').click(); });
+
+  undoBtn.addEventListener('click', () => undo().catch((e) => notify(e.message || String(e))));
+  redoBtn.addEventListener('click', () => redo().catch((e) => notify(e.message || String(e))));
+
+  document.addEventListener('keydown', async (event) => {
+    const cmd = event.metaKey || event.ctrlKey;
+    if (cmd && event.key.toLowerCase() === 'z' && !event.shiftKey) {
+      event.preventDefault();
+      await undo();
+      return;
+    }
+    if (cmd && event.key.toLowerCase() === 'z' && event.shiftKey) {
+      event.preventDefault();
+      await redo();
+      return;
+    }
+    if (cmd && event.key === 'Enter' && state.insertTemplate && state.selectedNode) {
+      event.preventDefault();
+      const guard = guardInsertTarget(state.selectedNode, 'inside-end');
+      if (guard) {
+        notify(guard);
+        return;
+      }
+      const selector = selectorFor(state.selectedNode);
+      const key = await ensureKey(state.selectedNode, selector);
+      await api('/api/dve/section/insert', 'POST', { projectId: activeProject(), pagePath: activeFile(), templateId: state.insertTemplate.id, insertMode: 'inside-end', targetElementKey: key, markup: state.insertTemplate.html, css: '', js: '' });
+      const template = frame.contentDocument.createElement('template');
+      template.innerHTML = state.insertTemplate.html;
+      state.selectedNode.append(template.content.cloneNode(true));
+      notify('Inserted section using keyboard shortcut.');
+    }
+  });
+
+  const init = async () => {
+    renderTemplates();
+    const loaded = await api(`/api/dve/page/load?projectId=${encodeURIComponent(activeProject())}&path=${encodeURIComponent(activeFile())}&env=draft`);
+    state.overlay = {
+      rules: Array.isArray(loaded?.overlay?.rules) ? loaded.overlay.rules : [],
+      textPatches: Array.isArray(loaded?.overlay?.textPatches) ? loaded.overlay.textPatches : [],
+      sections: Array.isArray(loaded?.overlay?.sections) ? loaded.overlay.sections : [],
+      bindings: Array.isArray(loaded?.overlay?.bindings) ? loaded.overlay.bindings : [],
+      elementMaps: Array.isArray(loaded?.overlay?.elementMaps) ? loaded.overlay.elementMaps : []
+    };
+    state.resolutionSummary = Array.isArray(loaded?.resolutionSummary) ? loaded.resolutionSummary : [];
+
+    (state.overlay.elementMaps || []).forEach((map) => {
+      const selectors = [map.primarySelector, ...(map.fallbackSelectors || [])].filter(Boolean);
+      state.elementRegistry.set(map.elementKey, {
+        selectors,
+        tag: '',
+        textSample: '',
+        fingerprintHash: map.fingerprintHash || '',
+        anchorHash: map.anchorHash || ''
+      });
+    });
+
+    frame.addEventListener('load', () => {
+      bindCanvas();
+      notify('Canvas ready.');
+    });
+    if (frame.contentDocument?.readyState === 'complete') bindCanvas();
+  };
+
+  init().catch((error) => notify(error.message || String(error)));
+})();
+</script>
+}

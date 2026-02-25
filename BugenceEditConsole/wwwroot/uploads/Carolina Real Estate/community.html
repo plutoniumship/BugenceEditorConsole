@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communities | Carolina Gandrud</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#050505',
+                        charcoal: '#0F0F0F',
+                        gold: '#C5A059',
+                        goldLight: '#E6C985',
+                        subtle: '#333333'
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Montserrat"', 'sans-serif'],
+                    },
+                    letterSpacing: {
+                        widest: '.25em',
+                    },
+                    backgroundImage: {
+                        'gradient-gold': 'linear-gradient(135deg, #C5A059 0%, #E6C985 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #f3f3f3;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: #C5A059;
+            color: #000;
+        }
+
+        .hero-bg {
+            background-image: url('https://images.unsplash.com/photo-1508780709619-79562169bc64?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="fixed top-0 w-full z-50 px-6 py-6 md:px-12 flex justify-between items-center mix-blend-difference text-white">
+        <a href="ideatwo.html" class="text-lg md:text-xl font-serif tracking-widest uppercase">
+            C. Gandrud
+        </a>
+        <a href="#contact" class="text-xs uppercase tracking-widest border-b border-gold pb-1 hover:text-gold transition-colors">
+            Contact
+        </a>
+    </nav>
+
+    <header class="relative h-[85vh] w-full overflow-hidden">
+        <div class="absolute inset-0 hero-bg"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-obsidian"></div>
+
+        <div class="relative z-10 h-full flex flex-col justify-center items-center text-center px-6">
+            <p class="text-gold text-xs md:text-sm tracking-[0.4em] uppercase mb-6">Community Guide</p>
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-serif text-white mb-6 leading-[0.95]">
+                Explore Charlotte <br> <span class="italic text-gold">Communities</span>
+            </h1>
+            <p class="max-w-2xl text-gray-300 font-light text-sm md:text-base leading-relaxed">
+                Every neighborhood tells a different story. From lakefront living on Lake Norman to the tree-lined streets of South Charlotte,
+                from the charm of historic Waxhaw to the energy of new construction in Fort Mill, Charlotte offers a community for every lifestyle.
+            </p>
+        </div>
+        <div class="absolute bottom-0 left-1/2 w-[1px] h-20 bg-gradient-to-b from-white to-transparent transform -translate-x-1/2"></div>
+    </header>
+
+    <section class="py-20 bg-obsidian border-t border-white/5">
+        <div class="max-w-5xl mx-auto px-6 md:px-12 text-center">
+            <p class="text-gray-400 text-sm md:text-base leading-relaxed">
+                The right neighborhood makes all the difference in how you experience home. Use this guide to compare the area's most desirable
+                communities across North and South Carolina.
+            </p>
+        </div>
+    </section>
+
+    <section class="py-24 bg-charcoal border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="mb-12">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-3">South Charlotte &amp; Union County</span>
+                <h2 class="text-3xl md:text-4xl font-serif text-white">Elegant suburbs and established communities</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Ballantyne</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        A thriving community featuring business parks, championship golf courses, excellent schools, and a mix of single-family homes,
+                        townhomes, and apartments. Convenient shopping and dining at Ballantyne Village.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">South Charlotte</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Encompasses established neighborhoods like Stonecrest, Lansdowne, and Providence Plantation. Known for top-rated schools,
+                        convenient highway access, and proximity to SouthPark shopping.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Weddington</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Highly sought-after Union County town known for spacious lots, excellent schools, and a family-oriented community atmosphere.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Waxhaw</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Historic downtown charm meets modern growth. Highly-rated Union County schools, expanding residential developments,
+                        and a strong sense of community.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Marvin</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Small Union County town offering large lots, rural character, and proximity to both Charlotte and the growing areas of Waxhaw
+                        and Weddington.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Pineville</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        South Charlotte area with convenient I-77 and I-485 access, Carolina Place Mall, and diverse housing options from apartments
+                        to single-family homes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-obsidian border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="mb-12">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-3">Fort Mill &amp; York County (South Carolina)</span>
+                <h2 class="text-3xl md:text-4xl font-serif text-white">Border-town living with easy Charlotte access</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Fort Mill</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Just across the South Carolina border, Fort Mill offers excellent Fort Mill Schools, new construction neighborhoods,
+                        a charming downtown, and easy access to Charlotte. Popular with families and professionals.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">York</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Historic York County seat offering small-town atmosphere, affordable housing, and proximity to Charlotte while maintaining
+                        a distinct community identity.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Tega Cay</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Waterfront community on Lake Wylie featuring a peninsula setting, resort-style amenities, golf course, and strong
+                        property values.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Lake Wylie and Clover</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Growing South Carolina town in York County offering newer developments, Clover School District, and a mix of suburban
+                        and rural living.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Rock Hill</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        York County's largest city featuring Winthrop University, a revitalized downtown, diverse housing options, and a lower
+                        cost of living while staying connected to Charlotte.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-charcoal border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="mb-12">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-3">Southeast Charlotte &amp; Matthews</span>
+                <h2 class="text-3xl md:text-4xl font-serif text-white">Historic charm with modern convenience</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Matthews</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Historic downtown with local shops and restaurants, community festivals, and diverse neighborhoods. Convenient to Uptown
+                        Charlotte with a small-town feel.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Mint Hill</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Southeast Charlotte area known for family-friendly neighborhoods, good schools, and convenient access to I-485 and major
+                        employment centers.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Stallings</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Union County town adjacent to Matthews, offering newer developments, good schools, and growing retail and dining options.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-obsidian border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="mb-12">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-3">Lake Norman Area</span>
+                <h2 class="text-3xl md:text-4xl font-serif text-white">Waterfront living and vibrant downtowns</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Cornelius</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Lakeside town on Lake Norman's southern shore featuring waterfront properties, marinas, walkable downtown, and a growing
+                        restaurant scene.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Davidson</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Charming college town home to Davidson College. Walkable Main Street, historic architecture, lake access, and strong
+                        community engagement.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Huntersville</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        One of Charlotte's fastest-growing suburbs on Lake Norman. Excellent schools, Birkdale Village shopping, new construction,
+                        and easy I-77 access.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Mooresville</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Located on Lake Norman's northern shore. Known as "Race City USA" for NASCAR connections. Offers waterfront living,
+                        good schools, and a historic downtown.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Troutman</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Smaller Iredell County town north of Mooresville offering more affordable Lake Norman area living with a small-town atmosphere.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-charcoal border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="mb-12">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-3">North &amp; Northeast Charlotte</span>
+                <h2 class="text-3xl md:text-4xl font-serif text-white">Growth corridors and established neighborhoods</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">University City</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Home to UNC Charlotte. Diverse neighborhoods, growing retail and dining, and convenient access to I-85 and I-485.
+                        Mix of student housing and family neighborhoods.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Harrisburg</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Rapidly growing Cabarrus County town northeast of Charlotte. New construction communities, highly-rated schools,
+                        and family-friendly atmosphere.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Concord</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Cabarrus County seat and home to Charlotte Motor Speedway. Growing residential areas, historic downtown, and convenient
+                        access to Charlotte Douglas Airport.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Kannapolis</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Cabarrus County town experiencing downtown revitalization. New developments, the North Carolina Research Campus,
+                        and affordable housing options.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-obsidian border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="mb-12">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-3">West Charlotte &amp; Gaston County</span>
+                <h2 class="text-3xl md:text-4xl font-serif text-white">Riverside towns and value-driven living</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Gastonia</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Gaston County seat west of Charlotte offering affordable housing, historic downtown, access to outdoor recreation,
+                        and a mix of suburban and rural areas.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Belmont</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Historic town along the Catawba River featuring a charming downtown, Daniel Stowe Botanical Garden proximity,
+                        and growing residential areas.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Mount Holly</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Gaston County town on the Catawba River offering small-town atmosphere, Lake Wylie access, and more affordable housing options.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Cramerton</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Small Gaston County town known for its historic mill village character, tree-lined streets, and proximity to the Catawba River.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Lowell</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Smaller Gaston County community offering affordable housing and convenient access to Gastonia and Charlotte.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-charcoal border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="mb-12">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-3">Lancaster County (South Carolina)</span>
+                <h2 class="text-3xl md:text-4xl font-serif text-white">Quiet country living with city proximity</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Lancaster</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        South Carolina county seat offering historic downtown, affordable housing, and proximity to Charlotte while maintaining
+                        a distinct small-town character.
+                    </p>
+                </div>
+                <div class="border border-white/10 bg-black/40 p-8">
+                    <h3 class="text-xl font-serif text-white mb-3">Pageland</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Rural Chesterfield/Lancaster County community offering affordable land, agricultural character, and a quieter pace of life.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="py-28 bg-obsidian border-t border-white/5 relative overflow-hidden">
+        <div class="absolute -top-16 -right-20 w-64 h-64 border border-white/10 rounded-full"></div>
+        <div class="absolute -bottom-20 -left-16 w-72 h-72 border border-gold/20 rounded-full"></div>
+
+        <div class="max-w-5xl mx-auto px-6 md:px-12 text-center relative z-10">
+            <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-4">Contact Carolina</span>
+            <h2 class="text-4xl md:text-5xl font-serif text-white mb-6">Ready to explore these communities in person?</h2>
+            <p class="text-gray-400 max-w-2xl mx-auto mb-10">
+                Carolina offers personalized area tours and can help you compare neighborhoods based on your priorities: schools, commute,
+                lifestyle, and budget.
+            </p>
+            <a href="ideatwo.html#contact" class="inline-block border border-white/30 text-white px-12 py-4 text-xs tracking-widest uppercase hover:border-gold hover:text-gold transition-colors">
+                Contact Carolina
+            </a>
+        </div>
+    </section>
+
+    <footer class="bg-black py-16 border-t border-gray-900 text-center">
+        <p class="text-xs uppercase tracking-widest text-gray-600">© 2024 Carolina Gandrud • Corcoran HM Properties</p>
+    </footer>
+
+</body>
+</html>

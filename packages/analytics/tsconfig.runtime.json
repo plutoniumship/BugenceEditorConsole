@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": false,
+    "outDir": "../../BugenceEditConsole/wwwroot/js/analytics",
+    "declaration": false,
+    "sourceMap": false,
+    "rootDir": "src"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bugence | Secure Onboarding</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-page: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --border: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --accent: #3B82F6;
+            --accent-soft: rgba(59, 130, 246, 0.05);
+            --success: #10B981;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 2px; background: var(--border);
+            z-index: 1; transform: translateY(-50%);
+        }
+        .step-dot {
+            width: 32px; height: 32px;
+            background: #fff; border: 2px solid var(--border);
+            border-radius: 50%; z-index: 2;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 700; color: var(--text-muted);
+            transition: 0.3s;
+        }
+        .step-dot.active { border-color: var(--accent); color: var(--accent); }
+        .step-dot.completed { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+        /* --- Signup Card --- */
+        .signup-card {
+            background: var(--bg-card);
+            width: 100%; max-width: 550px;
+            padding: 50px; border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        .signup-step { display: none; }
+        .signup-step.active { display: block; animation: slideIn 0.4s ease-out; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- UI Elements --- */
+        .form-label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+        .form-control, .form-select {
+            padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border);
+            background: #F9FBFF; font-size: 0.95rem; transition: 0.2s;
+        }
+        .form-control:focus {
+            border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); outline: none;
+        }
+
+        .btn-bugence {
+            background: var(--accent); color: #fff; border: none;
+            padding: 14px; border-radius: 12px; font-weight: 600; width: 100%;
+            transition: 0.3s; margin-top: 20px;
+        }
+        .btn-bugence:hover { background: #2563EB; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+
+        .btn-back {
+            background: transparent; color: var(--text-muted); border: none; font-size: 0.9rem; margin-top: 15px; display: block; width: 100%; text-align: center;
+        }
+
+        /* --- OTP Inputs --- */
+        .otp-group { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+        .otp-input {
+            width: 50px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: 700;
+            border-radius: 12px; border: 1px solid var(--border); background: #F9FBFF;
+        }
+
+        /* --- Selection Blocks --- */
+        .type-selector {
+            border: 1px solid var(--border); padding: 20px; border-radius: 16px;
+            cursor: pointer; transition: 0.2s; margin-bottom: 15px; display: flex; align-items: center; gap: 15px;
+        }
+        .type-selector:hover, .type-selector.active { border-color: var(--accent); background: var(--accent-soft); }
+        .type-selector i { font-size: 1.5rem; color: var(--accent); }
+
+        .team-member-row { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container py-5">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">BUG<span class="text-primary">ENCE</span></h2>
+            <p class="text-muted">Professional Platform Onboarding</p>
+        </div>
+
+        <div class="progress-container">
+            <div class="step-indicator">
+                <div class="step-dot active" id="dot-1">1</div>
+                <div class="step-dot" id="dot-2">2</div>
+                <div class="step-dot" id="dot-3">3</div>
+                <div class="step-dot" id="dot-4">4</div>
+                <div class="step-dot" id="dot-5">5</div>
+            </div>
+        </div>
+
+        <div class="signup-card">
+            <form id="onboardingForm">
+                
+                <div class="signup-step active" id="step-1">
+                    <h4 class="fw-bold mb-1">Create Account</h4>
+                    <p class="text-muted small mb-4">Let's start with the basics.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="fullName" placeholder="John Doe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="userEmail" placeholder="john@example.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" class="form-control" id="userPhone" placeholder="+1 (555) 000-0000" required>
+                        <small class="text-muted" style="font-size: 11px;">Format: +[CountryCode][Number]</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Secure Password</label>
+                        <input type="password" class="form-control" id="userPass" placeholder="Min. 8 characters" required minlength="8">
+                    </div>
+                    <button type="button" class="btn-bugence" onclick="nextStep(2)">Send Verification Code</button>
+                </div>
+
+                <div class="signup-step" id="step-2">
+                    <h4 class="fw-bold mb-1 text-center">Verify Email</h4>
+                    <p class="text-muted small text-center mb-4">We've sent a 6-digit code to your inbox.</p>
+                    
+                    <div class="otp-group">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                    </div>
+
+                    <button type="button" class="btn-bugence" onclick="nextStep(3)">Verify & Continue</button>
+                    <button type="button" class="btn-back" onclick="nextStep(1)">Change Email Address</button>
+                </div>
+
+                <div class="signup-step" id="step-3">
+                    <h4 class="fw-bold mb-1">Your Identity</h4>
+                    <p class="text-muted small mb-4">How do you intend to use Bugence?</p>
+                    
+                    <div class="type-selector active" onclick="selectRole('freelance')">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <div>
+                            <span class="fw-bold d-block">Freelancer / Individual</span>
+                            <span class="text-muted small">I work independently on various projects.</span>
+                        </div>
+                    </div>
+
+                    <div class="type-selector" onclick="selectRole('company')">
+                        <i class="fa-solid fa-building"></i>
+                        <div>
+                            <span class="fw-bold d-block">Company Employee</span>
+                            <span class="text-muted small">I work within a corporate organization.</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-bugence" onclick="nextStep(4)">Proceed to Setup</button>
+                    <button type="button" class="btn-back" onclick="nextStep(1)">Back</button>
+                </div>
+
+                <div class="signup-step" id="step-4">
+                    <h4 class="fw-bold mb-1" id="step4Title">Business Setup</h4>
+                    <p class="text-muted small mb-4">Tell us about your professional environment.</p>
+                    
+                    <div id="companyFields" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label">Company Legal Name</label>
+                            <input type="text" class="form-control" placeholder="Acme Corp">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Company Industry</label>
+                            <select class="form-select">
+                                <option>Software / Tech</option>
+                                <option>Finance</option>
+                                <option>Healthcare</option>
+                                <option>Creative Agency</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="freelanceFields">
+                        <div class="mb-3">
+                            <label class="form-label">Primary Skill / Niche</label>
+                            <input type="text" class="form-control" placeholder="e.g. Full-Stack Development">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Portfolio Website (Optional)</label>
+                            <input type="url" class="form-control" placeholder="https://mywork.com">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Country</label>
+                            <input type="text" class="form-control" placeholder="USA">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">City</label>
+                            <input type="text" class="form-control" placeholder="San Francisco">
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-bugence" onclick="nextStep(5)">Setup Workspace</button>
+                    <button type="button" class="btn-back" onclick="nextStep(3)">Back</button>
+                </div>
+
+                <div class="signup-step" id="step-5">
+                    <h4 class="fw-bold mb-1">Team Workspace</h4>
+                    <p class="text-muted small mb-4">Collaborate better by inviting your team.</p>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Team Members Emails</label>
+                        <div id="teamContainer">
+                            <div class="team-member-row">
+                                <input type="email" class="form-control" placeholder="colleague@company.com">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none mt-2" onclick="addTeamField()">+ Add another member</button>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendInvites" checked>
+                            <label class="form-check-label small" for="sendInvites">
+                                Send magic invite links automatically upon completion.
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-bugence" onclick="finishSignup()">Finish & Launch Console</button>
+                    <button type="button" class="btn-back" onclick="nextStep(4)">Back</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        let currentRole = 'freelance';
+
+        function nextStep(step) {
+            // Basic Step Validation
+            if(step === 2) {
+                const phone = $('#userPhone').val();
+                const phoneRegex = /^\+?[1-9]\d{1,14}$/; // International format
+                if(!phoneRegex.test(phone.replace(/\s/g, ""))) {
+                    alert("Please enter a valid international mobile number.");
+                    return;
+                }
+            }
+
+            // UI Transitions
+            $('.signup-step').removeClass('active');
+            $(`#step-${step}`).addClass('active');
+
+            // Update Progress Dots
+            $('.step-dot').removeClass('active completed');
+            for(let i=1; i<=5; i++) {
+                if(i < step) $(`#dot-${i}`).addClass('completed');
+                if(i === step) $(`#dot-${i}`).addClass('active');
+            }
+        }
+
+        function selectRole(role) {
+            currentRole = role;
+            $('.type-selector').removeClass('active');
+            event.currentTarget.classList.add('active');
+
+            if(role === 'company') {
+                $('#companyFields').removeClass('d-none');
+                $('#freelanceFields').addClass('d-none');
+                $('#step4Title').text('Company Details');
+            } else {
+                $('#companyFields').addClass('d-none');
+                $('#freelanceFields').removeClass('d-none');
+                $('#step4Title').text('Professional Niche');
+            }
+        }
+
+        function addTeamField() {
+            $('#teamContainer').append(`
+                <div class="team-member-row mt-2">
+                    <input type="email" class="form-control" placeholder="colleague@company.com">
+                </div>
+            `);
+        }
+
+        function finishSignup() {
+            const btn = event.target;
+            $(btn).html('<i class="fa-solid fa-circle-notch fa-spin"></i> Finalizing System Setup...');
+            
+            setTimeout(() => {
+                alert("Account Created Successfully!\nInvites have been dispatched to your team members.");
+                window.location.reload(); // Reset or redirect
+            }, 2000);
+        }
+
+        // OTP Input Auto-tabbing
+        $('.otp-input').on('keyup', function(e) {
+            if (this.value.length === 1) {
+                $(this).next('.otp-input').focus();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1895 @@
+:root {
+    --bugence-editor-accent: #f97316;
+    --bugence-editor-accent-strong: #fb923c;
+    --bugence-editor-accent-soft: rgba(249, 115, 22, 0.16);
+    --bugence-editor-surface: linear-gradient(145deg, rgba(14, 20, 40, 0.94) 0%, rgba(30, 24, 48, 0.92) 48%, rgba(61, 25, 83, 0.9) 100%);
+    --bugence-editor-border: rgba(249, 115, 22, 0.38);
+    --bugence-editor-text: #f8fafc;
+    --bugence-editor-muted: rgba(214, 227, 255, 0.7);
+    --bugence-editor-radius: 18px;
+    --bugence-editor-shadow: 0 32px 82px rgba(7, 12, 31, 0.78);
+    --bugence-editor-z: 2147483000;
+}
+
+[data-bugence-section].bugence-editor-highlight {
+    outline: 2px solid var(--bugence-editor-accent);
+    outline-offset: 4px;
+    border-radius: 12px;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12), 0 16px 40px rgba(249, 115, 22, 0.22);
+    transition: outline-color 180ms ease, outline-offset 180ms ease, box-shadow 220ms ease;
+}
+
+[data-bugence-section].bugence-editor-highlight.bugence-editor-highlight--locked {
+    outline-style: dashed;
+    outline-color: rgba(248, 113, 113, 0.9);
+    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12), 0 12px 32px rgba(248, 113, 113, 0.2);
+}
+
+body.bugence-editor-active [data-bugence-section] {
+    pointer-events: auto !important;
+    cursor: text;
+    position: relative;
+    transition: transform 160ms ease;
+}
+
+body.bugence-editor-active [data-bugence-section] img {
+    cursor: pointer;
+}
+
+body.bugence-editor-active .pointer-events-none {
+    pointer-events: auto !important;
+}
+
+body.bugence-editor-active [data-bugence-section][data-bugence-locked="true"],
+body.bugence-editor-active [data-bugence-section].bugence-editor-highlight--locked {
+    cursor: not-allowed;
+}
+
+[data-bugence-section][data-bugence-locked="true"].bugence-editor-highlight::after {
+    content: "Locked";
+    position: absolute;
+    inset: -2px;
+    border-radius: 12px;
+    background: repeating-linear-gradient(135deg, rgba(248, 113, 113, 0.18) 0px, rgba(248, 113, 113, 0.18) 6px, transparent 6px, transparent 12px);
+    color: rgba(248, 113, 113, 0.88);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.bugence-editor-badge {
+    position: absolute;
+    z-index: var(--bugence-editor-z);
+    transform: translate(-50%, -100%);
+    display: none;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(249, 115, 22, 0.45);
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.98), rgba(251, 146, 60, 0.92));
+    color: #091224;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 12px 36px rgba(249, 115, 22, 0.24);
+    cursor: pointer;
+    user-select: none;
+}
+
+.bugence-editor-badge__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+}
+
+.bugence-editor-badge__locked {
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(248, 113, 113, 0.18);
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    color: rgba(248, 250, 252, 0.9);
+}
+
+.bugence-editor-badge[data-state="locked"] {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.95), rgba(239, 68, 68, 0.95));
+    border-color: rgba(248, 113, 113, 0.55);
+    color: #fff;
+}
+
+.bugence-editor-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(15, 23, 42, 0.82) 0%, rgba(55, 21, 96, 0.78) 60%, rgba(15, 23, 42, 0.92) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: calc(var(--bugence-editor-z) + 20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+}
+.bugence-editor-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(55% 55% at 15% 20%, rgba(249, 115, 22, 0.22), transparent),
+        radial-gradient(60% 60% at 85% 80%, rgba(236, 72, 153, 0.18), transparent);
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+.bugence-editor-modal {
+    width: min(880px, 100%);
+    max-height: min(88vh, 900px);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--bugence-editor-radius);
+    background: var(--bugence-editor-surface);
+    border: 1px solid rgba(34, 211, 238, 0.28);
+    box-shadow: 0 32px 80px rgba(2, 6, 23, 0.8), inset 0 1px 0 rgba(148, 163, 184, 0.08);
+    color: var(--bugence-editor-text);
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow: hidden;
+}
+
+.bugence-editor-modal__header {
+    padding: 1.35rem 1.6rem;
+    border-bottom: 1px solid rgba(249, 115, 22, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: linear-gradient(145deg, rgba(22, 18, 38, 0.96), rgba(32, 20, 46, 0.92));
+}
+
+.bugence-editor-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.bugence-editor-header__pill {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    gap: 0.4rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(34, 211, 238, 0.14);
+    border: 1px solid rgba(34, 211, 238, 0.32);
+    color: rgba(94, 234, 212, 0.95);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+}
+
+.bugence-editor-modal__title {
+    margin: 0;
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+    color: #f8fafc;
+}
+
+.bugence-editor-modal__subtitle {
+    margin: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.72);
+}
+
+.bugence-editor-modal__close {
+    appearance: none;
+    border: none;
+    background: rgba(30, 41, 59, 0.8);
+    color: rgba(226, 232, 240, 0.86);
+    border-radius: 999px;
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 180ms ease, background 180ms ease;
+}
+
+.bugence-editor-modal__close:hover {
+    background: rgba(71, 85, 105, 0.9);
+    transform: rotate(90deg);
+}
+
+.bugence-editor-modal__body {
+    padding: 1.6rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.bugence-editor-layout {
+    display: grid;
+    gap: 1.3rem;
+}
+
+.bugence-editor-layout--media {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 860px) {
+    .bugence-editor-layout {
+        grid-template-columns: minmax(0, 290px) minmax(0, 1fr);
+        align-items: stretch;
+    }
+}
+
+.bugence-editor-layout__controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1.1rem 1.15rem;
+    border-radius: 16px;
+    background: rgba(6, 12, 35, 0.82);
+    border: 1px solid rgba(94, 234, 212, 0.2);
+    box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.08);
+}
+
+.bugence-editor-layout__surface {
+    border-radius: 18px;
+    padding: 1.25rem;
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    background: rgba(7, 13, 30, 0.82);
+    box-shadow: inset 0 1px 0 rgba(94, 234, 212, 0.12);
+    display: flex;
+    flex-direction: column;
+    min-height: 260px;
+    position: relative;
+}
+
+.bugence-editor-layout__surface .bugence-editor-surface {
+    flex: 1;
+}
+
+.bugence-editor-layout__surface .bugence-editor-surface {
+    flex: 1;
+}
+
+.bugence-editor-layout__surface::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(94, 234, 212, 0.08), transparent 55%);
+    mix-blend-mode: screen;
+}
+
+.bugence-editor-layout__surface--media {
+    padding: 1.5rem;
+    display: grid;
+    place-items: center;
+}
+
+.bugence-editor-helper {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: rgba(209, 213, 219, 0.88) !important;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.bugence-editor-toolbar {
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    padding: 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(94, 234, 212, 0.28);
+    background: rgba(2, 6, 23, 0.86);
+    box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.08);
+}
+
+.bugence-editor-toolbar__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.55rem;
+    border-radius: 12px;
+    background: rgba(8, 13, 33, 0.82);
+    border: 1px solid rgba(14, 165, 233, 0.14);
+}
+
+.bugence-editor-toolbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.bugence-editor-toolbar__label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(148, 163, 184, 0.6);
+}
+
+.bugence-editor-toolbar__control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(94, 234, 212, 0.32);
+    background: rgba(5, 10, 26, 0.9);
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 0.74rem;
+    font-weight: 600;
+}
+
+.bugence-editor-toolbar__control-badge {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(94, 234, 212, 0.9);
+}
+
+.bugence-editor-toolbar__select {
+    appearance: none;
+    min-width: 130px;
+    padding: 0.35rem 0.95rem 0.35rem 0.6rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(34, 211, 238, 0.22);
+    background: rgba(5, 10, 28, 0.9);
+    color: rgba(226, 232, 240, 0.96);
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: border 160ms ease, box-shadow 160ms ease;
+}
+
+.bugence-editor-toolbar__select:focus {
+    outline: none;
+    border-color: rgba(94, 234, 212, 0.55);
+    box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.2);
+}
+
+.bugence-editor-toolbar__select option[data-custom="true"] {
+    font-style: normal;
+    font-weight: 600;
+}
+
+.bugence-editor-toolbar__divider {
+    display: none;
+}
+
+.bugence-editor-toolbar button {
+    appearance: none;
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    background: rgba(4, 10, 28, 0.88);
+    color: rgba(226, 232, 240, 0.92);
+    border-radius: 10px;
+    padding: 0.38rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 160ms ease, border 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.bugence-editor-toolbar button:hover {
+    background: rgba(34, 211, 238, 0.85);
+    border-color: rgba(94, 234, 212, 0.82);
+    color: #02131f;
+    transform: translateY(-1px);
+}
+
+.bugence-editor-toolbar button[data-active="true"] {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.92), rgba(94, 234, 212, 0.98));
+    border-color: rgba(14, 165, 233, 0.8);
+    color: #00101a;
+    box-shadow: 0 10px 24px rgba(34, 211, 238, 0.35);
+}
+
+.bugence-editor-toolbar__palette {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.bugence-editor-image {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.bugence-editor-image__row {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.bugence-editor-image__preview {
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    background: rgba(3, 7, 18, 0.8);
+    padding: 0.75rem;
+    max-height: 340px;
+    object-fit: contain;
+    box-shadow: inset 0 0 0 1px rgba(8, 15, 35, 0.4);
+}
+
+.bugence-editor-image__label {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.95rem;
+    border-radius: 12px;
+    border: 1px dashed rgba(94, 234, 212, 0.32);
+    background: rgba(4, 10, 28, 0.76);
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.bugence-editor-image__label:hover {
+    border-color: rgba(34, 211, 238, 0.65);
+    background: rgba(9, 20, 48, 0.85);
+    color: #f8fafc;
+}
+
+.bugence-editor-image__file {
+    display: none;
+}
+
+.bugence-editor-image__alt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.bugence-editor-image__alt label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.72);
+}
+
+.bugence-editor-image__alt input {
+    appearance: none;
+    border-radius: 10px;
+    border: 1px solid rgba(34, 211, 238, 0.22);
+    background: rgba(5, 10, 28, 0.9);
+    color: rgba(248, 250, 252, 0.95);
+    padding: 0.65rem 0.8rem;
+    font-size: 0.86rem;
+    font-weight: 600;
+    transition: border 160ms ease, box-shadow 160ms ease;
+}
+
+.bugence-editor-image__alt input:focus {
+    outline: none;
+    border-color: rgba(94, 234, 212, 0.6);
+    box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.18);
+}
+
+.bugence-editor-toolbar__swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.65);
+    cursor: pointer;
+    transition: transform 140ms ease, box-shadow 140ms ease, border 140ms ease;
+}
+
+.bugence-editor-toolbar__swatch:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(14, 116, 144, 0.42);
+}
+
+.bugence-editor-toolbar__swatch[data-selected="true"] {
+    border-color: rgba(94, 234, 212, 0.95);
+    box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.35);
+}
+
+.bugence-editor-surface {
+    min-height: 220px;
+    padding: 1.1rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    background: rgba(2, 6, 23, 0.92);
+    color: #f8fafc;
+    font-size: 0.96rem;
+    font-weight: 600;
+    line-height: 1.65;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+.bugence-editor-surface:focus {
+    outline: 2px solid rgba(94, 234, 212, 0.6);
+    outline-offset: 0;
+}
+
+.bugence-editor-surface[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(148, 163, 184, 0.55);
+    font-weight: 500;
+}
+
+.bugence-editor-insights {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    margin-bottom: 1.15rem;
+}
+
+.bugence-editor-insight {
+    border-radius: 14px;
+    padding: 0.75rem 0.95rem;
+    background: rgba(4, 10, 28, 0.78);
+    border: 1px solid rgba(94, 234, 212, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.bugence-editor-insight__label {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.68);
+}
+
+.bugence-editor-insight__value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.bugence-editor-insight__meta {
+    font-size: 0.68rem;
+    color: rgba(148, 163, 184, 0.62);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.bugence-editor-insight[data-tone="warning"] {
+    border-color: rgba(251, 191, 36, 0.45);
+    background: rgba(251, 191, 36, 0.12);
+}
+
+.bugence-editor-insight[data-tone="warning"] .bugence-editor-insight__label {
+    color: rgba(251, 191, 36, 0.82);
+}
+
+.bugence-editor-insight[data-tone="success"] {
+    border-color: rgba(94, 234, 212, 0.45);
+    background: rgba(94, 234, 212, 0.12);
+}
+
+.bugence-editor-insight[data-tone="success"] .bugence-editor-insight__label {
+    color: rgba(94, 234, 212, 0.82);
+}
+
+.bugence-editor-insight[data-tone="info"] {
+    border-color: rgba(59, 130, 246, 0.42);
+    background: rgba(59, 130, 246, 0.12);
+}
+
+.bugence-editor-insight[data-tone="info"] .bugence-editor-insight__label {
+    color: rgba(59, 130, 246, 0.8);
+}
+
+.bugence-editor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.bugence-editor-field label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: rgba(226, 232, 240, 0.55);
+}
+
+.bugence-editor-input {
+    appearance: none;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(15, 23, 42, 0.7);
+    padding: 0.65rem 0.75rem;
+    color: var(--bugence-editor-text);
+    font-size: 0.9rem;
+    transition: border 160ms ease, box-shadow 160ms ease;
+}
+
+.bugence-editor-input:focus {
+    outline: none;
+    border-color: rgba(59, 130, 246, 0.65);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.bugence-editor-modal__footer {
+    padding: 1.35rem 1.6rem;
+    border-top: 1px solid rgba(34, 211, 238, 0.18);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bugence-editor-actions {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.bugence-editor-btn {
+    appearance: none;
+    border-radius: 999px;
+    padding: 0.62rem 1.35rem;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border 160ms ease;
+}
+
+.bugence-editor-btn--primary {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.95), rgba(59, 130, 246, 0.95));
+    color: #02131f;
+    box-shadow: 0 16px 34px rgba(34, 211, 238, 0.32);
+}
+
+.bugence-editor-btn--primary:hover {
+    transform: translateY(-1px);
+}
+
+.bugence-editor-btn--ghost {
+    background: transparent;
+    border-color: rgba(148, 163, 184, 0.32);
+    color: rgba(226, 232, 240, 0.88);
+}
+
+.bugence-editor-btn--ghost:hover {
+    background: rgba(15, 23, 42, 0.65);
+}
+
+.bugence-editor-btn--revert {
+    background: rgba(248, 113, 113, 0.18);
+    border-color: rgba(248, 113, 113, 0.38);
+    color: rgba(254, 226, 226, 0.95);
+}
+
+.bugence-editor-btn--revert:hover {
+    background: rgba(248, 113, 113, 0.28);
+    border-color: rgba(248, 113, 113, 0.55);
+    color: #fff;
+}
+
+.bugence-editor-notice {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.7);
+}
+
+.bugence-editor-media-preview {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px dashed rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.6);
+    overflow-y: auto; overflow-x: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+}
+
+.bugence-editor-media-preview img {
+    display: block;
+    max-width: 100%;
+    max-height: 360px;
+    object-fit: contain;
+}
+
+.bugence-editor-toast-stack {
+    position: fixed;
+    inset-inline-end: 24px;
+    inset-block-end: 24px;
+    display: grid;
+    gap: 0.65rem;
+    z-index: calc(var(--bugence-editor-z) + 40);
+}
+
+.bugence-editor-toast {
+    min-width: 220px;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: rgba(226, 232, 240, 0.95);
+    font-size: 0.8rem;
+    box-shadow: 0 12px 30px rgba(8, 15, 45, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.bugence-editor-toast--error {
+    border-color: rgba(248, 113, 113, 0.55);
+    color: rgba(254, 226, 226, 0.95);
+}
+
+.bugence-editor-toast--warning {
+    border-color: rgba(250, 204, 21, 0.45);
+    background: rgba(30, 41, 59, 0.88);
+    color: rgba(254, 243, 199, 0.92);
+}
+
+.bugence-editor-badge--visible {
+    display: inline-flex;
+}
+
+.bugence-editor-sidebar {
+    position: fixed;
+    inset-block: 24px 24px;
+    inset-inline-end: 24px;
+    display: flex;
+    flex-direction: column;
+    width: min(360px, calc(100% - 48px));
+    border-radius: var(--bugence-editor-radius);
+    border: 1px solid rgba(249, 115, 22, 0.28);
+    background: linear-gradient(155deg, rgba(18, 18, 32, 0.96), rgba(35, 24, 54, 0.9));
+    box-shadow: var(--bugence-editor-shadow), 0 0 0 1px rgba(249, 115, 22, 0.1);
+    color: var(--bugence-editor-text);
+    z-index: calc(var(--bugence-editor-z) - 10);
+    padding: 1.5rem;
+    gap: 1.25rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    pointer-events: auto;
+    max-height: calc(100vh - 48px);
+    padding-right: 1.25rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    overflow-y: auto; overflow-x: hidden;
+}
+
+.bugence-editor-sidebar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 85% 15%, rgba(249, 115, 22, 0.28), transparent 58%),
+        radial-gradient(circle at 12% 85%, rgba(236, 72, 153, 0.22), transparent 60%);
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+.bugence-editor-sidebar::-webkit-scrollbar {
+    width: 0.55rem;
+}
+
+.bugence-editor-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.bugence-editor-sidebar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.35);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.bugence-editor-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+}
+
+.bugence-editor-sidebar > * {
+    position: relative;
+}
+
+.bugence-editor-sidebar__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.bugence-editor-sidebar__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.bugence-editor-sidebar__brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    border-radius: 999px;
+    background: rgba(249, 115, 22, 0.16);
+    border: 1px solid rgba(249, 115, 22, 0.32);
+    box-shadow: 0 10px 30px rgba(249, 115, 22, 0.22);
+}
+
+.bugence-editor-sidebar__brand-icon {
+    display: block;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.bugence-editor-sidebar__badge {
+    align-self: flex-start;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: rgba(249, 115, 22, 0.18);
+    border: 1px solid rgba(249, 115, 22, 0.32);
+    color: rgba(252, 233, 205, 0.85);
+}
+
+.bugence-editor-sidebar__title {
+    font-size: clamp(1.1rem, 1.2vw + 1rem, 1.4rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--bugence-editor-text);
+}
+
+.bugence-editor-sidebar__slug {
+    font-size: 0.75rem;
+    color: rgba(226, 232, 240, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.bugence-editor-sidebar__slug::before {
+    content: "#";
+    font-size: 0.7rem;
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.bugence-editor-sidebar__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    font-size: 0.8rem;
+}
+
+.bugence-editor-sidebar__status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(31, 24, 46, 0.8), rgba(18, 16, 32, 0.88));
+    border: 1px solid rgba(249, 115, 22, 0.28);
+    box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.1);
+}
+
+.bugence-editor-sidebar__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--bugence-editor-accent);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2);
+    flex-shrink: 0;
+}
+
+.bugence-editor-sidebar__dot[data-state="draft"] {
+    background: rgba(249, 115, 22, 0.95);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2);
+}
+
+.bugence-editor-sidebar__dot[data-state="empty"] {
+    background: rgba(148, 163, 184, 0.4);
+    box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.12);
+}
+
+.bugence-editor-sidebar__status-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(248, 250, 252, 0.92);
+    letter-spacing: -0.01em;
+}
+
+.bugence-editor-sidebar__status-meta {
+    font-size: 0.7rem;
+    color: rgba(203, 213, 225, 0.66);
+    margin-top: 0.3rem;
+}
+
+.bugence-editor-sidebar__hint {
+    color: rgba(226, 232, 240, 0.6);
+    line-height: 1.6;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    border: 1px dashed rgba(148, 163, 184, 0.28);
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.bugence-editor-sidebar__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.bugence-editor-sidebar__stat {
+    position: relative;
+    padding: 0.75rem;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(29, 24, 46, 0.7), rgba(17, 16, 32, 0.82));
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.bugence-editor-sidebar__stat::before {
+    content: attr(data-icon);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(252, 228, 193, 0.6);
+}
+
+.bugence-editor-sidebar__stat::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.28), transparent 65%);
+    opacity: 0;
+    transition: opacity 160ms ease;
+    pointer-events: none;
+}
+
+.bugence-editor-sidebar__stat:hover::after {
+    opacity: 0.65;
+}
+
+.bugence-editor-sidebar__stat-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: rgba(248, 250, 252, 0.95);
+}
+
+.bugence-editor-sidebar__stat-value[data-state="pending"] {
+    color: #facc15;
+}
+
+.bugence-editor-sidebar__stat-value[data-state="clear"] {
+    color: rgba(226, 232, 240, 0.85);
+}
+
+.bugence-editor-sidebar__stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(203, 213, 225, 0.62);
+}
+
+.bugence-editor-sidebar__insights {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.65rem;
+}
+
+.bugence-editor-sidebar__current {
+    margin-top: 0.5rem;
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(94, 234, 212, 0.22);
+    background: rgba(13, 22, 42, 0.62);
+    color: rgba(226, 232, 240, 0.9);
+    display: grid;
+    gap: 0.4rem;
+}
+
+.bugence-editor-sidebar__current-title {
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: rgba(226, 232, 240, 0.96);
+}
+
+.bugence-editor-sidebar__current-meta {
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: rgba(148, 163, 184, 0.82);
+}
+
+.bugence-editor-sidebar__insight {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    border-radius: 14px;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(30, 41, 59, 0.48);
+    box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.12);
+}
+
+.bugence-editor-sidebar__insight-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.65);
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25);
+    font-size: 0.9rem;
+    font-family: "Consolas", "Courier New", monospace;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.bugence-editor-sidebar__insight strong {
+    display: block;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    color: rgba(248, 250, 252, 0.92);
+}
+
+.bugence-editor-sidebar__insight span {
+    display: block;
+    color: rgba(203, 213, 225, 0.68);
+    font-size: 0.72rem;
+}
+
+.bugence-editor-sidebar__timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.8rem 0 0;
+}
+
+.bugence-editor-sidebar__timeline-title {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.65);
+}
+
+.bugence-editor-sidebar__activity {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+}
+
+.bugence-editor-sidebar__activity-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.65rem;
+    align-items: center;
+    padding: 0.65rem 0.85rem;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.58);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.bugence-editor-sidebar__activity-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: rgba(99, 102, 241, 0.22);
+    font-size: 0.8rem;
+    font-family: "Consolas", "Courier New", monospace;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.bugence-editor-sidebar__activity-item strong {
+    display: block;
+    font-size: 0.82rem;
+    color: rgba(248, 250, 252, 0.9);
+    margin-bottom: 0.1rem;
+}
+
+.bugence-editor-sidebar__activity-item span {
+    font-size: 0.72rem;
+    color: rgba(203, 213, 225, 0.68);
+}
+
+.bugence-editor-sidebar__footer {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.bugence-editor-sidebar__publish {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.96), rgba(251, 146, 60, 0.92));
+    color: #0f172a;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 18px 36px rgba(249, 115, 22, 0.32);
+    transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.bugence-editor-sidebar__publish:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 22px 40px rgba(249, 115, 22, 0.38);
+}
+
+.bugence-editor-sidebar__publish:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.bugence-editor-sidebar__publish[data-state="loading"] .bugence-editor-sidebar__publish-label::after {
+    content: "";
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    margin-inline-start: 0.45rem;
+    border: 2px solid rgba(15, 23, 42, 0.35);
+    border-top-color: rgba(15, 23, 42, 0.8);
+    border-radius: 999px;
+    animation: bugence-editor-spin 620ms linear infinite;
+}
+
+.bugence-editor-sidebar__publish-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bugence-editor-sidebar__link {
+    flex: 1;
+    min-width: 140px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    background: rgba(29, 24, 46, 0.55);
+    color: rgba(248, 250, 252, 0.82);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 160ms ease, border-color 160ms ease;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.bugence-editor-sidebar__link:hover {
+    background: rgba(249, 115, 22, 0.18);
+    border-color: rgba(249, 115, 22, 0.45);
+}
+
+@keyframes bugence-editor-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 900px) {
+    .bugence-editor-sidebar {
+        inset-inline: 16px;
+        inset-block-start: auto;
+        inset-block-end: 16px;
+        width: calc(100% - 32px);
+        padding: 1.3rem;
+        gap: 1rem;
+        border-radius: 18px;
+    }
+
+    .bugence-editor-sidebar__stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bugence-editor-sidebar__body {
+        gap: 0.75rem;
+    }
+
+    .bugence-editor-sidebar__hint {
+        display: none;
+    }
+
+    .bugence-editor-sidebar__footer {
+        flex-direction: column;
+    }
+
+    .bugence-editor-sidebar__link {
+        width: 100%;
+        font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+}
+body.bugence-editor-active img[data-bugence-section],
+body.bugence-editor-active [data-bugence-section] img {
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+body.bugence-editor-active .hero-visual {
+    pointer-events: auto !important;
+}
+
+@media (max-width: 720px) {
+    .bugence-editor-modal {
+        width: 100%;
+        max-height: 92vh;
+    }
+
+    .bugence-editor-toolbar {
+        justify-content: center;
+    }
+
+    .bugence-editor-badge {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+    }
+}
+
+.bugence-editor-toast--success {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: rgba(34, 197, 94, 0.45);
+    color: rgba(220, 252, 231, 0.94);
+}
+
+.bugence-editor-modal__heading {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.bugence-editor-modal__eyebrow {
+    display: inline-flex;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    background: rgba(99, 255, 217, 0.16);
+    color: rgba(226, 252, 255, 0.86);
+    width: fit-content;
+}
+
+.bugence-editor-modal__title--revamp {
+    font-size: 1.55rem;
+    letter-spacing: 0.02em;
+}
+
+.bugence-editor-modal__subtitle--revamp {
+    font-size: 0.82rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(213, 227, 255, 0.75);
+}
+
+.bugence-editor-modal__header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.bugence-editor-modal__icon {
+    border: none;
+    background: rgba(15, 23, 42, 0.2);
+    color: rgba(236, 245, 255, 0.82);
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.bugence-editor-modal__icon:hover {
+    background: rgba(99, 255, 217, 0.28);
+    color: #f8fafc;
+    transform: translateY(-1px);
+}
+
+/* === Noir Thunder Rework === */
+@keyframes bugence-editor-thunder {
+    0%, 100% { opacity: 0; transform: scale(1); }
+    5% { opacity: 0.85; transform: scale(1.02); }
+    7% { opacity: 0; transform: scale(1); }
+    12% { opacity: 0.65; transform: scale(1.01); }
+    15% { opacity: 0; transform: scale(1.005); }
+    22% { opacity: 0.35; transform: scale(1.002); }
+    24% { opacity: 0; transform: scale(1); }
+}
+
+.bugence-editor-overlay {
+    background: rgba(0, 0, 0, 0.78);
+}
+
+.bugence-editor-modal {
+    position: relative;
+    width: min(900px, 100%);
+    max-height: min(90vh, 920px);
+    background: #050505;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.65);
+    color: #f8fafc;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow: hidden;
+}
+
+.bugence-editor-modal::before,
+.bugence-editor-modal::after {
+    content: "";
+    position: absolute;
+    inset: -16%;
+    opacity: 0;
+    mix-blend-mode: screen;
+    pointer-events: none;
+}
+
+.bugence-editor-modal::before {
+    background: radial-gradient(50% 60% at 52% 38%, rgba(255, 255, 255, 0.22), transparent),
+        radial-gradient(40% 40% at 80% 70%, rgba(59, 130, 246, 0.28), transparent),
+        radial-gradient(35% 45% at 18% 88%, rgba(94, 234, 212, 0.35), transparent);
+    animation: bugence-editor-thunder 12s ease-in-out infinite;
+}
+
+.bugence-editor-modal::after {
+    background: radial-gradient(35% 35% at 28% 18%, rgba(255, 255, 255, 0.16), transparent),
+        radial-gradient(32% 42% at 72% 82%, rgba(14, 165, 233, 0.2), transparent);
+    animation: bugence-editor-thunder 18s linear infinite;
+}
+
+.bugence-editor-modal__header {
+    padding: 1.6rem 1.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.24), transparent 55%),
+        radial-gradient(circle at 80% 10%, rgba(236, 72, 153, 0.18), transparent 55%),
+        rgba(12, 13, 23, 0.92);
+}
+
+.bugence-editor-header__pill {
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #f8fafc;
+    letter-spacing: 0.22em;
+    font-weight: 700;
+}
+
+.bugence-editor-modal__title {
+    color: #f8fafc;
+    font-size: 1.32rem;
+    letter-spacing: 0.02em;
+}
+
+.bugence-editor-modal__subtitle {
+    color: rgba(248, 250, 252, 0.6);
+}
+
+.bugence-editor-modal__close {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8fafc;
+    transition: transform 160ms ease, background 160ms ease, border 160ms ease;
+}
+
+.bugence-editor-modal__close:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.22);
+    transform: rotate(90deg) scale(1.05);
+}
+
+.bugence-editor-modal__body {
+    padding: 1.8rem;
+    gap: 1.5rem;
+}
+
+.bugence-editor-modal__body--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+}
+
+.bugence-editor-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: #ffffff;
+    color: #0b0d12;
+    border-radius: 24px;
+    padding: 1.6rem 1.8rem;
+    border: 1px solid rgba(15, 15, 15, 0.08);
+    box-shadow: 0 28px 70px rgba(10, 10, 10, 0.32);
+}
+
+.bugence-editor-toolbar-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.bugence-editor-helper-panel {
+    border-radius: 12px;
+    border: 1px solid rgba(17, 24, 39, 0.09);
+    background: #f3f4f6;
+    color: #111827;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.bugence-editor-helper {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    color: inherit !important;
+}
+
+.bugence-editor-surface-panel {
+    padding: 1.15rem;
+    border-radius: 20px;
+    border: 1px solid rgba(17, 24, 39, 0.1);
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.02);
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.bugence-editor-toolbar {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.bugence-editor-toolbar__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.7rem;
+    border-radius: 14px;
+    background: #f9fafb;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.bugence-editor-toolbar__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #111827;
+}
+
+.bugence-editor-toolbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.bugence-editor-toolbar button {
+    background: #050505;
+    border: 1px solid #050505;
+    color: #f8fafc;
+    border-radius: 999px;
+    padding: 0.42rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.bugence-editor-toolbar button:hover {
+    background: #111111;
+    box-shadow: 0 12px 24px rgba(17, 17, 17, 0.25);
+    transform: translateY(-1px);
+}
+
+.bugence-editor-toolbar button[data-active="true"] {
+    background: linear-gradient(135deg, #000, #1b1b1b);
+    border-color: #000;
+    box-shadow: 0 14px 30px rgba(10, 10, 10, 0.38);
+    color: #f8fafc;
+}
+
+.bugence-editor-toolbar__swatch {
+    border: 1px solid rgba(17, 24, 39, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.04);
+}
+
+.bugence-editor-toolbar__swatch[data-selected="true"] {
+    border-color: #050505;
+    box-shadow: 0 0 0 2px rgba(5, 5, 5, 0.16);
+}
+
+.bugence-editor-surface {
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    border-radius: 16px;
+    box-shadow: inset 0 1px 0 rgba(17, 24, 39, 0.04);
+    min-height: 340px;
+    padding: 1.25rem 1.4rem;
+}
+
+.bugence-editor-surface:focus {
+    outline: 2px solid rgba(17, 24, 39, 0.28);
+}
+
+.bugence-editor-surface[data-placeholder]:empty::before {
+    color: rgba(17, 24, 39, 0.4);
+    font-weight: 500;
+}
+
+.bugence-editor-insights {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.bugence-editor-insight {
+    background: #ffffff;
+    color: #111827;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 16px;
+    padding: 0.9rem 1.05rem;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.bugence-editor-insight:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 55px rgba(0, 0, 0, 0.22);
+}
+
+.bugence-editor-insight__label {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(17, 24, 39, 0.6);
+    font-weight: 600;
+}
+
+.bugence-editor-insight__value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.bugence-editor-insight__meta {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(17, 24, 39, 0.45);
+}
+
+.bugence-editor-insight[data-tone="warning"] {
+    border-color: rgba(251, 191, 36, 0.5);
+    background: rgba(255, 250, 235, 0.95);
+}
+
+.bugence-editor-insight[data-tone="warning"] .bugence-editor-insight__label {
+    color: #b45309;
+}
+
+.bugence-editor-insight[data-tone="success"] {
+    border-color: rgba(34, 197, 94, 0.45);
+    background: rgba(240, 253, 244, 0.96);
+}
+
+.bugence-editor-insight[data-tone="success"] .bugence-editor-insight__label {
+    color: #047857;
+}
+
+.bugence-editor-insight[data-tone="info"] {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(239, 246, 255, 0.95);
+}
+
+.bugence-editor-insight[data-tone="info"] .bugence-editor-insight__label {
+    color: #1d4ed8;
+}
+
+.bugence-editor-actions {
+    justify-content: flex-end;
+    gap: 0.7rem;
+}
+
+.bugence-editor-btn {
+    border-radius: 999px;
+    font-weight: 700;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.bugence-editor-btn--primary {
+    background: linear-gradient(120deg, #111827, #020617);
+    color: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, 0.65);
+    box-shadow: 0 20px 36px rgba(15, 23, 42, 0.35);
+}
+
+.bugence-editor-btn--primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 24px 40px rgba(15, 23, 42, 0.42);
+}
+
+.bugence-editor-btn--ghost {
+    background: #ffffff;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    color: #111827;
+}
+
+.bugence-editor-btn--ghost:hover {
+    background: #f3f4f6;
+}
+
+.bugence-editor-btn--revert {
+    background: rgba(254, 226, 226, 0.9);
+    border-color: rgba(248, 113, 113, 0.6);
+    color: #991b1b;
+}
+
+.bugence-editor-btn--revert:hover {
+    background: rgba(254, 202, 202, 0.98);
+    border-color: rgba(248, 113, 113, 0.75);
+    color: #7f1d1d;
+}
+
+.bugence-editor-layout--media {
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+    padding: 1.5rem 1.7rem;
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.bugence-editor-layout__surface--media {
+    background: #f9fafb;
+    border: 1px dashed rgba(17, 24, 39, 0.12);
+    border-radius: 20px;
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.02);
+}
+
+.bugence-editor-image__label {
+    background: #050505;
+    border: 1px solid rgba(17, 24, 39, 0.75);
+    color: #f8fafc;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    box-shadow: 0 16px 36px rgba(17, 24, 39, 0.35);
+}
+
+.bugence-editor-image__label:hover {
+    background: #111111;
+}
+
+.bugence-editor-image__preview {
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    box-shadow: 0 22px 48px rgba(15, 23, 42, 0.18);
+    background: #ffffff;
+}
+
+.bugence-editor-image__alt label {
+    color: #111827;
+}
+
+.bugence-editor-image__alt input {
+    background: #ffffff;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    color: #111827;
+}
+
+.bugence-editor-image__alt input:focus {
+    border-color: #111827;
+    box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.12);
+}
+.bugence-editor-metrics {
+    display: inline-flex;
+    gap: 1.1rem;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.bugence-editor-metric {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.85rem;
+    background: rgba(8, 15, 35, 0.55);
+    border: 1px solid rgba(34, 211, 238, 0.22);
+}
+
+.bugence-editor-metric__value {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.bugence-editor-metric__label {
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.62);
+}
+
+.bugence-editor-btn--danger {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.26), rgba(185, 28, 28, 0.82));
+    border-color: rgba(248, 113, 113, 0.42);
+    color: rgba(254, 226, 226, 0.96);
+}
+
+.bugence-editor-btn--danger:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.36), rgba(220, 38, 38, 0.88));
+    border-color: rgba(248, 113, 113, 0.55);
+    color: #fff5f5;
+}
+
+.bugence-editor-toast--success {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: rgba(34, 197, 94, 0.45);
+    color: rgba(220, 252, 231, 0.94);
+}
+
+.bugence-editor-modal--revamp .bugence-editor-modal__header {
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+}
+
+.bugence-editor-modal__header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bugence-editor-modal__icon {
+    border: none;
+    background: rgba(15, 23, 42, 0.18);
+    color: rgba(226, 232, 240, 0.78);
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.bugence-editor-modal__icon:hover {
+    background: rgba(99, 255, 217, 0.24);
+    color: #f8fafc;
+    transform: translateY(-1px);
+}
+
+.bugence-editor-modal__eyebrow {
+    display: inline-flex;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(99, 255, 217, 0.16);
+    color: rgba(224, 255, 251, 0.86);
+    font-size: 0.65rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    margin-bottom: 0.65rem;
+}
+
+.bugence-editor-modal__title--revamp {
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
+}
+
+.bugence-editor-modal__subtitle--revamp {
+    font-size: 0.82rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(213, 227, 255, 0.78);
+}
+
+.bugence-editor-metrics {
+    display: inline-flex;
+    gap: 1.1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.bugence-editor-metric {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: baseline;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.85rem;
+    background: rgba(8, 15, 35, 0.55);
+    border: 1px solid rgba(34, 211, 238, 0.22);
+}
+
+.bugence-editor-metric__value {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.bugence-editor-metric__label {
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.62);
+}
+
+.bugence-editor-btn--danger {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.26), rgba(185, 28, 28, 0.8));
+    border-color: rgba(248, 113, 113, 0.4);
+    color: rgba(254, 226, 226, 0.96);
+}
+
+.bugence-editor-btn--danger:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.36), rgba(220, 38, 38, 0.9));
+    border-color: rgba(248, 113, 113, 0.55);
+    color: #fff5f5;
+}
+
+
+
+
+
+

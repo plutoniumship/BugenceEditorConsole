@@ -1,0 +1,616 @@
+@page
+@model BugenceEditConsole.Pages.Workflows.IndexModel
+@{
+    ViewData["Title"] = "Workflows";
+}
+
+<style>
+    .main-content {
+        background-color: #050505;
+        background-image:
+            radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.04), transparent 38%),
+            linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        background-size: 100% 100%, 48px 48px, 48px 48px;
+    }
+    .content-shell { max-width: 1560px; }
+
+    .workflow-hero {
+        background: linear-gradient(120deg, rgba(255,255,255,0.04), rgba(0,0,0,0.0) 60%), #050505;
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px;
+        padding: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 26px;
+    }
+    .workflow-hero h1 { margin: 0 0 6px; font-size: 1.8rem; }
+    .workflow-hero p { margin: 0; color: #94a3b8; }
+    .workflow-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 18px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: #0a0a0a;
+        color: #f8fafc;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .workflow-cta:hover { border-color: rgba(255,255,255,0.25); }
+    .workflow-archive {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: #0b0b0b;
+        color: #e2e8f0;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .workflow-archive:hover { border-color: rgba(255,255,255,0.25); }
+    .workflow-archive.active {
+        background: #111111;
+        color: #f8fafc;
+        border-color: rgba(255,255,255,0.22);
+    }
+    .workflow-toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .workflow-table {
+        background: rgba(10,10,10,0.92);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px;
+        overflow: auto;
+    }
+    .workflow-table table { width: 100%; border-collapse: collapse; }
+    .workflow-table th, .workflow-table td {
+        padding: 16px 18px;
+        text-align: left;
+        border-bottom: 1px solid rgba(148,163,184,0.12);
+        font-size: 0.9rem;
+    }
+    .workflow-table th { color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; }
+    .workflow-table tr:last-child td { border-bottom: none; }
+    .workflow-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        color: #e2e8f0;
+    }
+    .workflow-status.draft { background: rgba(255,255,255,0.06); color: #cbd5f5; }
+    .workflow-link { color: #e2e8f0; font-weight: 700; text-decoration: none; }
+    .workflow-link:hover { color: #f8fafc; }
+    .workflow-empty { padding: 40px; text-align: center; color: #94a3b8; }
+    .actions-cell { text-align: right; }
+    .actions-menu {
+        position: relative;
+        display: inline-block;
+    }
+    .actions-trigger {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: #0b0b0b;
+        color: #e5e7eb;
+        cursor: pointer;
+    }
+    .actions-trigger:hover { border-color: rgba(255,255,255,0.25); }
+    .actions-dropdown {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        min-width: 180px;
+        background: #0a0a0a;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        display: none;
+        z-index: 10;
+    }
+    .actions-dropdown.show { display: block; }
+    .actions-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    .actions-item:hover { background: rgba(255,255,255,0.06); }
+    .actions-item.danger { color: #f87171; }
+    .actions-item.disabled { opacity: 0.5; cursor: default; }
+    .hidden { display: none !important; }
+
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        display: none;
+        z-index: 3100;
+    }
+    .sidebar-overlay.active { display: block; }
+    .workflow-sidebar {
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: min(520px, 96vw);
+        height: 100vh;
+        background: #050505;
+        border-left: 1px solid rgba(255,255,255,0.08);
+        box-shadow: -30px 0 60px rgba(0,0,0,0.6);
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+        z-index: 3200;
+        display: flex;
+        flex-direction: column;
+    }
+    .workflow-sidebar.active { transform: translateX(0); }
+    .sidebar-header {
+        padding: 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .sidebar-title {
+        margin: 0;
+        font-size: 1.4rem;
+        color: #f8fafc;
+    }
+    .sidebar-subtitle { color: #9ca3af; margin: 6px 0 0; font-size: 0.9rem; }
+    .sidebar-close {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: #0b0b0b;
+        color: #e5e7eb;
+        cursor: pointer;
+    }
+    .sidebar-body {
+        padding: 24px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    .sidebar-body label { display: block; margin: 14px 0 6px; color: #cbd5f5; font-size: 0.85rem; }
+    .sidebar-body input, .sidebar-body select, .sidebar-body textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: #050505;
+        color: #e2e8f0;
+        font-size: 0.95rem;
+    }
+    .sidebar-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        padding: 18px 24px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-actions button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .btn-secondary { background: rgba(148,163,184,0.2); color: #e2e8f0; }
+    .btn-primary { background: #111111; color: #f8fafc; border: 1px solid rgba(255,255,255,0.12); }
+    @@media (max-width: 1024px) {
+        .workflow-hero {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        .workflow-toolbar {
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        .workflow-table table {
+            min-width: 1080px;
+        }
+        .workflow-sidebar {
+            width: min(560px, 96vw);
+        }
+    }
+    @@media (max-width: 640px) {
+        .workflow-hero {
+            padding: 16px;
+            border-radius: 14px;
+        }
+        .workflow-cta,
+        .workflow-archive {
+            width: 100%;
+            justify-content: center;
+        }
+        .workflow-sidebar {
+            width: 100vw;
+            border-left: none;
+        }
+        .sidebar-header,
+        .sidebar-body,
+        .sidebar-actions {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+    }
+</style>
+<link rel="stylesheet" href="/css/console-mobile-sidebar.css" />
+
+<div class="workflow-hero">
+    <div>
+        <h1>Workflow Center</h1>
+        <p>Build powerful automations for email, onboarding, and lead capture - all from one place.</p>
+    </div>
+    <div class="workflow-toolbar">
+        <button class="workflow-archive" id="openArchive"><i class="fa-solid fa-box-archive"></i> Archive</button>
+        <button class="workflow-cta" id="openWorkflowModal"><i class="fa-solid fa-plus"></i> Create Workflow</button>
+    </div>
+ </div>
+
+<div class="workflow-table table-wrapper">
+    @if (Model.Workflows.Count == 0)
+    {
+        <div class="workflow-empty">
+            No workflows yet. Create your first automation to get started.
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>WFID</th>
+                    <th>Caption</th>
+                    <th>WorkflowType</th>
+                    <th>ApplicationID</th>
+                    <th>FileListID</th>
+                    <th>ViewOnApplication</th>
+                    <th>StartupType</th>
+                    <th>StartupArgument1</th>
+                    <th>StartupArgument2</th>
+                    <th>ChangeDate</th>
+                    <th>InActive</th>
+                    <th>Diagram</th>
+                    <th>KPIActivity</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var workflow in Model.Workflows)
+                {
+                    <tr>
+                        <td><strong>@workflow.DisplayId</strong></td>
+                        <td class="workflow-name-cell">
+                            <a class="workflow-link" href="/Workflows/Editor?id=@workflow.Id">@(string.IsNullOrWhiteSpace(workflow.Caption) ? workflow.Name : workflow.Caption)</a>
+                        </td>
+                        <td>@workflow.WorkflowType</td>
+                        <td>@(string.IsNullOrWhiteSpace(workflow.ApplicationId) ? "-" : workflow.ApplicationId)</td>
+                        <td>@workflow.FileListId</td>
+                        <td>@workflow.ViewOnApplication</td>
+                        <td>@workflow.StartupType</td>
+                        <td>@(string.IsNullOrWhiteSpace(workflow.StartupArgument1) ? "-" : workflow.StartupArgument1)</td>
+                        <td>@(string.IsNullOrWhiteSpace(workflow.StartupArgument2) ? "-" : workflow.StartupArgument2)</td>
+                        <td>@workflow.UpdatedAtUtc.ToLocalTime().ToString("M/d/yyyy h:mm:ss tt")</td>
+                        <td>
+                            <span class="workflow-status @(workflow.InActive ? string.Empty : "draft")">
+                                @(workflow.InActive ? "1" : "0")
+                            </span>
+                        </td>
+                        <td>@(string.IsNullOrWhiteSpace(workflow.Diagram) ? "-" : workflow.Diagram)</td>
+                        <td>@(string.IsNullOrWhiteSpace(workflow.KpiActivity) ? "-" : workflow.KpiActivity)</td>
+                        <td class="actions-cell">
+                            <div class="actions-menu" data-workflow-id="@workflow.Id" data-workflow-name="@(string.IsNullOrWhiteSpace(workflow.Caption) ? workflow.Name : workflow.Caption)">
+                                <button class="actions-trigger" type="button" aria-label="Workflow actions">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <div class="actions-dropdown">
+                                    <div class="actions-item" data-action="rename"><i class="fa-solid fa-pen"></i> Rename</div>
+                                    <div class="actions-item" data-action="archive"><i class="fa-solid fa-box-archive"></i> Archive</div>
+                                    <div class="actions-item" data-action="unarchive"><i class="fa-solid fa-arrow-rotate-left"></i> Unarchive</div>
+                                    <div class="actions-item danger" data-action="delete"><i class="fa-solid fa-trash"></i> Delete</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<div class="sidebar-overlay" id="workflowOverlay"></div>
+<aside class="workflow-sidebar drawer drawer-panel" id="workflowSidebar">
+    <div class="sidebar-header drawer-header">
+        <div>
+            <h3 class="sidebar-title">Create Workflow</h3>
+            <p class="sidebar-subtitle">Design a new automation with a strong starting point.</p>
+        </div>
+        <button class="sidebar-close" id="closeWorkflowModal" type="button">&times;</button>
+    </div>
+    <div class="sidebar-body">
+        <label>Record Details</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+                <label for="workflowDisplayId" style="margin-top:0;">ID</label>
+                <input id="workflowDisplayId" readonly value="1" />
+            </div>
+            <div>
+                <label for="workflowDguid" style="margin-top:0;">DGUID</label>
+                <input id="workflowDguid" readonly value="Generating..." style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:0.8rem;" />
+            </div>
+        </div>
+
+        <label for="workflowName">Workflow name</label>
+        <input id="workflowName" placeholder="e.g. New Subscriber Welcome" />
+
+        <label for="workflowDesc">Description (optional)</label>
+        <textarea id="workflowDesc" rows="3" placeholder="Quick summary of what this workflow does"></textarea>
+
+        <label for="workflowTrigger">Primary trigger</label>
+        <select id="workflowTrigger">
+            <option value="Manual">Manual / Test Only</option>
+            <option value="ButtonClick">Button Click</option>
+            <option value="FormSubmit">Form Submission</option>
+            <option value="NewSubscriber">New Subscriber</option>
+            <option value="Purchase">Purchase Complete</option>
+        </select>
+        <div id="createWorkflowStatus" style="margin-top:14px;color:#94a3b8;font-size:0.85rem;"></div>
+    </div>
+    <div class="sidebar-actions footer-actions">
+        <button class="btn-secondary" id="cancelWorkflowSidebar">Cancel</button>
+        <button class="btn-primary" id="createWorkflowBtn">Create Workflow</button>
+    </div>
+</aside>
+
+<form id="workflowAntiForgery" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<script src="/js/tool-database-sync.js"></script>
+<script>
+    const openWorkflowModal = document.getElementById('openWorkflowModal');
+    const workflowOverlay = document.getElementById('workflowOverlay');
+    const workflowSidebar = document.getElementById('workflowSidebar');
+    const closeWorkflowModal = document.getElementById('closeWorkflowModal');
+    const cancelWorkflowSidebar = document.getElementById('cancelWorkflowSidebar');
+    const openArchive = document.getElementById('openArchive');
+    const createWorkflowBtn = document.getElementById('createWorkflowBtn');
+    const workflowName = document.getElementById('workflowName');
+    const workflowDesc = document.getElementById('workflowDesc');
+    const workflowTrigger = document.getElementById('workflowTrigger');
+    const workflowDisplayId = document.getElementById('workflowDisplayId');
+    const workflowDguid = document.getElementById('workflowDguid');
+    const createWorkflowStatus = document.getElementById('createWorkflowStatus');
+    const csrfToken = document.querySelector('#workflowAntiForgery input[name="__RequestVerificationToken"]')?.value || "";
+    window.BugenceToolDbSync?.init({
+        endpoint: '/Workflows/Index?handler=DatabaseSync',
+        requestVerificationToken: csrfToken,
+        topButtonAnchorId: 'openWorkflowModal',
+        editButtonAnchorId: 'createWorkflowBtn'
+    });
+    const isArchivedView = new URLSearchParams(window.location.search).get('archived') === '1';
+    const nameCellClass = 'workflow-name-cell';
+
+    const setStatus = (message, isError = false) => {
+        if (!createWorkflowStatus) return;
+        createWorkflowStatus.textContent = message;
+        createWorkflowStatus.style.color = isError ? '#f59e0b' : '#94a3b8';
+    };
+
+    const loadNextIdentity = async () => {
+        if (workflowDisplayId) workflowDisplayId.value = '1';
+        if (workflowDguid) workflowDguid.value = 'Generating...';
+        try {
+            const res = await fetch('/Workflows/Index?handler=NextIdentity', { credentials: 'include' });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data?.success) return;
+            if (workflowDisplayId) workflowDisplayId.value = String(data.nextId ?? '1');
+            if (workflowDguid) workflowDguid.value = String(data.dguid || '');
+        } catch {
+            if (workflowDguid) workflowDguid.value = '';
+        }
+    };
+
+    const toggleModal = (show) => {
+        if (!workflowOverlay || !workflowSidebar) return;
+        workflowOverlay.classList.toggle('active', show);
+        workflowSidebar.classList.toggle('active', show);
+        if (show) {
+            setStatus('');
+            loadNextIdentity();
+            setTimeout(() => workflowName?.focus(), 0);
+        }
+    };
+
+    openWorkflowModal?.addEventListener('click', () => toggleModal(true));
+    closeWorkflowModal?.addEventListener('click', () => toggleModal(false));
+    cancelWorkflowSidebar?.addEventListener('click', () => toggleModal(false));
+    workflowOverlay?.addEventListener('click', () => toggleModal(false));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') toggleModal(false);
+    });
+
+    if (openArchive) {
+        openArchive.classList.toggle('active', isArchivedView);
+        openArchive.addEventListener('click', () => {
+            const url = new URL(window.location.href);
+            if (isArchivedView) {
+                url.searchParams.delete('archived');
+            } else {
+                url.searchParams.set('archived', '1');
+            }
+            window.location.href = url.toString();
+        });
+    }
+
+    document.querySelectorAll('.actions-trigger').forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const dropdown = btn.parentElement?.querySelector('.actions-dropdown');
+            if (!dropdown) return;
+            document.querySelectorAll('.actions-dropdown').forEach(menu => {
+                if (menu !== dropdown) menu.classList.remove('show');
+            });
+            dropdown.classList.toggle('show');
+        });
+    });
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.actions-dropdown').forEach(menu => menu.classList.remove('show'));
+    });
+
+    const toggleActionVisibility = () => {
+        document.querySelectorAll('.actions-menu').forEach((menu) => {
+            const archiveItem = menu.querySelector('[data-action="archive"]');
+            const unarchiveItem = menu.querySelector('[data-action="unarchive"]');
+            if (archiveItem) archiveItem.classList.toggle('hidden', isArchivedView);
+            if (unarchiveItem) unarchiveItem.classList.toggle('hidden', !isArchivedView);
+        });
+    };
+    toggleActionVisibility();
+
+    const postAction = async (handler, payload) => {
+        const res = await fetch(`/Workflows/Index?handler=${handler}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data?.success) {
+            throw new Error(data?.message || 'Action failed.');
+        }
+        return data;
+    };
+
+    document.querySelectorAll('.actions-menu').forEach((menu) => {
+        const workflowId = menu.getAttribute('data-workflow-id');
+        const workflowName = menu.getAttribute('data-workflow-name') || 'Workflow';
+        menu.querySelectorAll('.actions-item').forEach((item) => {
+            item.addEventListener('click', async () => {
+                const action = item.getAttribute('data-action');
+                if (!action || !workflowId) return;
+                try {
+                    if (action === 'rename') {
+                        const row = menu.closest('tr');
+                        const nameCell = row?.querySelector(`.${nameCellClass}`);
+                        if (!nameCell) return;
+                        const originalLink = nameCell.querySelector('a');
+                        const originalName = originalLink?.textContent?.trim() || workflowName;
+                        nameCell.dataset.originalName = originalName;
+                        nameCell.innerHTML = `
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <input class="rename-input" value="${originalName.replace(/"/g, '&quot;')}" style="flex:1; min-width:180px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:#050505; color:#e5e7eb;" />
+                                <button class="rename-save" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:#111; color:#f8fafc;">Save</button>
+                                <button class="rename-cancel" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); background:#0b0b0b; color:#cbd5f5;">Cancel</button>
+                            </div>`;
+                        const input = nameCell.querySelector('.rename-input');
+                        const saveBtn = nameCell.querySelector('.rename-save');
+                        const cancelBtn = nameCell.querySelector('.rename-cancel');
+                        input?.focus();
+                        cancelBtn?.addEventListener('click', () => {
+                            nameCell.innerHTML = `<a class="workflow-link" href="/Workflows/Editor?id=${workflowId}">${originalName}</a>`;
+                        });
+                        saveBtn?.addEventListener('click', async () => {
+                            const nextName = (input?.value || '').trim();
+                            if (!nextName) return;
+                            await postAction('Rename', { id: workflowId, name: nextName });
+                            window.location.reload();
+                        });
+                    }
+                    if (action === 'archive') {
+                        const confirmArchive = confirm(`Archive "${workflowName}"? You can view it in Archive.`);
+                        if (!confirmArchive) return;
+                        await postAction('Archive', { id: workflowId });
+                        window.location.reload();
+                    }
+                    if (action === 'unarchive') {
+                        const confirmUnarchive = confirm(`Unarchive "${workflowName}"? It will return to Draft.`);
+                        if (!confirmUnarchive) return;
+                        await postAction('Unarchive', { id: workflowId });
+                        window.location.reload();
+                    }
+                    if (action === 'delete') {
+                        const confirmDelete = confirm(`Delete "${workflowName}"? This moves it to deleted state.`);
+                        if (!confirmDelete) return;
+                        await postAction('Delete', { id: workflowId });
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    alert(err?.message || 'Action failed.');
+                }
+            });
+        });
+    });
+
+    createWorkflowBtn?.addEventListener('click', async () => {
+        const nameValue = (workflowName?.value || '').trim();
+        if (!nameValue) {
+            setStatus('Please enter a workflow name.', true);
+            return;
+        }
+        setStatus('Creating workflow...');
+        createWorkflowBtn.disabled = true;
+        try {
+            const res = await fetch('/Workflows/Index?handler=Create', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': csrfToken
+                },
+                body: JSON.stringify({
+                    name: nameValue,
+                    description: (workflowDesc?.value || '').trim(),
+                    triggerType: workflowTrigger?.value || 'Manual'
+                })
+            });
+            const raw = await res.text();
+            let data = null;
+            try { data = raw ? JSON.parse(raw) : null; } catch { }
+            if (!res.ok || !data?.success) {
+                setStatus(data?.message || raw || 'Unable to create workflow.', true);
+                return;
+            }
+            setStatus('Workflow created successfully.');
+            toggleModal(false);
+            if (data?.redirectUrl) {
+                window.location.href = data.redirectUrl;
+                return;
+            }
+            window.location.reload();
+        } catch (err) {
+            setStatus('Unable to create workflow. Please try again.', true);
+        } finally {
+            createWorkflowBtn.disabled = false;
+        }
+    });
+</script>
+<script src="/js/console-mobile-sidebar.js"></script>
+
+
+

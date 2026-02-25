@@ -1,0 +1,92 @@
+@using System.Linq
+@using Microsoft.AspNetCore.Html
+@using System.Text.Encodings.Web
+@model BugenceEditConsole.Models.UI.CardModel
+
+@{
+    var classes = new List<string> { "tilt", "on-white", "card-surface", "animate-fadeUp" };
+    if (!string.IsNullOrWhiteSpace(Model?.Variant) && !string.Equals(Model.Variant, "default", StringComparison.OrdinalIgnoreCase))
+    {
+        classes.Add($"card-surface--{Model!.Variant}");
+    }
+    if (!string.IsNullOrWhiteSpace(Model?.Classes))
+    {
+        classes.Add(Model!.Classes!);
+    }
+    var articleClass = string.Join(" ", classes.Where(static value => !string.IsNullOrWhiteSpace(value)));
+
+    var shellClasses = string.IsNullOrWhiteSpace(Model?.ShellClasses)
+        ? "card-shell"
+        : $"card-shell {Model!.ShellClasses}";
+
+    var bodyClasses = string.IsNullOrWhiteSpace(Model?.BodyClasses)
+        ? "card-body"
+        : $"card-body {Model!.BodyClasses}";
+
+    var hasHeader = !string.IsNullOrWhiteSpace(Model?.Eyebrow)
+        || !string.IsNullOrWhiteSpace(Model?.Title)
+        || !string.IsNullOrWhiteSpace(Model?.Subtitle)
+        || Model?.HeaderActions is not null;
+
+    var hasFooter = Model?.Footer is not null;
+    var articleId = string.IsNullOrWhiteSpace(Model?.Id) ? null : Model!.Id;
+    var headingTag = (Model?.HeadingTag?.ToLowerInvariant()) switch
+    {
+        "h1" => "h1",
+        "h2" => "h2",
+        "h3" => "h3",
+        "h4" => "h4",
+        "h5" => "h5",
+        "h6" => "h6",
+        _ => "h2"
+    };
+}
+
+<article class="@articleClass"@(!string.IsNullOrEmpty(articleId) ? $" id=\"{articleId}\"" : string.Empty)>
+    <span class="shine" aria-hidden="true"></span>
+    <div class="@shellClasses">
+        @if (hasHeader)
+        {
+            <header class="card-header">
+                @if (!string.IsNullOrWhiteSpace(Model?.Eyebrow) || Model?.HeaderActions is not null)
+                {
+                    <div class="card-header__top">
+                        @if (!string.IsNullOrWhiteSpace(Model?.Eyebrow))
+                        {
+                            <span class="card-eyebrow">@Model!.Eyebrow</span>
+                        }
+                        @if (Model?.HeaderActions is not null)
+                        {
+                            <div class="card-header__actions">
+                                @Model.HeaderActions
+                            </div>
+                        }
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model?.Title))
+                {
+                    var encodedTitle = HtmlEncoder.Default.Encode(Model!.Title);
+                    @Html.Raw($"<{headingTag} class=\"card-title\">{encodedTitle}</{headingTag}>")
+                }
+                @if (!string.IsNullOrWhiteSpace(Model?.Subtitle))
+                {
+                    <p class="card-subtitle">@Model!.Subtitle</p>
+                }
+            </header>
+        }
+
+        @if (Model?.Body is not null)
+        {
+            <div class="@bodyClasses">
+                @Model.Body
+            </div>
+        }
+    </div>
+
+    @if (hasFooter)
+    {
+        <footer class="card-footer">
+            @Model!.Footer
+        </footer>
+    }
+</article>

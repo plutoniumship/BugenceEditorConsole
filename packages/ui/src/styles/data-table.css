@@ -1,0 +1,39 @@
+.bugence-table__wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--bugence-radius-lg);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: var(--bugence-color-surface);
+}
+
+.bugence-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 32rem;
+}
+
+.bugence-table th,
+.bugence-table td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.bugence-table thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.bugence-table tbody tr:hover {
+  background: rgba(99, 255, 217, 0.08);
+}
+
+.bugence-table__empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: rgba(15, 23, 42, 0.55);
+}

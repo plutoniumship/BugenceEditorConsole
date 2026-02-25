@@ -1,0 +1,637 @@
+﻿<html lang="en" style="--text-primary: #ffffff; --text-secondary: #a1a1aa; --bg-black: #020202; --accent-cyan: #06b6d4; --accent-blue: #2563eb; --accent-glow: rgba(6, 182, 212, 0.5); --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px; --radius-sm: 6px; --radius-md: 12px; --radius-lg: 20px; --radius-xl: 28px; --font-base: 16px; --font-scale: 1.12; font-size: 16px;" class="lenis lenis-smooth"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOX | The Architectural Singularity</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&amp;family=Manrope:wght@200;300;400&amp;display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #000000;
+            --gold: #D4AF37;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+        
+        body { 
+            background-color: var(--bg); 
+            color: white; 
+            font-family: 'Manrope', sans-serif; 
+            overflow-x: hidden; 
+            margin: 0;
+            cursor: none; /* Custom Cursor */
+        }
+
+        .serif { font-family: 'Cinzel', serif; }
+        
+        #canvas-container {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100vh;
+            z-index: -1; pointer-events: none;
+            background: #000;
+        }
+
+        /* --- CUSTOM CURSOR --- */
+        #cursor-dot, #cursor-ring {
+            position: fixed; top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            pointer-events: none; z-index: 9999;
+            border-radius: 50%;
+        }
+        #cursor-dot { width: 4px; height: 4px; background: white; }
+        #cursor-ring { 
+            width: 40px; height: 40px; 
+            border: 1px solid rgba(255,255,255,0.2); 
+            transition: width 0.3s, height 0.3s, border-color 0.3s;
+        }
+
+        /* --- UI ELEMENTS --- */
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            transition: transform 0.5s ease;
+        }
+        .glass-panel:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .hero-title {
+            font-size: clamp(4rem, 10vw, 12rem);
+            line-height: 0.85;
+            letter-spacing: -0.04em;
+            background: linear-gradient(180deg, #fff 0%, #666 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0; /* Animated in with GSAP */
+            transform: translateY(50px);
+        }
+
+        .nav-link {
+            font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase;
+            position: relative; opacity: 0.5; transition: opacity 0.3s;
+        }
+        .nav-link:hover { opacity: 1; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 1px;
+            background: var(--gold); transition: width 0.3s ease;
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        .section-counter {
+            font-family: 'Cinzel', serif; font-size: 10rem; line-height: 1;
+            position: absolute; right: -2rem; top: -5rem;
+            opacity: 0.03; z-index: -1; pointer-events: none;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-0{bottom:0px}.bottom-10{bottom:2.5rem}.bottom-12{bottom:3rem}.left-0{left:0px}.left-12{left:3rem}.right-auto{right:auto}.top-0{top:0px}.top-\[-8rem\]{top:-8rem}.z-10{z-index:10}.z-20{z-index:20}.z-50{z-index:50}.mb-12{margin-bottom:3rem}.mb-2{margin-bottom:0.5rem}.mb-32{margin-bottom:8rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.ml-auto{margin-left:auto}.mt-0{margin-top:0px}.mt-2{margin-top:0.5rem}.mt-20{margin-top:5rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.aspect-\[4\/5\]{aspect-ratio:4/5}.h-16{height:4rem}.h-8{height:2rem}.h-\[1px\]{height:1px}.h-full{height:100%}.h-screen{height:100vh}.min-h-screen{min-height:100vh}.w-8{width:2rem}.w-\[1px\]{width:1px}.w-full{width:100%}.max-w-6xl{max-width:72rem}.max-w-lg{max-width:32rem}.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.max-w-xl{max-width:36rem}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.items-baseline{align-items:baseline}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1\.5{gap:0.375rem}.gap-16{gap:4rem}.gap-24{gap:6rem}.gap-4{gap:1rem}.gap-8{gap:2rem}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-8 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-l{border-left-width:1px}.border-t{border-top-width:1px}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/20{border-color:rgb(255 255 255 / 0.2)}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-black\/40{background-color:rgb(0 0 0 / 0.4)}.bg-transparent{background-color:transparent}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/5{background-color:rgb(255 255 255 / 0.05)}.bg-gradient-to-b{background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.from-white{--tw-gradient-from:#fff var(--tw-gradient-from-position);--tw-gradient-to:rgb(255 255 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-transparent{--tw-gradient-to:transparent var(--tw-gradient-to-position)}.object-cover{object-fit:cover}.p-16{padding:4rem}.px-10{padding-left:2.5rem;padding-right:2.5rem}.px-8{padding-left:2rem;padding-right:2rem}.py-32{padding-top:8rem;padding-bottom:8rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-40{padding-top:10rem;padding-bottom:10rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pl-8{padding-left:2rem}.pl-\[15vw\]{padding-left:15vw}.pt-8{padding-top:2rem}.text-center{text-align:center}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-5xl{font-size:3rem;line-height:1}.text-6xl{font-size:3.75rem;line-height:1}.text-7xl{font-size:4.5rem;line-height:1}.text-\[18vw\]{font-size:18vw}.text-\[9px\]{font-size:9px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-light{font-weight:300}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-\[0\.8\]{line-height:0.8}.leading-loose{line-height:2}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-\[0\.25em\]{letter-spacing:0.25em}.tracking-\[0\.2em\]{letter-spacing:0.2em}.tracking-\[0\.3em\]{letter-spacing:0.3em}.tracking-\[0\.4em\]{letter-spacing:0.4em}.tracking-wide{letter-spacing:0.025em}.tracking-widest{letter-spacing:0.1em}.text-black{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.placeholder-gray-600::placeholder{--tw-placeholder-opacity:1;color:rgb(75 85 99 / var(--tw-placeholder-opacity, 1))}.opacity-0{opacity:0}.opacity-20{opacity:0.2}.opacity-5{opacity:0.05}.opacity-50{opacity:0.5}.mix-blend-difference{mix-blend-mode:difference}.outline-none{outline:2px solid transparent;outline-offset:2px}.grayscale{--tw-grayscale:grayscale(100%);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-1000{transition-duration:1000ms}.duration-300{transition-duration:300ms}.duration-700{transition-duration:700ms}.hover\:pl-4:hover{padding-left:1rem}.hover\:text-black:hover{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:bg-transparent{background-color:transparent}.group:hover .group-hover\:opacity-100{opacity:1}@media (min-width: 768px){.md\:mt-32{margin-top:8rem}.md\:flex{display:flex}.md\:hidden{display:none}.md\:w-\[400px\]{width:400px}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:px-24{padding-left:6rem;padding-right:6rem}.md\:text-9xl{font-size:8rem;line-height:1}}</style><style id="bugence-section-add-style">
+                    #bugence-section-add {
+                        position: fixed;
+                        left: 0;
+                        top: 0;
+                        height: 0;
+                        pointer-events: none;
+                        z-index: 2147483646;
+                        display: none;
+                    }
+                    #bugence-section-add .line {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        height: 2px;
+                        background: rgba(6,182,212,0.7);
+                        box-shadow: 0 8px 18px rgba(6,182,212,0.2);
+                        border-radius: 999px;
+                    }
+                    #bugence-section-add button {
+                        position: absolute;
+                        top: -14px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 38px;
+                        height: 38px;
+                        border-radius: 999px;
+                        border: 1px solid rgba(6,182,212,0.85);
+                        background: linear-gradient(135deg, rgba(6,182,212,0.45), rgba(59,130,246,0.35));
+                        color: #f8fbff;
+                        font-weight: 800;
+                        font-size: 20px;
+                        line-height: 1;
+                        cursor: pointer;
+                        pointer-events: auto;
+                        box-shadow: 0 12px 26px rgba(6,182,212,0.35);
+                    }
+                </style><style id="bugence-multi-select-style">
+                .bugence-editor-multi {
+                    outline: 2px dashed rgba(6,182,212,0.6);
+                    outline-offset: 2px;
+                }
+            </style><style id="bugence-selection-overlay-style">
+                    #bugence-selection-overlay {
+                        position: fixed;
+                        display: none;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 10px 12px 9px;
+                        border-radius: 14px;
+                        border: 1px solid rgba(255,255,255,0.16);
+                        background: rgba(10,12,16,0.92);
+                        color: #f8fafc;
+                        font-size: 12px;
+                        z-index: 2147483647;
+                        pointer-events: auto;
+                        box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+                        user-select: none;
+                    }
+                    #bugence-selection-overlay.is-dragging {
+                        cursor: grabbing;
+                    }
+                    #bugence-selection-overlay .sel-handle {
+                        display: grid;
+                        grid-template-columns: repeat(2, 4px);
+                        grid-auto-rows: 4px;
+                        gap: 4px;
+                        padding: 2px;
+                        cursor: grab;
+                        opacity: 0.8;
+                    }
+                    #bugence-selection-overlay .sel-handle span {
+                        width: 4px;
+                        height: 4px;
+                        border-radius: 999px;
+                        background: rgba(255,255,255,0.55);
+                    }
+                    #bugence-selection-overlay .label {
+                        font-weight: 600;
+                        color: #c7f9ff;
+                    }
+                    #bugence-selection-overlay .sel-actions {
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    }
+                    #bugence-selection-overlay .sel-btn {
+                        all: unset;
+                        cursor: pointer;
+                        padding: 5px 7px;
+                        border-radius: 8px;
+                        border: 1px solid rgba(255,255,255,0.12);
+                        background: rgba(255,255,255,0.06);
+                        color: #f8fafc;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 4px;
+                        min-width: 24px;
+                    }
+                    #bugence-selection-overlay .sel-btn:hover {
+                        background: rgba(6,182,212,0.18);
+                        border-color: rgba(6,182,212,0.5);
+                    }
+                    #bugence-selection-overlay .sel-btn svg {
+                        width: 12px;
+                        height: 12px;
+                        stroke: currentColor;
+                        fill: none;
+                        stroke-width: 2;
+                    }
+                    #bugence-selection-overlay .sel-close {
+                        position: absolute;
+                        top: -10px;
+                        right: -10px;
+                        width: 22px;
+                        height: 22px;
+                        border-radius: 999px;
+                        border: 1px solid rgba(255,255,255,0.3);
+                        background: rgba(15,23,42,0.95);
+                        color: #f8fafc;
+                        display: grid;
+                        place-items: center;
+                        cursor: pointer;
+                        box-shadow: 0 8px 16px rgba(0,0,0,0.35);
+                    }
+                    #bugence-selection-overlay .sel-close:hover {
+                        background: rgba(244,63,94,0.2);
+                        border-color: rgba(244,63,94,0.6);
+                    }
+                    #bugence-selection-overlay .sel-close svg {
+                        width: 11px;
+                        height: 11px;
+                        stroke: currentColor;
+                        fill: none;
+                        stroke-width: 2;
+                    }
+                </style></head>
+<body style="">
+
+    <div id="canvas-container"><canvas width="2344" height="1738" style="display: block; width: 1172px; height: 869px;"></canvas></div>
+
+    <div id="cursor-dot" style="translate: none; rotate: none; scale: none; transform: translate(-50%, -50%) translate(165px, 839px);"></div>
+    <div id="cursor-ring" style="translate: none; rotate: none; scale: none; transform: translate(-50%, -50%) translate(165px, 839px); border-color: rgba(255, 255, 255, 0.2); height: 40px; width: 40px;"></div>
+
+    <nav class="fixed top-0 w-full z-50 flex justify-between items-center px-10 py-8 mix-blend-difference" data-bugence-id="bugence-1770244509932-2ftf02">
+        <div class="serif text-2xl tracking-[0.25em] font-bold" data-bugence-id="bugence-1770244509932-cfjcp7">NOX.</div>
+        <div class="hidden md:flex gap-16" data-bugence-id="bugence-1770244509932-1dj11k">
+            <a href="#vision" class="nav-link" data-bugence-id="bugence-1770244509932-8e0epk">Philosophy</a>
+            <a href="#projects" class="nav-link" data-bugence-id="bugence-1770244509932-fh6cvz">Works</a>
+            <a href="#residences" class="nav-link" data-bugence-id="bugence-1770244509932-5mtwx4">Private</a>
+            <a href="#contact" class="nav-link" data-bugence-id="bugence-1770244509932-gh91ev">Contact</a>
+        </div>
+        <div class="md:hidden w-8 h-8 flex flex-col justify-center gap-1.5" data-bugence-id="bugence-1770244509932-bt7exf">
+            <div class="w-full h-[1px] bg-white" data-bugence-id="bugence-1770244509933-x4gugk"></div>
+            <div class="w-full h-[1px] bg-white" data-bugence-id="bugence-1770244509933-eumqq4"></div>
+        </div>
+    </nav>
+
+    <section class="h-screen flex items-center px-8 md:px-24 relative" data-building="tower" data-bugence-id="bugence-1770244509933-cqb862">
+        <div class="max-w-6xl z-10 relative" data-bugence-id="bugence-1770244509933-fvn7hm">
+            <h1 class="hero-title serif uppercase" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px); opacity: 1;" data-bugence-id="bugence-1770244509933-tc6hdq">Structural</h1>
+            <h1 class="hero-title serif uppercase pl-[15vw] italic" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px); opacity: 1;" data-bugence-id="bugence-1770244509933-607erv">Sovereignty</h1>
+            
+            <div class="mt-20 flex items-start gap-8 max-w-lg ml-auto border-l border-white/20 pl-8 opacity-0 hero-fade" data-bugence-id="bugence-1770244509933-fwh20o" style="opacity: 1;">
+                <p class="text-xs font-light tracking-[0.2em] leading-loose text-gray-400 uppercase" data-bugence-id="bugence-1770244509933-455na5">
+                    Curating the skyline. Merging brutalist power with crystalline transparency for the ultra-elite.
+                </p>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-12 left-12 flex flex-col items-center gap-4 hero-fade opacity-0" data-bugence-id="bugence-1770244509933-pkcqp2" style="opacity: 1;">
+            <div class="w-[1px] h-16 bg-gradient-to-b from-white to-transparent" data-bugence-id="bugence-1770244509933-ytffjq"></div>
+            <span class="text-[9px] uppercase tracking-[0.3em]" data-bugence-id="bugence-1770244509933-rh5es4">Scroll</span>
+        </div>
+    </section>
+
+    <section id="vision" class="min-h-screen flex items-center justify-end px-8 md:px-24 py-32 relative" data-building="museum" data-bugence-id="bugence-1770244509933-3iejen">
+        <div class="max-w-xl relative glass-panel p-16 z-10" data-bugence-id="bugence-1770244509933-hlarbv">
+            <span class="section-counter" data-bugence-id="bugence-1770244509933-o6mgre">01</span>
+            <span class="text-gold text-[9px] uppercase tracking-[0.4em] block mb-8" data-bugence-id="bugence-1770244509933-3e05p5">The Philosophy</span>
+            <h2 class="text-5xl serif mb-6 leading-tight" data-bugence-id="bugence-1770244509933-5o0lno">The Modern <br data-bugence-id="bugence-1770244509933-xy26oz"><span class="italic text-gray-400" data-bugence-id="bugence-1770244509934-vr6hto">Sanctuary</span></h2>
+            <p class="text-sm font-light text-gray-300 leading-loose mb-12" data-bugence-id="bugence-1770244509934-db1uic" style="color: rgb(255, 255, 255);">                We believe a home. Our "Gallery Series" utilizes cantilevered floating slabs and invisible structural glass to erase the boundary between art, nature, and inhabitant.            </p>
+            <div class="flex gap-8" data-bugence-id="bugence-1770244509934-oefn2k">
+                <div class="text-center" data-bugence-id="bugence-1770244509934-jomo1n">
+                    <span class="block text-2xl serif" data-bugence-id="bugence-1770244509934-q3ct4p">24</span>
+                    <span class="text-[9px] uppercase tracking-widest text-gray-500" data-bugence-id="bugence-1770244509934-0adaq4">Awards</span>
+                </div>
+                <div class="text-center border-l border-white/10 pl-8" data-bugence-id="bugence-1770244509934-za86sm">
+                    <span class="block text-2xl serif" data-bugence-id="bugence-1770244509934-hzjaff">08</span>
+                    <span class="text-[9px] uppercase tracking-widest text-gray-500" data-bugence-id="bugence-1770244509934-d48fib">Countries</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects" class="min-h-screen py-40 px-8 md:px-24 relative" data-building="opera" data-bugence-id="bugence-1770244509934-i5w352">
+        <div class="relative z-10 mb-32 pl-8 border-l border-gold/30" data-bugence-id="bugence-1770244509934-966uff">
+            <span class="section-counter left-0 right-auto" data-bugence-id="bugence-1770244509934-92xw78">02</span>
+            <h2 class="text-7xl serif mb-4" data-bugence-id="bugence-1770244509934-cswlcg">Civic <span class="text-gold italic" data-bugence-id="bugence-1770244509934-qdt12x">Grandeur</span></h2>
+            <p class="max-w-md text-sm text-gray-400 font-light leading-relaxed tracking-wide" data-bugence-id="bugence-1770244509934-54rd80">
+                Landmark developments that function as cultural epicenters.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-24 w-full relative z-10" data-bugence-id="bugence-1770244509934-3z5i7u">
+            <div class="group cursor-pointer" data-bugence-id="bugence-1770244509934-7jcr48">
+                <div class="overflow-hidden relative aspect-[4/5] border border-white/10" data-bugence-id="bugence-1770244509934-whbd70">
+                    <img src="https://images.unsplash.com/photo-1548625361-17c376510300?q=80&amp;w=1000&amp;auto=format&amp;fit=crop" class="w-full h-full object-cover grayscale opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000" data-bugence-id="bugence-1770244509934-wrlgwl">
+                    <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-all duration-700" data-bugence-id="bugence-1770244509934-57c524" data-bugence-overlay="auto" style="pointer-events: none;"></div>
+                </div>
+                <div class="mt-6 flex justify-between items-end" data-bugence-id="bugence-1770244509934-dn79mr">
+                    <div data-bugence-id="bugence-1770244509934-n6tg5a">
+                        <h3 class="serif text-3xl italic" data-bugence-id="bugence-1770244509934-efvxyg">The Coliseum</h3>
+                        <p class="text-[9px] uppercase tracking-widest mt-2 text-gold" data-bugence-id="bugence-1770244509934-nb5dsb">Rome, Italy</p>
+                    </div>
+                    <span class="text-2xl font-light opacity-20 group-hover:opacity-100 transition-opacity" data-bugence-id="bugence-1770244509934-91anp1">→</span>
+                </div>
+            </div>
+            
+            <div class="group cursor-pointer mt-0 md:mt-32" data-bugence-id="bugence-1770244509934-aiszo8">
+                <div class="overflow-hidden relative aspect-[4/5] border border-white/10" data-bugence-id="bugence-1770244509935-6ld8zu">
+                    <img src="https://images.unsplash.com/photo-1516554536643-98319e34e55e?q=80&amp;w=1000&amp;auto=format&amp;fit=crop" class="w-full h-full object-cover grayscale opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000" data-bugence-id="bugence-1770244509935-esu0ct">
+                    <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-all duration-700" data-bugence-id="bugence-1770244509935-3uqqkv" data-bugence-overlay="auto" style="pointer-events: none;"></div>
+                </div>
+                <div class="mt-6 flex justify-between items-end" data-bugence-id="bugence-1770244509935-eo5u2k">
+                    <div data-bugence-id="bugence-1770244509935-x8qqn0">
+                        <h3 class="serif text-3xl italic" data-bugence-id="bugence-1770244509935-51jeu3">The Opera</h3>
+                        <p class="text-[9px] uppercase tracking-widest mt-2 text-gold" data-bugence-id="bugence-1770244509935-54yvri">Vienna, Austria</p>
+                    </div>
+                    <span class="text-2xl font-light opacity-20 group-hover:opacity-100 transition-opacity" data-bugence-id="bugence-1770244509935-gs38bb">→</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="residences" class="min-h-screen flex items-center px-8 md:px-24 py-32 relative" data-building="home" data-bugence-id="bugence-1770244509935-cx3ng0">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-24 items-center z-10 w-full" data-bugence-id="bugence-1770244509935-gwx5m8">
+            <div class="relative" data-bugence-id="bugence-1770244509935-6hees1">
+                 <span class="section-counter top-[-8rem]" data-bugence-id="bugence-1770244509935-51lgcs">03</span>
+                 <h2 class="text-6xl md:text-9xl serif leading-[0.8] mb-12" data-bugence-id="bugence-1770244509935-4sj6m9">
+                     Organic <br data-bugence-id="bugence-1770244509935-atuyzb"> <span class="italic text-gray-500" data-bugence-id="bugence-1770244509936-lb2rno">Flow.</span>
+                 </h2>
+                 <div class="space-y-6 border-t border-white/10 pt-8" data-bugence-id="bugence-1770244509936-3obcli">
+                     <div class="group cursor-pointer hover:pl-4 transition-all duration-300" data-bugence-id="bugence-1770244509936-ecw0iv">
+                         <div class="flex justify-between items-baseline mb-2" data-bugence-id="bugence-1770244509936-g4ntvx">
+                             <h4 class="uppercase tracking-widest text-xs group-hover:text-gold transition-colors" data-bugence-id="bugence-1770244509936-ewp2zf">The Stacked Villa</h4>
+                             <span class="text-xs opacity-50" data-bugence-id="bugence-1770244509936-vudagn">01</span>
+                         </div>
+                         <p class="text-gray-500 font-light text-sm" data-bugence-id="bugence-1770244509936-8x05va">Cantilevered concrete slabs • Private Hanging Gardens</p>
+                     </div>
+                     <div class="w-full h-[1px] bg-white/5" data-bugence-id="bugence-1770244509936-n844te"></div>
+                     <div class="group cursor-pointer hover:pl-4 transition-all duration-300" data-bugence-id="bugence-1770244509936-mp59l6">
+                         <div class="flex justify-between items-baseline mb-2" data-bugence-id="bugence-1770244509936-p6yjzj">
+                             <h4 class="uppercase tracking-widest text-xs group-hover:text-gold transition-colors" data-bugence-id="bugence-1770244509936-7gy74l">The Glass Box</h4>
+                             <span class="text-xs opacity-50" data-bugence-id="bugence-1770244509936-sjliix">02</span>
+                         </div>
+                         <p class="text-gray-500 font-light text-sm" data-bugence-id="bugence-1770244509936-bc7wnx">360° Forest Views • Invisible Structure</p>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="h-screen flex flex-col justify-center px-8 md:px-24 bg-black relative border-t border-white/10" data-building="grid" data-bugence-id="bugence-1770244509936-dnma56">
+        <div class="flex flex-col md:flex-row justify-between items-end gap-16 z-10" data-bugence-id="bugence-1770244509936-hhvul3">
+            <div data-bugence-id="bugence-1770244509936-xpd28v">
+                <h2 class="text-[18vw] serif leading-none opacity-5 select-none absolute left-0 bottom-0 pointer-events-none" data-bugence-id="bugence-1770244509936-pv2pq4">NOX</h2>
+                <h3 class="text-5xl serif relative z-10 mb-8" data-bugence-id="bugence-1770244509936-6hd1sm">Acquire Your <span class="italic text-gold" data-bugence-id="bugence-1770244509936-01sgb8">Legacy.</span></h3>
+                <p class="text-gray-500 text-sm max-w-sm font-light leading-relaxed" data-bugence-id="bugence-1770244509936-bfsp8g">
+                    Private viewings are available by appointment only. Please provide your credentials below.
+                </p>
+            </div>
+            
+            <form class="w-full md:w-[400px] space-y-8 relative z-20" data-bugence-id="bugence-1770244509937-eytsg9">
+                <div class="relative group" data-bugence-id="bugence-1770244509937-rui29q">
+                    <input type="text" placeholder="NAME / ORGANIZATION" class="w-full bg-transparent border-b border-white/20 py-4 outline-none text-white placeholder-gray-600 font-light text-xs tracking-widest focus:border-gold transition-colors" data-bugence-id="bugence-1770244509937-uhfg1i">
+                </div>
+                <div class="relative group" data-bugence-id="bugence-1770244509937-vrhao5">
+                    <input type="email" placeholder="CONTACT EMAIL" class="w-full bg-transparent border-b border-white/20 py-4 outline-none text-white placeholder-gray-600 font-light text-xs tracking-widest focus:border-gold transition-colors" data-bugence-id="bugence-1770244509937-g4rtwx">
+                </div>
+                <button class="w-full py-5 bg-white text-black uppercase tracking-[0.3em] text-[9px] font-bold hover:bg-gold hover:text-black transition-all mt-8" data-bugence-id="bugence-1770244509937-51bmrc">
+                    Request Invitation
+                </button>
+            </form>
+        </div>
+        
+        <footer class="absolute bottom-10 left-0 w-full px-10 md:px-24 flex justify-between text-[9px] uppercase tracking-widest text-gray-600" data-bugence-id="bugence-1770244509937-wxzk4x">
+            <p data-bugence-id="bugence-1770244509937-9b2yak">© 2026 NOX Real Estate.</p>
+            <div class="flex gap-8" data-bugence-id="bugence-1770244509937-z17z8j">
+                <a href="#" class="hover:text-white transition" data-bugence-id="bugence-1770244509937-y8hb3p">Instagram</a>
+                <a href="#" class="hover:text-white transition" data-bugence-id="bugence-1770244509937-mo7ze0">LinkedIn</a>
+            </div>
+        </footer>
+    </section>
+
+    <script>
+        // --- 1. SETUP ---
+        const lenis = new Lenis({ 
+            duration: 1.2, 
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            smooth: true
+        });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        // --- 2. THREE.JS SCENE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        // Dynamic fog for depth
+        scene.fog = new THREE.FogExp2(0x000000, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 30);
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // --- 3. MATERIALS (Double-Exposure System) ---
+        // A. Bright Core (Structural Lines)
+        const coreMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, linewidth: 2 });
+        // B. Ghost Shell (Volume/Glass)
+        const ghostMat = new THREE.LineBasicMaterial({ color: 0x444444, transparent: true, opacity: 0.15, depthWrite: false });
+        // C. Gold Accents
+        const goldMat = new THREE.LineBasicMaterial({ color: 0xD4AF37, transparent: true, opacity: 0.6 });
+
+        // Helper: Creates both Core and Ghost meshes for a geometry
+        function createHologram(geo, group) {
+            const edges = new THREE.EdgesGeometry(geo);
+            const core = new THREE.LineSegments(edges, coreMat);
+            const ghost = new THREE.LineSegments(edges, ghostMat);
+            ghost.scale.set(1.02, 1.02, 1.02); // Slight offset for depth
+            group.add(core);
+            group.add(ghost);
+            return core;
+        }
+
+        // --- 4. ARCHITECTURAL MODELS ---
+
+        // A. THE TOWER (Skyscraper)
+        const towerGroup = new THREE.Group();
+        // Central Shaft
+        createHologram(new THREE.BoxGeometry(4, 25, 4), towerGroup);
+        // Floors (Plates)
+        for(let i=0; i<25; i+=2) {
+            const floorGeo = new THREE.BoxGeometry(4.2, 0.1, 4.2);
+            floorGeo.translate(0, i - 12.5, 0);
+            createHologram(floorGeo, towerGroup);
+        }
+        // X-Bracing (Gold)
+        for(let i=0; i<5; i++) {
+            const braceGeo = new THREE.BoxGeometry(4.05, 4, 4.05);
+            braceGeo.translate(0, (i*5)-10, 0);
+            const edges = new THREE.EdgesGeometry(braceGeo);
+            const brace = new THREE.LineSegments(edges, goldMat);
+            brace.rotation.y = Math.PI / 4;
+            towerGroup.add(brace);
+        }
+        scene.add(towerGroup);
+
+        // B. THE MUSEUM (Floating Cantilever)
+        const museumGroup = new THREE.Group();
+        // Main Cantilever
+        const mainBlock = new THREE.BoxGeometry(18, 5, 8);
+        createHologram(mainBlock, museumGroup);
+        // Support Core (Offset)
+        const support = new THREE.BoxGeometry(6, 12, 6);
+        support.translate(-4, -4, -2);
+        createHologram(support, museumGroup);
+        // Floating Gallery (Gold)
+        const galleryGeo = new THREE.BoxGeometry(10, 2, 10);
+        galleryGeo.translate(5, 2, 0);
+        const galleryEdges = new THREE.EdgesGeometry(galleryGeo);
+        const galleryLines = new THREE.LineSegments(galleryEdges, goldMat);
+        museumGroup.add(galleryLines);
+        museumGroup.visible = false;
+        scene.add(museumGroup);
+
+        // C. THE OPERA (Ribbed Dome)
+        const operaGroup = new THREE.Group();
+        // Dome Ribs
+        for(let i=0; i<16; i++) {
+            const ribGeo = new THREE.TorusGeometry(8, 0.1, 4, 40, Math.PI);
+            ribGeo.translate(0, 0, 0);
+            const edges = new THREE.EdgesGeometry(ribGeo);
+            const line = new THREE.LineSegments(edges, i % 2 === 0 ? coreMat : ghostMat);
+            line.rotation.y = (i/16) * Math.PI;
+            operaGroup.add(line);
+        }
+        // Base Rings
+        createHologram(new THREE.CylinderGeometry(8, 8, 1, 32, 1, true), operaGroup);
+        const floorRing = new THREE.CylinderGeometry(12, 12, 0.5, 32, 1, true);
+        floorRing.translate(0, -2, 0);
+        createHologram(floorRing, operaGroup);
+        operaGroup.visible = false;
+        scene.add(operaGroup);
+
+        // D. THE VILLA (Stacked Slabs)
+        const homeGroup = new THREE.Group();
+        for(let i=0; i<5; i++) {
+            const w = 5 + Math.random() * 5;
+            const d = 5 + Math.random() * 5;
+            const slabGeo = new THREE.BoxGeometry(w, 0.5, d);
+            slabGeo.translate((Math.random()-0.5)*3, (i*2)-4, (Math.random()-0.5)*3);
+            createHologram(slabGeo, homeGroup);
+            
+            // Vertical supports
+            if (i<4) {
+                const colGeo = new THREE.BoxGeometry(0.5, 2, 0.5);
+                colGeo.translate(0, (i*2)-3, 0);
+                createHologram(colGeo, homeGroup);
+            }
+        }
+        homeGroup.visible = false;
+        scene.add(homeGroup);
+
+        // --- 5. ENHANCED STARFIELD ---
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 1500;
+        const starPos = new Float32Array(starCount * 3);
+        const starSizes = new Float32Array(starCount);
+
+        for(let i=0; i<starCount; i++) {
+            const i3 = i * 3;
+            // Spread stars wide
+            starPos[i3] = (Math.random() - 0.5) * 100;
+            starPos[i3+1] = (Math.random() - 0.5) * 100;
+            starPos[i3+2] = (Math.random() - 0.5) * 50 - 20; // Push back
+            starSizes[i] = Math.random() * 0.15;
+        }
+
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        starGeo.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+
+        const starMat = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.6,
+            sizeAttenuation: true
+        });
+
+        const starField = new THREE.Points(starGeo, starMat);
+        scene.add(starField);
+
+        // --- 6. ANIMATION SYSTEM ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        const buildings = {
+            tower: towerGroup,
+            museum: museumGroup,
+            opera: operaGroup,
+            home: homeGroup,
+            grid: towerGroup
+        };
+        
+        let currentBuilding = towerGroup;
+
+        // Intro Animation
+        gsap.to(".hero-title", { opacity: 1, y: 0, duration: 2, stagger: 0.2, ease: "power3.out" });
+        gsap.to(".hero-fade", { opacity: 1, duration: 2, delay: 1 });
+
+        function switchBuilding(name) {
+            const next = buildings[name];
+            if(!next || next === currentBuilding) return;
+
+            const prev = currentBuilding;
+            currentBuilding = next;
+
+            // Animate OUT
+            gsap.to(prev.rotation, { y: prev.rotation.y + 0.5, duration: 1.5 });
+            gsap.to(prev.scale, { x: 0, y: 0, z: 0, duration: 1, ease: "back.in(1.7)", onComplete: () => { prev.visible = false; }});
+
+            // Animate IN
+            next.visible = true;
+            next.rotation.y = -0.5;
+            gsap.fromTo(next.scale, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.2)", delay: 0.3 });
+            gsap.to(next.rotation, { y: 0, duration: 2, ease: "power2.out", delay: 0.3 });
+        }
+
+        document.querySelectorAll('section').forEach(section => {
+            ScrollTrigger.create({
+                trigger: section,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => switchBuilding(section.dataset.building),
+                onEnterBack: () => switchBuilding(section.dataset.building)
+            });
+        });
+
+        // --- 7. MOUSE & RENDER LOOP ---
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorRing = document.getElementById('cursor-ring');
+        let mouseX = 0, mouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            
+            // Custom Cursor Logic
+            gsap.to(cursorDot, { x: e.clientX, y: e.clientY, duration: 0.1 });
+            gsap.to(cursorRing, { x: e.clientX, y: e.clientY, duration: 0.2 });
+        });
+
+        // Interactive Links
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => gsap.to(cursorRing, { width: 60, height: 60, borderColor: '#D4AF37' }));
+            el.addEventListener('mouseleave', () => gsap.to(cursorRing, { width: 40, height: 40, borderColor: 'rgba(255,255,255,0.2)' }));
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate Building
+            if(currentBuilding) {
+                currentBuilding.rotation.y += 0.001;
+            }
+
+            // Rotate & Parallax Stars
+            starField.rotation.y += 0.0002;
+            starField.position.x = mouseX * 2;
+            starField.position.y = mouseY * 2;
+
+            // Camera float
+            camera.position.x += (mouseX * 3 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * 3 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+
+
+</body></html>

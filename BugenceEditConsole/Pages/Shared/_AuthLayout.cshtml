@@ -1,0 +1,418 @@
+﻿@{
+    Layout = null;
+}
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>@(ViewData["Title"] ?? "Bugence - Access")</title>
+    <meta name="robots" content="noindex,nofollow,noarchive,nosnippet" />
+    <meta name="description" content="Bugence access portal - premium authentication with kinetic motion, cursor magic, and WCAG-AA UX." />
+    <meta property="og:title" content="Bugence - Access" />
+    <meta property="og:description" content="Premium, accessible auth with kinetic motion and refined details." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#0a0c12" />
+        <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <!-- ✅ jQuery must come first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- ✅ Then load jQuery Validate -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+
+    <!-- ✅ Then load Unobtrusive Validation -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
+
+    <!-- ✅ Then Bootstrap or your custom JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        bugence: {
+                            emerald: "#63ffd9",
+                            midnight: "#050618",
+                            dusk: "#0f172a",
+                            slate: "#1b2538"
+                        },
+                        canvas: {
+                            DEFAULT: "#0a0c12",
+                            foreground: "#f4f7fb",
+                            muted: "rgba(148,163,184,0.68)",
+                            ring: "rgba(96,165,250,0.18)"
+                        },
+                        card: {
+                            DEFAULT: "#ffffff",
+                            foreground: "#0b0f19",
+                            muted: "rgba(11,15,25,0.68)",
+                            border: "rgba(15,23,42,0.08)"
+                        },
+                        accent: "#60a5fa",
+                        glow: "#5eead4",
+                        ember: "#f59e0b"
+                    },
+                    fontFamily: {
+                        display: ["var(--font-display)", "Clash Display", "Inter", "sans-serif"],
+                        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"]
+                    },
+                    fontSize: {
+                        "display-xl": ["clamp(2.25rem, 2vw + 1.5rem, 3rem)", { lineHeight: "1.08", letterSpacing: "-0.015em" }],
+                        "heading-lg": ["1.5rem", { lineHeight: "1.3", letterSpacing: "-0.01em" }],
+                        "body-lg": ["1.125rem", { lineHeight: "1.6" }]
+                    },
+                    letterSpacing: {
+                        wide: "0.22em"
+                    },
+                    borderRadius: {
+                        card: "var(--radius-card)"
+                    },
+                    spacing: {
+                        "space-4": "var(--space-4)",
+                        "space-6": "var(--space-6)",
+                        "space-8": "var(--space-8)",
+                        "space-10": "var(--space-10)",
+                        "space-16": "var(--space-16)"
+                    },
+                    boxShadow: {
+                        soft: "0 18px 60px rgba(0,0,0,.35)",
+                        ring: "0 0 0 8px rgba(96,165,250,.20)",
+                        card: "var(--shadow-card)"
+                    }
+                }
+            }
+        };
+    </script>
+    <script src="~/lib/tailwind/tailwind-forms-typography-3.4.1.js" asp-append-version="true"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        .mesh {
+            background:
+                radial-gradient(60rem 40rem at 10% 10%, rgba(96, 165, 250, 0.1), transparent 60%),
+                radial-gradient(55rem 35rem at 90% 25%, rgba(94, 234, 212, 0.09), transparent 65%),
+                radial-gradient(50rem 30rem at 80% 80%, rgba(245, 158, 11, 0.08), transparent 70%);
+        }
+
+        .vignette {
+            box-shadow: inset 0 0 180px rgba(0, 0, 0, 0.46);
+        }
+
+        .tilt {
+            transform-style: preserve-3d;
+            transition: transform 0.18s ease, box-shadow 0.25s ease, filter 0.25s ease;
+            will-change: transform;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tilt .shine {
+            position: absolute;
+            inset: -1px;
+            background: radial-gradient(650px 650px at var(--mx, 50%) var(--my, 50%), rgba(96, 165, 250, 0.18), transparent 60%);
+            pointer-events: none;
+            border-radius: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .tilt:hover .shine {
+            opacity: 0.55;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            background: #000;
+            pointer-events: none;
+            z-index: 70;
+            transform: translate(-50%, -50%);
+            transition: width 0.18s ease, height 0.18s ease, background-color 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+            opacity: 0.9;
+            mix-blend-mode: normal;
+        }
+
+        .cursor-dot.grow {
+            width: 40px;
+            height: 40px;
+        }
+
+        .cursor-dot.big {
+            width: 56px;
+            height: 56px;
+        }
+
+        .cursor-dot.invert {
+            background: #fff;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot.hide {
+            opacity: 0;
+        }
+
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::after {
+            content: "";
+            position: absolute;
+            inset: auto;
+            width: 10px;
+            height: 10px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.35);
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .fancy {
+            position: relative;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .fancy::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from 0deg, rgba(94, 234, 212, 0.45), rgba(96, 165, 250, 0.45), rgba(245, 158, 11, 0.45), rgba(94, 234, 212, 0.45));
+            filter: blur(22px);
+            opacity: 0.7;
+            z-index: 0;
+        }
+
+        .fancy::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            z-index: 0;
+            background:
+                radial-gradient(220px 180px at var(--mx, 60%) var(--my, 30%), rgba(0, 0, 0, 0.07), transparent 60%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9));
+        }
+
+        .fancy > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .float-shape {
+            animation: float 9s ease-in-out infinite;
+        }
+
+        @@keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            .animate-float,
+            .animate-arrow,
+            .float-shape {
+                animation: none !important;
+            }
+
+            .transition,
+            *[class*="duration-"] {
+                transition: none !important;
+            }
+        }
+    </style>
+    @RenderSection("Head", required: false)
+</head>
+<body class="min-h-screen bg-canvas text-canvas-foreground font-sans antialiased selection:bg-white/10 selection:text-white overflow-x-hidden">
+    <div class="fixed inset-0 mesh" aria-hidden="true"></div>
+    <div class="fixed inset-0 vignette" aria-hidden="true"></div>
+    <div id="cursor" class="cursor-dot" role="presentation"></div>
+    <header class="relative z-10 mx-auto max-w-7xl px-6 pt-8">
+        <a asp-page="/Auth/Login" class="inline-flex items-center gap-3 group" aria-label="Bugence home">
+            <span class="grid h-10 w-10 place-items-center rounded-2xl bg-black text-white font-bold ring-1 ring-white/10 transition group-hover:scale-105 group-hover:shadow-2xl">B</span>
+            <div class="leading-tight">
+                <h1 class="text-2xl font-extrabold tracking-wide">Bugence</h1>
+                <p class="text-xs text-white/70">Access Portal</p>
+            </div>
+        </a>
+    </header>
+    <main class="relative z-10 mx-auto max-w-7xl px-6 py-10 md:py-14 lg:py-18">
+        @RenderBody()
+    </main>
+    <script>
+        (() => {
+            const select = (selector, context = document) => context.querySelector(selector);
+            const selectAll = (selector, context = document) => Array.from(context.querySelectorAll(selector));
+
+            const cursor = select("#cursor");
+            let frameId = null;
+            let cx = window.innerWidth / 2;
+            let cy = window.innerHeight / 2;
+            let targetX = cx;
+            let targetY = cy;
+
+            const follow = () => {
+                cx += (targetX - cx) * 0.18;
+                cy += (targetY - cy) * 0.18;
+
+                if (cursor) {
+                    cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
+                }
+
+                frameId = requestAnimationFrame(follow);
+            };
+
+            if (cursor) {
+                window.addEventListener(
+                    "mousemove",
+                    (event) => {
+                        targetX = event.clientX;
+                        targetY = event.clientY;
+
+                        if (!frameId) {
+                            frameId = requestAnimationFrame(follow);
+                        }
+
+                        cursor.classList.remove("hide");
+                    },
+                    { passive: true }
+                );
+
+                window.addEventListener(
+                    "mouseleave",
+                    () => {
+                        cursor.classList.add("hide");
+
+                        if (frameId) {
+                            cancelAnimationFrame(frameId);
+                            frameId = null;
+                        }
+                    },
+                    { passive: true }
+                );
+
+                document.addEventListener("mouseover", (event) => {
+                    if (event.target.closest(".cursor-magnet, a, button, input, label, [role='button']")) {
+                        cursor.classList.add("grow");
+                    }
+
+                    if (event.target.closest(".on-white")) {
+                        cursor.classList.add("invert");
+                    }
+                });
+
+                document.addEventListener("mouseout", (event) => {
+                    if (event.target.closest(".cursor-magnet, a, button, input, label, [role='button']")) {
+                        cursor.classList.remove("grow");
+                    }
+
+                    if (event.target.closest(".on-white")) {
+                        cursor.classList.remove("invert");
+                    }
+                });
+            }
+
+            const promo = select("#promo");
+
+            if (promo && cursor) {
+                promo.addEventListener("mouseenter", () => cursor.classList.add("big"));
+                promo.addEventListener("mouseleave", () => cursor.classList.remove("big"));
+
+                const updateSpot = (event) => {
+                    const rect = promo.getBoundingClientRect();
+                    const x = ((event.clientX - rect.left) / rect.width) * 100;
+                    const y = ((event.clientY - rect.top) / rect.height) * 100;
+                    promo.style.setProperty("--mx", `${x}%`);
+                    promo.style.setProperty("--my", `${y}%`);
+                };
+
+                promo.addEventListener("mousemove", updateSpot);
+                promo.style.setProperty("--mx", "60%");
+                promo.style.setProperty("--my", "30%");
+            }
+
+            selectAll(".tilt").forEach((card) => {
+                const getRect = () => card.getBoundingClientRect();
+
+                const handleMove = (event) => {
+                    const rect = getRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    const rotateX = ((y / rect.height) - 0.5) * -10;
+                    const rotateY = ((x / rect.width) - 0.5) * 10;
+
+                    card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
+                    card.style.filter = "saturate(1.03)";
+                    card.style.boxShadow = "0 38px 100px rgba(0,0,0,.36)";
+                    card.style.setProperty("--mx", `${(x / rect.width) * 100}%`);
+                    card.style.setProperty("--my", `${(y / rect.height) * 100}%`);
+                };
+
+                const handleLeave = () => {
+                    card.style.transform = "";
+                    card.style.filter = "";
+                    card.style.boxShadow = "";
+                };
+
+                card.addEventListener("mousemove", handleMove);
+                card.addEventListener("mouseleave", handleLeave);
+            });
+
+            document.addEventListener("click", (event) => {
+                const button = event.target.closest(".ripple");
+
+                if (!button) {
+                    return;
+                }
+
+                const rect = button.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const bubble = document.createElement("span");
+
+                bubble.style.position = "absolute";
+                bubble.style.left = `${x}px`;
+                bubble.style.top = `${y}px`;
+                bubble.style.transform = "translate(-50%, -50%)";
+                bubble.style.width = `${Math.max(rect.width, rect.height) * 1.25}px`;
+                bubble.style.height = bubble.style.width;
+                bubble.style.borderRadius = "9999px";
+                bubble.style.background = "rgba(255,255,255,.35)";
+                bubble.style.pointerEvents = "none";
+                bubble.style.opacity = "0.7";
+                bubble.style.transition = "opacity .6s ease, transform .6s ease";
+
+                button.appendChild(bubble);
+
+                requestAnimationFrame(() => {
+                    bubble.style.opacity = "0";
+                    bubble.style.transform = "translate(-50%, -50%) scale(1.15)";
+                });
+
+                setTimeout(() => bubble.remove(), 600);
+            });
+        })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+

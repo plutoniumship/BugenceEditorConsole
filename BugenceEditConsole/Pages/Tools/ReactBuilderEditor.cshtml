@@ -1,0 +1,1505 @@
+@page
+@model BugenceEditConsole.Pages.Tools.ReactBuilderEditorModel
+@{
+    ViewData["Title"] = "ReactBuilderEditor";
+    ViewData["BodyClass"] = "page-tools-reactbuildereditor";
+
+    var sidebarName = User?.Identity?.Name ?? "Administrator";
+    var sidebarEmail = "admin@bugence.com";
+}
+
+@section Head {
+<style>
+    :root{--bg:#070707;--surface:#0f0f10;--surface2:#151516;--border:rgba(255,255,255,.12);--text:#f5f5f5;--muted:#a3a3a3;--brand:#ffffff;--danger:#f87171}
+    *{box-sizing:border-box}html,body{height:100%}body{margin:0;overflow:hidden;color:var(--text);font-family:'Satoshi',sans-serif;background:radial-gradient(circle at 10% -20%,rgba(255,255,255,.08),transparent 42%),var(--bg)}
+    .editor-root{display:flex;flex-direction:column;width:100%;height:100%}
+    .topbar{height:60px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(180deg,#0f0f10,#080808)}
+    .editor-brand{display:flex;gap:10px;align-items:center;min-width:0}.editor-logo{width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#0a0a0a;background:linear-gradient(140deg,#67e8f9,#22d3ee);box-shadow:0 0 0 1px rgba(255,255,255,.2) inset}
+    .editor-brand-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1rem}.editor-brand-sub{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.status{font-size:.8rem;color:var(--muted)}
+    .actions{display:flex;gap:8px;overflow:auto hidden}.btn{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);padding:8px 11px;border-radius:10px;font-weight:700;cursor:pointer;white-space:nowrap}.btn.primary{border:1px solid rgba(255,255,255,.25);background:#f4f4f5;color:#101012}
+    .editor-shell{display:grid;grid-template-columns:300px 1fr 40%;height:calc(100vh - 60px)}
+    .pane{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--border);background:linear-gradient(180deg,#0e0e10,#0a0a0b)}
+    .pane:last-child{border-right:none}
+    .head{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--border)}
+    .title{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:#d4d4d8;font-weight:700}
+    .tool{width:30px;height:30px;border:1px solid var(--border);background:rgba(255,255,255,.03);border-radius:8px;color:#d4d4d8;cursor:pointer}
+    .tool:hover{border-color:rgba(255,255,255,.42);background:rgba(255,255,255,.1);color:#fff}
+    .head-tools{display:flex;gap:6px}
+    .tree-filter{padding:8px 10px;border-bottom:1px solid var(--border);position:relative}
+    .tree-filter i{position:absolute;left:19px;top:50%;transform:translateY(-50%);font-size:.76rem;color:#a3a3a3}
+    .tree-filter input{width:100%;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:#f4f4f5;padding:8px 10px 8px 28px}
+    .tree{padding:8px;overflow:auto}
+    .row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:8px;color:#e4e4e7}
+    .row:hover{background:rgba(255,255,255,.04)}
+    .row.active{background:rgba(255,255,255,.12)}
+    .main{display:flex;gap:8px;align-items:center;min-width:0;cursor:pointer}
+    .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.9rem}
+    .chev{width:16px;color:#a3a3a3}
+    .icon{width:16px;color:#d4d4d8}
+    .acts{display:flex;gap:4px;opacity:0}
+    .row:hover .acts,.row.active .acts{opacity:1}
+    .act{width:22px;height:22px;border:1px solid transparent;background:transparent;color:#9db8d7;border-radius:6px;cursor:pointer}
+    .act:hover{border-color:var(--border);background:rgba(255,255,255,.05);color:#fff}
+    .menu{position:fixed;z-index:1400;min-width:170px;border:1px solid var(--border);border-radius:10px;background:#0b1320;box-shadow:0 18px 40px rgba(0,0,0,.45);padding:6px;display:none}
+    .menu.open{display:block}
+    .menu button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;color:#d6e6f8;padding:8px 10px;border-radius:8px;cursor:pointer;text-align:left}
+    .menu button:hover{background:rgba(255,255,255,.08)}
+    .menu button.danger{color:#fecaca}
+    .label mark{background:rgba(45,212,191,.22);color:#c4fff4;border-radius:4px;padding:0 2px}
+    .tree-empty{padding:10px;color:#86a6ca;font-size:.84rem}
+    #editor{width:100%;height:100%}
+    iframe{border:0;width:100%;height:100%;background:#fff}
+    .errors{display:none;max-height:170px;overflow:auto;border-top:1px solid var(--border);padding:10px;background:#0d1118;color:#fecaca;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap}
+    .rb-modal-backdrop{position:fixed;inset:0;background:rgba(2,8,16,.72);display:none;align-items:center;justify-content:center;z-index:1200;padding:16px}
+    .rb-modal-backdrop.open{display:flex}
+    .rb-modal{width:min(500px,100%);border:1px solid rgba(255,255,255,.12);border-radius:14px;background:linear-gradient(180deg,#0a0a0a,#050505);box-shadow:0 28px 60px rgba(0,0,0,.65)}
+    .rb-modal-head,.rb-modal-foot{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between}
+    .rb-modal-foot{border-bottom:none;border-top:1px solid var(--border);justify-content:flex-end;gap:8px}
+    .rb-modal-body{padding:12px 14px;display:grid;gap:10px}
+    .field{display:grid;gap:6px}
+    .field label{font-size:.8rem;color:#c4c4c8}
+    .input,.select{width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:#0b0b0b;color:var(--text);padding:10px 12px}
+    .input:focus,.select:focus{border-color:#22d3ee;box-shadow:0 0 0 2px rgba(34,211,238,.12)}
+    .switch{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .seg{border:0;background:transparent;color:#aac2de;padding:8px 12px;cursor:pointer;font-weight:700}
+    .seg.active{background:rgba(45,212,191,.2);color:#e8fffc}
+    .err{min-height:16px;font-size:.8rem;color:var(--danger)}
+    .toast{position:fixed;right:18px;bottom:18px;width:min(380px,92vw);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 12px;background:rgba(10,10,10,.92);backdrop-filter:blur(10px);box-shadow:0 30px 60px rgba(0,0,0,.55);display:none;z-index:1200}
+    .toast.show{display:block}
+    .toast .t{font-weight:900;margin:0 0 4px}
+    .toast .m{margin:0;color:#b6b6b6;font-size:.9rem}
+    .toast.ok{border-color:rgba(34,211,238,.22)}
+    .toast.err{border-color:rgba(248,113,113,.28)}
+    @@media (max-width:900px){aside{display:none}}
+    @@media(max-width:1100px){.editor-shell{grid-template-columns:1fr}.pane.left,.pane.right{display:none}}
+</style>
+}
+
+<div class="editor-root">
+    <div class="topbar">
+        <div class="editor-brand">
+            <span class="editor-logo"><i class="fa-solid fa-bug"></i></span>
+            <div>
+                <div class="editor-brand-title">Bugence React Builder</div>
+                <div class="editor-brand-sub" id="builderName">@Model.BuilderName</div>
+            </div>
+            <span id="status" class="status"></span>
+        </div>
+        <div class="actions">
+            <button class="btn" id="backList" type="button"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            <button class="btn" id="loadExample" type="button"><i class="fa-solid fa-sparkles"></i> Load Example</button>
+            <button class="btn" id="formatDoc" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Format</button>
+            <button class="btn" id="refreshPreview" type="button"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            <button class="btn primary" id="saveWorkspace" type="button"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <button class="btn" id="connectPage" type="button"><i class="fa-solid fa-link"></i> Connect</button>
+        </div>
+    </div>
+
+    <div class="editor-shell">
+        <section class="pane left">
+            <div class="head">
+                <div class="title">Files</div>
+                <div class="head-tools">
+                    <button class="tool" id="treeAddFile" title="Add File" type="button"><i class="fa-solid fa-file-circle-plus"></i></button>
+                    <button class="tool" id="treeAddFolder" title="Add Folder" type="button"><i class="fa-solid fa-folder-plus"></i></button>
+                    <button class="tool" id="treeRename" title="Rename" type="button"><i class="fa-solid fa-i-cursor"></i></button>
+                    <button class="tool" id="treeDuplicate" title="Duplicate" type="button"><i class="fa-solid fa-copy"></i></button>
+                    <button class="tool" id="treeMove" title="Move" type="button"><i class="fa-solid fa-arrows-up-down-left-right"></i></button>
+                    <button class="tool" id="treeDelete" title="Delete" type="button"><i class="fa-solid fa-trash"></i></button>
+                    <button class="tool" id="treeCollapseAll" title="Collapse All" type="button"><i class="fa-solid fa-compress"></i></button>
+                </div>
+            </div>
+            <div class="tree-filter">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="treeSearch" type="text" placeholder="Search files and folders" />
+            </div>
+            <div class="tree" id="tree"></div>
+        </section>
+
+        <section class="pane center">
+            <div class="head"><div class="title" id="editorTitle">Code</div></div>
+            <div id="editor"></div>
+        </section>
+
+        <section class="pane right">
+            <div class="head">
+                <div class="title">Live Preview</div>
+                <button class="tool" id="previewClearErrors" title="Clear" type="button"><i class="fa-solid fa-eraser"></i></button>
+            </div>
+            <iframe id="preview" sandbox="allow-scripts"></iframe>
+            <div class="errors" id="errors"></div>
+        </section>
+    </div>
+
+    <div class="rb-modal-backdrop" id="nodeModalBackdrop">
+        <div class="rb-modal">
+            <div class="rb-modal-head">
+                <strong id="nodeModalTitle">Create File</strong>
+                <button class="tool" id="closeNodeModal" type="button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="rb-modal-body">
+                <div class="field">
+                    <label>Type</label>
+                    <div class="switch" id="nodeTypeSwitch">
+                        <button class="seg active" data-node-type="file" type="button">File</button>
+                        <button class="seg" data-node-type="folder" type="button">Folder</button>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="nodeParent">Parent folder</label>
+                    <select class="select" id="nodeParent"></select>
+                </div>
+                <div class="field">
+                    <label for="nodeName">Name</label>
+                    <input class="input" id="nodeName" placeholder="NewComponent.jsx" maxlength="120" />
+                </div>
+                <div class="err" id="nodeError"></div>
+            </div>
+            <div class="rb-modal-foot">
+                <button class="btn" id="nodeCancel" type="button">Cancel</button>
+                <button class="btn primary" id="nodeSubmit" type="button">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="rb-modal-backdrop" id="renameModalBackdrop">
+        <div class="rb-modal">
+            <div class="rb-modal-head">
+                <strong>Rename Node</strong>
+                <button class="tool" id="closeRenameModal" type="button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="rb-modal-body">
+                <div class="field">
+                    <label for="renameInput">New name</label>
+                    <input class="input" id="renameInput" maxlength="120" />
+                </div>
+                <div class="err" id="renameError"></div>
+            </div>
+            <div class="rb-modal-foot">
+                <button class="btn" id="renameCancel" type="button">Cancel</button>
+                <button class="btn primary" id="renameSubmit" type="button">Rename</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="rb-modal-backdrop" id="deleteModalBackdrop">
+        <div class="rb-modal">
+            <div class="rb-modal-head">
+                <strong>Delete Node</strong>
+                <button class="tool" id="closeDeleteModal" type="button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="rb-modal-body">
+                <div id="deleteText" style="font-size:.92rem;color:#cfe0f4;"></div>
+                <div class="err" id="deleteError"></div>
+            </div>
+            <div class="rb-modal-foot">
+                <button class="btn" id="deleteCancel" type="button">Cancel</button>
+                <button class="btn" id="deleteSubmit" type="button" style="border-color:rgba(248,113,113,.45);color:#fecaca;background:rgba(248,113,113,.08)">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="rb-modal-backdrop" id="moveModalBackdrop">
+        <div class="rb-modal">
+            <div class="rb-modal-head">
+                <strong>Move Node</strong>
+                <button class="tool" id="closeMoveModal" type="button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="rb-modal-body">
+                <div class="field">
+                    <label for="moveTargetParent">Target folder</label>
+                    <select class="select" id="moveTargetParent"></select>
+                </div>
+                <div class="err" id="moveError"></div>
+            </div>
+            <div class="rb-modal-foot">
+                <button class="btn" id="moveCancel" type="button">Cancel</button>
+                <button class="btn primary" id="moveSubmit" type="button">Move</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="menu" id="treeContextMenu" aria-hidden="true">
+        <button type="button" data-menu-act="rename"><i class="fa-solid fa-i-cursor"></i> Rename</button>
+        <button type="button" data-menu-act="duplicate"><i class="fa-solid fa-copy"></i> Duplicate</button>
+        <button type="button" data-menu-act="move"><i class="fa-solid fa-arrows-up-down-left-right"></i> Move to...</button>
+        <button type="button" class="danger" data-menu-act="delete"><i class="fa-solid fa-trash"></i> Delete</button>
+    </div>
+
+    <div class="toast" id="toast" aria-live="polite">
+        <div class="t" id="toastTitle">Status</div>
+        <p class="m" id="toastMsg"></p>
+    </div>
+
+    <form id="antiForgery" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
+</div>
+
+@section Scripts {
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
+    <script>
+        (function () {
+            const builderId = @Model.BuilderId;
+            const baseUrl = "@Url.Page(null)";
+
+            const endpoints = {
+                workspace: baseUrl + "?handler=Workspace&id=" + encodeURIComponent(builderId),
+                saveWorkspace: baseUrl + "?handler=SaveWorkspace",
+                createNode: baseUrl + "?handler=CreateNode",
+                renameNode: baseUrl + "?handler=RenameNode",
+                deleteNode: baseUrl + "?handler=DeleteNode"
+            };
+
+            const ui = {
+                tree: document.getElementById("tree"),
+                treeSearch: document.getElementById("treeSearch"),
+                editor: document.getElementById("editor"),
+                editorTitle: document.getElementById("editorTitle"),
+                status: document.getElementById("status"),
+                preview: document.getElementById("preview"),
+                errors: document.getElementById("errors"),
+                previewClearErrors: document.getElementById("previewClearErrors"),
+
+                btnBack: document.getElementById("backList"),
+                btnSave: document.getElementById("saveWorkspace"),
+                btnRefresh: document.getElementById("refreshPreview"),
+                btnFormat: document.getElementById("formatDoc"),
+                btnExample: document.getElementById("loadExample"),
+                btnConnect: document.getElementById("connectPage"),
+
+                btnAddFile: document.getElementById("treeAddFile"),
+                btnAddFolder: document.getElementById("treeAddFolder"),
+                btnRename: document.getElementById("treeRename"),
+                btnDuplicate: document.getElementById("treeDuplicate"),
+                btnMove: document.getElementById("treeMove"),
+                btnDelete: document.getElementById("treeDelete"),
+                btnCollapse: document.getElementById("treeCollapseAll"),
+
+                builderName: document.getElementById("builderName"),
+
+                nodeModalBackdrop: document.getElementById("nodeModalBackdrop"),
+                nodeModalTitle: document.getElementById("nodeModalTitle"),
+                nodeTypeSwitch: document.getElementById("nodeTypeSwitch"),
+                nodeParent: document.getElementById("nodeParent"),
+                nodeName: document.getElementById("nodeName"),
+                nodeError: document.getElementById("nodeError"),
+                nodeCancel: document.getElementById("nodeCancel"),
+                nodeSubmit: document.getElementById("nodeSubmit"),
+                closeNodeModal: document.getElementById("closeNodeModal"),
+
+                renameModalBackdrop: document.getElementById("renameModalBackdrop"),
+                renameInput: document.getElementById("renameInput"),
+                renameError: document.getElementById("renameError"),
+                renameCancel: document.getElementById("renameCancel"),
+                renameSubmit: document.getElementById("renameSubmit"),
+                closeRenameModal: document.getElementById("closeRenameModal"),
+
+                deleteModalBackdrop: document.getElementById("deleteModalBackdrop"),
+                deleteText: document.getElementById("deleteText"),
+                deleteError: document.getElementById("deleteError"),
+                deleteCancel: document.getElementById("deleteCancel"),
+                deleteSubmit: document.getElementById("deleteSubmit"),
+                closeDeleteModal: document.getElementById("closeDeleteModal"),
+
+                moveModalBackdrop: document.getElementById("moveModalBackdrop"),
+                moveTargetParent: document.getElementById("moveTargetParent"),
+                moveError: document.getElementById("moveError"),
+                moveCancel: document.getElementById("moveCancel"),
+                moveSubmit: document.getElementById("moveSubmit"),
+                closeMoveModal: document.getElementById("closeMoveModal"),
+
+                treeContextMenu: document.getElementById("treeContextMenu"),
+
+                toast: document.getElementById("toast"),
+                toastTitle: document.getElementById("toastTitle"),
+                toastMsg: document.getElementById("toastMsg")
+            };
+
+            const csrfToken = () => {
+                const i = document.querySelector("#antiForgery input[name='__RequestVerificationToken']");
+                return i ? i.value : "";
+            };
+
+            async function apiGet(url) {
+                const res = await fetch(url, { credentials: "same-origin" });
+                if (!res.ok) throw new Error(await res.text() || ("GET " + res.status));
+                return await res.json();
+            }
+
+            async function apiPost(url, body) {
+                const res = await fetch(url, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": csrfToken()
+                    },
+                    body: JSON.stringify(body || {})
+                });
+                if (!res.ok) throw new Error(await res.text() || ("POST " + res.status));
+                const ct = (res.headers.get("content-type") || "").toLowerCase();
+                return ct.includes("application/json") ? await res.json() : await res.text();
+            }
+
+            function toast(kind, title, msg) {
+                ui.toast.classList.remove("ok", "err");
+                ui.toast.classList.add(kind);
+                ui.toastTitle.textContent = title || "Status";
+                ui.toastMsg.textContent = msg || "";
+                ui.toast.classList.add("show");
+                clearTimeout(toast._t);
+                toast._t = setTimeout(() => ui.toast.classList.remove("show"), 3200);
+            }
+            const toastOk = (t, m) => toast("ok", t, m);
+            const toastErr = (t, m) => toast("err", t, m);
+
+            function setStatus(text) { ui.status.textContent = text || ""; }
+
+            const state = {
+                nodes: [],
+                openPath: null,
+                selectedPath: null,
+                editor: null,
+                model: null,
+                dirty: false,
+                entryFilePath: "App.jsx",
+                expanded: new Set(),
+                filter: "",
+                contextPath: null
+            };
+
+            function normalizePath(p) {
+                if (!p) return "";
+                const segs = (p + "").replaceAll("\\", "/").trim().split("/");
+                const out = [];
+                for (const seg of segs) {
+                    const s = (seg || "").trim();
+                    if (!s || s === ".") continue;
+                    if (s === "..") { if (out.length) out.pop(); continue; }
+                    out.push(s);
+                }
+                return out.join("/");
+            }
+
+            const joinPath = (parent, name) => normalizePath((parent ? parent + "/" : "") + (name || ""));
+
+            function isFolder(node) { return ((node.nodeType || node.NodeType || "").toLowerCase() === "folder"); }
+            function isFile(node) { return ((node.nodeType || node.NodeType || "").toLowerCase() === "file"); }
+
+            function byPath(path) {
+                const p = normalizePath(path);
+                return state.nodes.find(n => normalizePath(n.path || n.Path) === p) || null;
+            }
+
+            function parentPath(path) {
+                path = normalizePath(path);
+                const i = path.lastIndexOf("/");
+                return i >= 0 ? path.substring(0, i) : "";
+            }
+
+            function basename(path) {
+                path = normalizePath(path);
+                const i = path.lastIndexOf("/");
+                return i >= 0 ? path.substring(i + 1) : path;
+            }
+
+            function sortNodes(a, b) {
+                const ap = normalizePath(a.path || a.Path);
+                const bp = normalizePath(b.path || b.Path);
+                const af = isFolder(a), bf = isFolder(b);
+                if (af !== bf) return af ? -1 : 1;
+                return ap.localeCompare(bp);
+            }
+
+            function toCanonicalNode(node) {
+                const path = normalizePath(node.path || node.Path);
+                const nodeType = isFolder(node) ? "folder" : "file";
+                return {
+                    ...node,
+                    path,
+                    Path: path,
+                    nodeType,
+                    NodeType: nodeType,
+                    language: (node.language || node.Language || langFromPath(path)),
+                    Language: (node.language || node.Language || langFromPath(path)),
+                    content: nodeType === "file" ? (node.content ?? node.Content ?? "") : null,
+                    Content: nodeType === "file" ? (node.content ?? node.Content ?? "") : null
+                };
+            }
+
+            function canonicalizeNodes() {
+                const map = new Map();
+                for (const raw of state.nodes) {
+                    const n = toCanonicalNode(raw);
+                    if (!n.path) continue;
+                    const key = n.path.toLowerCase();
+                    if (!map.has(key)) map.set(key, n);
+                }
+                state.nodes = Array.from(map.values()).sort(sortNodes);
+            }
+
+            function buildTree() {
+                const root = { name: "", path: "", children: [], nodeType: "folder" };
+                const map = new Map();
+                map.set("", root);
+
+                const ensureFolder = (folderPath) => {
+                    folderPath = normalizePath(folderPath);
+                    if (map.has(folderPath)) return map.get(folderPath);
+                    const parent = ensureFolder(parentPath(folderPath));
+                    const node = { name: basename(folderPath), path: folderPath, nodeType: "folder", children: [] };
+                    map.set(folderPath, node);
+                    parent.children.push(node);
+                    return node;
+                };
+
+                const nodes = [...state.nodes].sort(sortNodes);
+                nodes.forEach(n => {
+                    const p = normalizePath(n.path || n.Path);
+                    if (!p) return;
+                    const folder = parentPath(p);
+                    const parent = ensureFolder(folder);
+                    const node = { ...n, name: basename(p), path: p, nodeType: (n.nodeType || n.NodeType), children: [] };
+                    parent.children.push(node);
+                    if (isFolder(node)) map.set(p, node);
+                });
+
+                const sortRec = (node) => { node.children.sort(sortNodes); node.children.forEach(sortRec); };
+                sortRec(root);
+                return root;
+            }
+
+            function matchesFilter(node, query) {
+                const q = (query || "").toLowerCase().trim();
+                if (!q) return true;
+                const p = normalizePath(node.path || node.Path).toLowerCase();
+                const n = (node.name || basename(node.path || node.Path) || "").toLowerCase();
+                return p.includes(q) || n.includes(q);
+            }
+            function hasFilterMatch(node, query) {
+                if (matchesFilter(node, query)) return true;
+                return (node.children || []).some(c => hasFilterMatch(c, query));
+            }
+            function escapeHtml(s) {
+                return String(s || "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll("\"", "&quot;")
+                    .replaceAll("'", "&#39;");
+            }
+            function highlightLabel(label, query) {
+                const raw = String(label || "");
+                const q = (query || "").toLowerCase().trim();
+                if (!q) return escapeHtml(raw);
+                const idx = raw.toLowerCase().indexOf(q);
+                if (idx < 0) return escapeHtml(raw);
+                return escapeHtml(raw.slice(0, idx))
+                    + "<mark>" + escapeHtml(raw.slice(idx, idx + q.length)) + "</mark>"
+                    + escapeHtml(raw.slice(idx + q.length));
+            }
+
+            function renderTree() {
+                const root = buildTree();
+                ui.tree.innerHTML = "";
+
+                const anyFiles = state.nodes.some(isFile);
+                if (!anyFiles) {
+                    ui.tree.innerHTML = `<div class="tree-empty">No files found. Create one or load an example.</div>`;
+                    return;
+                }
+
+                const query = (state.filter || "").trim().toLowerCase();
+                const frag = document.createDocumentFragment();
+
+                const renderNode = (node, depth) => {
+                    if (!hasFilterMatch(node, query)) return;
+
+                    const row = document.createElement("div");
+                    const nodePath = normalizePath(node.path || node.Path);
+                    row.className = "row" + ((state.selectedPath && normalizePath(state.selectedPath) === nodePath) ? " active" : "");
+                    row.style.paddingLeft = (8 + (depth * 14)) + "px";
+                    row.setAttribute("data-path", nodePath);
+                    row.setAttribute("data-type", (node.nodeType || node.NodeType || "").toLowerCase());
+
+                    const chevron = document.createElement("span");
+                    chevron.className = "chev";
+                    chevron.innerHTML = isFolder(node)
+                        ? (state.expanded.has(nodePath) ? `<i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`)
+                        : "";
+
+                    const main = document.createElement("div");
+                    main.className = "main";
+                    main.innerHTML = `
+                        <span class="icon">${isFolder(node) ? `<i class="fa-solid fa-folder"></i>` : `<i class="fa-solid fa-file-code"></i>`}</span>
+                        <span class="label" title="${escapeHtml(nodePath)}">${highlightLabel(node.name || basename(nodePath), query)}</span>
+                    `;
+
+                    const acts = document.createElement("div");
+                    acts.className = "acts";
+                    acts.innerHTML = `
+                        <button class="act" data-act="menu" title="Actions" type="button"><i class="fa-solid fa-ellipsis"></i></button>
+                    `;
+
+                    row.appendChild(chevron);
+                    row.appendChild(main);
+                    row.appendChild(acts);
+                    frag.appendChild(row);
+
+                    const showChildren = isFolder(node) && (state.expanded.has(nodePath) || !!query);
+                    if (showChildren) {
+                        (node.children || []).forEach(child => renderNode(child, depth + 1));
+                    }
+                };
+
+                if (state.openPath) {
+                    let p = parentPath(state.openPath);
+                    while (p) { state.expanded.add(p); p = parentPath(p); }
+                }
+
+                root.children.forEach(n => renderNode(n, 0));
+                ui.tree.appendChild(frag);
+            }
+
+            const langFromPath = (path) => {
+                const p = normalizePath(path).toLowerCase();
+                if (p.endsWith(".tsx") || p.endsWith(".ts")) return "typescript";
+                if (p.endsWith(".jsx") || p.endsWith(".js")) return "javascript";
+                if (p.endsWith(".json")) return "json";
+                if (p.endsWith(".css")) return "css";
+                if (p.endsWith(".html")) return "html";
+                if (p.endsWith(".md")) return "markdown";
+                return "plaintext";
+            };
+
+            function setEditorTitle(path) {
+                const p = normalizePath(path);
+                ui.editorTitle.textContent = p ? p : "Code";
+            }
+
+            function setDirty(d) {
+                state.dirty = !!d;
+                setStatus(state.dirty ? "Unsaved changes..." : "");
+            }
+
+            function selectPath(path) {
+                state.selectedPath = normalizePath(path || "");
+            }
+
+            function openFile(path) {
+                path = normalizePath(path);
+                const node = byPath(path);
+                if (!node || !isFile(node)) return;
+
+                state.openPath = path;
+                selectPath(path);
+                setEditorTitle(path);
+
+                const content = node.content ?? node.Content ?? "";
+                const language = node.language ?? node.Language ?? langFromPath(path);
+
+                if (state.model) state.model.dispose();
+                state.model = monaco.editor.createModel(content, language);
+                state.editor.setModel(state.model);
+
+                setDirty(false);
+
+                state.model.onDidChangeContent(() => {
+                    const val = state.model.getValue();
+                    node.content = val;
+                    node.Content = val;
+                    setDirty(true);
+                    debouncePreview();
+                });
+
+                renderTree();
+            }
+
+            function formatCurrent() {
+                try {
+                    state.editor.getAction("editor.action.formatDocument").run();
+                    toastOk("Formatted", "Document formatted.");
+                } catch {
+                    toastErr("Format", "Format action not available.");
+                }
+            }
+
+            function clearErrors() {
+                ui.errors.style.display = "none";
+                ui.errors.textContent = "";
+            }
+            function pushError(msg) {
+                ui.errors.style.display = "block";
+                ui.errors.textContent += (ui.errors.textContent ? "\n\n" : "") + msg;
+            }
+
+            function getFileMap() {
+                const map = {};
+                state.nodes.filter(isFile).forEach(n => {
+                    const p = normalizePath(n.path || n.Path);
+                    map[p] = (n.content ?? n.Content ?? "");
+                });
+                return map;
+            }
+
+            function makePreviewHtml() {
+                const files = getFileMap();
+                const requestedEntry = normalizePath(state.entryFilePath || "App.jsx");
+                const keys = Object.keys(files);
+                const fallback = keys.find(k => /(^|\/)app\.(jsx|tsx|js|ts)$/i.test(k))
+                    || keys.find(k => /(^|\/)index\.(jsx|tsx|js|ts)$/i.test(k))
+                    || keys.find(k => /\.(jsx|tsx|js|ts)$/i.test(k))
+                    || keys[0]
+                    || "";
+                const entry = files[requestedEntry] != null ? requestedEntry : fallback;
+                const payload = {
+                    entry,
+                    entryWarning: (requestedEntry && entry && requestedEntry !== entry)
+                        ? ("Entry '" + requestedEntry + "' not found. Preview is using '" + entry + "'.")
+                        : "",
+                    files
+                };
+                if (payload.entryWarning) pushError(payload.entryWarning);
+
+                return (`
+<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>React Preview</title>
+<style>
+html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+#root{min-height:100%}
+.err,.warn{position:fixed;left:12px;right:12px;border-radius:12px;padding:10px 12px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;max-height:40vh;overflow:auto;z-index:10}
+.err{bottom:12px;background:#111827;color:#fecaca;border:1px solid rgba(248,113,113,.35)}
+.warn{top:12px;background:#10120b;color:#fde68a;border:1px solid rgba(250,204,21,.35)}
+</style></head><` + `bo` + `dy` + `><div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script>
+<script src="https://unpkg.com/%40babel/standalone/babel.min.js"><\/script>
+<script>
+(function(){
+  const payload = ${JSON.stringify(payload).replaceAll("<","\\u003c")};
+
+  function normalizePath(path){
+    const segs = String(path||"").replace(/\\\\/g,"/").trim().split("/");
+    const out = [];
+    for (const seg of segs){
+      const s = (seg||"").trim();
+      if (!s || s === ".") continue;
+      if (s === ".."){ if (out.length) out.pop(); continue; }
+      out.push(s);
+    }
+    return out.join("/");
+  }
+  function dirname(path){ const p=normalizePath(path); const i=p.lastIndexOf("/"); return i>=0 ? p.slice(0,i) : ""; }
+  function candidatePaths(fromPath, spec){
+    const requested = String(spec || "");
+    const isRelative = requested.startsWith("./") || requested.startsWith("../");
+    const isAbsolute = requested.startsWith("/");
+    let normalized = "";
+    if (isRelative) normalized = normalizePath(dirname(fromPath) + "/" + requested);
+    else if (isAbsolute) normalized = normalizePath(requested);
+    const hasExt = /\\.(jsx|js|tsx|ts|json|css)$/i.test(normalized);
+    const ext = [".jsx",".js",".tsx",".ts",".json",".css"];
+    const out = hasExt ? [normalized] : [normalized];
+    if (!hasExt){
+      for (const e of ext) out.push(normalized + e);
+      for (const e of ext) out.push(normalized + "/index" + e);
+    }
+    return { requested, fromPath: normalizePath(fromPath), normalized, out, isBare: !isRelative && !isAbsolute };
+  }
+  function resolveError(info){
+    const lines = [
+      "Cannot resolve import '" + info.requested + "'",
+      "from: " + info.fromPath,
+      "normalized: " + (info.normalized || "(n/a)"),
+      "attempted candidates:"
+    ];
+    if (!info.out || !info.out.length) lines.push(" - (none)");
+    else info.out.forEach(c => lines.push(" - " + c));
+    return lines.join("\\n");
+  }
+
+  const cache = new Map();
+
+  function transpile(code, filename){
+    return Babel.transform(code, {
+      presets: [["react", { runtime: "classic" }], "typescript"],
+      plugins: ["transform-modules-commonjs"],
+      sourceType: "module",
+      filename: filename || "file.jsx"
+    }).code;
+  }
+
+  function requireVirtual(path){
+    path = normalizePath(path);
+    if (cache.has(path)) return cache.get(path).exports;
+
+    const code = payload.files[path];
+    if (code == null) throw new Error("Missing module: " + path);
+
+    if (/\\.css$/i.test(path)){
+      const st = document.createElement("style"); st.textContent = code; document.head.appendChild(st);
+      const mod = { exports:{} }; cache.set(path, mod); return mod.exports;
+    }
+
+    const mod = { exports:{} }; cache.set(path, mod);
+    const js = transpile(code, path);
+    const fn = new Function("exports","module","require","React","ReactDOM", js);
+
+    const localRequire = (spec) => {
+      const info = candidatePaths(path, spec);
+      if (info.isBare) {
+        if (spec === "react") return React;
+        if (spec === "react-dom" || spec === "react-dom/client") return ReactDOM;
+        throw new Error("Only relative, absolute workspace, react, and react-dom imports are supported. Got: " + spec);
+      }
+      for (const cand of info.out){
+        if (payload.files[cand] != null) return requireVirtual(cand);
+      }
+      throw new Error(resolveError(info));
+    };
+
+    fn(mod.exports, mod, localRequire, React, ReactDOM);
+    return mod.exports;
+  }
+
+  function showWarn(message){
+    if (!message) return;
+    const div = document.createElement("div"); div.className="warn";
+    div.textContent = message;
+    document.body.appendChild(div);
+  }
+  function showErr(e){
+    const div = document.createElement("div"); div.className="err";
+    div.textContent = (e && e.stack) ? e.stack : String(e);
+    document.body.appendChild(div);
+  }
+
+  try{
+    showWarn(payload.entryWarning);
+    if (!payload.entry) throw new Error("No preview entry file was found.");
+    const m = requireVirtual(payload.entry);
+    const App = (m && (m.default || m.App)) || null;
+    if (!App) throw new Error("Entry did not export a default React component. Entry: " + payload.entry);
+    const el = document.getElementById("root");
+    if (ReactDOM.createRoot) {
+      const root = ReactDOM.createRoot(el);
+      root.render(React.createElement(App));
+    } else {
+      ReactDOM.render(React.createElement(App), el);
+    }
+  }catch(e){ showErr(e); }
+})();
+<\/script><` + `/bo` + `dy` + `></html>`).trim();
+            }
+
+            let previewTimer = null;
+            function debouncePreview() {
+                clearTimeout(previewTimer);
+                previewTimer = setTimeout(refreshPreview, 450);
+            }
+
+            function refreshPreview() {
+                clearErrors();
+                closeContextMenu();
+                try {
+                    ui.preview.srcdoc = makePreviewHtml();
+                } catch (e) {
+                    pushError((e && e.stack) ? e.stack : String(e));
+                }
+            }
+
+            function openModal(el) { el.classList.add("open"); }
+            function closeModal(el) { el.classList.remove("open"); }
+
+            let createMode = "file";
+            function setCreateMode(mode) {
+                createMode = mode;
+                Array.from(ui.nodeTypeSwitch.querySelectorAll(".seg")).forEach(b => {
+                    b.classList.toggle("active", (b.getAttribute("data-node-type") === mode));
+                });
+                ui.nodeModalTitle.textContent = mode === "folder" ? "Create Folder" : "Create File";
+            }
+
+            function fillParentSelect() {
+                ui.nodeParent.innerHTML = "";
+                const folders = [{ path: "", label: "(root)" }]
+                    .concat(state.nodes.filter(isFolder).map(f => ({ path: normalizePath(f.path || f.Path), label: normalizePath(f.path || f.Path) })))
+                    .sort((a, b) => a.label.localeCompare(b.label));
+
+                folders.forEach(f => {
+                    const opt = document.createElement("option");
+                    opt.value = f.path;
+                    opt.textContent = f.label;
+                    ui.nodeParent.appendChild(opt);
+                });
+
+                if (state.selectedPath || state.openPath) ui.nodeParent.value = parentPath(state.selectedPath || state.openPath);
+            }
+
+            function openCreateModal(type) {
+                ui.nodeError.textContent = "";
+                ui.nodeName.value = "";
+                fillParentSelect();
+                setCreateMode(type || "file");
+                openModal(ui.nodeModalBackdrop);
+                setTimeout(() => ui.nodeName.focus(), 50);
+            }
+
+            async function submitCreate() {
+                ui.nodeError.textContent = "";
+                const parent = normalizePath(ui.nodeParent.value || "");
+                const name = (ui.nodeName.value || "").trim();
+                if (!name) { ui.nodeError.textContent = "Name is required."; return; }
+                if (name.includes("/") || name.includes("\\")) { ui.nodeError.textContent = "Name should not contain slashes."; return; }
+
+                const fullPath = joinPath(parent, name);
+                if (byPath(fullPath)) { ui.nodeError.textContent = "A node with this path already exists."; return; }
+
+                try {
+                    ui.nodeSubmit.disabled = true;
+
+                    await apiPost(endpoints.createNode, {
+                        ReactBuilderId: builderId,
+                        ParentPath: parent,
+                        Name: name,
+                        NodeType: createMode
+                    });
+
+                    state.nodes.push(toCanonicalNode({
+                        path: fullPath,
+                        nodeType: createMode,
+                        content: createMode === "file" ? "" : null
+                    }));
+
+                    if (createMode === "folder") state.expanded.add(fullPath);
+
+                    closeModal(ui.nodeModalBackdrop);
+                    selectPath(fullPath);
+                    renderTree();
+                    if (createMode === "file") openFile(fullPath);
+                    setDirty(true);
+                    debouncePreview();
+
+                    toastOk("Created", createMode === "folder" ? "Folder created." : "File created.");
+                } catch (e) {
+                    ui.nodeError.textContent = (e && e.message) ? e.message : "Create failed.";
+                } finally {
+                    ui.nodeSubmit.disabled = false;
+                }
+            }
+
+            let renameTarget = null;
+            function openRenameModal(targetPath) {
+                renameTarget = byPath(targetPath || state.selectedPath || state.openPath);
+                ui.renameError.textContent = "";
+                ui.renameInput.value = renameTarget ? basename(renameTarget.path || renameTarget.Path) : "";
+                if (!renameTarget) { toastErr("Rename", "Select a node first."); return; }
+                openModal(ui.renameModalBackdrop);
+                setTimeout(() => ui.renameInput.focus(), 50);
+            }
+
+            async function submitRename() {
+                ui.renameError.textContent = "";
+                if (!renameTarget) { ui.renameError.textContent = "No target."; return; }
+
+                const newName = (ui.renameInput.value || "").trim();
+                if (!newName) { ui.renameError.textContent = "Name is required."; return; }
+                if (newName.includes("/") || newName.includes("\\")) { ui.renameError.textContent = "Name should not contain slashes."; return; }
+
+                const oldPath = normalizePath(renameTarget.path || renameTarget.Path);
+                const parent = parentPath(oldPath);
+                const newPath = joinPath(parent, newName);
+
+                if (byPath(newPath)) { ui.renameError.textContent = "A node with this name already exists in that folder."; return; }
+
+                try {
+                    ui.renameSubmit.disabled = true;
+
+                    await apiPost(endpoints.renameNode, {
+                        ReactBuilderId: builderId,
+                        Path: oldPath,
+                        NewPath: newPath
+                    });
+
+                    const isFolderNode = isFolder(renameTarget);
+
+                    state.nodes.forEach(n => {
+                        const p = normalizePath(n.path || n.Path);
+                        if (p === oldPath) { n.path = newPath; n.Path = newPath; }
+                        else if (isFolderNode && p.startsWith(oldPath + "/")) {
+                            const replaced = normalizePath(newPath + p.substring(oldPath.length));
+                            n.path = replaced; n.Path = replaced;
+                        }
+                    });
+
+                    if (isFolderNode) {
+                        const newExpanded = new Set();
+                        state.expanded.forEach(p => {
+                            if (p === oldPath) newExpanded.add(newPath);
+                            else if (p.startsWith(oldPath + "/")) newExpanded.add(normalizePath(newPath + p.substring(oldPath.length)));
+                            else newExpanded.add(p);
+                        });
+                        state.expanded = newExpanded;
+                    }
+
+                    if (state.selectedPath === oldPath) state.selectedPath = newPath;
+                    else if (isFolderNode && state.selectedPath && state.selectedPath.startsWith(oldPath + "/")) {
+                        state.selectedPath = normalizePath(newPath + state.selectedPath.substring(oldPath.length));
+                    }
+
+                    if (state.openPath === oldPath) state.openPath = newPath;
+                    else if (isFolderNode && state.openPath && state.openPath.startsWith(oldPath + "/")) {
+                        state.openPath = normalizePath(newPath + state.openPath.substring(oldPath.length));
+                    }
+
+                    closeModal(ui.renameModalBackdrop);
+                    canonicalizeNodes();
+                    renderTree();
+                    setEditorTitle(state.openPath);
+                    toastOk("Renamed", "Node renamed.");
+                    setDirty(true);
+                    debouncePreview();
+                } catch (e) {
+                    ui.renameError.textContent = (e && e.message) ? e.message : "Rename failed.";
+                } finally {
+                    ui.renameSubmit.disabled = false;
+                }
+            }
+
+            function splitFileName(name) {
+                const i = name.lastIndexOf(".");
+                if (i <= 0) return { base: name, ext: "" };
+                return { base: name.substring(0, i), ext: name.substring(i) };
+            }
+            function nextDuplicateName(parent, sourceName, folder) {
+                let i = 1;
+                while (i < 9999) {
+                    let candidate = "";
+                    if (folder) {
+                        candidate = sourceName + " copy" + (i > 1 ? " (" + i + ")" : "");
+                    } else {
+                        const sp = splitFileName(sourceName);
+                        candidate = sp.base + " copy" + (i > 1 ? " (" + i + ")" : "") + sp.ext;
+                    }
+                    if (!byPath(joinPath(parent, candidate))) return candidate;
+                    i++;
+                }
+                return sourceName + " copy";
+            }
+            async function duplicateNode(targetPath) {
+                const target = byPath(targetPath || state.selectedPath || state.openPath);
+                if (!target) { toastErr("Duplicate", "Select a node first."); return; }
+                const sourceRoot = normalizePath(target.path || target.Path);
+                const folder = isFolder(target);
+                const duplicateRoot = joinPath(parentPath(sourceRoot), nextDuplicateName(parentPath(sourceRoot), basename(sourceRoot), folder));
+                const sourceNodes = state.nodes
+                    .filter(n => {
+                        const p = normalizePath(n.path || n.Path);
+                        return p === sourceRoot || (folder && p.startsWith(sourceRoot + "/"));
+                    })
+                    .sort((a, b) => normalizePath(a.path || a.Path).split("/").length - normalizePath(b.path || b.Path).split("/").length);
+
+                try {
+                    for (const src of sourceNodes) {
+                        const sp = normalizePath(src.path || src.Path);
+                        const suffix = sp === sourceRoot ? "" : sp.substring(sourceRoot.length);
+                        const dst = normalizePath(duplicateRoot + suffix);
+                        await apiPost(endpoints.createNode, {
+                            ReactBuilderId: builderId,
+                            ParentPath: parentPath(dst),
+                            Name: basename(dst),
+                            NodeType: isFolder(src) ? "folder" : "file"
+                        });
+                        state.nodes.push(toCanonicalNode({
+                            ...src,
+                            path: dst,
+                            Path: dst,
+                            nodeType: isFolder(src) ? "folder" : "file",
+                            NodeType: isFolder(src) ? "folder" : "file",
+                            content: isFolder(src) ? null : (src.content ?? src.Content ?? ""),
+                            Content: isFolder(src) ? null : (src.content ?? src.Content ?? "")
+                        }));
+                    }
+                    canonicalizeNodes();
+                    selectPath(duplicateRoot);
+                    if (folder) state.expanded.add(duplicateRoot);
+                    else openFile(duplicateRoot);
+                    renderTree();
+                    setDirty(true);
+                    debouncePreview();
+                    toastOk("Duplicated", folder ? "Folder duplicated." : "File duplicated.");
+                } catch (e) {
+                    toastErr("Duplicate Failed", (e && e.message) ? e.message : "Unable to duplicate node.");
+                }
+            }
+
+            function fillMoveTargets(currentPath, folderMove) {
+                ui.moveTargetParent.innerHTML = "";
+                const blocked = folderMove ? normalizePath(currentPath) : "";
+                const folders = [{ path: "", label: "(root)" }]
+                    .concat(state.nodes.filter(isFolder).map(f => ({ path: normalizePath(f.path || f.Path), label: normalizePath(f.path || f.Path) })))
+                    .filter(f => !blocked || !(f.path === blocked || f.path.startsWith(blocked + "/")))
+                    .sort((a, b) => a.label.localeCompare(b.label));
+                folders.forEach(f => {
+                    const opt = document.createElement("option");
+                    opt.value = f.path;
+                    opt.textContent = f.label;
+                    ui.moveTargetParent.appendChild(opt);
+                });
+            }
+
+            let moveTarget = null;
+            function openMoveModal(targetPath) {
+                moveTarget = byPath(targetPath || state.selectedPath || state.openPath);
+                ui.moveError.textContent = "";
+                if (!moveTarget) { toastErr("Move", "Select a node first."); return; }
+                const p = normalizePath(moveTarget.path || moveTarget.Path);
+                fillMoveTargets(p, isFolder(moveTarget));
+                ui.moveTargetParent.value = parentPath(p);
+                openModal(ui.moveModalBackdrop);
+            }
+
+            async function submitMove() {
+                ui.moveError.textContent = "";
+                if (!moveTarget) { ui.moveError.textContent = "No target."; return; }
+                const oldPath = normalizePath(moveTarget.path || moveTarget.Path);
+                const targetParent = normalizePath(ui.moveTargetParent.value || "");
+                const newPath = joinPath(targetParent, basename(oldPath));
+
+                if (oldPath === newPath) { closeModal(ui.moveModalBackdrop); return; }
+                if (isFolder(moveTarget) && (targetParent === oldPath || targetParent.startsWith(oldPath + "/"))) {
+                    ui.moveError.textContent = "Cannot move a folder inside itself.";
+                    return;
+                }
+                if (byPath(newPath)) { ui.moveError.textContent = "A node with this path already exists in destination."; return; }
+
+                try {
+                    ui.moveSubmit.disabled = true;
+                    await apiPost(endpoints.renameNode, {
+                        ReactBuilderId: builderId,
+                        Path: oldPath,
+                        NewPath: newPath
+                    });
+
+                    const folderMove = isFolder(moveTarget);
+                    state.nodes.forEach(n => {
+                        const p = normalizePath(n.path || n.Path);
+                        if (p === oldPath) { n.path = newPath; n.Path = newPath; }
+                        else if (folderMove && p.startsWith(oldPath + "/")) {
+                            const replaced = normalizePath(newPath + p.substring(oldPath.length));
+                            n.path = replaced; n.Path = replaced;
+                        }
+                    });
+                    if (state.selectedPath === oldPath) state.selectedPath = newPath;
+                    else if (folderMove && state.selectedPath && state.selectedPath.startsWith(oldPath + "/")) {
+                        state.selectedPath = normalizePath(newPath + state.selectedPath.substring(oldPath.length));
+                    }
+                    if (state.openPath === oldPath) state.openPath = newPath;
+                    else if (folderMove && state.openPath && state.openPath.startsWith(oldPath + "/")) {
+                        state.openPath = normalizePath(newPath + state.openPath.substring(oldPath.length));
+                    }
+
+                    closeModal(ui.moveModalBackdrop);
+                    canonicalizeNodes();
+                    renderTree();
+                    setDirty(true);
+                    debouncePreview();
+                    toastOk("Moved", "Node moved.");
+                } catch (e) {
+                    ui.moveError.textContent = (e && e.message) ? e.message : "Move failed.";
+                } finally {
+                    ui.moveSubmit.disabled = false;
+                }
+            }
+
+            function openContextMenu(targetPath, anchorEl) {
+                state.contextPath = normalizePath(targetPath);
+                const rect = anchorEl.getBoundingClientRect();
+                const left = Math.max(8, Math.min(window.innerWidth - 190, rect.left - 120));
+                const top = Math.max(8, Math.min(window.innerHeight - 190, rect.bottom + 4));
+                ui.treeContextMenu.style.left = left + "px";
+                ui.treeContextMenu.style.top = top + "px";
+                ui.treeContextMenu.classList.add("open");
+            }
+            function closeContextMenu() {
+                ui.treeContextMenu.classList.remove("open");
+                state.contextPath = null;
+            }
+
+            let deleteTarget = null;
+            function openDeleteModal(targetPath) {
+                deleteTarget = byPath(targetPath || state.selectedPath || state.openPath);
+                ui.deleteError.textContent = "";
+                if (!deleteTarget) { toastErr("Delete", "Select a node first."); return; }
+
+                const p = normalizePath(deleteTarget.path || deleteTarget.Path);
+                ui.deleteText.textContent = isFolder(deleteTarget)
+                    ? `Delete folder "${p}" and all its children?`
+                    : `Delete file "${p}"?`;
+
+                openModal(ui.deleteModalBackdrop);
+            }
+
+            async function submitDelete() {
+                ui.deleteError.textContent = "";
+                if (!deleteTarget) { ui.deleteError.textContent = "No target."; return; }
+                const p = normalizePath(deleteTarget.path || deleteTarget.Path);
+
+                try {
+                    ui.deleteSubmit.disabled = true;
+
+                    await apiPost(endpoints.deleteNode, {
+                        ReactBuilderId: builderId,
+                        Path: p
+                    });
+
+                    if (isFolder(deleteTarget)) {
+                        state.nodes = state.nodes.filter(n => {
+                            const np = normalizePath(n.path || n.Path);
+                            return !(np === p || np.startsWith(p + "/"));
+                        });
+
+                        const newExpanded = new Set();
+                        state.expanded.forEach(x => {
+                            if (!(x === p || x.startsWith(p + "/"))) newExpanded.add(x);
+                        });
+                        state.expanded = newExpanded;
+                    } else {
+                        state.nodes = state.nodes.filter(n => normalizePath(n.path || n.Path) !== p);
+                    }
+
+                    if (state.openPath && (state.openPath === p || state.openPath.startsWith(p + "/"))) {
+                        state.openPath = null;
+                        if (state.model) { state.model.dispose(); state.model = null; }
+                        setEditorTitle("");
+                    }
+                    if (state.selectedPath && (state.selectedPath === p || state.selectedPath.startsWith(p + "/"))) {
+                        state.selectedPath = null;
+                    }
+
+                    closeModal(ui.deleteModalBackdrop);
+                    renderTree();
+                    setDirty(true);
+                    toastOk("Deleted", "Node deleted.");
+                    refreshPreview();
+                } catch (e) {
+                    ui.deleteError.textContent = (e && e.message) ? e.message : "Delete failed.";
+                } finally {
+                    ui.deleteSubmit.disabled = false;
+                }
+            }
+
+            async function saveWorkspace() {
+                try {
+                    ui.btnSave.disabled = true;
+                    setStatus("Saving...");
+
+                    canonicalizeNodes();
+                    const files = [...state.nodes].sort(sortNodes).map((n, idx) => ({
+                        Path: normalizePath(n.path || n.Path),
+                        NodeType: isFolder(n) ? "folder" : "file",
+                        Language: isFolder(n) ? "plaintext" : (n.language ?? n.Language ?? langFromPath(n.path || n.Path)),
+                        Content: isFolder(n) ? null : (n.content ?? n.Content ?? ""),
+                        SortOrder: idx,
+                        IsReadOnly: !!(n.isReadOnly ?? n.IsReadOnly ?? false)
+                    }));
+
+                    await apiPost(endpoints.saveWorkspace, {
+                        ReactBuilderId: builderId,
+                        Files: files
+                    });
+
+                    setDirty(false);
+                    toastOk("Saved", "Workspace saved.");
+                } catch (e) {
+                    toastErr("Save Failed", (e && e.message) ? e.message : "Unable to save workspace.");
+                    setStatus("");
+                } finally {
+                    ui.btnSave.disabled = false;
+                    if (!state.dirty) setStatus("");
+                }
+            }
+
+            function loadExampleWorkspace() {
+                const starter = [
+                    { path: "App.jsx", nodeType: "file", content:
+`import "./styles/app.css";
+export default function App(){
+  return (
+    <div className="app">
+      <h1>Bugence React Builder</h1>
+      <p>Edit files on the left, save, and preview instantly.</p>
+      <Card title="Example Component" />
+    </div>
+  );
+}
+function Card({ title }){
+  return (
+    <div className="card">
+      <div className="card-title">{title}</div>
+      <div className="card-body">This is running in an iframe preview using Babel.</div>
+    </div>
+  );
+}`},
+                    { path: "styles", nodeType: "folder", content: null },
+                    { path: "styles/app.css", nodeType: "file", content:
+`.app{padding:28px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+h1{margin:0 0 8px}
+.card{margin-top:14px;border:1px solid #e5e7eb;border-radius:14px;padding:14px;background:#fff;box-shadow:0 10px 24px rgba(0,0,0,.06)}
+.card-title{font-weight:800;margin-bottom:6px}
+.card-body{color:#4b5563}` }
+                ];
+
+                state.nodes = starter.map(toCanonicalNode);
+                state.entryFilePath = "App.jsx";
+                state.expanded = new Set(["styles"]);
+                selectPath("App.jsx");
+                renderTree();
+                openFile("App.jsx");
+                setDirty(true);
+                refreshPreview();
+                toastOk("Loaded", "Example loaded (not saved yet).");
+            }
+
+            async function loadWorkspace() {
+                if (!builderId || builderId <= 0) {
+                    toastErr("Missing Id", "No builder id supplied. Open from the list page.");
+                    return;
+                }
+                try {
+                    setStatus("Loading workspace...");
+                    const data = await apiGet(endpoints.workspace);
+
+                    if (!data || data.success !== true || !data.workspace) {
+                        throw new Error((data && data.message) ? data.message : "Invalid workspace response.");
+                    }
+
+                    const ws = data.workspace;
+                    const files = ws.files || [];
+
+                    state.entryFilePath = normalizePath(ws.entryFilePath || "App.jsx");
+                    if (ui.builderName) ui.builderName.textContent = ws.name || ("Builder #" + builderId);
+
+                    state.nodes = (files || []).map(n => toCanonicalNode({
+                        ...n,
+                        path: normalizePath(n.path || n.Path),
+                        nodeType: (n.nodeType || n.NodeType || "file"),
+                        language: (n.language || n.Language || langFromPath(n.path || n.Path)),
+                        content: (n.content ?? n.Content ?? null)
+                    }));
+
+                    const folderSet = new Set();
+                    state.nodes.forEach(n => {
+                        if (!isFile(n)) return;
+                        let pp = parentPath(n.path || n.Path);
+                        while (pp) { folderSet.add(pp); pp = parentPath(pp); }
+                    });
+                    folderSet.forEach(fp => {
+                        if (!byPath(fp)) state.nodes.push(toCanonicalNode({ path: fp, nodeType: "folder", content: null }));
+                    });
+                    canonicalizeNodes();
+
+                    renderTree();
+
+                    const entry = byPath(state.entryFilePath);
+                    if (entry && isFile(entry)) openFile(state.entryFilePath);
+                    else {
+                        const first = state.nodes.find(isFile);
+                        if (first) openFile(first.path || first.Path);
+                    }
+
+                    setDirty(false);
+                    refreshPreview();
+                    setStatus("");
+                } catch (e) {
+                    setStatus("");
+                    toastErr("Load Failed", (e && e.message) ? e.message : "Unable to load workspace.");
+                }
+            }
+
+            function wireTreeClicks() {
+                ui.tree.addEventListener("click", (e) => {
+                    const row = e.target.closest(".row");
+                    if (!row) return;
+
+                    const path = row.getAttribute("data-path") || "";
+                    const type = row.getAttribute("data-type") || "";
+                    selectPath(path);
+
+                    const actBtn = e.target.closest("button.act");
+                    if (actBtn) {
+                        const act = actBtn.getAttribute("data-act");
+                        if (act === "menu") openContextMenu(path, actBtn);
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    const chev = e.target.closest(".chev");
+                    if (chev && type === "folder") {
+                        if (state.expanded.has(path)) state.expanded.delete(path);
+                        else state.expanded.add(path);
+                        renderTree();
+                        return;
+                    }
+
+                    if (type === "folder") {
+                        if (state.expanded.has(path)) state.expanded.delete(path);
+                        else state.expanded.add(path);
+                        renderTree();
+                    } else {
+                        openFile(path);
+                    }
+                });
+
+                ui.treeContextMenu.addEventListener("click", async (e) => {
+                    const btn = e.target.closest("button[data-menu-act]");
+                    if (!btn) return;
+                    const act = btn.getAttribute("data-menu-act");
+                    const targetPath = state.contextPath;
+                    closeContextMenu();
+                    if (!targetPath) return;
+                    if (act === "rename") openRenameModal(targetPath);
+                    if (act === "duplicate") await duplicateNode(targetPath);
+                    if (act === "move") openMoveModal(targetPath);
+                    if (act === "delete") openDeleteModal(targetPath);
+                });
+
+                document.addEventListener("click", (e) => {
+                    if (!ui.treeContextMenu.classList.contains("open")) return;
+                    if (e.target.closest("#treeContextMenu") || e.target.closest("button[data-act='menu']")) return;
+                    closeContextMenu();
+                });
+            }
+
+            function wireTopbar() {
+                ui.btnBack.addEventListener("click", () => window.location.href = "/Tools/ReactBuilder");
+                ui.btnSave.addEventListener("click", saveWorkspace);
+                ui.btnRefresh.addEventListener("click", refreshPreview);
+                ui.btnFormat.addEventListener("click", formatCurrent);
+                ui.btnExample.addEventListener("click", loadExampleWorkspace);
+
+                ui.btnConnect.addEventListener("click", () => {
+                    window.location.href = "/Tools/ReactBuilder?connect=" + encodeURIComponent(builderId);
+                });
+
+                ui.previewClearErrors.addEventListener("click", clearErrors);
+
+                window.addEventListener("beforeunload", (e) => {
+                    if (!state.dirty) return;
+                    e.preventDefault();
+                    e.returnValue = "";
+                });
+            }
+
+            function wireTreeToolbar() {
+                ui.btnAddFile.addEventListener("click", () => openCreateModal("file"));
+                ui.btnAddFolder.addEventListener("click", () => openCreateModal("folder"));
+
+                ui.btnRename.addEventListener("click", () => {
+                    if (!state.selectedPath && !state.openPath) return toastErr("Rename", "Select a node first.");
+                    openRenameModal(state.selectedPath || state.openPath);
+                });
+
+                ui.btnDuplicate.addEventListener("click", async () => {
+                    if (!state.selectedPath && !state.openPath) return toastErr("Duplicate", "Select a node first.");
+                    await duplicateNode(state.selectedPath || state.openPath);
+                });
+
+                ui.btnMove.addEventListener("click", () => {
+                    if (!state.selectedPath && !state.openPath) return toastErr("Move", "Select a node first.");
+                    openMoveModal(state.selectedPath || state.openPath);
+                });
+
+                ui.btnDelete.addEventListener("click", () => {
+                    if (!state.selectedPath && !state.openPath) return toastErr("Delete", "Select a node first.");
+                    openDeleteModal(state.selectedPath || state.openPath);
+                });
+
+                ui.btnCollapse.addEventListener("click", () => { state.expanded.clear(); renderTree(); });
+
+                ui.treeSearch.addEventListener("input", () => {
+                    state.filter = ui.treeSearch.value || "";
+                    renderTree();
+                });
+            }
+
+            function wireModals() {
+                ui.nodeTypeSwitch.addEventListener("click", (e) => {
+                    const btn = e.target.closest("button.seg");
+                    if (!btn) return;
+                    setCreateMode(btn.getAttribute("data-node-type"));
+                });
+
+                ui.nodeCancel.addEventListener("click", () => closeModal(ui.nodeModalBackdrop));
+                ui.closeNodeModal.addEventListener("click", () => closeModal(ui.nodeModalBackdrop));
+                ui.nodeModalBackdrop.addEventListener("click", (e) => { if (e.target === ui.nodeModalBackdrop) closeModal(ui.nodeModalBackdrop); });
+                ui.nodeSubmit.addEventListener("click", submitCreate);
+                ui.nodeName.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submitCreate(); } });
+
+                ui.renameCancel.addEventListener("click", () => closeModal(ui.renameModalBackdrop));
+                ui.closeRenameModal.addEventListener("click", () => closeModal(ui.renameModalBackdrop));
+                ui.renameModalBackdrop.addEventListener("click", (e) => { if (e.target === ui.renameModalBackdrop) closeModal(ui.renameModalBackdrop); });
+                ui.renameSubmit.addEventListener("click", submitRename);
+                ui.renameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submitRename(); } });
+
+                ui.deleteCancel.addEventListener("click", () => closeModal(ui.deleteModalBackdrop));
+                ui.closeDeleteModal.addEventListener("click", () => closeModal(ui.deleteModalBackdrop));
+                ui.deleteModalBackdrop.addEventListener("click", (e) => { if (e.target === ui.deleteModalBackdrop) closeModal(ui.deleteModalBackdrop); });
+                ui.deleteSubmit.addEventListener("click", submitDelete);
+
+                ui.moveCancel.addEventListener("click", () => closeModal(ui.moveModalBackdrop));
+                ui.closeMoveModal.addEventListener("click", () => closeModal(ui.moveModalBackdrop));
+                ui.moveModalBackdrop.addEventListener("click", (e) => { if (e.target === ui.moveModalBackdrop) closeModal(ui.moveModalBackdrop); });
+                ui.moveSubmit.addEventListener("click", submitMove);
+
+                document.addEventListener("keydown", (e) => {
+                    if (e.key !== "Escape") return;
+                    closeModal(ui.nodeModalBackdrop);
+                    closeModal(ui.renameModalBackdrop);
+                    closeModal(ui.deleteModalBackdrop);
+                    closeModal(ui.moveModalBackdrop);
+                    closeContextMenu();
+                });
+            }
+
+            function initMonaco() {
+                return new Promise((resolve, reject) => {
+                    if (!window.require) return reject(new Error("Monaco loader missing."));
+                    window.require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs" } });
+                    window.require(["vs/editor/editor.main"], () => {
+                        state.editor = monaco.editor.create(ui.editor, {
+                            theme: "vs-dark",
+                            language: "javascript",
+                            automaticLayout: true,
+                            minimap: { enabled: false },
+                            fontLigatures: true,
+                            fontSize: 13,
+                            wordWrap: "on",
+                            scrollBeyondLastLine: false
+                        });
+                        resolve();
+                    });
+                });
+            }
+
+            (async function start() {
+                try {
+                    wireTopbar();
+                    wireTreeToolbar();
+                    wireTreeClicks();
+                    wireModals();
+
+                    await initMonaco();
+                    await loadWorkspace();
+
+                    if (!state.nodes.some(isFile)) toastOk("Tip", "Create a file or load an example to begin.");
+                } catch (e) {
+                    toastErr("Init Failed", (e && e.message) ? e.message : "Unable to start editor.");
+                    pushError((e && e.stack) ? e.stack : String(e));
+                }
+            })();
+
+        })();
+    </script>
+}

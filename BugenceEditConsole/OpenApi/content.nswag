@@ -1,0 +1,20 @@
+{
+  "runtime": "Net60",
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "content.openapi.yaml"
+    }
+  },
+  "codeGenerators": {
+    "csharp": {
+      "generateClientClasses": false,
+      "generateClientInterfaces": false,
+      "generateContracts": true,
+      "namespace": "BugenceEditConsole.OpenApi",
+      "className": "ContentContracts",
+      "generateOptionalParameters": true,
+      "generateDefaultValues": true,
+      "output": "Generated/ContentContracts.g.cs"
+    }
+  }
+}

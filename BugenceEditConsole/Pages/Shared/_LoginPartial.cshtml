@@ -1,0 +1,69 @@
+@using BugenceEditConsole.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var friendlyName = currentUser?.GetFriendlyName() ?? User.Identity?.Name ?? "Creator";
+    var avatarPath = string.IsNullOrWhiteSpace(currentUser?.ProfileImagePath)
+        ? Url.Content("~/images/profile-placeholder.jpg")
+        : Url.Content(currentUser!.ProfileImagePath!);
+
+    <div class="flex items-center gap-3">
+        <div class="profile-menu" data-profile-menu>
+            <button class="profile-trigger" type="button" data-profile-toggle aria-haspopup="true" aria-expanded="false">
+                <span class="profile-trigger__avatar">
+                    <span class="profile-trigger__glow" aria-hidden="true"></span>
+                    <img src="@avatarPath" alt="@friendlyName avatar" />
+                </span>
+                <span class="profile-trigger__details">
+                    <span class="profile-trigger__eyebrow">Mission Control</span>
+                    <span class="profile-trigger__name">@friendlyName</span>
+                </span>
+                <span class="profile-trigger__badge">
+                    <span class="fa-solid fa-satellite-dish" aria-hidden="true"></span>
+                    <span class="profile-trigger__badge-text">Bugence Visual Editor</span>
+                    <span class="fa-solid fa-chevron-down profile-trigger__chevron" aria-hidden="true"></span>
+                </span>
+            </button>
+            <div class="profile-panel" role="menu" data-profile-panel>
+                <div class="profile-panel__header">
+                    <span class="profile-panel__avatar">
+                        <span class="profile-panel__avatar-glow" aria-hidden="true"></span>
+                        <img src="@avatarPath" alt="@friendlyName avatar" />
+                    </span>
+                    <div class="profile-panel__meta">
+                        <p class="profile-panel__name">@friendlyName</p>
+                        <p class="profile-panel__subtitle">Bugence Operator</p>
+                    </div>
+                    <span class="profile-panel__badge">
+                        <span class="fa-solid fa-satellite-dish" aria-hidden="true"></span>
+                        Mission Control
+                    </span>
+                </div>
+                <a class="profile-panel__link" asp-area="" asp-page="/Settings/Profile" role="menuitem">
+                    <span class="profile-panel__icon fa-regular fa-circle-user" aria-hidden="true"></span>
+                    <span class="profile-panel__label">Profile Settings</span>
+                </a>
+                <form class="profile-panel__form" asp-page="/Auth/Logout" asp-route-returnUrl="@Url.Page("/Dashboard/Index")">
+                    <button type="submit" class="profile-panel__action" role="menuitem">
+                        <span class="profile-panel__icon fa-solid fa-right-from-bracket" aria-hidden="true"></span>
+                        <span class="profile-panel__label">Logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="flex items-center gap-2">
+        <a class="btn-emerald" asp-area="Identity" asp-page="/Account/Login">
+            <span class="fa-solid fa-key"></span>
+            Login
+        </a>
+    </div>
+}
+

@@ -1,0 +1,11 @@
+node_modules
+dist
+pnpm-lock.yaml
+package-lock.json
+BugenceEditConsole/wwwroot
+BugenceEditConsole/bin
+BugenceEditConsole/obj
+_framework
+temp_zip_extract
+packages/**/dist
+**/*.d.ts

@@ -1,0 +1,277 @@
+@page
+@model BugenceEditConsole.Pages.Tools.DocumentTextModel
+@{
+    ViewData["Title"] = "DocumentText";
+    ViewData["BodyClass"] = "page-tools-documenttext";
+
+    var userName = (User?.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(User.Identity?.Name))
+        ? User.Identity!.Name!
+        : "Administrator";
+    var userInitials = new string(userName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Where(part => !string.IsNullOrWhiteSpace(part))
+        .Select(part => char.ToUpperInvariant(part[0]))
+        .Take(2)
+        .ToArray());
+    if (string.IsNullOrWhiteSpace(userInitials))
+    {
+        userInitials = "AD";
+    }
+    var userEmail = User?.Claims?.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+    if (string.IsNullOrWhiteSpace(userEmail))
+    {
+        userEmail = "admin@bugence.com";
+    }
+}
+
+@section Head {
+<style>
+        :root {
+            --bg: #050505;
+            --surface: #0b0b0b;
+            --surface-soft: #111215;
+            --border: rgba(255,255,255,0.08);
+            --muted: #9aa0ac;
+            --text: #ffffff;
+            --accent: #06b6d4;
+            --accent-soft: rgba(6,182,212,0.12);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; outline: none; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Satoshi', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .shell { display: grid; grid-template-columns: 260px 1fr; height: 100%; }
+        aside {
+            background: #050505;
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            overflow-y: auto;
+            padding: 32px 44px 56px;
+            background:
+                radial-gradient(circle at 10% 0%, rgba(6,182,212,0.05), transparent 45%),
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: auto, 48px 48px, 48px 48px;
+        }
+        .brand {
+            font-family: 'Cabinet Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 32px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .menu-cat { font-size: 0.7rem; color: #555; font-weight: 700; margin: 16px 0 6px 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-item {
+            padding: 10px 14px;
+            color: var(--muted);
+            text-decoration: none;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-weight: 600;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+        .nav-icon { width: 20px; text-align: center; }
+        .text-secondary { color: var(--muted); }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+        .profile-block { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); position: relative; }
+        .profile-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; position: relative; }
+        .avatar { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg,#06b6d4,#22d3ee); display: grid; place-items: center; font-weight: 800; color: #00131a; }
+        .profile-menu { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); background: #0b0e14; border: 1px solid var(--border); border-radius: 12px; padding: 8px 0; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.45); }
+        .profile-card.show .profile-menu { display: block; }
+        .profile-menu a { display: block; padding: 8px 12px; color: white; text-decoration: none; font-weight: 600; }
+        .profile-menu a:hover { background: rgba(255,255,255,0.05); }
+
+        .header { margin-bottom: 28px; }
+        .header h1 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.4rem; margin: 0 0 8px; }
+        .header p { margin: 0; color: var(--muted); max-width: 640px; }
+
+        .grid-two { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+            animation: floatIn 0.4s ease;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .panel-header h2 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+        .panel-header .tag {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+        }
+
+        .drop-zone {
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 16px;
+            padding: 26px;
+            text-align: center;
+            background: var(--surface-soft);
+            transition: 0.2s;
+        }
+        .drop-zone.dragover { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(6,182,212,0.1); }
+        .drop-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(6,182,212,0.12); display: grid; place-items: center; margin: 0 auto 12px; color: var(--accent); font-size: 1.3rem; }
+        .drop-title { font-weight: 700; margin-bottom: 6px; }
+        .drop-sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
+        .ghost-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .meta-card {
+            border-radius: 14px;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.02);
+        }
+        .meta-card span { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+        .meta-card strong { display: block; margin-top: 6px; font-size: 0.95rem; }
+
+        .status-pill {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 1px solid transparent;
+        }
+        .status-pill[data-state="idle"] { color: var(--muted); background: rgba(255,255,255,0.05); border-color: var(--border); }
+        .status-pill[data-state="processing"] { color: var(--warning); background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.2); }
+        .status-pill[data-state="ready"] { color: var(--success); background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.2); }
+        .status-pill[data-state="error"] { color: var(--danger); background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.2); }
+
+        .progress-track { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; margin-top: 16px; }
+        .progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), #22d3ee); transition: width 0.2s ease; }
+
+        .action-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--accent); color: #04161f; }
+        .btn-primary:hover { filter: brightness(1.05); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-secondary[disabled], .btn-primary[disabled] { opacity: 0.5; cursor: not-allowed; border-color: var(--border); color: var(--muted); }
+
+        .note { color: var(--muted); font-size: 0.8rem; margin-top: 8px; }
+
+        @@keyframes floatIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @@media (max-width: 1100px) {
+            .grid-two { grid-template-columns: 1fr; }
+        }
+        @@media (max-width: 720px) {
+            main { padding: 24px; }
+            .shell { grid-template-columns: 1fr; }
+            aside { display: none; }
+        }
+    </style>
+}
+
+<div class="header">
+                <h1>Document Text Studio</h1>
+                <p>Upload a document, then open the full preview editor on a dedicated page to edit and export.</p>
+            </div>
+
+            <div class="grid-two">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Upload Source</h2>
+                        <span class="tag" id="fileStatus">Waiting</span>
+                    </div>
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                        <div class="drop-title">Drop a file to begin</div>
+                        <div class="drop-sub">Supports JPG, PNG, PDF, and DOCX files.</div>
+                        <button class="ghost-btn" type="button" id="browseBtn">Browse files</button>
+                        <input type="file" id="docFileInput" accept=".jpg,.jpeg,.png,.pdf,.docx" hidden>
+                    </div>
+                    <div class="meta-grid">
+                        <div class="meta-card"><span>File</span><strong id="fileName">No file yet</strong></div>
+                        <div class="meta-card"><span>Type</span><strong id="fileType">-</strong></div>
+                        <div class="meta-card"><span>Pages</span><strong id="pageCount">-</strong></div>
+                        <div class="meta-card"><span>Size</span><strong id="fileSize">-</strong></div>
+                    </div>
+                    <div style="margin-top:16px; display:flex; justify-content:space-between; align-items:center;">
+                        <span class="status-pill" data-state="idle" id="statusPill">Idle</span>
+                        <span class="note" id="statusNote">Pick a file to upload.</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+                    <div class="action-row">
+                        <button class="btn btn-primary" id="uploadBtn" disabled><i class="fa-solid fa-cloud-arrow-up"></i> Upload for preview</button>
+                        <button class="btn btn-secondary" id="openPreviewBtn" disabled><i class="fa-solid fa-eye"></i> Open preview</button>
+                    </div>
+                    <div class="note" id="uploadHint">Upload first to unlock the preview editor.</div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Preview Editor</h2>
+                        <span class="tag">Next</span>
+                    </div>
+                    <p class="note">After upload, open the preview editor to edit text directly on the document and export the updated file.</p>
+                    <div class="action-row">
+                        <button class="btn btn-primary" id="openPreviewCta" disabled><i class="fa-solid fa-arrow-right"></i> Open Preview Editor</button>
+                    </div>
+                    <div class="note" id="previewHint">No upload yet.</div>
+                </section>
+            </div>
+
+
+
+

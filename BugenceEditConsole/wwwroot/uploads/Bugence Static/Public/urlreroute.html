@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUGENCE — URL Rewrite</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { bug: { 50:'#f5f7ff',100:'#e9edff',200:'#cdd7ff',300:'#a7b5ff',400:'#7b89ff',500:'#5663ff',600:'#3f49e6',700:'#3239b3',800:'#2a2f8c',900:'#23276f' } },
+          boxShadow: { glow: '0 10px 30px -10px rgba(86,99,255,0.55), 0 2px 10px rgba(0,0,0,.35)'}
+        }
+      }
+    }
+  </script>
+
+  <!-- Icons & fonts -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; }
+    .grid-bg { background:
+      linear-gradient(transparent,transparent),
+      linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+      linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px; }
+    .glow:focus { box-shadow: 0 0 0 4px rgba(86,99,255,.25); }
+    .sidebar a.active { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
+    .badge { display:inline-flex; align-items:center; justify-content:center; height:22px; min-width:22px; border-radius:999px; padding:0 8px; font-size:11px; font-weight:700; }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-white relative grid-bg">
+  <!-- Backdrop glows -->
+  <div class="pointer-events-none absolute inset-0">
+    <div class="absolute top-[-10%] right-[-10%] h-[40rem] w-[40rem] rounded-full bg-bug-500/20 blur-3xl"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] h-[40rem] w-[40rem] rounded-full bg-amber-300/20 blur-3xl"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="relative z-10 flex min-h-screen">
+    <!-- Sidebar (same theme as Peek Inside) -->
+    <aside class="sidebar w-[300px] shrink-0 border-r border-white/10 bg-white/5 backdrop-blur-xl hidden lg:block">
+      <div class="p-5 flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-black shadow-glow">
+          <img src="/img/blackbug.svg" alt="BUGENCE" class="h-6 w-6"/>
+        </span>
+        <span class="text-xl font-extrabold tracking-tight">BUGENCE</span>
+      </div>
+      <div class="mb-3 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+          <i class="fa-solid fa-magnifying-glass text-white/60"></i>
+          <input id="navSearch" class="bg-transparent outline-none text-sm w-full placeholder:text-white/40" placeholder="Search navigation…" />
+        </div>
+      <nav class="px-4 pb-6 text-sm space-y-6">
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Main</div>
+          <a href="/languages.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Languages</a>
+            <a href="/translation.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Translations</a>
+          <a href="/urlreroute.html" class="block rounded-xl border border-white/10 px-3 py-2 bg-white/10">URL rewrite & rerouting</a>
+          <a href="/systemproperties.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">System Properties</a>
+          <a href="erroemanagment.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Errors Management</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Data Sources</div>
+          <a href="/datasources.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Database Sources</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">API Sources</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Stored Procedures</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Content</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">HTML Templates</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Master Pages / Pages</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Site / Logical Hierarchy</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Workflow</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Workflows</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Actions Management</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Engine Status</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Form Builder</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Form Builder</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Form Templates / Views</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Data Type Templates</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">File Groups</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Permission Profiles</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Access</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Users / Groups</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Page Permissions</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Modules</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Modules</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Components Library</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Site Assemblies</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">React Components</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">File Includes / Permission Profiles</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Authentication Services</a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main area -->
+    <section class="flex-1 min-w-0">
+      <!-- Top Bar -->
+      <div class="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
+        <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h1 class="text-xl sm:text-2xl font-extrabold">URL Rewrite & Rerouting</h1>
+            <span class="badge bg-white/10 border border-white/15">Admin</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="hidden sm:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs">
+              <span class="h-2 w-2 rounded-full bg-green-400"></span> Engine <span class="font-semibold">Online</span>
+            </div>
+            <img src="https://i.pravatar.cc/64?img=12" class="h-9 w-9 rounded-full" alt="user"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Banner -->
+      <div id="banner" class="mx-auto max-w-7xl px-6 pt-4 hidden"></div>
+
+      <!-- Content Shell -->
+      <div class="mx-auto max-w-7xl px-6 py-6 space-y-6">
+        <!-- List View -->
+        <div id="view-list" class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 class="text-lg font-semibold">Rewrites</h2>
+              <p class="text-xs text-white/60">Define rewrite rules, redirects, and canonical routes.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
+                <i class="fa-solid fa-magnifying-glass text-white/60"></i>
+                <input id="search" class="bg-transparent outline-none text-sm w-60 placeholder:text-white/50" placeholder="Search rules…" />
+              </div>
+              <button id="addNew" class="rounded-2xl bg-black px-4 py-2 text-sm font-semibold">Add New</button>
+            </div>
+          </div>
+
+          <div class="mt-4 overflow-hidden rounded-2xl border border-white/10">
+            <table class="min-w-full text-sm">
+              <thead class="bg-white/10 text-left text-white/70">
+                <tr>
+                  <th class="px-4 py-2">ID</th>
+                  <th class="px-4 py-2">URL Text Schema</th>
+                  <th class="px-4 py-2">URL Rewritten</th>
+                  <th class="px-4 py-2">Parse Object</th>
+                  <th class="px-4 py-2">Updated</th>
+                  <th class="px-4 py-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody" class="divide-y divide-white/10"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="mt-4 flex items-center justify-between text-sm">
+            <div class="text-white/60" id="pageInfo"></div>
+            <div class="flex items-center gap-2">
+              <button id="prev" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">Previous</button>
+              <button id="next" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit View -->
+        <div id="view-edit" class="hidden rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 class="text-lg font-semibold">Edit Rewrite</h2>
+              <p class="text-xs text-white/60">Update rule details and audit information.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnView" class="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm">View</button>
+              <button id="btnSave" class="rounded-2xl bg-black px-4 py-2 text-sm font-semibold">Save</button>
+              <button id="btnDelete" class="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">Delete</button>
+              <button id="btnList" class="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm">List</button>
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-4">
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-white/70">ID</label>
+                <input id="f_id" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" disabled />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-white/70">URL Text Schema *</label>
+                <input id="f_schema" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="/react/:page" />
+                <p id="err_schema" class="mt-1 hidden rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800">Required</p>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-white/70">URL Rewritten *</label>
+                <input id="f_rewritten" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="/portal/page" />
+                <p id="err_rewritten" class="mt-1 hidden rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800">Required</p>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-white/70">URL Parse Object</label>
+                <input id="f_parse" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder='{"lang":"en"}' />
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-sm font-semibold">Audit Info</div>
+                <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div class="text-white/60">Create User</div>
+                    <div id="f_create_user" class="font-semibold">System Administrator</div>
+                  </div>
+                  <div>
+                    <div class="text-white/60">Create Date</div>
+                    <div id="f_create_date" class="font-semibold">—</div>
+                  </div>
+                  <div>
+                    <div class="text-white/60">Update User</div>
+                    <div id="f_update_user" class="font-semibold">System Administrator</div>
+                  </div>
+                  <div>
+                    <div class="text-white/60">Update Date</div>
+                    <div id="f_update_date" class="font-semibold">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- Simple confirm modal -->
+  <div id="confirm" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-4">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-5">
+      <div class="text-lg font-semibold">Delete rewrite?</div>
+      <p class="mt-2 text-sm text-white/70">This action cannot be undone.</p>
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <button id="cCancel" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm">Cancel</button>
+        <button id="cOk" class="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-sm text-red-200">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Demo data & state ---
+    let rows = [
+      { id: 2, schema:'/react/:page', rewritten:'/PortalPage/3', parse:'', updated:'2022-02-11 15:17:08' },
+      { id: 1, schema:'/react/:id', rewritten:'/PortalPage/2', parse:'{"id":1}', updated:'2022-02-10 09:22:04' },
+    ];
+    let page = 1; const pageSize = 10; let editingId = null; let filtered = [...rows];
+
+    const tbody = document.getElementById('tbody');
+    const pageInfo = document.getElementById('pageInfo');
+    const search = document.getElementById('search');
+
+    const listView = document.getElementById('view-list');
+    const editView = document.getElementById('view-edit');
+
+    const banner = document.getElementById('banner');
+    function showBanner(type, title, message) {
+      banner.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = 'rounded-2xl border px-4 py-3 text-sm flex items-start gap-3 ' +
+        (type==='success' ? 'border-green-200 bg-green-50 text-green-800' : type==='error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-blue-200 bg-blue-50 text-blue-800');
+      div.innerHTML = `<i class="${type==='success'?'fa-solid fa-circle-check':type==='error'?'fa-solid fa-triangle-exclamation':'fa-solid fa-circle-info'} mt-0.5"></i><div><div class='font-semibold'>${title}</div><div>${message}</div></div>`;
+      banner.appendChild(div); banner.classList.remove('hidden');
+      setTimeout(()=> banner.classList.add('hidden'), 3500);
+    }
+
+    function renderTable(){
+      const start = (page-1)*pageSize; const end = start+pageSize;
+      const slice = filtered.slice(start, end);
+      tbody.innerHTML = '';
+      slice.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class='px-4 py-2'>${r.id}</td>
+          <td class='px-4 py-2 text-white/80'><code class='bg-white/10 px-2 py-1 rounded'>${r.schema}</code></td>
+          <td class='px-4 py-2 text-white/80'><code class='bg-white/10 px-2 py-1 rounded'>${r.rewritten}</code></td>
+          <td class='px-4 py-2 text-white/60'>${r.parse || '—'}</td>
+          <td class='px-4 py-2 text-white/60'>${r.updated}</td>
+          <td class='px-4 py-2 text-right'>
+            <button class='rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-xs me-2' data-edit='${r.id}'>Edit</button>
+            <button class='rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-200' data-del='${r.id}'>Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      pageInfo.textContent = `Showing ${slice.length} of ${filtered.length}`;
+    }
+
+    function toList(){ editView.classList.add('hidden'); listView.classList.remove('hidden'); }
+    function toEdit(){ listView.classList.add('hidden'); editView.classList.remove('hidden'); }
+
+    // Pagination
+    document.getElementById('prev').addEventListener('click', ()=>{ if(page>1){ page--; renderTable(); } });
+    document.getElementById('next').addEventListener('click', ()=>{ if(page*pageSize<filtered.length){ page++; renderTable(); } });
+
+    // Search
+    search.addEventListener('input', ()=>{
+      const q = search.value.toLowerCase();
+      filtered = rows.filter(r => `${r.id}`.includes(q) || r.schema.toLowerCase().includes(q) || r.rewritten.toLowerCase().includes(q));
+      page = 1; renderTable();
+    });
+
+    // Add New
+    document.getElementById('addNew').addEventListener('click', ()=>{
+      editingId = null;
+      fillForm({ id: '—', schema:'', rewritten:'', parse:'', updated:'—' });
+      toEdit();
+    });
+
+    // Row action handlers (event delegation)
+    tbody.addEventListener('click', (e)=>{
+      const editId = e.target.getAttribute('data-edit');
+      const delId = e.target.getAttribute('data-del');
+      if(editId){
+        const item = rows.find(r => r.id === Number(editId));
+        editingId = item.id;
+        fillForm(item);
+        toEdit();
+      }
+      if(delId){
+        pendingDelete = Number(delId);
+        openConfirm();
+      }
+    });
+
+    // --- Edit form ---
+    const f_id = document.getElementById('f_id');
+    const f_schema = document.getElementById('f_schema');
+    const f_rewritten = document.getElementById('f_rewritten');
+    const f_parse = document.getElementById('f_parse');
+
+    function fillForm(r){
+      f_id.value = r.id;
+      f_schema.value = r.schema || '';
+      f_rewritten.value = r.rewritten || '';
+      f_parse.value = r.parse || '';
+      document.getElementById('f_create_date').textContent = r.created || '—';
+      document.getElementById('f_update_date').textContent = r.updated || '—';
+    }
+
+    function validateForm(){
+      let ok = true;
+      const errS = document.getElementById('err_schema');
+      const errR = document.getElementById('err_rewritten');
+      errS.classList.add('hidden'); errR.classList.add('hidden');
+      if(!f_schema.value.trim()){ errS.classList.remove('hidden'); ok=false; }
+      if(!f_rewritten.value.trim()){ errR.classList.remove('hidden'); ok=false; }
+      return ok;
+    }
+
+    document.getElementById('btnList').addEventListener('click', ()=>{ toList(); });
+    document.getElementById('btnView').addEventListener('click', ()=>{ showBanner('info','Read-only','Viewing rule in read-only mode (demo).'); });
+
+    document.getElementById('btnSave').addEventListener('click', ()=>{
+      if(!validateForm()) { showBanner('error','Validation','Please fix the required fields.'); return; }
+      const now = new Date().toISOString().replace('T',' ').slice(0,19);
+      if(editingId==null){
+        const newId = rows.length ? Math.max(...rows.map(r=>r.id))+1 : 1;
+        rows.unshift({ id:newId, schema:f_schema.value.trim(), rewritten:f_rewritten.value.trim(), parse:f_parse.value.trim(), updated: now });
+        showBanner('success','Created','New rewrite rule added.');
+      } else {
+        const idx = rows.findIndex(r => r.id===editingId);
+        rows[idx] = { id: editingId, schema:f_schema.value.trim(), rewritten:f_rewritten.value.trim(), parse:f_parse.value.trim(), updated: now };
+        showBanner('success','Saved','Rewrite rule updated.');
+      }
+      filtered = [...rows]; page=1; renderTable(); toList();
+    });
+
+    // Delete flow
+    let pendingDelete = null;
+    const modal = document.getElementById('confirm');
+    function openConfirm(){ modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    function closeConfirm(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    document.getElementById('cCancel').addEventListener('click', ()=>{ pendingDelete=null; closeConfirm(); });
+    document.getElementById('cOk').addEventListener('click', ()=>{
+      if(pendingDelete!=null){ rows = rows.filter(r=>r.id!==pendingDelete); filtered=[...rows]; showBanner('success','Deleted','Rewrite rule removed.'); renderTable(); }
+      pendingDelete=null; closeConfirm();
+    });
+
+    // Init
+    renderTable();
+  </script>
+   <script>
+    // Sidebar primary toggles
+    document.querySelectorAll('[data-prim]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-prim');
+        const panel = document.querySelector(`[data-sub="${key}"]`);
+        panel.classList.toggle('hidden');
+        btn.classList.toggle('active');
+      });
+    });
+
+    // Active link styling
+    const links = document.querySelectorAll('aside a[href^="#panel-"]');
+    links.forEach(a => a.addEventListener('click', () => {
+      links.forEach(l => l.classList.remove('active'));
+      a.classList.add('active');
+    }));
+
+    // Nav search filter
+    const navSearch = document.getElementById('navSearch');
+    navSearch.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('aside [data-sub] a').forEach(link => {
+        const show = link.textContent.toLowerCase().includes(q);
+        link.style.display = show ? '' : 'none';
+      });
+    });
+
+    // Banner helper
+    const bannerHost = document.getElementById('banner');
+    function showBanner(type, title, message) {
+      bannerHost.innerHTML = '';
+      const tpl = document.getElementById('bannerTpl').content.cloneNode(true);
+      const wrap = document.createElement('div');
+      wrap.className = 'alert';
+      const base = tpl.querySelector('div');
+      if(type==='success'){ base.classList.add('border-green-200','bg-green-50','text-green-800'); base.querySelector('i').className='fa-solid fa-circle-check mt-0.5'; }
+      else if(type==='error'){ base.classList.add('border-red-200','bg-red-50','text-red-800'); base.querySelector('i').className='fa-solid fa-triangle-exclamation mt-0.5'; }
+      else { base.classList.add('border-blue-200','bg-blue-50','text-blue-800'); }
+      base.querySelector('#bTitle').textContent = title;
+      base.querySelector('#bMsg').textContent = message;
+      wrap.appendChild(base);
+      bannerHost.appendChild(wrap);
+      bannerHost.classList.remove('hidden');
+      setTimeout(()=> bannerHost.classList.add('hidden'), 4000);
+    }
+
+    // Sample notification
+    document.getElementById('notifyTest').addEventListener('click', () => {
+      showBanner('success','Deployment finished','v2.14.3 was deployed successfully.');
+    });
+
+    // Chart.js demo
+    window.addEventListener('load', () => {
+      const ctx = document.getElementById('chartRequests');
+      if(!ctx) return;
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+          datasets: [
+            { label:'Requests', data:[900,1100,1050,1300,1250,1400,1500], borderWidth:2, tension:.35 },
+            { label:'Errors', data:[4,7,5,9,6,5,3], borderWidth:2, tension:.35 }
+          ]
+        },
+        options: {
+          responsive:true,
+          plugins:{ legend:{ labels:{ color:'#e5e7eb' } } },
+          scales:{ x:{ ticks:{ color:'#9ca3af' }, grid:{ color:'rgba(255,255,255,.08)' } }, y:{ ticks:{ color:'#9ca3af' }, grid:{ color:'rgba(255,255,255,.08)' } } }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

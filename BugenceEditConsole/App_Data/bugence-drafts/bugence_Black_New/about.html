@@ -1,0 +1,1605 @@
+<html lang="en" style="--text-primary: #ffffff; --text-secondary: #a1a1aa; --bg-black: #020202; --accent-cyan: #06b6d4; --accent-blue: #2563eb; --accent-glow: rgba(6, 182, 212, 0.5); --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px; --radius-sm: 6px; --radius-md: 12px; --radius-lg: 20px; --radius-xl: 28px; --font-base: 16px; --font-scale: 1.12; font-size: 16px;"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Pete D</title>
+
+  <!-- External Stylesheets -->
+    <link href="/Css/JoinCommunity.css" rel="stylesheet">
+  <link href="/Css/style.css" rel="stylesheet">
+  <link href="/Css/AbouotPeteD.css" rel="stylesheet">
+  <link href="/Css/NewsLetter.css" rel="stylesheet">
+<link href="/Css/Footer.css" rel="stylesheet">
+<link href="/Css/SectionHeroHeader.css" rel="stylesheet">
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  
+ 
+<style id="bugence-section-add-style">
+                    #bugence-section-add {
+                        position: fixed;
+                        left: 0;
+                        top: 0;
+                        height: 0;
+                        pointer-events: none;
+                        z-index: 2147483646;
+                        display: none;
+                    }
+                    #bugence-section-add .line {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        height: 2px;
+                        background: rgba(6,182,212,0.7);
+                        box-shadow: 0 8px 18px rgba(6,182,212,0.2);
+                        border-radius: 999px;
+                    }
+                    #bugence-section-add button {
+                        position: absolute;
+                        top: -14px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 38px;
+                        height: 38px;
+                        border-radius: 999px;
+                        border: 1px solid rgba(6,182,212,0.85);
+                        background: linear-gradient(135deg, rgba(6,182,212,0.45), rgba(59,130,246,0.35));
+                        color: #f8fbff;
+                        font-weight: 800;
+                        font-size: 20px;
+                        line-height: 1;
+                        cursor: pointer;
+                        pointer-events: auto;
+                        box-shadow: 0 12px 26px rgba(6,182,212,0.35);
+                    }
+                </style><style id="bugence-multi-select-style">
+                .bugence-editor-multi {
+                    outline: 2px dashed rgba(6,182,212,0.6);
+                    outline-offset: 2px;
+                }
+            </style><style id="bugence-selection-overlay-style">
+                    #bugence-selection-overlay {
+                        position: fixed;
+                        display: none;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 6px 8px;
+                        border-radius: 12px;
+                        border: 1px solid rgba(255,255,255,0.16);
+                        background: rgba(10,12,16,0.9);
+                        color: var(--text);
+                        font-size: 12px;
+                        z-index: 2147483647;
+                        pointer-events: auto;
+                        box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+                    }
+                    #bugence-selection-overlay .label {
+                        font-weight: 600;
+                        color: #c7f9ff;
+                    }
+                    #bugence-selection-overlay .sel-btn {
+                        all: unset;
+                        cursor: pointer;
+                        padding: 5px 7px;
+                        border-radius: 8px;
+                        border: 1px solid rgba(255,255,255,0.12);
+                        background: rgba(255,255,255,0.06);
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 4px;
+                        min-width: 24px;
+                    }
+                    #bugence-selection-overlay .sel-btn:hover {
+                        background: rgba(6,182,212,0.18);
+                        border-color: rgba(6,182,212,0.5);
+                    }
+                    #bugence-selection-overlay .sel-btn svg {
+                        width: 12px;
+                        height: 12px;
+                        stroke: currentColor;
+                        fill: none;
+                        stroke-width: 2;
+                    }
+                </style><style id="bugence-drop-style">
+                        #bugence-drop-marker{
+                            position: fixed;
+                            height: 2px;
+                            background: rgba(6,182,212,0.95);
+                            box-shadow: 0 0 0 1px rgba(6,182,212,0.35), 0 6px 18px rgba(6,182,212,0.35);
+                            border-radius: 999px;
+                            pointer-events: none;
+                            z-index: 2147483646;
+                            display: none;
+                        }
+                        #bugence-drop-ghost{
+                            position: fixed;
+                            border: 2px dashed rgba(6,182,212,0.65);
+                            background: rgba(6,182,212,0.08);
+                            border-radius: 10px;
+                            pointer-events: none;
+                            z-index: 2147483645;
+                            display: none;
+                            transition: width 0.08s ease, height 0.08s ease;
+                        }
+                    </style></head>
+
+
+<body data-bugence-id="bugence-1767055835527-rd0lwu">
+
+<!-- =================== NAV (black-neon · pro · animated) =================== -->
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[999] bg-black text-white px-3 py-2 rounded" data-bugence-id="bugence-1767055890923-6oa6wx">
+  Skip to content
+</a>
+
+<!-- Scroll progress (fills as you scroll) -->
+<div id="nx-progress" class="fixed inset-x-0 top-0 z-[60] h-[3px] w-0 bg-gradient-to-r from-emerald-400 via-cyan-400 to-fuchsia-500 origin-left" style="transform: scaleX(0);"></div>
+
+<nav id="site-nav" class="nx fixed inset-x-0 top-0 z-50 will-change-transform transition-all duration-300 border-b border-transparent bg-transparent" data-bugence-id="bugence-1767055655872-ul8vp4">
+  <!-- animated scanline -->
+  <div aria-hidden="true" class="nx-scan pointer-events-none absolute inset-x-0 top-0 h-[1px]" data-bugence-id="bugence-1767055655873-qsns0y"></div>
+
+  <div class="mx-auto w-[92%] max-w-7xl flex items-center justify-between py-3" data-bugence-id="bugence-1767055655873-ff18x2">
+    <!-- Brand -->
+    <a href="/" class="flex items-center gap-3 group" data-bugence-id="bugence-1767055655873-m9ylb4">
+      <span class="relative inline-block" data-bugence-id="bugence-1767055655873-shnav1">
+        <img src="/Img/HighResbugenceSiteLogo.png" alt="High-Tech Heroes" class="h-8 w-8 object-contain transition-transform duration-200 group-hover:scale-[1.06]" data-bugence-id="bugence-1767055655873-tqi5ox">
+        <!-- faint halo -->
+        <span aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 blur-md opacity-0 group-hover:opacity-70 transition
+                                       bg-[radial-gradient(circle_at_center,rgba(6,182,212,.45),transparent_60%)]" data-bugence-id="bugence-1767055655873-xk6cma"></span>
+      </span>
+      <span class="font-extrabold tracking-wide text-white/90 group-hover:text-white" data-bugence-id="bugence-1767055655873-qr7j94">HIGH-TECH HEROES</span>
+    </a>
+
+    <!-- Desktop menu -->
+    <div class="relative hidden lg:block" data-bugence-id="bugence-1767055655873-ppy19d">
+      <ul id="nx-links" class="relative flex items-center gap-7 text-[15px]" data-bugence-id="bugence-1767055655873-8negfc">
+        <li data-bugence-id="bugence-1767055655874-xdxv6v"><a class="nx-link" href="/about.html" data-section="#about" data-bugence-id="bugence-1767055655874-hjdlu5">About Pete D</a></li>
+        <li data-bugence-id="bugence-1767055655874-hrgbp0"><a class="nx-link" href="/MeetPeteD.html" data-section="#pete" data-bugence-id="bugence-1767055655874-w0dctv">Meet Pete D</a></li>
+        <li data-bugence-id="bugence-1767055655874-ddsn08"><a class="nx-link" href="/BookPeteD.html" data-section="#booking" data-bugence-id="bugence-1767055655874-kwf229">Book Pete D to Speak</a></li>
+        <li data-bugence-id="bugence-1767055655874-kcy8na"><a class="nx-link" href="/JoinTheCommunity.html" data-section="#community" data-bugence-id="bugence-1767055655874-yeiyks">Join the Community</a></li>
+
+        <!-- slider underline -->
+        <span id="nx-slider" class="absolute -bottom-2 h-[2px] rounded bg-gradient-to-r from-emerald-400 via-cyan-400 to-fuchsia-500
+                     transition-all duration-300 ease-out pointer-events-none" style="transform: translateX(40px); width: 96.7969px;" data-bugence-id="bugence-1767055655874-hgz7m3"></span>
+        <!-- subtle circuit glow -->
+        <span aria-hidden="true" class="nx-circuit pointer-events-none absolute inset-x-0 -bottom-3 h-[10px] rounded-full" data-bugence-id="bugence-1767055655874-oo2bqn"></span>
+      </ul>
+    </div>
+
+    <!-- Actions -->
+    <div class="hidden lg:flex items-center gap-2" data-bugence-id="bugence-1767055655874-phi5me">
+      <!-- Command palette button (also Cmd/Ctrl+K) -->
+      <button id="nx-cmd-btn" class="hidden xl:inline-flex items-center gap-2 text-white/80 hover:text-white px-3 py-1.5 rounded-md border border-white/10 bg-white/5" data-bugence-id="bugence-1767055655874-cj4tvz">
+        ⌘K <span class="text-xs" data-bugence-id="bugence-1767055655874-u9x5ex">Quick Find</span>
+      </button>
+      <a href="https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785/" class="nx-cta group inline-flex items-center gap-2 rounded-full px-4 py-2 font-semibold text-black
+                bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-[0_10px_30px_-12px_rgba(234,88,12,.6)]" data-bugence-id="bugence-1767055655874-1h2oom">
+        <span class="relative overflow-hidden" data-bugence-id="bugence-1767055655874-7zhpex">
+          <span class="relative z-10" data-bugence-id="bugence-1767055655874-p2hc30">Get the Book</span>
+          <span class="absolute inset-0 -translate-x-full group-hover:translate-x-0 transition-transform bg-white/30" data-bugence-id="bugence-1767055655875-l4yhxq"></span>
+        </span>
+        <span class="nx-cta-shine" aria-hidden="true" data-bugence-id="bugence-1767055655875-uxnhgg"></span>
+      </a>
+    </div>
+
+    <!-- Hamburger -->
+    <button id="nx-burger" class="lg:hidden relative h-10 w-10 grid place-items-center rounded-md bg-white/5 text-white
+                                  border border-white/10 backdrop-blur-sm" aria-expanded="false" aria-controls="nx-mobile" aria-label="Open menu" data-bugence-id="bugence-1767055655875-7zjteu">
+      <span class="nx-bar before:content-[''] after:content-['']" data-bugence-id="bugence-1767055655875-033cp6"></span>
+    </button>
+  </div>
+
+  <!-- Mobile overlay menu -->
+  <div id="nx-mobile" class="fixed inset-0 z-40 hidden" data-bugence-id="bugence-1767055655875-vffn8a">
+    <button id="nx-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-label="Close menu" data-bugence-id="bugence-1767055655875-d00yfh"></button>
+    <div class="nx-panel absolute right-0 top-0 h-full w-[88%] max-w-sm bg-neutral-950 border-l border-white/10 p-6 translate-x-full scale-[.98] transition-transform will-change-transform origin-right" data-bugence-id="bugence-1767055655875-rhkxqz">
+      <div class="flex items-center justify-between" data-bugence-id="bugence-1767055655875-94loi2">
+        <span class="text-white/80 font-semibold" data-bugence-id="bugence-1767055655875-ql5bje">Menu</span>
+        <button id="nx-close" class="h-9 w-9 grid place-items-center rounded bg-white/10 text-white" aria-label="Close" data-bugence-id="bugence-1767055655875-jfb3hq">✕</button>
+      </div>
+      <ul class="mt-6 space-y-2" data-bugence-id="bugence-1767055655875-zug7g1">
+        <li style="--i:0" data-bugence-id="bugence-1767055655875-tyv14o" class=""><a class="nx-m-link" href="/about.html" data-bugence-id="bugence-1767055655875-8fsivp">About Pete D</a></li>
+        <li style="--i:1" data-bugence-id="bugence-1767055655875-0x7xjn"><a class="nx-m-link" href="/MeetPeteD.html" data-bugence-id="bugence-1767055655875-1vhzpk">Meet Pete D</a></li>
+        <li style="--i:2" data-bugence-id="bugence-1767055655875-n436to" class=""><a class="nx-m-link" href="/BookPeteD.html" data-bugence-id="bugence-1767055655875-pbz632">Book Pete D to Speak</a></li>
+        <li style="--i:3" data-bugence-id="bugence-1767055655875-blk97q"><a class="nx-m-link" href="/JoinTheCommunity.html" data-bugence-id="bugence-1767055655875-vj1pc3">Join the Community</a></li>
+        <li style="--i:4" data-bugence-id="bugence-1767055655875-r3ue3w"><a class="nx-m-link nx-m-cta" href="https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785/" data-bugence-id="bugence-1767055655875-3143qi">Get the Book</a></li>
+      </ul>
+      <!-- Quick find on mobile -->
+      <div class="mt-6" data-bugence-id="bugence-1767055655875-2t0t0t">
+        <button id="nx-cmd-btn-m" class="w-full inline-flex items-center justify-center gap-2 text-white/90 px-3 py-2 rounded-md border border-white/10 bg-white/5" data-bugence-id="bugence-1767055655875-yt3xw7">
+          🔎 Quick Find
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Command Palette -->
+<div id="nx-cmd" class="fixed inset-0 z-[70] hidden">
+  <button id="nx-cmd-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-label="Close search"></button>
+  <div class="absolute left-1/2 top-16 -translate-x-1/2 w-[92%] max-w-lg rounded-2xl border border-white/10 bg-neutral-950/95 p-3 shadow-[0_30px_100px_-30px_rgba(0,0,0,.9)]">
+    <div class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+      <svg class="h-5 w-5 text-white/60" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
+      <input id="nx-cmd-input" class="w-full bg-transparent outline-none text-white placeholder-white/40 text-sm" placeholder="Search pages (e.g., book, about, community…)">
+      <kbd class="hidden sm:inline text-[10px] px-1.5 py-0.5 rounded border border-white/15 text-white/70">Esc</kbd>
+    </div>
+    <ul id="nx-cmd-list" class="mt-2 max-h-[46vh] overflow-auto divide-y divide-white/5">
+      <!-- results injected -->
+    </ul>
+  </div>
+</div>
+
+<style>
+/* ---------- Navbar morph, hide/show ---------- */
+.nx { transform: translateY(0); }
+.nx.scrolled{
+  background: rgba(0,0,0,.55);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom-color: rgba(255,255,255,.08);
+  box-shadow: 0 20px 60px -20px rgba(0,0,0,.55);
+}
+.nx.hide { transform: translateY(-110%); }
+
+/* ---------- Animated scanline & circuit glow ---------- */
+.nx-scan{ background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+          animation: nx-scan 6s linear infinite; opacity:.35 }
+@keyframes nx-scan { 0%{ background-position:-200% 0 } 100%{ background-position:200% 0 } }
+#nx-links .nx-circuit{ background: radial-gradient(50% 60% at 50% 30%, rgba(6,182,212,.22), transparent 60%); filter: blur(6px) }
+
+/* ---------- Desktop links + slider ---------- */
+.nx-link{
+  position: relative; display:inline-block; padding:.5rem .25rem; color:rgba(255,255,255,.82);
+  transition: color .18s ease, transform .18s ease;
+}
+.nx-link:hover{ color:#fff; transform: translateY(-1px); }
+.nx-link::after{ /* subtle per-link shine */
+  content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; border-radius:2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+  transform: translateX(-40%); opacity:0; transition: transform .3s ease, opacity .3s ease;
+}
+.nx-link:hover::after{ transform: translateX(40%); opacity:1 }
+#nx-slider{ left:0; width:0; opacity:.95 }
+
+/* ---------- CTA shine ---------- */
+.nx-cta{ position:relative; overflow:hidden }
+.nx-cta-shine{
+  position:absolute; inset:-2px; border-radius:999px; pointer-events:none; opacity:0; transition:opacity .25s ease;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,.45), transparent 30%, rgba(255,255,255,.25) 60%, transparent 90%);
+  filter: blur(6px);
+}
+.nx-cta:hover .nx-cta-shine{ opacity:.9 }
+
+/* ---------- Hamburger (morph to X) ---------- */
+#nx-burger .nx-bar,
+#nx-burger .nx-bar::before,
+#nx-burger .nx-bar::after{
+  position:absolute; width:20px; height:2px; background:#fff; border-radius:2px; transition: transform .2s ease, opacity .2s ease; content:"";
+}
+#nx-burger .nx-bar::before{ transform: translateY(-6px) }
+#nx-burger .nx-bar::after{ transform: translateY(6px) }
+#nx-burger[aria-expanded="true"] .nx-bar{ transform: rotate(45deg) }
+#nx-burger[aria-expanded="true"] .nx-bar::before{ transform: rotate(-90deg) }
+#nx-burger[aria-expanded="true"] .nx-bar::after{ opacity:0 }
+
+/* ---------- Mobile drawer ---------- */
+#nx-mobile .nx-panel{ box-shadow: 0 40px 120px -30px rgba(0,0,0,.8) }
+#nx-mobile .nx-m-link{
+  display:block; color:#e5e7eb; padding:.9rem 1rem; border-radius:12px; border:1px solid transparent;
+  background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  transform: translateY(6px); opacity:0;
+  transition: transform .28s ease, opacity .28s ease, background .2s ease, border-color .2s ease;
+}
+#nx-mobile .nx-m-link:hover{ border-color: rgba(255,255,255,.14); background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(255,255,255,.02)); }
+#nx-mobile .nx-m-cta{ background: linear-gradient(90deg, #34d399, #06b6d4); color:#0b0b0b; font-weight:700; }
+#nx-mobile[data-open="true"] .nx-m-link{ opacity:1; transform: none; transition-delay: calc(var(--i) * 60ms + 100ms); }
+
+/* ---------- Command palette ---------- */
+#nx-cmd-list li a{
+  display:flex; align-items:center; gap:10px; padding:.7rem .75rem; color:#e6f8ff;
+}
+#nx-cmd-list li a:hover{ background: rgba(255,255,255,.05) }
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .nx-scan{ animation: none }
+  #nx-slider, .nx-link::after{ transition: none }
+}
+</style>
+
+<script>
+(() => {
+  const nav = document.getElementById('site-nav');
+  const linksWrap = document.getElementById('nx-links');
+  const slider = document.getElementById('nx-slider');
+  const burger = document.getElementById('nx-burger');
+  const mobile = document.getElementById('nx-mobile');
+  const panel = mobile?.querySelector('.nx-panel');
+  const closeBtn = document.getElementById('nx-close');
+  const backdrop = document.getElementById('nx-backdrop');
+  const progress = document.getElementById('nx-progress');
+
+  /* ----- Scroll morph + progress + smart hide ----- */
+  let lastY = window.scrollY;
+  const onScroll = () => {
+    const y = window.scrollY;
+    nav.classList.toggle('scrolled', y > 8);
+    // progress
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = Math.max(0, Math.min(1, y / (h || 1)));
+    progress.style.transform = `scaleX(${pct})`;
+    // smart hide
+    if (y > 120 && y > lastY + 4) nav.classList.add('hide');
+    else nav.classList.remove('hide');
+    lastY = y;
+  };
+  onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* ----- Slider positioning ----- */
+  function placeSlider(el){
+    if(!el || !slider || !linksWrap) return;
+    const r = el.getBoundingClientRect();
+    const pr = linksWrap.getBoundingClientRect();
+    slider.style.transform = `translateX(${r.left - pr.left}px)`;
+    slider.style.width = `${r.width}px`;
+  }
+  let active = null;
+  if(linksWrap){
+    const all = [...linksWrap.querySelectorAll('.nx-link')];
+    // active by URL (fallback to first)
+    const here = all.find(a => {
+      const href = a.getAttribute('href') || '';
+      const tail = href.split('/').pop()?.toLowerCase();
+      return tail && location.pathname.toLowerCase().includes(tail);
+    });
+    active = here || all[0];
+    requestAnimationFrame(()=> placeSlider(active));
+    all.forEach(a=>{
+      a.addEventListener('mouseenter', () => placeSlider(a));
+      a.addEventListener('mouseleave', () => placeSlider(active));
+      a.addEventListener('focus', () => placeSlider(a));
+    });
+    new ResizeObserver(()=> placeSlider(active)).observe(linksWrap);
+  }
+
+  /* ----- Section-aware active (if same-page anchors exist) ----- */
+  const anchorMap = {};
+  linksWrap?.querySelectorAll('.nx-link').forEach(a=>{
+    const sel = a.dataset.section;
+    if(sel && document.querySelector(sel)) anchorMap[sel] = a;
+  });
+  if(Object.keys(anchorMap).length){
+    const io = new IntersectionObserver((entries)=>{
+      const vis = entries.filter(e => e.isIntersecting).sort((a,b)=> b.intersectionRatio - a.intersectionRatio)[0];
+      if(!vis) return;
+      const btn = anchorMap['#'+vis.target.id] || anchorMap['.'+vis.target.className] || null;
+      if(btn){ active = btn; placeSlider(btn); }
+    }, { rootMargin: "-30% 0px -60% 0px", threshold: [0.2, 0.4, 0.6] });
+    Object.keys(anchorMap).forEach(sel => {
+      const el = document.querySelector(sel);
+      if(el) io.observe(el);
+    });
+  }
+
+  /* ----- Mobile menu ----- */
+  function openMobile(){
+    mobile.classList.remove('hidden');
+    requestAnimationFrame(()=> {
+      panel.style.transform = 'translateX(0) scale(1)';
+      mobile.setAttribute('data-open','true');
+      burger.setAttribute('aria-expanded','true');
+      document.documentElement.style.overflow = 'hidden';
+    });
+  }
+  function closeMobile(){
+    panel.style.transform = '';
+    mobile.removeAttribute('data-open');
+    burger.setAttribute('aria-expanded','false');
+    setTimeout(()=> { mobile.classList.add('hidden'); document.documentElement.style.overflow = ''; }, 200);
+  }
+  burger?.addEventListener('click', openMobile);
+  closeBtn?.addEventListener('click', closeMobile);
+  backdrop?.addEventListener('click', closeMobile);
+  window.addEventListener('keydown', e => { if(e.key==='Escape' && mobile && !mobile.classList.contains('hidden')) closeMobile(); });
+
+  /* ----- Command palette (⌘K / Ctrl+K) ----- */
+  const cmd = document.getElementById('nx-cmd');
+  const cmdBtn = document.getElementById('nx-cmd-btn');
+  const cmdBtnM = document.getElementById('nx-cmd-btn-m');
+  const cmdBackdrop = document.getElementById('nx-cmd-backdrop');
+  const cmdInput = document.getElementById('nx-cmd-input');
+  const cmdList = document.getElementById('nx-cmd-list');
+
+  const pages = [
+    { t:'About Pete D', u:'/about.html' },
+    { t:'Meet Pete D', u:'/MeetPeteD.html' },
+    { t:'Book Pete D to Speak', u:'/BookPeteD.html' },
+    { t:'Join the Community', u:'/JoinTheCommunity.html' },
+    { t:'Get the Book', u:'https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785/' },
+  ];
+
+  function renderList(q=''){
+    const s = q.trim().toLowerCase();
+    const arr = pages.filter(p => !s || p.t.toLowerCase().includes(s));
+    cmdList.innerHTML = arr.map(p =>
+      `<li><a href="${p.u}"><span>↪</span><span>${p.t}</span></a></li>`
+    ).join('') || `<li><a href="#"><span>😕</span><span>No matches</span></a></li>`;
+  }
+
+  function openCmd(){
+    cmd.classList.remove('hidden');
+    renderList();
+    cmdInput.value = ''; cmdInput.focus();
+  }
+  function closeCmd(){ cmd.classList.add('hidden'); }
+
+  cmdBtn?.addEventListener('click', openCmd);
+  cmdBtnM?.addEventListener('click', openCmd);
+  cmdBackdrop?.addEventListener('click', closeCmd);
+  window.addEventListener('keydown', (e)=>{
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); openCmd(); }
+    if(e.key === 'Escape' && !cmd.classList.contains('hidden')) closeCmd();
+  });
+  cmdInput?.addEventListener('input', ()=> renderList(cmdInput.value));
+
+})();
+</script>
+ <!-- ============ ABOUT HERO (creative, responsive, namespaced) ============ -->
+<section id="about-hero" class="relative bg-black pt-28 sm:pt-32 overflow-hidden" role="banner" aria-label="Page intro" data-bugence-id="bugence-1767055655876-448bgu">
+  <!-- Animated aurora + network -->
+  <div class="pointer-events-none absolute inset-0 -z-10" data-bugence-id="bugence-1767055655876-et78ap">
+    <div class="ab-aurora absolute -inset-[18%] opacity-80" aria-hidden="true" style="transform: translate(-3.15817px, 5.81274px);" data-bugence-id="bugence-1767055655876-tw0qkp"></div>
+
+    <!-- SVG network lines -->
+    <svg class="ab-net absolute inset-0 opacity-50 mix-blend-screen" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true" data-bugence-id="bugence-1767055655876-0b0huk">
+      <defs data-bugence-id="bugence-1767055655876-l4rzat">
+        <linearGradient id="ab-stroke" x1="0" x2="1" data-bugence-id="bugence-1767055655876-elikux">
+          <stop offset="0%" stop-color="#22c55e" data-bugence-id="bugence-1767055655876-3947q4"></stop>
+          <stop offset="50%" stop-color="#06b6d4" data-bugence-id="bugence-1767055655876-0wt920"></stop>
+          <stop offset="100%" stop-color="#f59e0b" data-bugence-id="bugence-1767055655876-95fseu"></stop>
+        </linearGradient>
+      </defs>
+      <g fill="none" stroke="url(#ab-stroke)" stroke-width="1.2" stroke-linecap="round" opacity=".6" data-bugence-id="bugence-1767055655876-iawevy">
+        <path class="dash" d="M60,140 C300,80 420,220 640,180 C890,140 1020,240 1260,200" data-bugence-id="bugence-1767055655876-6i1wpg"></path>
+        <path class="dash" d="M40,460 C240,420 420,560 640,520 C980,460 1100,600 1380,560" data-bugence-id="bugence-1767055655876-mnv9se"></path>
+        <path class="dash" d="M20,770 C260,710 500,830 740,770 C1000,710 1160,830 1420,790" data-bugence-id="bugence-1767055655876-afedaa"></path>
+      </g>
+    </svg>
+  </div>
+
+  <div class="mx-auto w-[92%] max-w-7xl grid items-center gap-10 md:grid-cols-2" data-bugence-id="bugence-1767055655876-sk0t44">
+    <!-- Copy -->
+    <div data-reveal="" class="transition-all duration-500" data-bugence-id="bugence-1767055655876-j8kh5l">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80" data-bugence-id="bugence-1767055655876-z3ahqg">
+        <span class="h-2 w-2 rounded-full bg-emerald-400" data-bugence-id="bugence-1767055655876-thmkc3"></span> Featured
+      </span>
+
+      <h1 class="mt-3 text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.1]" data-bugence-id="bugence-1767055655876-4vo46u">
+        About Pete D — <span class="bg-gradient-to-r from-emerald-300 via-cyan-300 to-amber-300 bg-clip-text text-transparent" data-bugence-id="bugence-1767055655877-4hgr7b">Scientist</span>,
+        Author &amp; Gen-Z Dad
+      </h1>
+
+      <p class="mt-4 max-w-[60ch] text-white/75" data-bugence-id="bugence-1767055655877-en1s2i">
+        Former Chief Scientist at Kimberly-Clark. Turning sustainability, circular economy,
+        and AI into practical, human-centered innovation.
+      </p>
+
+      <div class="mt-7 flex flex-col sm:flex-row gap-3" data-bugence-id="bugence-1767055655877-1m02oi">
+        <a href="https://tidycal.com/hightechheroes" class="ab-cta ab-cta--primary" data-bugence-id="bugence-1767055655877-5nkn0z">📅 Book a Discovery Call</a>
+        <a href="/assets/MediaKit-PeteD.pdf" class="ab-cta ab-cta--ghost" data-bugence-id="bugence-1767055655877-nipr65">⬇️ Download Media Kit</a>
+      </div>
+
+      <!-- quick badges -->
+      <div class="mt-5 flex flex-wrap items-center gap-2 text-xs text-white/60" data-bugence-id="bugence-1767055655877-4v4iis">
+        <span class="inline-flex items-center gap-2" data-bugence-id="bugence-1767055655877-mglcka"><span class="h-2 w-2 rounded-full bg-amber-400" data-bugence-id="bugence-1767055655877-yjcwpj"></span> 30+ yrs R&amp;D leadership</span>
+        <span class="inline-flex items-center gap-2" data-bugence-id="bugence-1767055655877-yq0ubf"><span class="h-2 w-2 rounded-full bg-cyan-400" data-bugence-id="bugence-1767055655877-mnozne"></span> 100+ patents &amp; publications</span>
+        <span class="inline-flex items-center gap-2" data-bugence-id="bugence-1767055655877-ky979o"><span class="h-2 w-2 rounded-full bg-fuchsia-400" data-bugence-id="bugence-1767055655877-pteo1j"></span> TEDx Speaker</span>
+      </div>
+    </div>
+
+    <!-- Visual -->
+    <div data-reveal="" class="transition-all duration-500 md:order-last" data-bugence-id="bugence-1767055655877-kjfoe4">
+      <figure id="ab-frame" class="relative mx-auto w-full max-w-[720px] aspect-[3/4] overflow-hidden rounded-[28px] p-[2px]
+                     bg-[conic-gradient(from_180deg_at_50%_50%,rgba(255,255,255,.25),rgba(255,255,255,.06),rgba(255,255,255,.25))]
+                     shadow-[0_30px_80px_-20px_rgba(0,0,0,.8)] animate-[float_6s_ease-in-out_infinite]" data-bugence-id="bugence-1767055655877-6c6aja" style="">
+        <div class="absolute inset-0 rounded-[26px] bg-gradient-to-b from-neutral-900/95 to-black/90" data-bugence-id="bugence-1767055655877-d8ekcl"></div>
+
+        <img id="ab-img" class="relative z-10 h-full w-full object-contain p-6 sm:p-8" src="/Img/author4.svg" alt="Pete D speaking on stage" data-bugence-id="bugence-1767055655877-w1ul4l" style="">
+
+        <!-- orbit tags -->
+        <span class="ab-tag ab-tag--tl" data-bugence-id="bugence-1767055655877-wj7a1t">Chief Scientist (ex-KC)</span>
+        <span class="ab-tag ab-tag--tr" data-bugence-id="bugence-1767055655877-ae8kal">Sustainable AI</span>
+        <span class="ab-tag ab-tag--br" data-bugence-id="bugence-1767055655877-sf5n97">Human-Centered</span>
+        <span class="ab-tag ab-tag--bl" data-bugence-id="bugence-1767055655877-4sjzr7">Circular Economy</span>
+
+        <!-- inner vignette -->
+        <div class="absolute inset-0 z-10 bg-[radial-gradient(70%_70%_at_50%_30%,rgba(0,0,0,.0),rgba(0,0,0,.55))]" data-bugence-id="bugence-1767055655877-2qsgsv"></div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Styles (scoped) ============ -->
+<style>
+/* aurora mesh */
+#about-hero .ab-aurora{
+  background:
+    radial-gradient(28% 38% at 20% 30%, rgba(236,72,153,.55), transparent 60%),
+    radial-gradient(24% 36% at 80% 20%, rgba(56,189,248,.55), transparent 60%),
+    radial-gradient(18% 28% at 65% 75%, rgba(34,197,94,.55), transparent 60%);
+  filter: blur(38px) saturate(1.05);
+  animation: ab-aurora-pan 26s ease-in-out infinite alternate;
+}
+@keyframes ab-aurora-pan{
+  0%   { transform: translate(-6%, -4%) scale(1.05); }
+  50%  { transform: translate(8%, 4%)   scale(1.08); }
+  100% { transform: translate(-3%, 2%)  scale(1.06); }
+}
+/* draw lines */
+#about-hero .ab-net .dash{
+  stroke-dasharray: 640; stroke-dashoffset: 640; animation: ab-dash 6s ease-in-out infinite alternate;
+}
+@keyframes ab-dash{ to { stroke-dashoffset: 0; } }
+
+/* float loop for card */
+@keyframes float{
+  0%{ transform: translateY(0) }
+  50%{ transform: translateY(-8px) }
+  100%{ transform: translateY(0) }
+}
+
+/* orbit tags */
+#about-hero .ab-tag{
+  position:absolute; z-index:20;
+  padding:.35rem .6rem; border-radius:999px; font-weight:700; font-size:.7rem;
+  color:#0b0b0b; background:linear-gradient(135deg,#22c55e,#06b6d4);
+  box-shadow:0 12px 28px rgba(6,182,212,.25);
+  animation: drift 8s ease-in-out infinite alternate;
+}
+#about-hero .ab-tag--tl{ top:6%; left:6%; animation-delay:.2s; }
+#about-hero .ab-tag--tr{ top:8%; right:6%; background:linear-gradient(135deg,#f59e0b,#f97316); animation-delay:.6s; }
+#about-hero .ab-tag--br{ bottom:8%; right:8%; background:linear-gradient(135deg,#06b6d4,#8b5cf6); animation-delay:1s; }
+#about-hero .ab-tag--bl{ bottom:10%; left:8%; background:linear-gradient(135deg,#f472b6,#f59e0b); animation-delay:1.4s; }
+@keyframes drift{ 0%{ transform: translate(0,0) } 100%{ transform: translate(0,-6px) } }
+
+/* CTAs (scoped) */
+#about-hero .ab-cta{
+  position:relative; display:inline-flex; align-items:center; justify-content:center;
+  border-radius: 16px; padding:.85rem 1.1rem; font-weight:800; letter-spacing:.2px;
+  transition: transform .18s ease, box-shadow .2s ease, background-position .3s ease;
+  overflow:hidden;
+}
+#about-hero .ab-cta--primary{
+  color:#0a0a0a; background:linear-gradient(120deg,#22c55e,#06b6d4); background-size:200% 200%;
+  box-shadow:0 14px 32px rgba(6,182,212,.28);
+}
+#about-hero .ab-cta--ghost{
+  color:#fff; border:1px solid rgba(255,255,255,.18);
+}
+#about-hero .ab-cta::after{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent);
+  transform:translateX(-160%) skewX(-20deg);
+}
+#about-hero .ab-cta:hover{ transform: translateY(-2px); }
+#about-hero .ab-cta--primary:hover{ animation:ab-gradient 2.6s ease-in-out infinite; }
+#about-hero .ab-cta:hover::after{ transition:transform .55s ease; transform:translateX(160%) skewX(-20deg); }
+@keyframes ab-gradient{
+  0%{ background-position:0% 50% } 50%{ background-position:100% 50% } 100%{ background-position:0% 50% }
+}
+
+/* motion safety */
+@media (prefers-reduced-motion: reduce){
+  #about-hero .ab-aurora, #about-hero .ab-net .dash, #about-hero .ab-tag,
+  #about-hero #ab-frame{ animation: none !important; }
+}
+</style>
+
+<!-- ============ Script: reveal, tilt, parallax ============ -->
+<script>
+(() => {
+  // reveal
+  const rev = document.querySelectorAll('#about-hero [data-reveal]');
+  const io = new IntersectionObserver(es=>{
+    es.forEach(en=>{
+      if(!en.isIntersecting) return;
+      en.target.classList.remove('opacity-0','translate-y-4');
+      io.unobserve(en.target);
+    });
+  }, {threshold:.15});
+  rev.forEach(el=>io.observe(el));
+
+  // tilt + micro parallax
+  const frame = document.getElementById('ab-frame');
+  const img = document.getElementById('ab-img');
+  let rect;
+  function tilt(e){
+    rect ??= frame.getBoundingClientRect();
+    const mx = (e.clientX - rect.left)/rect.width - .5;
+    const my = (e.clientY - rect.top)/rect.height - .5;
+    const rx = my * -10, ry = mx * 10;
+    frame.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    img.style.transform = `translate(${mx*6}px, ${-my*6}px)`;
+  }
+  function reset(){ frame.style.transform=''; img.style.transform=''; rect=null; }
+  frame.addEventListener('mousemove', tilt);
+  frame.addEventListener('mouseleave', reset);
+
+  // subtle parallax on aurora
+  const aur = document.querySelector('#about-hero .ab-aurora');
+  window.addEventListener('pointermove', e=>{
+    const x = (e.clientX / window.innerWidth - .5) * 12;
+    const y = (e.clientY / window.innerHeight - .5) * 12;
+    aur.style.transform = `translate(${x}px, ${y}px)`;
+  }, {passive:true});
+})();
+</script>
+
+
+<!-- ABOUT BAND (3 feature cards) -->
+<!-- ABOUT BAND (3 feature cards • compact, creative) -->
+<section id="about-pete" class="relative bg-black py-14 sm:py-16 overflow-hidden" data-bugence-id="bugence-1767055655878-0y02jl">
+  <!-- subtle backdrop -->
+  <div class="pointer-events-none absolute inset-0 -z-10" data-bugence-id="bugence-1767055655878-g9y1ru">
+    <div class="ab3-aurora absolute -inset-[18%] opacity-70" data-bugence-id="bugence-1767055655878-65x4v0"></div>
+  </div>
+
+  <div class="mx-auto w-[92%] max-w-6xl" data-bugence-id="bugence-1767055655878-uiwst6">
+    <span class="block text-center text-xs tracking-widest text-white/70" data-bugence-id="bugence-1767055655878-6le0dc">About Pete D</span>
+    <h2 class="mt-1 text-center text-2xl sm:text-3xl font-extrabold text-white" data-bugence-id="bugence-1767055655878-htykvn">Scientist, Innovator &amp; Gen Z Dad</h2>
+
+    <!-- Scroller on mobile, grid on md+ -->
+    <div class="ab3-grid mt-8 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2
+                sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:snap-none" data-bugence-id="bugence-1767055655878-1o68tu">
+      <!-- CARD 1 -->
+      <article class="ab3-card group snap-start min-w-[86%] sm:min-w-0" data-badge="Leadership" style="--ab: #f59e0b; --px: 55px; --py: 228.125px;" data-bugence-id="bugence-1767055655878-eb7vbm">
+        <div class="ab3-spot" aria-hidden="true" data-bugence-id="bugence-1767055655878-tgdhxg"></div>
+        <header class="ab3-head" data-bugence-id="bugence-1767055655878-c2ri2z">
+          <h3 class="ab3-h" data-bugence-id="bugence-1767055655878-2uzu2b">A Legacy of Scientific Excellence</h3>
+          <div class="ab3-chips" data-bugence-id="bugence-1767055655878-n9e3f1">
+            <span data-bugence-id="bugence-1767055655878-ne2nau">Kimberly-Clark</span><span data-bugence-id="bugence-1767055655878-px7vgi">Global Teams</span><span data-bugence-id="bugence-1767055655878-x2u02e">Breakthroughs</span>
+          </div>
+        </header>
+        <p class="ab3-p" data-bugence-id="bugence-1767055655878-ncemmy">
+          As Vice President of Corporate Research and the first Chief Scientist at <strong data-bugence-id="bugence-1767055655878-cu41as">Kimberly-Clark</strong>, Pete led global teams behind Huggies®, Kotex®, Kleenex®, and Depend®. Earlier at <strong data-bugence-id="bugence-1767055655878-c8jw3n" class="">The Dow Chemical Company</strong>, he shaped research, sustainability, and new ventures.
+        </p>
+
+        <details class="ab3-more" data-bugence-id="bugence-1767055655878-jjmh0g">
+          <summary data-bugence-id="bugence-1767055655878-iaerhp">More</summary>
+          <div class="ab3-more-body" style="overflow: hidden; height: 0px; transition: height 0.22s;" data-bugence-id="bugence-1767055655879-0cmzok">
+            <ul data-bugence-id="bugence-1767055655879-pht8mt">
+              <li data-bugence-id="bugence-1767055655879-pxc1oz">Scaled innovations across multiple categories</li>
+              <li data-bugence-id="bugence-1767055655879-pcu62d">Mentored cross-functional R&amp;D teams</li>
+            </ul>
+          </div>
+        </details>
+
+        <a href="https://tidycal.com/hightechheroes" class="ab3-btn" data-bugence-id="bugence-1767055655879-n0ym95">🔬 Science Sector? Book a Call</a>
+        <span class="ab3-underline" aria-hidden="true" data-bugence-id="bugence-1767055655879-xoy46z"></span>
+      </article>
+
+      <!-- CARD 2 -->
+      <article class="ab3-card group snap-start min-w-[86%] sm:min-w-0" data-badge="Sustainability" style="--ab: #06b6d4; --px: 164px; --py: 38.359375px;" data-bugence-id="bugence-1767055655879-m1h90i">
+        <div class="ab3-spot" aria-hidden="true" data-bugence-id="bugence-1767055655879-qqjjjb"></div>
+        <header class="ab3-head" data-bugence-id="bugence-1767055655879-7zia2u">
+          <h3 class="ab3-h" data-bugence-id="bugence-1767055655879-ehrauf">Champion of Sustainability &amp; Technology</h3>
+          <div class="ab3-chips" data-bugence-id="bugence-1767055655879-b7ko1f">
+            <span data-bugence-id="bugence-1767055655879-1t6qs1">AI</span><span data-bugence-id="bugence-1767055655879-jlnkfj" class="">Robotics</span><span data-bugence-id="bugence-1767055655879-9cdkuh">Genomics</span><span data-bugence-id="bugence-1767055655879-iij9cn">Materials</span>
+          </div>
+        </header>
+        <p class="ab3-p" data-bugence-id="bugence-1767055655879-ijen0o">
+          Pete harnesses <strong data-bugence-id="bugence-1767055655879-znuemp" class="">AI, robotics, genomics, and materials science</strong> for disruptive solutions. He consults with <strong data-bugence-id="bugence-1767055655879-yloy66">FutureBridge, PilotLite (UK), Endeavor.ai</strong>, and supports the <strong data-bugence-id="bugence-1767055655880-ufjmcr" class="">Stanford High Impact Technology Fund</strong>.
+        </p>
+
+        <details class="ab3-more" data-bugence-id="bugence-1767055655880-thax4x">
+          <summary data-bugence-id="bugence-1767055655880-vsmfwu">More</summary>
+          <div class="ab3-more-body" style="overflow: hidden; height: 0px; transition: height 0.22s;" data-bugence-id="bugence-1767055655880-ueskob">
+            <ul data-bugence-id="bugence-1767055655880-w3brci">
+              <li data-bugence-id="bugence-1767055655880-h3xn6l">Translates frontier tech into real-world impact</li>
+              <li data-bugence-id="bugence-1767055655880-xl4hp9">Advises venture &amp; corporate innovation teams</li>
+            </ul>
+          </div>
+        </details>
+
+        <a href="https://tidycal.com/hightechheroes" class="ab3-btn" data-bugence-id="bugence-1767055655880-xdqjb4">💡 Technology Company? Book a Call</a>
+        <span class="ab3-underline" aria-hidden="true" data-bugence-id="bugence-1767055655880-mbsh1o"></span>
+      </article>
+
+      <!-- CARD 3 -->
+      <article class="ab3-card group snap-start min-w-[86%] sm:min-w-0" data-badge="Academia" style="--ab: #22c55e; --px: 130px; --py: 129.59375px;" data-bugence-id="bugence-1767055655880-jsfpsd">
+        <div class="ab3-spot" aria-hidden="true" data-bugence-id="bugence-1767055655880-zzl5ze"></div>
+        <header class="ab3-head" data-bugence-id="bugence-1767055655880-mbm7nl">
+          <h3 class="ab3-h" data-bugence-id="bugence-1767055655880-0w8csm">Academic Foundations &amp; Personal Life</h3>
+          <div class="ab3-chips" data-bugence-id="bugence-1767055655881-6x8xgr">
+            <span data-bugence-id="bugence-1767055655881-gbx2mo">Chemistry</span><span data-bugence-id="bugence-1767055655881-019331">Chem. Engineering</span><span data-bugence-id="bugence-1767055655881-z70qju">Exec. Programs</span>
+          </div>
+        </header>
+        <p class="ab3-p" data-bugence-id="bugence-1767055655881-ddo8lr">
+          Degrees in <strong data-bugence-id="bugence-1767055655881-xhsae1">Chemistry</strong> &amp; <strong data-bugence-id="bugence-1767055655881-gm2a5t">Chemical Engineering</strong> plus programs from <strong data-bugence-id="bugence-1767055655881-roa8da">Cambridge, Dartmouth, Babson, Singularity University</strong>. Based in <strong data-bugence-id="bugence-1767055655881-4foncn">Neenah, WI</strong> with his wife Gina—parents of two Gen Z changemakers.
+        </p>
+
+        <details class="ab3-more" data-bugence-id="bugence-1767055655881-z004es">
+          <summary data-bugence-id="bugence-1767055655881-gvr1ah">More</summary>
+          <div class="ab3-more-body" style="overflow: hidden; height: 0px; transition: height 0.22s;" data-bugence-id="bugence-1767055655881-sl8lxd">
+            <ul data-bugence-id="bugence-1767055655882-kn0vq5">
+              <li data-bugence-id="bugence-1767055655882-2ecmh7">Bridges academia ↔ industry</li>
+              <li data-bugence-id="bugence-1767055655882-646kku">Mentors student founders &amp; researchers</li>
+            </ul>
+          </div>
+        </details>
+
+        <a href="https://tidycal.com/hightechheroes" class="ab3-btn" data-bugence-id="bugence-1767055655882-s9711w">🎓 Academia? Book a Call</a>
+        <span class="ab3-underline" aria-hidden="true" data-bugence-id="bugence-1767055655882-vb37jn"></span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ====== ab3 styles (namespaced) ====== */
+.ab3-aurora{
+  background:
+    radial-gradient(28% 38% at 20% 30%, rgba(236,72,153,.45), transparent 60%),
+    radial-gradient(24% 36% at 80% 20%, rgba(56,189,248,.45), transparent 60%),
+    radial-gradient(18% 28% at 65% 75%, rgba(34,197,94,.45), transparent 60%);
+  filter: blur(36px) saturate(1.05);
+  animation: ab3-pan 24s ease-in-out infinite alternate;
+}
+@keyframes ab3-pan{ 0%{transform:translate(-6%,-4%) scale(1.05)} 50%{transform:translate(7%,4%) scale(1.07)} 100%{transform:translate(-3%,2%) scale(1.06)} }
+
+.ab3-card{
+  position:relative; overflow:hidden; border-radius:18px; padding:18px; background:
+    linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 14px 36px rgba(0,0,0,.28);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  transform-style: preserve-3d;
+}
+.ab3-card:hover{ transform: translateY(-4px) rotateX(.6deg) rotateY(-.6deg); box-shadow:0 22px 60px rgba(0,0,0,.38); border-color:rgba(255,255,255,.18) }
+
+.ab3-head{ display:flex; flex-direction:column; gap:.45rem; margin-bottom:.35rem; }
+.ab3-h{ color:#fff; font:700 18px/1.3 "Inter",system-ui,sans-serif; }
+.ab3-chips{ display:flex; flex-wrap:wrap; gap:.35rem }
+.ab3-chips span{
+  padding:.25rem .5rem; border-radius:999px; font:700 11px/1 "Inter",system-ui,sans-serif;
+  color:#0b0b0b; background:linear-gradient(135deg,var(--ab),#ffffff);
+  box-shadow:0 8px 18px rgba(0,0,0,.25);
+}
+
+.ab3-p{ color:#dbe5f4; font:500 14px/1.6 "Inter",system-ui,sans-serif; margin-top:.25rem; }
+
+/* corner badge */
+.ab3-card::before{
+  content: attr(data-badge);
+  position:absolute; top:12px; right:-10px; transform: rotate(3deg);
+  background:linear-gradient(135deg,var(--ab),rgba(255,255,255,.85));
+  color:#0b0b0b; font:800 10px/1 "Inter",system-ui,sans-serif; letter-spacing:.3px;
+  padding:.3rem .55rem; border-radius:999px; box-shadow:0 8px 18px rgba(0,0,0,.25);
+}
+
+/* spotlight (cursor-follow) */
+.ab3-spot{
+  position:absolute; inset:0; pointer-events:none; border-radius:inherit; opacity:0;
+  background: radial-gradient(220px circle at var(--px,-100px) var(--py,-100px), rgba(255,255,255,.08), transparent 60%);
+  transition: opacity .18s ease;
+}
+.ab3-card:hover .ab3-spot{ opacity:1; }
+
+/* “More” fold */
+.ab3-more{ margin-top:.35rem; }
+.ab3-more > summary{
+  list-style:none; cursor:pointer; user-select:none; outline:none;
+  color:#a5b4c7; font:700 12px/1 "Inter",system-ui,sans-serif;
+  display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .45rem; border-radius:8px;
+  border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.03);
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.ab3-more > summary::marker{ display:none; content:"" }
+.ab3-more[open] > summary{ color:#0b0b0b; background:linear-gradient(135deg,var(--ab),#ffffff); border-color:transparent; }
+.ab3-more-body{ color:#cbd5e1; font:500 13px/1.5 "Inter",system-ui,sans-serif; padding:.55rem 0 .1rem .1rem; }
+.ab3-more-body ul{ padding-left:1rem; list-style: disc; }
+
+/* CTA */
+.ab3-btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem; margin-top:.6rem;
+  padding:.65rem .95rem; border-radius:14px; font-weight:800; letter-spacing:.2px; text-decoration:none;
+  color:#0b0b0b; background: linear-gradient(135deg, var(--ab), #ffffff);
+  box-shadow:0 12px 28px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.06) inset;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.ab3-btn:hover{ transform: translateY(-1px); }
+
+/* underline accent */
+.ab3-underline{
+  position:absolute; left:14px; right:14px; bottom:12px; height:2px; border-radius:2px;
+  background: linear-gradient(90deg, transparent, var(--ab), transparent); opacity:.85;
+}
+
+/* motion safety */
+@media (prefers-reduced-motion: reduce){
+  .ab3-aurora{ animation:none !important; }
+  .ab3-card,.ab3-spot,.ab3-btn{ transition:none !important; transform:none !important; }
+}
+</style>
+
+<script>
+(() => {
+  // cursor spotlight + tiny tilt reset on leave
+  document.querySelectorAll('#about-pete .ab3-card').forEach(card => {
+    let rect;
+    card.addEventListener('pointermove', e=>{
+      rect ??= card.getBoundingClientRect();
+      card.style.setProperty('--px', (e.clientX - rect.left) + 'px');
+      card.style.setProperty('--py', (e.clientY - rect.top)  + 'px');
+    });
+    card.addEventListener('pointerleave', ()=>{ rect=null; card.style.transform=''; });
+  });
+
+  // animate <details> height for smooth open/close
+  document.querySelectorAll('#about-pete .ab3-more').forEach(d => {
+    const body = d.querySelector('.ab3-more-body');
+    if(!body) return;
+    d.addEventListener('toggle', () => {
+      if(d.open){
+        body.style.height = 'auto';
+        const h = body.clientHeight + 'px';
+        body.style.height = '0px';
+        requestAnimationFrame(()=> body.style.height = h);
+        body.addEventListener('transitionend', function end(){ body.style.height = 'auto'; body.removeEventListener('transitionend', end); });
+      } else {
+        const h = body.clientHeight + 'px';
+        body.style.height = h;
+        requestAnimationFrame(()=> body.style.height = '0px');
+      }
+    });
+    // set initial state
+    body.style.overflow='hidden'; body.style.height='0px'; body.style.transition='height .22s ease';
+  });
+})();
+</script>
+
+
+<!-- SPEAKING (compact timeline + filters) -->
+<section id="speaking" class="relative bg-black py-14 sm:py-16 overflow-hidden" data-bugence-id="bugence-1767055655882-5ksjcd">
+  <div class="mx-auto w-[92%] max-w-5xl" data-bugence-id="bugence-1767055655882-9la621">
+    <h2 class="text-center text-2xl sm:text-3xl font-extrabold text-white" data-bugence-id="bugence-1767055655882-3w05cb">Speaking &amp; Features</h2>
+
+    <!-- Filters -->
+    <div class="sp3-filters mt-5 flex flex-wrap items-center justify-center gap-2" data-bugence-id="bugence-1767055655882-cfpctt">
+      <button class="sp3-chip is-active" data-filter="all" aria-pressed="true" data-bugence-id="bugence-1767055655882-s2ftow">All</button>
+      <button class="sp3-chip" data-filter="talk" data-bugence-id="bugence-1767055655883-glw7ji">Talks</button>
+      <button class="sp3-chip" data-filter="podcast" data-bugence-id="bugence-1767055655883-90vvol">Podcasts</button>
+      <button class="sp3-chip" data-filter="interview" data-bugence-id="bugence-1767055655883-tdz5gd">Interviews</button>
+      <button class="sp3-chip" data-filter="article" data-bugence-id="bugence-1767055655883-baae8f">Articles</button>
+      <button class="sp3-chip" data-filter="event" data-bugence-id="bugence-1767055655883-077dfl">Events</button>
+    </div>
+
+    <!-- List -->
+    <div class="sp3-list-wrap relative mt-8" data-bugence-id="bugence-1767055655883-zq9e3m">
+      <span class="sp3-rail" aria-hidden="true" data-bugence-id="bugence-1767055655883-p3jfzn"></span>
+      <ul class="sp3-list" role="list" data-bugence-id="bugence-1767055655883-5nuj1r">
+        <!-- TEDx -->
+        <li class="sp3-item" data-type="talk" data-bugence-id="bugence-1767055655883-bcdvwn">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655883-in9zme">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655883-7b1v3a"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655883-zexr9t"><img src="/Img/TedX.jpg" alt="TEDx" data-bugence-id="bugence-1767055655883-sspmsm"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655883-o318w3">
+              <strong data-bugence-id="bugence-1767055655883-z50i8b">TEDx Talk</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655883-qxtjll">2021 • Keynote</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655883-k5i5ui">
+              <span class="sp3-tag sp3-tag--talk" data-bugence-id="bugence-1767055655883-2z8ssi">Talk</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655884-dorp3a"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" data-bugence-id="bugence-1767055655884-rgy8bj"></path></svg>
+            </span>
+          </a>
+        </li>
+
+        <!-- All Things Innovation -->
+        <li class="sp3-item" data-type="event" data-bugence-id="bugence-1767055655884-ul45tt">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655884-z42lf5">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655884-tffgag"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655884-brzxgs"><img src="/Img/AllThingsInnovation.jpg" alt="All Things Innovation" data-bugence-id="bugence-1767055655884-5js0ju"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655884-xe6qsh">
+              <strong data-bugence-id="bugence-1767055655884-y0aa0p">All Things Innovation</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655884-euxo0r">2022 • Conference</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655884-hza1iy">
+              <span class="sp3-tag sp3-tag--event" data-bugence-id="bugence-1767055655884-kvwo6q">Event</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655884-f1jj37"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" data-bugence-id="bugence-1767055655884-2z2mhu"></path></svg>
+            </span>
+          </a>
+        </li>
+
+        <!-- InnoLead -->
+        <li class="sp3-item" data-type="interview" data-bugence-id="bugence-1767055655884-hsqfkw">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655884-zdkh4h">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655884-xm8cpo"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655884-mtnhz4"><img src="/Img/InnoLead.png" alt="InnoLead" data-bugence-id="bugence-1767055655884-1qe2g6"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655885-kvwvql">
+              <strong data-bugence-id="bugence-1767055655885-pms4ai">InnoLead Interview</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655885-ngt1zc">2022 • Feature</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655885-uicrup">
+              <span class="sp3-tag sp3-tag--interview" data-bugence-id="bugence-1767055655885-p5y2t3">Interview</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655885-g5oh2s"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" data-bugence-id="bugence-1767055655885-08anh7"></path></svg>
+            </span>
+          </a>
+        </li>
+
+        <!-- Unstuck Podcast -->
+        <li class="sp3-item" data-type="podcast" data-bugence-id="bugence-1767055655885-xrprqy">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655885-4omlun">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655885-gtru07"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655885-90x7kd"><img src="/Img/UnstuckPodcast.jpg" alt="Unstuck Podcast" data-bugence-id="bugence-1767055655885-2kypbf"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655885-r7tncn">
+              <strong data-bugence-id="bugence-1767055655885-sotqc3">Unstuck Podcast</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655885-1qipl6">2022 • Guest</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655885-ttdazn">
+              <span class="sp3-tag sp3-tag--podcast" data-bugence-id="bugence-1767055655885-uwh6qq">Podcast</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655885-4xiwq8"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" data-bugence-id="bugence-1767055655885-b3hbob"></path></svg>
+            </span>
+          </a>
+        </li>
+
+        <!-- Humanity-Centric Innovation -->
+        <li class="sp3-item" data-type="article" data-bugence-id="bugence-1767055655885-htkmf4">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655886-otwd4z">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655886-ghvtn5"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655886-vrte6d"><img src="/Img/HumanCenteredInvo.jpg" alt="Humanity-Centric Innovation" data-bugence-id="bugence-1767055655886-ng5jyo"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655886-w15b47">
+              <strong data-bugence-id="bugence-1767055655886-9bgl5o">Humanity-Centric Innovation</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655886-au4q1t">Article</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655886-o48eg7">
+              <span class="sp3-tag sp3-tag--article" data-bugence-id="bugence-1767055655886-8yb2w9">Article</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655886-mxvngc"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" data-bugence-id="bugence-1767055655886-m6fhw0"></path></svg>
+            </span>
+          </a>
+        </li>
+
+        <!-- Reducing Plastic -->
+        <li class="sp3-item" data-type="article" data-bugence-id="bugence-1767055655886-99selw">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655886-p4nq93">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655886-kln4r7"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655886-vu3bml"><img src="/Img/ReducePlastic.jpg" alt="Reducing Plastic" data-bugence-id="bugence-1767055655886-45ho00"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655886-3jibri">
+              <strong data-bugence-id="bugence-1767055655886-jh2a9x">Reducing Plastic</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655886-ab2ns2">Article</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655886-v8yilu">
+              <span class="sp3-tag sp3-tag--article" data-bugence-id="bugence-1767055655886-2w1es3">Article</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655886-wi1m4f"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" data-bugence-id="bugence-1767055655886-t3981v"></path></svg>
+            </span>
+          </a>
+        </li>
+
+        <!-- IRI Podcast -->
+        <li class="sp3-item" data-type="podcast" data-bugence-id="bugence-1767055655887-m4r0dg">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655887-0i0e6t">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655887-jsocr4"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655887-w6pisv"><img src="/Img/IRIPodcast.jpg" alt="IRI Podcast" data-bugence-id="bugence-1767055655887-7jmk48"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655887-m0e7dv">
+              <strong data-bugence-id="bugence-1767055655887-m8hcbn">IRI Podcast</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655887-zr6lb5">Interview</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655887-28l6vw">
+              <span class="sp3-tag sp3-tag--podcast" data-bugence-id="bugence-1767055655887-d4wklc">Podcast</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655887-31hnat"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" data-bugence-id="bugence-1767055655887-4jenjd"></path></svg>
+            </span>
+          </a>
+        </li>
+
+        <!-- Global Minds Network -->
+        <li class="sp3-item" data-type="event" data-bugence-id="bugence-1767055655887-124a5p">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655887-c09tjz">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655887-rspkvv"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655887-f8yun1"><img src="/Img/GlobalMindNet.jpg" alt="Global Minds Network" data-bugence-id="bugence-1767055655887-c2sncm"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655887-ftzfma">
+              <strong data-bugence-id="bugence-1767055655887-20edgm">Global Minds Network</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655887-9qh8cn">Event</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655887-aajjmu">
+              <span class="sp3-tag sp3-tag--event" data-bugence-id="bugence-1767055655888-r8ys9m">Event</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655888-ioaxqg"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" data-bugence-id="bugence-1767055655888-xlunt4"></path></svg>
+            </span>
+          </a>
+        </li>
+
+        <!-- We Make Change @ K-C -->
+        <li class="sp3-item" data-type="event" data-bugence-id="bugence-1767055655888-wb3n90">
+          <a class="sp3-link" href="#" data-bugence-id="bugence-1767055655888-dyb84i">
+            <span class="sp3-dot" aria-hidden="true" data-bugence-id="bugence-1767055655888-soxbwy"></span>
+            <span class="sp3-logo" data-bugence-id="bugence-1767055655888-agw138"><img src="/Img/Kc.png" alt="We Make Change at K-C" data-bugence-id="bugence-1767055655888-y5j6xn"></span>
+            <span class="sp3-main" data-bugence-id="bugence-1767055655888-vk17ub">
+              <strong data-bugence-id="bugence-1767055655888-67s8k6">We Make Change @ K-C</strong>
+              <span class="sp3-sub" data-bugence-id="bugence-1767055655888-vf5duj">Event</span>
+            </span>
+            <span class="sp3-right" data-bugence-id="bugence-1767055655888-8j8a8z">
+              <span class="sp3-tag sp3-tag--event" data-bugence-id="bugence-1767055655888-wnh28d">Event</span>
+              <svg class="sp3-arr" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655888-jbnjbw"><path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" stroke-width="1.6" data-bugence-id="bugence-1767055655888-q4rjwu"></path></svg>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ---- compact speaking list (sp3-) ---- */
+.sp3-filters .sp3-chip{
+  appearance:none; border:0; cursor:pointer;
+  padding:.5rem .8rem; border-radius:999px; font-weight:700; letter-spacing:.2px;
+  color:#e8eef9; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+  transition: background .16s ease, color .16s ease, transform .16s ease, border-color .16s ease;
+}
+.sp3-filters .sp3-chip:hover{ background:rgba(255,255,255,.1); transform: translateY(-1px); }
+.sp3-filters .sp3-chip.is-active{ color:#0b0b0b; background:linear-gradient(135deg,#22c55e,#06b6d4); border-color:transparent; }
+
+.sp3-list-wrap{ position:relative; }
+.sp3-rail{
+  position:absolute; left:22px; top:0; bottom:0; width:2px; border-radius:2px;
+  background: linear-gradient(180deg,#22c55e,#06b6d4,#f59e0b,#f472b6);
+  opacity:.55;
+}
+.sp3-list{ margin:0; padding:0; list-style:none; display:grid; gap:8px; }
+.sp3-item{ position:relative; padding-left:48px; }
+
+.sp3-link{
+  position:relative; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px;
+  padding:.7rem .9rem; border-radius:14px; text-decoration:none;
+  color:#e8eef9; background:linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.08);
+  transition: background .16s ease, transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.sp3-link:hover{
+  transform: translateY(-2px);
+  background:linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  border-color: rgba(255,255,255,.16);
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+}
+
+/* tiny node on rail */
+.sp3-dot{
+  position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; border-radius:50%;
+  background: radial-gradient(circle,#22c55e, transparent 55%);
+  box-shadow: 0 0 0 2px rgba(255,255,255,.08);
+}
+
+/* small logo (not large) */
+.sp3-logo{
+  width:40px; height:40px; border-radius:10px; overflow:hidden;
+  background: #0f1116; display:grid; place-items:center;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.sp3-logo img{ width:100%; height:100%; object-fit:contain; }
+
+/* text + meta */
+.sp3-main{ display:flex; flex-direction:column; min-width:0; }
+.sp3-main strong{ color:#fff; font: 700 14px/1.25 "Inter",system-ui,sans-serif; }
+.sp3-sub{ color:#a5b4c7; font: 500 12px/1.2 "Inter",system-ui,sans-serif; margin-top:2px; }
+
+.sp3-right{ display:flex; align-items:center; gap:10px; }
+.sp3-arr{ width:18px; height:18px; color:#a5b4c7; transition: transform .2s ease; }
+.sp3-link:hover .sp3-arr{ transform: translateX(2px); }
+
+.sp3-tag{
+  padding:.25rem .5rem; border-radius:999px; font:700 11px/1 "Inter",system-ui,sans-serif;
+  color:#0b0b0b; background:#fff; box-shadow:0 8px 18px rgba(0,0,0,.25);
+}
+.sp3-tag--talk{ background:linear-gradient(135deg,#22c55e,#06b6d4); }
+.sp3-tag--podcast{ background:linear-gradient(135deg,#06b6d4,#8b5cf6); }
+.sp3-tag--interview{ background:linear-gradient(135deg,#f472b6,#f59e0b); }
+.sp3-tag--article{ background:linear-gradient(135deg,#f59e0b,#f97316); }
+.sp3-tag--event{ background:linear-gradient(135deg,#14b8a6,#22d3ee); }
+
+/* mobile spacing */
+@media (max-width: 480px){
+  .sp3-item{ padding-left:36px; }
+  .sp3-rail{ left:16px; }
+  .sp3-dot{ left:8px; width:14px; height:14px; }
+  .sp3-logo{ width:36px; height:36px; border-radius:8px; }
+}
+</style>
+
+<script>
+(() => {
+  // filter logic
+  const chips = document.querySelectorAll('.sp3-chip');
+  const items = document.querySelectorAll('.sp3-item');
+  chips.forEach(ch => ch.addEventListener('click', () => {
+    chips.forEach(c => { c.classList.remove('is-active'); c.setAttribute('aria-pressed','false'); });
+    ch.classList.add('is-active'); ch.setAttribute('aria-pressed','true');
+    const f = ch.dataset.filter;
+    items.forEach(li => {
+      const t = li.dataset.type;
+      const show = (f === 'all') || (t === f);
+      li.style.display = show ? '' : 'none';
+    });
+  }));
+})();
+</script>
+
+  
+   <!-- NEWSLETTER STRIP -->
+
+<section id="contact" class="nl-section" data-bugence-id="bugence-1767055655888-un88lp">
+  <!-- animated background -->
+  <div class="nl-bg" aria-hidden="true" data-bugence-id="bugence-1767055655888-wmx9q5">
+    <div class="nl-orb nl-orb--lt" data-bugence-id="bugence-1767055655888-1pr8pw"></div>
+    <div class="nl-orb nl-orb--rb" data-bugence-id="bugence-1767055655888-64t04b"></div>
+    <div class="nl-sheen" data-bugence-id="bugence-1767055655888-lrewvx"></div>
+  </div>
+
+  <div class="nl-wrap" data-bugence-id="bugence-1767055655889-rtp4au">
+    <!-- Left -->
+    <div class="nl-left" data-bugence-id="bugence-1767055655889-u5sh8l">
+      <h2 class="nl-title" data-bugence-id="bugence-1767055655889-n9jkej">Be the First to Know</h2>
+      <p class="nl-sub" data-bugence-id="bugence-1767055655889-r49f64">
+        Subscribe for updates on <strong data-bugence-id="bugence-1767055655889-u8sgge">High-Tech Heroes</strong> and Gen-Z innovation.
+      </p>
+    </div>
+
+    <!-- Right -->
+    <form class="nl-form" id="nl-form" data-bugence-id="bugence-1767055655889-fuitfh">
+      <label class="nl-input" data-bugence-id="bugence-1767055655889-8jkxis">
+        <span class="nl-icon" aria-hidden="true" data-bugence-id="bugence-1767055655889-n9937u">
+          <svg viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767055655889-5bj544"><path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="1.2" opacity=".25" data-bugence-id="bugence-1767055655889-xsewye"></path><path d="M4 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" data-bugence-id="bugence-1767055655889-3xk6a8"></path></svg>
+        </span>
+        <input type="email" id="nl-email" placeholder="Enter your email" required="" data-bugence-id="bugence-1767055655889-7dk1qv">
+      </label>
+      <button class="nl-btn" type="submit" data-bugence-id="bugence-1767055655889-p9n1d9">
+        <span data-bugence-id="bugence-1767055655889-bma8du">Subscribe</span>
+        <svg viewBox="0 0 24 24" class="nl-arrow" fill="none" data-bugence-id="bugence-1767055655889-7kmqh9"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" data-bugence-id="bugence-1767055655889-z6w2df"></path></svg>
+      </button>
+    </form>
+  </div>
+
+  <!-- toast -->
+  <div id="nl-toast" class="nl-toast" role="status" aria-live="polite" data-bugence-id="bugence-1767055655889-yhy78m"></div>
+</section>
+
+<!-- FOOTER -->
+<footer id="site-footer" class="ft" data-bugence-id="bugence-1767055655889-4ojm03">
+  <!-- top wave accent -->
+  <svg class="ft-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" data-bugence-id="bugence-1767055655889-yilzdv">
+    <path d="M0,40 C180,80 320,0 540,40 C760,80 980,0 1200,40 C1300,60 1400,60 1440,55 L1440,0 L0,0 Z" fill="url(#g)" data-bugence-id="bugence-1767055655889-9w6zdf"></path>
+    <defs data-bugence-id="bugence-1767055655889-rffr94">
+      <linearGradient id="g" x1="0" x2="1" data-bugence-id="bugence-1767055655890-6vmrb9">
+        <stop offset="0%" stop-color="#0ea5e9" data-bugence-id="bugence-1767055655890-jnifvu"></stop>
+        <stop offset="50%" stop-color="#22c55e" data-bugence-id="bugence-1767055655890-y3ah0u"></stop>
+        <stop offset="100%" stop-color="#f59e0b" data-bugence-id="bugence-1767055655890-b8fwfc"></stop>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="ft-wrap" data-bugence-id="bugence-1767055655890-mgpiqm">
+    <!-- Row 1 -->
+    <div class="ft-row ft-row--top" data-bugence-id="bugence-1767055655890-tli32r">
+      <!-- Brand / intro -->
+      <div class="ft-brand" data-bugence-id="bugence-1767055655890-dhpolf">
+        <div class="ft-brand-row" data-bugence-id="bugence-1767055655890-j96ojt">
+          <img class="ft-logo" src="/Img/HighResbugenceSiteLogo.png" alt="bugence Logo" data-bugence-id="bugence-1767055655890-sfot6m">
+          <strong class="ft-name" data-bugence-id="bugence-1767055655890-bk41uu">High-Tech Heroes</strong>
+        </div>
+        <p class="ft-copy" data-bugence-id="bugence-1767055655890-rksth5">
+          Inspiring the next generation to rise with technology, courage, and innovation.
+        </p>
+      </div>
+
+      <!-- Follow Us -->
+      <div class="ft-col" data-bugence-id="bugence-1767055655890-vwi5hq">
+        <h4 class="ft-h" data-bugence-id="bugence-1767055655890-0faaz2">Follow Us</h4>
+        <div class="ft-social" data-bugence-id="bugence-1767055655890-vt96nk">
+          <a href="https://www.youtube.com/@High-Tech-Heroes" aria-label="YouTube" class="ft-soc" data-bugence-id="bugence-1767055655890-79wilg"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767055655890-bimf5z"><path d="M23 7.5a4 4 0 0 0-2.8-2.8C18 4 12 4 12 4s-6 0-8.2.7A4 4 0 0 0 1 7.5 41 41 0 0 0 1 12a41 41 0 0 0 0 4.5 4 4 0 0 0 2.8 2.8C6 20 12 20 12 20s6 0 8.2-.7A4 4 0 0 0 23 16.5 41 41 0 0 0 23 12a41 41 0 0 0 0-4.5zM10 15.5v-7l6 3.5-6 3.5z" fill="currentColor" data-bugence-id="bugence-1767055655890-fl5agc"></path></svg></a>
+          <a href="https://www.facebook.com/share/1Ax87u9vR4/?mibextid=wwXIfr" aria-label="Facebook" class="ft-soc" data-bugence-id="bugence-1767055655890-9bsk4x"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767055655890-w6qyby"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2v-2.3c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2V12h2.3l-.4 3h-1.9v7A10 10 0 0 0 22 12z" fill="currentColor" data-bugence-id="bugence-1767055655890-smno85"></path></svg></a>
+          <a href="https://www.tiktok.com/@hightechheroes" aria-label="TikTok" class="ft-soc" data-bugence-id="bugence-1767055655890-vusvh2"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767055655891-urxthw"><path d="M21 8.2c-1.9 0-3.6-.6-5-1.7v7.3a6.6 6.6 0 1 1-5.6-6.5v3.4a3.3 3.3 0 1 0 2.3 3.1V2h2.8c.3 1.8 1.7 3.2 3.5 3.6V8.2z" fill="currentColor" data-bugence-id="bugence-1767055655891-m5o1aw"></path></svg></a>
+          <a href="https://substack.com/@hightechheroes" aria-label="Substack" class="ft-soc" data-bugence-id="bugence-1767055655891-krusbs"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767055655891-1ig5lc"><path d="M3 5h18v2H3V5zm0 4h18v10l-9-5-9 5V9z" fill="currentColor" data-bugence-id="bugence-1767055655891-oho1lo"></path></svg></a>
+          <a href="https://discord.com/channels/@hightechheroes" aria-label="Discord" class="ft-soc" data-bugence-id="bugence-1767055655891-ecaetp"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767055655891-qah7dr"><path d="M20 5.5A16.6 16.6 0 0 0 15.7 4l-.2.4A13 13 0 0 1 12 4c-1.2 0-2.3.1-3.4.4L8.4 4A16.7 16.7 0 0 0 4 5.6C1.5 9.3 1 12.8 1 16.3c1.4 1.7 4.3 2 4.3 2l.9-1.5s-.4-.2-.9-.5c1.8.4 3.1.4 4.7.2.3 0 .6 0 .9-.1.9.2 1.8.3 2.7.3 1.1 0 2.3-.1 3.6-.4-.5.3-.9.5-.9.5l.9 1.5s2.9-.3 4.3-2c0-3.5-.5-7-3-10.8zM9.5 14c-.8 0-1.5-.8-1.5-1.7 0-1 .7-1.7 1.5-1.7s1.5.8 1.5 1.7S10.3 14 9.5 14zm5 0c-.8 0-1.5-.8-1.5-1.7 0-1 .7-1.7 1.5-1.7s1.5.8 1.5 1.7S15.3 14 14.5 14z" fill="currentColor" data-bugence-id="bugence-1767055655891-a0v5em"></path></svg></a>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="ft-col" data-bugence-id="bugence-1767055655891-g6wer4">
+        <h4 class="ft-h" data-bugence-id="bugence-1767055655891-l4m1j9">Contact</h4>
+        <ul class="ft-list" data-bugence-id="bugence-1767055655891-0t5llc">
+          <li data-bugence-id="bugence-1767055655891-257761">✉️ <a href="mailto:hello@hightechheroes.ai" data-bugence-id="bugence-1767055655891-n8hrv3">hello@hightechheroes.ai</a></li>
+          <li data-bugence-id="bugence-1767055655891-dbv480">🌐 <a href="https://hightechheros.ai" data-bugence-id="bugence-1767055655891-rrg1yt">hightechheros.ai</a></li>
+          <li data-bugence-id="bugence-1767055655891-ulvsaz">📍 Dubai • Silicon Oasis</li>
+        </ul>
+      </div>
+
+      <!-- Services -->
+      <div class="ft-col" data-bugence-id="bugence-1767055655891-04jp2g">
+        <h4 class="ft-h" data-bugence-id="bugence-1767055655891-b8zhao">Our Services</h4>
+        <ul class="ft-list" data-bugence-id="bugence-1767055655891-zcxmtp">
+          <li data-bugence-id="bugence-1767055655891-kr136o">Web &amp; App Solutions</li>
+          <li data-bugence-id="bugence-1767055655891-q7dc46">AI/Agent Systems</li>
+          <li data-bugence-id="bugence-1767055655891-2skyo3">UX/UI &amp; Prototyping</li>
+          <li data-bugence-id="bugence-1767055655891-y6skr9">Data &amp; Dashboards</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Row 2 (map on right) -->
+    <div class="ft-row ft-row--map" data-bugence-id="bugence-1767055655891-x3rbfq">
+      <div class="ft-cta" data-bugence-id="bugence-1767055655892-ahvlma">
+        <h4 class="ft-h" data-bugence-id="bugence-1767055655892-sr9dcs">Let’s build something bold.</h4>
+        <p class="ft-copy" data-bugence-id="bugence-1767055655892-97p70e">Tell us about your idea — we’ll reply within 24 hours.</p>
+        <a class="ft-btn" href="#contact" data-bugence-id="bugence-1767055655892-lkhe0u">Start the conversation</a>
+      </div>
+
+      <div class="ft-map" data-bugence-id="bugence-1767055655892-54vr1l">
+        <iframe title="bugence Location" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Dubai%20Silicon%20Oasis&amp;output=embed" data-bugence-id="bugence-1767055655892-rrvemw" class=""></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="ft-bottom" data-bugence-id="bugence-1767055655892-las4x2">
+    <small data-bugence-id="bugence-1767055655892-gy2nzu">© <span id="year" data-bugence-id="bugence-1767055655892-asid0u">2025</span> High-Tech Heroes. All rights reserved.</small>
+  </div>
+</footer>
+
+<!-- STYLES -->
+<style>
+/* ====== Newsletter (mustard/orange on black) ====== */
+:root{
+  --nl-ink:#0a0a0a;
+  --nl-mustard:#ffb000;
+  --nl-amber:#f59e0b;
+  --nl-orange:#ff6c00;
+  --nl-cream:#fff5e6;
+  --nl-cyan:#22d3ee;
+}
+.nl-section{
+  position:relative; isolation:isolate;
+  padding: clamp(32px,6vw,56px) 1rem;
+  background: #000;              /* page black */
+  overflow: hidden;
+}
+.nl-bg{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(60% 80% at 20% 0%, rgba(255,176,0,.22), transparent 60%),
+    radial-gradient(70% 90% at 100% 100%, rgba(255,108,0,.18), transparent 60%);
+  pointer-events:none;
+}
+.nl-sheen{
+  position:absolute; inset:-100% -40%;
+  background: conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,.0), rgba(255,255,255,.06), rgba(255,255,255,.0) 25%);
+  animation: nl-rotate 14s linear infinite;
+  filter: blur(18px); opacity:.7;
+}
+@keyframes nl-rotate{ to { transform: rotate(360deg);} }
+.nl-orb{ position:absolute; filter: blur(30px); opacity:.4; pointer-events:none;}
+.nl-orb--lt{ width:240px; height:240px; top:-40px; left:-40px; background: radial-gradient(circle, var(--nl-mustard), transparent 60%);}
+.nl-orb--rb{ width:300px; height:300px; right:-60px; bottom:-60px; background: radial-gradient(circle, var(--nl-orange), transparent 60%);}
+
+.nl-wrap{
+  position:relative; z-index:1;
+  max-width: 1100px; margin: 0 auto;
+  display:grid; gap: 18px;
+  grid-template-columns: 1.1fr .9fr;
+  align-items:center;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius: 28px;
+  padding: clamp(18px, 3.5vw, 28px);
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+}
+@media (max-width: 860px){
+  .nl-wrap{ grid-template-columns: 1fr; text-align:center; }
+}
+.nl-left{}
+.nl-title{
+  margin:0 0 6px; color:#fff;
+  font: 800 clamp(22px,3.8vw,36px)/1.15 "Inter", system-ui, sans-serif;
+  letter-spacing:.2px;
+}
+.nl-sub{
+  margin:0; color:#fff; opacity:.85;
+  font: 400 clamp(14px,2.4vw,18px)/1.6 "Inter", system-ui, sans-serif;
+}
+
+/* input + button */
+.nl-form{
+  display:flex; gap:10px; justify-self:end;
+}
+@media (max-width: 860px){ .nl-form{ justify-self:center; width:100%; } }
+@media (max-width: 520px){ .nl-form{ flex-direction:column; } }
+
+.nl-input{
+  position:relative; display:flex; align-items:center;
+  background:#fff; border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.2);
+  padding: 10px 14px 10px 46px;
+  min-width: clamp(220px, 34vw, 380px);
+}
+.nl-input input{
+  border:0; outline:0; width:100%;
+  font: 600 14px/1 "Inter", system-ui, sans-serif; color:var(--nl-ink);
+}
+.nl-input input::placeholder{ color:#6b7280; font-weight:500; }
+.nl-icon{
+  position:absolute; left:12px; top:50%; translate:0 -50%;
+  width:22px; height:22px; color:#0a0a0a;
+}
+
+.nl-btn{
+  appearance:none; border:0; cursor:pointer;
+  display:inline-flex; align-items:center; gap:10px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  color:#111; font: 800 14px/1 "Inter", system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--nl-mustard), var(--nl-orange));
+  box-shadow: 0 14px 28px rgba(255,108,0,.35);
+  transition: transform .18s ease, box-shadow .18s ease, letter-spacing .18s ease;
+}
+.nl-btn:hover{ transform: translateY(-1px); letter-spacing:.2px; box-shadow: 0 18px 40px rgba(255,108,0,.4);}
+.nl-btn:active{ transform: translateY(0); }
+.nl-arrow{ width:18px; height:18px; }
+
+.nl-toast{
+  position: fixed; left: 20px; bottom: 20px; z-index: 60;
+  background: rgba(17,17,17,.95);
+  color:#fff; padding: 10px 14px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 18px 50px rgba(0,0,0,.3);
+  opacity:0; transform: translateY(6px);
+  transition: opacity .18s, transform .18s;
+  pointer-events:none;
+}
+
+/* ====== Footer ====== */
+.ft{ position:relative; background: radial-gradient(1000px 600px at 10% 0%, rgba(34,197,94,.08), transparent 60%), radial-gradient(900px 500px at 96% 100%, rgba(14,165,233,.09), transparent 60%), linear-gradient(180deg, #0b0f14 0%, #06080c 100%); color:#e5eefb; }
+.ft-wave{ width:100%; height: 70px; display:block; }
+.ft-wrap{ width:min(1200px,92%); margin: 0 auto; padding: 10px 0 28px; }
+
+.ft-row{ display:grid; gap: 24px; }
+.ft-row--top{ grid-template-columns: 1.4fr 1fr 1fr 1fr; align-items:start; padding: 10px 0 14px; }
+@media (max-width: 1000px){ .ft-row--top{ grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px){ .ft-row--top{ grid-template-columns: 1fr; } }
+
+.ft-brand-row{ display:flex; align-items:center; gap:10px; }
+.ft-logo{ width:44px; height:44px; border-radius:12px; object-fit:cover; }
+.ft-name{ font:800 18px/1 "Inter",system-ui,sans-serif; letter-spacing:.2px; }
+.ft-copy{ color:#b8c0cc; margin:8px 0 0; max-width: 46ch; }
+
+.ft-col{}
+.ft-h{ margin:0 0 8px; color:#fff; font:700 16px/1 "Inter",system-ui,sans-serif; letter-spacing:.2px; }
+.ft-list{ list-style:none; padding:0; margin:0; }
+.ft-list li{ color:#cdd6e5; margin:.35rem 0; }
+.ft-list a{ color:#9bd3ff; text-decoration:none; }
+.ft-list a:hover{ color:#d1f3ff; text-decoration:underline; }
+
+.ft-social{ display:flex; gap:10px; }
+.ft-soc{
+  display:inline-grid; place-items:center; width:38px; height:38px;
+  border-radius: 999px; color:#0b0f14; background:#eaf2ff;
+  box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.35);
+  transition: transform .16s ease, background .16s ease;
+}
+.ft-soc:hover{ transform: translateY(-2px); background: #fff; }
+.ft-soc svg{ width:20px; height:20px; }
+
+.ft-row--map{
+  grid-template-columns: 1.1fr 1fr; align-items:center;
+  margin: 8px 0 0; gap: 20px;
+}
+@media (max-width: 900px){ .ft-row--map{ grid-template-columns: 1fr; } }
+
+.ft-cta{}
+.ft-btn{
+  display:inline-flex; align-items:center; gap:10px; margin-top:10px;
+  padding:12px 18px; border-radius:14px; color:#0a0a0a; font-weight:800;
+  background: linear-gradient(135deg, #22c55e, #0ea5e9);
+  text-decoration:none; box-shadow: 0 14px 28px rgba(14,165,233,.28);
+}
+.ft-btn:hover{ transform: translateY(-1px); }
+
+.ft-map{ border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.12); box-shadow: 0 18px 50px rgba(0,0,0,.28); }
+.ft-map iframe{ display:block; width:100%; height: 280px; }
+
+.ft-bottom{
+  display:flex; justify-content:center; align-items:center;
+  padding: 14px 10px; border-top: 1px solid rgba(255,255,255,.06);
+  color:#9fb0c6;
+}
+</style>
+
+<!-- SCRIPTS -->
+<script>
+  // Year (fallback if your global script didn't already set it)
+  (function(){
+    var yEl = document.getElementById('year');
+    if(yEl) yEl.textContent = new Date().getFullYear();
+  })();
+
+  // Newsletter submit -> toast (no alert)
+  (function(){
+    const form = document.getElementById('nl-form');
+    const email = document.getElementById('nl-email');
+    const toast = document.getElementById('nl-toast');
+    if(!form || !email || !toast) return;
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(!email.value.trim()) return;
+      showToast("✅ Thanks! You’re on the list.");
+      form.reset();
+    });
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.style.opacity = 0; toast.style.transform = 'translateY(6px)';
+      requestAnimationFrame(()=>{
+        toast.style.opacity = 1; toast.style.transform = 'translateY(0)';
+      });
+      setTimeout(()=>{
+        toast.style.opacity = 0; toast.style.transform = 'translateY(6px)';
+      }, 2600);
+    }
+  })();
+</script>
+
+
+
+<script>
+document.querySelectorAll('.faq-q').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    btn.classList.toggle('open');
+    const a = btn.nextElementSibling;
+    a.style.maxHeight = btn.classList.contains('open') ? a.scrollHeight+'px' : 0;
+  });
+});
+</script>
+
+
+<!-- Visual Studio Browser Link -->
+
+<!-- End Browser Link -->
+
+
+<script>
+  // 3D tilt for community cards
+  (()=>{
+    const cards = document.querySelectorAll('.community-card');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduceMotion) return;
+
+    cards.forEach(card=>{
+      const reset = ()=> card.style.transform = 'perspective(900px) rotateX(0) rotateY(0) translateY(0)';
+      card.addEventListener('mousemove', e=>{
+        const r = card.getBoundingClientRect();
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        const rx = ((y / r.height) - .5) * -6; // tilt up/down
+        const ry = ((x / r.width)  - .5) *  6; // tilt left/right
+        card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+      });
+      card.addEventListener('mouseleave', reset);
+      card.addEventListener('blur', reset, true);
+    });
+  })();
+</script>
+
+
+
+
+
+<form data-bugence-type="form" id="bugence-el-1767055911390-2" data-bugence-id="bugence-1767055911390-l24n82" data-bugence-generated="true" class="">
+                        <div style="display:grid;gap:10px;" class="">
+                            <input type="text" placeholder="Full name" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:inherit;" class="">
+                            <input type="email" placeholder="Email address" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:inherit;" class="">
+                            <textarea rows="4" placeholder="Message" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:inherit;" class=""></textarea>
+                            <button type="button" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:inherit;" class="">Send Message</button>
+                        </div>
+                    <textarea data-bugence-type="textarea" rows="3" placeholder="Textarea" id="bugence-el-1767055962083-3" style="padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); background: transparent; color: inherit;" data-bugence-id="bugence-1767055962083-kybinc" data-bugence-generated="true" class=""></textarea><div data-bugence-type="pricing" id="bugence-el-1767056011788-7" style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 12px;" data-bugence-id="bugence-1767056011788-sqslr8" data-bugence-generated="true" class=""><strong>Starter</strong><div style="font-size:24px;margin:6px 0;" class="">$19</div><div style="opacity:.8;">Best for simple sites.</div><div data-bugence-type="timeline" data-bugence-items="3" id="bugence-el-1767056028639-9" style="display: grid; gap: 12px;" data-bugence-id="bugence-1767056028639-zkmrxj" data-bugence-generated="true" class="">
+                        <div style="display:flex;gap:10px;align-items:flex-start;" class="">
+                            <div style="width:10px;height:10px;border-radius:50%;background:rgba(6,182,212,0.8);margin-top:6px;"></div>
+                            <div><strong>Milestone 1</strong><div style="opacity:.7;">Description text.</div></div>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:flex-start;" class="">
+                            <div style="width:10px;height:10px;border-radius:50%;background:rgba(6,182,212,0.5);margin-top:6px;"></div>
+                            <div class=""><strong>Milestone 2</strong><div style="opacity:.7;" class="">Description text.</div></div>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:flex-start;" class="">
+                            <div style="width:10px;height:10px;border-radius:50%;background:rgba(6,182,212,0.3);margin-top:6px;"></div>
+                            <div><strong>Milestone 3</strong><div style="opacity:.7;">Description text.</div></div>
+                        </div>
+                    <div data-bugence-type="portfolio" data-bugence-layout="cards" data-bugence-items="6" data-bugence-cols="3" id="bugence-el-1767056038811-10" style="display: grid; grid-template-columns: repeat(3, minmax(0px, 1fr)); gap: 14px;" data-bugence-id="bugence-1767056038811-ldyp7o" data-bugence-generated="true"><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);" class="">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);" class="">Image</div>
+                            <div style="font-weight:600;">Project Title 1</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Short description goes here.</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);">Image</div>
+                            <div style="font-weight:600;">Project Title 2</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Short description goes here.</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);">Image</div>
+                            <div style="font-weight:600;">Project Title 3</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Short description goes here.</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);" class="">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);" class="">Image</div>
+                            <div style="font-weight:600;" class="">Project Title 4</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;" class="">Short description goes here.</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);">Image</div>
+                            <div style="font-weight:600;">Project Title 5</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Short description goes here.</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);">Image</div>
+                            <div style="font-weight:600;">Project Title 6</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Short description goes here.</div>
+                        </div></div></div><div data-bugence-type="team" data-bugence-layout="cards" data-bugence-items="6" data-bugence-cols="3" id="bugence-el-1767056045270-11" style="display: grid; grid-template-columns: repeat(3, minmax(0px, 1fr)); gap: 14px;" data-bugence-id="bugence-1767056045270-taf2tc" data-bugence-generated="true" class=""><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);" class="">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);" class="">Image</div>
+                            <div style="font-weight:600;">Team Member 1</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Product Lead</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);">Image</div>
+                            <div style="font-weight:600;">Team Member 2</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Product Lead</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);">Image</div>
+                            <div style="font-weight:600;">Team Member 3</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Product Lead</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);" class="">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);" class="">Image</div>
+                            <div style="font-weight:600;">Team Member 4</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Product Lead</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);">Image</div>
+                            <div style="font-weight:600;">Team Member 5</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Product Lead</div>
+                        </div><div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 12px; background: rgba(10, 10, 10, 0.6);">
+                            <div style="height:120px;border-radius:10px;background:rgba(255,255,255,0.08);margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.4);">Image</div>
+                            <div style="font-weight:600;">Team Member 6</div>
+                            <div style="font-size:12px;opacity:.7;margin-top:4px;">Product Lead</div>
+                        </div><nav data-bugence-type="menu" data-bugence-items="4" id="bugence-el-1767056048818-12" data-bugence-id="bugence-1767056048818-8nj7gw" data-bugence-generated="true"><ul style="display: inline-flex; gap: 16px; list-style: none; padding: 0px; margin: 0px;"><li><a href="#" style="text-decoration:none;color:inherit;">Home</a></li><li><a href="#" style="text-decoration:none;color:inherit;">Features</a></li><li><a href="#" style="text-decoration:none;color:inherit;">Pricing</a></li><li><a href="#" style="text-decoration:none;color:inherit;">Contact</a></li></ul></nav></div></div><div data-bugence-type="tabs" id="bugence-el-1767055984824-4" data-bugence-id="bugence-1767055984824-8fcgge" data-bugence-generated="true" data-bugence-active-tab="tab-1" class="">
+                        <div data-bugence-tabs="buttons" style="display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:8px;" class="">
+                            <button type="button" data-tab-id="tab-1" style="color-scheme: unset; forced-color-adjust: unset; mask: unset; math-depth: unset; position: unset; position-anchor: unset; text-size-adjust: unset; appearance: unset; color: unset; font: unset; font-palette: unset; font-synthesis: unset; position-area: unset; text-orientation: unset; text-rendering: unset; text-spacing-trim: unset; -webkit-font-smoothing: unset; -webkit-locale: unset; -webkit-text-orientation: unset; -webkit-writing-mode: unset; writing-mode: unset; zoom: unset; accent-color: unset; place-content: unset; place-items: unset; place-self: unset; alignment-baseline: unset; anchor-name: unset; anchor-scope: unset; animation-composition: unset; animation: unset; app-region: unset; aspect-ratio: unset; backdrop-filter: unset; backface-visibility: unset; background: rgba(255, 255, 255, 0.08); background-blend-mode: unset; baseline-shift: unset; baseline-source: unset; block-size: unset; border-block: unset; border: unset; border-radius: 8px; border-collapse: unset; border-end-end-radius: unset; border-end-start-radius: unset; border-inline: unset; border-start-end-radius: unset; border-start-start-radius: unset; inset: unset; box-decoration-break: unset; box-shadow: unset; box-sizing: unset; break-after: unset; break-before: unset; break-inside: unset; buffered-rendering: unset; caption-side: unset; caret-animation: unset; caret-color: unset; clear: unset; clip: unset; clip-path: unset; clip-rule: unset; color-interpolation: unset; color-interpolation-filters: unset; color-rendering: unset; columns: unset; column-fill: unset; gap: unset; column-rule: unset; column-span: unset; contain: unset; contain-intrinsic-block-size: unset; contain-intrinsic-size: unset; contain-intrinsic-inline-size: unset; container: unset; content: unset; content-visibility: unset; corner-shape: unset; corner-block-end-shape: unset; corner-block-start-shape: unset; counter-increment: unset; counter-reset: unset; counter-set: unset; cursor: pointer; cx: unset; cy: unset; d: unset; display: unset; dominant-baseline: unset; dynamic-range-limit: unset; empty-cells: unset; field-sizing: unset; fill: unset; fill-opacity: unset; fill-rule: unset; filter: unset; flex: unset; flex-flow: unset; float: unset; flood-color: unset; flood-opacity: unset; grid: unset; grid-area: unset; height: unset; hyphenate-character: unset; hyphenate-limit-chars: unset; hyphens: unset; image-orientation: unset; image-rendering: unset; initial-letter: unset; inline-size: unset; inset-block: unset; inset-inline: unset; interest-delay: unset; interpolate-size: unset; isolation: unset; letter-spacing: unset; lighting-color: unset; line-break: unset; list-style: unset; margin-block: unset; margin: unset; margin-inline: unset; marker: unset; mask-type: unset; math-shift: unset; math-style: unset; max-block-size: unset; max-height: unset; max-inline-size: unset; max-width: unset; min-block-size: unset; min-height: unset; min-inline-size: unset; min-width: unset; mix-blend-mode: unset; object-fit: unset; object-position: unset; object-view-box: unset; offset: unset; opacity: 1; order: unset; orphans: unset; outline: unset; outline-offset: unset; overflow-anchor: unset; overflow-block: unset; overflow-clip-margin: unset; overflow-inline: unset; overflow-wrap: unset; overflow: unset; overlay: unset; overscroll-behavior-block: unset; overscroll-behavior-inline: unset; overscroll-behavior: unset; padding-block: unset; padding: 6px 10px; padding-inline: unset; page: unset; page-orientation: unset; paint-order: unset; perspective: unset; perspective-origin: unset; pointer-events: unset; position-try: unset; position-visibility: unset; print-color-adjust: unset; quotes: unset; r: unset; reading-flow: unset; reading-order: unset; resize: unset; rotate: unset; ruby-align: unset; ruby-position: unset; rx: unset; ry: unset; scale: unset; scroll-behavior: unset; scroll-initial-target: unset; scroll-margin-block: unset; scroll-margin: unset; scroll-margin-inline: unset; scroll-marker-group: unset; scroll-padding-block: unset; scroll-padding: unset; scroll-padding-inline: unset; scroll-snap-align: unset; scroll-snap-stop: unset; scroll-snap-type: unset; scroll-target-group: unset; scroll-timeline: unset; scrollbar-color: unset; scrollbar-gutter: unset; scrollbar-width: unset; shape-image-threshold: unset; shape-margin: unset; shape-outside: unset; shape-rendering: unset; size: unset; speak: unset; stop-color: unset; stop-opacity: unset; stroke: unset; stroke-dasharray: unset; stroke-dashoffset: unset; stroke-linecap: unset; stroke-linejoin: unset; stroke-miterlimit: unset; stroke-opacity: unset; stroke-width: unset; tab-size: unset; table-layout: unset; text-align: unset; text-align-last: unset; text-anchor: unset; text-autospace: unset; text-box: unset; text-combine-upright: unset; text-decoration: unset; text-decoration-skip-ink: unset; text-emphasis: unset; text-emphasis-position: unset; text-indent: unset; text-overflow: unset; text-shadow: unset; text-transform: unset; text-underline-offset: unset; text-underline-position: unset; text-wrap: unset; timeline-scope: unset; touch-action: unset; transform: unset; transform-box: unset; transform-origin: unset; transform-style: unset; transition: unset; translate: unset; user-select: unset; vector-effect: unset; vertical-align: unset; view-timeline: unset; view-transition-class: unset; view-transition-group: unset; view-transition-name: unset; visibility: unset; border-spacing: unset; -webkit-box-align: unset; -webkit-box-decoration-break: unset; -webkit-box-direction: unset; -webkit-box-flex: unset; -webkit-box-ordinal-group: unset; -webkit-box-orient: unset; -webkit-box-pack: unset; -webkit-box-reflect: unset; -webkit-line-break: unset; -webkit-line-clamp: unset; -webkit-mask-box-image: unset; -webkit-rtl-ordering: unset; -webkit-ruby-position: unset; -webkit-tap-highlight-color: unset; -webkit-text-combine: unset; -webkit-text-decorations-in-effect: unset; -webkit-text-fill-color: unset; -webkit-text-security: unset; -webkit-text-stroke: unset; -webkit-user-drag: unset; white-space-collapse: unset; widows: unset; width: unset; will-change: unset; word-break: unset; word-spacing: unset; x: unset; y: unset; z-index: unset;" class="">Tab 1</button>
+                            <button type="button" data-tab-id="tab-2" style="color-scheme: unset; forced-color-adjust: unset; mask: unset; math-depth: unset; position: unset; position-anchor: unset; text-size-adjust: unset; appearance: unset; color: unset; font: unset; font-palette: unset; font-synthesis: unset; position-area: unset; text-orientation: unset; text-rendering: unset; text-spacing-trim: unset; -webkit-font-smoothing: unset; -webkit-locale: unset; -webkit-text-orientation: unset; -webkit-writing-mode: unset; writing-mode: unset; zoom: unset; accent-color: unset; place-content: unset; place-items: unset; place-self: unset; alignment-baseline: unset; anchor-name: unset; anchor-scope: unset; animation-composition: unset; animation: unset; app-region: unset; aspect-ratio: unset; backdrop-filter: unset; backface-visibility: unset; background: transparent; background-blend-mode: unset; baseline-shift: unset; baseline-source: unset; block-size: unset; border-block: unset; border: unset; border-radius: 8px; border-collapse: unset; border-end-end-radius: unset; border-end-start-radius: unset; border-inline: unset; border-start-end-radius: unset; border-start-start-radius: unset; inset: unset; box-decoration-break: unset; box-shadow: unset; box-sizing: unset; break-after: unset; break-before: unset; break-inside: unset; buffered-rendering: unset; caption-side: unset; caret-animation: unset; caret-color: unset; clear: unset; clip: unset; clip-path: unset; clip-rule: unset; color-interpolation: unset; color-interpolation-filters: unset; color-rendering: unset; columns: unset; column-fill: unset; gap: unset; column-rule: unset; column-span: unset; contain: unset; contain-intrinsic-block-size: unset; contain-intrinsic-size: unset; contain-intrinsic-inline-size: unset; container: unset; content: unset; content-visibility: unset; corner-shape: unset; corner-block-end-shape: unset; corner-block-start-shape: unset; counter-increment: unset; counter-reset: unset; counter-set: unset; cursor: pointer; cx: unset; cy: unset; d: unset; display: unset; dominant-baseline: unset; dynamic-range-limit: unset; empty-cells: unset; field-sizing: unset; fill: unset; fill-opacity: unset; fill-rule: unset; filter: unset; flex: unset; flex-flow: unset; float: unset; flood-color: unset; flood-opacity: unset; grid: unset; grid-area: unset; height: unset; hyphenate-character: unset; hyphenate-limit-chars: unset; hyphens: unset; image-orientation: unset; image-rendering: unset; initial-letter: unset; inline-size: unset; inset-block: unset; inset-inline: unset; interest-delay: unset; interpolate-size: unset; isolation: unset; letter-spacing: unset; lighting-color: unset; line-break: unset; list-style: unset; margin-block: unset; margin: unset; margin-inline: unset; marker: unset; mask-type: unset; math-shift: unset; math-style: unset; max-block-size: unset; max-height: unset; max-inline-size: unset; max-width: unset; min-block-size: unset; min-height: unset; min-inline-size: unset; min-width: unset; mix-blend-mode: unset; object-fit: unset; object-position: unset; object-view-box: unset; offset: unset; opacity: 0.7; order: unset; orphans: unset; outline: unset; outline-offset: unset; overflow-anchor: unset; overflow-block: unset; overflow-clip-margin: unset; overflow-inline: unset; overflow-wrap: unset; overflow: unset; overlay: unset; overscroll-behavior-block: unset; overscroll-behavior-inline: unset; overscroll-behavior: unset; padding-block: unset; padding: 6px 10px; padding-inline: unset; page: unset; page-orientation: unset; paint-order: unset; perspective: unset; perspective-origin: unset; pointer-events: unset; position-try: unset; position-visibility: unset; print-color-adjust: unset; quotes: unset; r: unset; reading-flow: unset; reading-order: unset; resize: unset; rotate: unset; ruby-align: unset; ruby-position: unset; rx: unset; ry: unset; scale: unset; scroll-behavior: unset; scroll-initial-target: unset; scroll-margin-block: unset; scroll-margin: unset; scroll-margin-inline: unset; scroll-marker-group: unset; scroll-padding-block: unset; scroll-padding: unset; scroll-padding-inline: unset; scroll-snap-align: unset; scroll-snap-stop: unset; scroll-snap-type: unset; scroll-target-group: unset; scroll-timeline: unset; scrollbar-color: unset; scrollbar-gutter: unset; scrollbar-width: unset; shape-image-threshold: unset; shape-margin: unset; shape-outside: unset; shape-rendering: unset; size: unset; speak: unset; stop-color: unset; stop-opacity: unset; stroke: unset; stroke-dasharray: unset; stroke-dashoffset: unset; stroke-linecap: unset; stroke-linejoin: unset; stroke-miterlimit: unset; stroke-opacity: unset; stroke-width: unset; tab-size: unset; table-layout: unset; text-align: unset; text-align-last: unset; text-anchor: unset; text-autospace: unset; text-box: unset; text-combine-upright: unset; text-decoration: unset; text-decoration-skip-ink: unset; text-emphasis: unset; text-emphasis-position: unset; text-indent: unset; text-overflow: unset; text-shadow: unset; text-transform: unset; text-underline-offset: unset; text-underline-position: unset; text-wrap: unset; timeline-scope: unset; touch-action: unset; transform: unset; transform-box: unset; transform-origin: unset; transform-style: unset; transition: unset; translate: unset; user-select: unset; vector-effect: unset; vertical-align: unset; view-timeline: unset; view-transition-class: unset; view-transition-group: unset; view-transition-name: unset; visibility: unset; border-spacing: unset; -webkit-box-align: unset; -webkit-box-decoration-break: unset; -webkit-box-direction: unset; -webkit-box-flex: unset; -webkit-box-ordinal-group: unset; -webkit-box-orient: unset; -webkit-box-pack: unset; -webkit-box-reflect: unset; -webkit-line-break: unset; -webkit-line-clamp: unset; -webkit-mask-box-image: unset; -webkit-rtl-ordering: unset; -webkit-ruby-position: unset; -webkit-tap-highlight-color: unset; -webkit-text-combine: unset; -webkit-text-decorations-in-effect: unset; -webkit-text-fill-color: unset; -webkit-text-security: unset; -webkit-text-stroke: unset; -webkit-user-drag: unset; white-space-collapse: unset; widows: unset; width: unset; will-change: unset; word-break: unset; word-spacing: unset; x: unset; y: unset; z-index: unset;" class="">Tab 2</button>
+                        </div>
+                        <div data-bugence-tabs="panes" style="margin-top:10px;">
+                            <div data-tab-id="tab-1" style="opacity: 0.8; display: block;" class="">Tab 1 content goes here.</div>
+                            <div data-tab-id="tab-2" style="opacity:.8;display:none;">Tab 2 content goes here.</div>
+                        </div>
+                    <div data-bugence-type="testimonial" id="bugence-el-1767056005409-6" style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 12px;" data-bugence-id="bugence-1767056005409-oys6sv" data-bugence-generated="true" class=""><div style="opacity:.8;" class="">“A standout experience with clear results.”</div><div style="margin-top:8px;font-weight:600;" class="">— Alex Rivera</div><nav data-bugence-type="pagination" data-bugence-items="5" id="bugence-el-1767056058313-13" data-bugence-id="bugence-1767056058313-5rmfn4" data-bugence-generated="true"><ul style="display: inline-flex; gap: 8px; list-style: none; padding: 0px; margin: 0px;" class=""><li><a href="#" style="display:inline-flex;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);text-decoration:none;color:inherit;" class="">Prev</a></li><li><a href="#" style="display:inline-flex;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);text-decoration:none;color:inherit;" class="">1</a></li><li><a href="#" style="display:inline-flex;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);text-decoration:none;color:inherit;">2</a></li><li class=""><a href="#" style="display:inline-flex;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);text-decoration:none;color:inherit;" class="">3</a></li><li><a href="#" style="display:inline-flex;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);text-decoration:none;color:inherit;" class="">Next</a></li></ul></nav><div data-bugence-type="reviews" data-bugence-items="5" data-bugence-value="5" id="bugence-el-1767056066146-15" data-bugence-id="bugence-1767056066146-zqcedy" data-bugence-generated="true" class="">
+                        <span style="color:#facc15;">★★★★★</span>
+                        <span style="opacity:.7;margin-left:6px;" class="">4.9 (124 reviews)</span>
+                    </div><iframe data-bugence-type="map" loading="lazy" src="https://www.google.com/maps?q=Dubai%20Silicon%20Oasis&amp;z=12&amp;output=embed" id="bugence-el-1767056070655-16" style="width: 100%; height: 280px; border: 0px;" data-bugence-id="bugence-1767056070655-xz3ha1" data-bugence-generated="true" class=""></iframe></div><div data-bugence-type="progress" id="bugence-el-1767056021164-8" data-bugence-id="bugence-1767056021164-sdavt2" data-bugence-generated="true">
+                        <div style="font-size:12px;opacity:.7;margin-bottom:6px;" class="">Progress</div>
+                        <div style="height:8px;border-radius:999px;background:rgba(255,255,255,0.12);overflow:hidden;">
+                            <div style="width:65%;height:100%;background:rgba(6,182,212,0.8);"></div>
+                        </div>
+                    </div><div data-bugence-type="search" id="bugence-el-1767056061965-14" data-bugence-id="bugence-1767056061965-67j76t" data-bugence-generated="true">
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="search" placeholder="Search..." style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:inherit;" class="">
+                            <button type="button" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:inherit;">Go</button>
+                        </div>
+                    </div></div><div data-bugence-type="faq" id="bugence-el-1767055999649-5" data-bugence-id="bugence-1767055999649-o0zis1" data-bugence-generated="true">
+                        <div style="border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px;margin-bottom:8px;" class="">
+                            <strong>Question 1</strong>
+                            <div style="opacity:.8;margin-top:6px;" class="">Answer text goes here.</div>
+                        </div>
+                        <div style="border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px;" class="">
+                            <strong>Question 2</strong>
+                            <div style="opacity:.8;margin-top:6px;" class="">Answer text goes here.</div>
+                        </div>
+                    </div><button data-bugence-type="cart-button" type="button" id="bugence-el-1767056117712-17" data-bugence-id="bugence-1767056117712-1vvu8b" data-bugence-generated="true"><i class="fa-solid fa-cart-plus" style="margin-right:6px;"></i>Add to Cart</button></form><div data-bugence-type="shape" id="bugence-el-1767056128480-18" style="width: 80px; height: 80px; border-radius: 12px; background: rgba(6, 182, 212, 0.2);" data-bugence-id="bugence-1767056128480-yysymt" data-bugence-generated="true"></div><div data-bugence-type="shape" id="bugence-el-1767056130083-19" style="width: 80px; height: 80px; border-radius: 12px; background: rgba(6, 182, 212, 0.2);" data-bugence-id="bugence-1767056130083-wxxyy9" data-bugence-generated="true" class=""></div><div data-bugence-type="shape" id="bugence-el-1767056133308-20" style="width: 80px; height: 80px; border-radius: 12px; background: rgba(6, 182, 212, 0.2);" data-bugence-id="bugence-1767056133308-s1yhg8" data-bugence-generated="true"></div><table data-bugence-type="table" data-bugence-items="4" data-bugence-cols="3" id="bugence-el-1767056139025-21" style="width: 100%; border-collapse: collapse;" data-bugence-id="bugence-1767056139025-yqz9yo" data-bugence-generated="true"><tbody><tr><th style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;" class="">Header</th><th style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Header</th><th style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Header</th></tr><tr><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Row 1</td><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Value</td><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Value</td></tr><tr><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;" class="">Row 2</td><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Value</td><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Value</td></tr><tr><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;" class="">Row 3</td><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Value</td><td style="border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px;">Value</td></tr></tbody></table><div data-bugence-type="shape" data-bugence-shape="circle" id="bugence-el-1767056155024-22" style="width: 140px; height: 140px; border-radius: 999px; background: radial-gradient(circle at center top, rgba(255, 255, 255, 0.25), rgba(6, 182, 212, 0.2)); border: 1px solid rgba(255, 255, 255, 0.18);" data-bugence-id="bugence-1767056155024-uiyoro" data-bugence-generated="true" class=""></div><div data-bugence-type="shape" data-bugence-shape="line" id="bugence-el-1767056159290-23" style="width: 220px; height: 8px; border-radius: 999px; background: rgba(6, 182, 212, 0.7); box-shadow: rgba(6, 182, 212, 0.35) 0px 0px 16px;" data-bugence-id="bugence-1767056159290-ov8db6" data-bugence-generated="true"></div><div data-bugence-type="shape" data-bugence-shape="arrow" id="bugence-el-1767056161299-24" data-bugence-id="bugence-1767056161299-kxim8g" data-bugence-generated="true" class="">
+                        <svg viewBox="0 0 220 60" width="220" height="60" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="bugence-arrow" x1="0" x2="1" y1="0" y2="0">
+                                    <stop offset="0%" stop-color="#22d3ee"></stop>
+                                    <stop offset="100%" stop-color="#3b82f6"></stop>
+                                </linearGradient>
+                            </defs>
+                            <path d="M10 30h160l-14-14 6-6 28 28-28 28-6-6 14-14H10z" fill="url(#bugence-arrow)"></path>
+                        </svg>
+                    </div><section data-bugence-type="section" id="bugence-el-1767056165724-25" style="padding: 24px; border: 1px dashed rgba(255, 255, 255, 0.25); border-radius: 16px;" data-bugence-id="bugence-1767056165724-qcstm2" data-bugence-generated="true" class=""><div data-bugence-dropzone="true" style="min-height: 180px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 12px;" class=""><span style="font-size:12px;" data-bugence-id="bugence-1767056165879-ka4bzj" class="">Drop widgets here</span></div></section><div data-bugence-type="container" id="bugence-el-1767056167708-26" style="padding: 16px; border: 1px dashed rgba(255, 255, 255, 0.3); border-radius: 12px;" data-bugence-id="bugence-1767056167708-xfjqte" data-bugence-generated="true" class=""><div data-bugence-dropzone="true" style="min-height: 140px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 10px;" class=""><span style="font-size:12px;">Drop widgets here</span></div></div><div data-bugence-type="grid" id="bugence-el-1767056171457-27" style="display: grid; grid-template-columns: repeat(6, minmax(0px, 1fr)); gap: 14px; padding: 10px; border: 1px dashed rgba(255, 255, 255, 0.25); border-radius: 14px;" data-bugence-id="bugence-1767056171457-pknvps" data-bugence-generated="true" class=""><div data-bugence-dropzone="true" style="min-height: 140px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); padding: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 10px;" class=""><span style="font-size:12px;">Drop widget</span></div><div data-bugence-dropzone="true" style="min-height: 140px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); padding: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 10px;" class=""><span style="font-size:12px;" class="">Drop widget</span></div><div data-bugence-dropzone="true" style="min-height: 140px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); padding: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 10px;" class=""><span style="font-size:12px;" class="">Drop widget</span></div><div data-bugence-dropzone="true" style="min-height: 140px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); padding: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 10px;"><span style="font-size:12px;">Drop widget</span></div><div data-bugence-dropzone="true" style="min-height: 140px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); padding: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 10px;"><span style="font-size:12px;">Drop widget</span></div><div data-bugence-dropzone="true" style="min-height: 140px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); padding: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 10px;"><span style="font-size:12px;">Drop widget</span></div></div><div data-bugence-type="stack" id="bugence-el-1767056177465-28" style="display: flex; flex-direction: column; gap: 12px; padding: 12px; border: 1px dashed rgba(255, 255, 255, 0.25); border-radius: 12px;" data-bugence-id="bugence-1767056177465-igqm1f" data-bugence-generated="true" class=""><div data-bugence-dropzone="true" style="min-height: 120px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.5); border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 8px;" class=""><span style="font-size:12px;">Stack drop zone</span></div></div><hr id="bugence-el-1767056180818-29" style="border-top: 1px solid rgba(255, 255, 255, 0.2); border-right: none; border-bottom: none; border-left: none; border-image: initial; margin: 16px 0px;" data-bugence-id="bugence-1767056180818-46w1e6" data-bugence-generated="true"><div id="bugence-el-1767056184609-30" style="height: 40px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 8px; opacity: 0.6;" data-bugence-id="bugence-1767056184609-ff4vui" data-bugence-generated="true" class="bugence-editor-grab"></div></body></html>

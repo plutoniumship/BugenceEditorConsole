@@ -1,0 +1,637 @@
+@page
+@model BugenceEditConsole.Pages.Tools.ReactBuilderModel
+@{
+    ViewData["Title"] = "ReactBuilder";
+    ViewData["BodyClass"] = "page-tools-reactbuilder-custom";
+
+    var canManage = Model.CanManage;
+}
+
+@section Head {
+<style>
+    :root { --bg:#050505; --surface:#0b0d10; --border:rgba(148,163,184,.18); --text:#f8fafc; --muted:#94a3b8; --accent:#22d3ee; --danger:#ef4444; }
+    * { box-sizing:border-box; }
+    body { margin:0; background: radial-gradient(circle at 0% 0%, rgba(34,211,238,.08), transparent 34%), var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
+    .shell { display:flex; width:100%; }
+    aside { width:260px; flex-shrink:0; background:#050505; border-right:1px solid rgba(255,255,255,.08); padding:24px; overflow:auto; }
+    .brand { font-family:'Cabinet Grotesk',sans-serif; color:#fff; text-decoration:none; display:flex; gap:10px; align-items:center; font-weight:800; margin-bottom:24px; }
+    .menu-cat { font-size:.72rem; color:#4b5563; text-transform:uppercase; letter-spacing:1px; margin:12px 0 6px 10px; font-weight:700; }
+    .nav-item { display:flex; gap:12px; align-items:center; padding:10px 14px; border-radius:10px; color:#9ca3af; text-decoration:none; font-weight:600; margin-bottom:2px; }
+    .nav-item:hover { background:rgba(255,255,255,.04); color:#fff; }
+    .nav-item.active { background:rgba(34,211,238,.14); color:var(--accent); }
+    .profile { margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.08); }
+    main { flex:1; overflow:auto; padding:34px; }
+    .header { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .header h1 { margin:0; font-family:'Cabinet Grotesk',sans-serif; font-size:2.3rem; }
+    .header p { margin:6px 0 0; color:var(--muted); }
+    .btn { border:1px solid var(--border); background:rgba(255,255,255,.04); color:#e2e8f0; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; }
+    .btn:hover { border-color:#67e8f9; color:#fff; }
+    .btn.primary { background:linear-gradient(135deg,#06b6d4,#22d3ee); color:#052026; border:none; }
+    .btn.primary:hover { filter:brightness(1.04); }
+    .toolbar { margin:18px 0; display:flex; justify-content:space-between; gap:10px; }
+    .search { width:min(360px,100%); background:#080b10; border:1px solid var(--border); color:#e2e8f0; border-radius:10px; padding:10px 12px; }
+    .table-wrap { border:1px solid var(--border); border-radius:16px; overflow:hidden; background:linear-gradient(180deg,rgba(8,11,15,.98),rgba(4,6,10,.98)); }
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; font-size:.72rem; text-transform:uppercase; color:#94a3b8; letter-spacing:1px; padding:14px; border-bottom:1px solid var(--border); }
+    td { padding:14px; border-bottom:1px solid rgba(148,163,184,.14); }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(255,255,255,.02); }
+    .mono { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.78rem; color:#cbd5e1; }
+    .muted { color:var(--muted); }
+    .name-btn { background:none; border:none; color:#67e8f9; cursor:pointer; font:inherit; padding:0; font-weight:700; }
+    .name-btn:hover { text-decoration:underline; }
+    .actions { display:flex; gap:6px; justify-content:flex-end; }
+    .icon-btn { width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:transparent; color:#cbd5e1; cursor:pointer; }
+    .icon-btn:hover { border-color:#fff; color:#fff; }
+    .icon-btn.delete:hover { color:#fca5a5; border-color:#f87171; }
+    .drawer { position:fixed; inset:0; display:none; z-index:200; }
+    .drawer.show { display:flex; }
+    .backdrop { flex:1; background:rgba(2,6,23,.7); }
+    .panel { width:min(560px,95vw); background:#05070b; border-left:1px solid var(--border); padding:18px; overflow:auto; }
+    .section { border:1px solid rgba(148,163,184,.2); border-radius:12px; background:#090c12; padding:12px; margin-top:12px; }
+    .section h4 { margin:0 0 8px; font-size:.9rem; }
+    .grid { display:grid; gap:10px; }
+    .grid.two { grid-template-columns:1fr 1fr; }
+    .input, select, textarea { width:100%; background:#06080d; color:#e2e8f0; border:1px solid rgba(148,163,184,.24); border-radius:10px; padding:10px 12px; font:inherit; }
+    textarea { min-height:80px; resize:vertical; }
+    .status { margin-top:8px; color:#94a3b8; font-size:.86rem; }
+    .footer { margin-top:12px; display:flex; justify-content:flex-end; gap:8px; }
+    .pagination { display:flex; align-items:center; gap:8px; margin-top:16px; justify-content:flex-end; }
+    .page-btn { background:rgba(255,255,255,.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .page-btn:disabled { opacity:.45; cursor:not-allowed; }
+    .page-info { color:var(--muted); font-size:.85rem; }
+    .confirm-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:220; }
+    .confirm-modal.show { display:flex; }
+    .confirm-card { width:min(420px,92vw); background:#0b0e14; border:1px solid rgba(148,163,184,.2); border-radius:16px; padding:20px; box-shadow:0 30px 60px rgba(0,0,0,.5); }
+    .confirm-card h4 { margin:0 0 6px; font-family:'Cabinet Grotesk',sans-serif; }
+    .confirm-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+    @@media (max-width:900px){ aside{display:none;} main{padding:18px;} }
+</style>
+}
+
+<div class="header">
+    <div>
+        <h1>React Builder</h1>
+        <p>Build modular React experiences and map slots for portal page rendering.</p>
+    </div>
+    @if (canManage)
+    {
+        <button class="btn primary" id="openDrawer"><i class="fa-solid fa-plus"></i> New Builder</button>
+    }
+</div>
+
+<div class="toolbar">
+    <input class="search" id="search" placeholder="Search by name, id, dguid..." />
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+        <tr>
+            <th style="width:8%">ID</th>
+            <th style="width:22%">Name</th>
+            <th style="width:19%">DGUID</th>
+            <th style="width:16%">Entry File</th>
+            <th style="width:10%">Linked Pages</th>
+            <th style="width:13%">Updated</th>
+            <th style="width:12%; text-align:right">Actions</th>
+        </tr>
+        </thead>
+        <tbody id="builderTableBody">
+        @if (Model.ReactBuilders.Count == 0)
+        {
+            <tr><td colspan="7" class="muted" data-empty-row="1" style="padding:26px;text-align:center;">No React builders yet.</td></tr>
+        }
+        else
+        {
+            foreach (var b in Model.ReactBuilders)
+            {
+                <tr data-id="@b.Id"
+                    data-search="@($"{b.Id} {b.Name} {b.Dguid} {b.EntryFilePath}".ToLowerInvariant())"
+                    data-row-json="@System.Text.Json.JsonSerializer.Serialize(new { id = b.Id, dguid = b.Dguid, name = b.Name, description = b.Description, entryFilePath = b.EntryFilePath, isActive = b.IsActive, linkedPagesCount = b.LinkedPagesCount, previewMasterpageId = b.PreviewMasterpageId, updatedAtUtc = b.UpdatedAtUtc })">
+                    <td><strong>#@b.Id</strong></td>
+                    <td><button class="name-btn open-editor" data-id="@b.Id">@b.Name</button></td>
+                    <td class="mono">@b.Dguid</td>
+                    <td class="mono">@b.EntryFilePath</td>
+                    <td class="muted">@b.LinkedPagesCount</td>
+                    <td class="muted">@b.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</td>
+                    <td style="text-align:right;">
+                        @if (canManage)
+                        {
+                            <div class="actions">
+                                <button class="icon-btn edit" type="button" data-id="@b.Id" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                                <button class="icon-btn delete" type="button" data-id="@b.Id" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="muted">-</span>
+                        }
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="pagination" id="builderPagination" style="display:none;">
+    <button class="page-btn" id="prevPage">Previous</button>
+    <span class="page-info" id="pageInfo">Page 1 of 1</span>
+    <button class="page-btn" id="nextPage">Next</button>
+</div>
+
+<div class="drawer" id="builderCreateDrawer" aria-hidden="true">
+    <div class="backdrop" data-drawer-close></div>
+    <div class="panel">
+        <div class="header">
+            <div>
+                <h2 style="margin:0;font-size:1.35rem;">Create Builder</h2>
+                <p class="muted" style="margin:6px 0 0;">Create a modular React builder workspace.</p>
+            </div>
+            <button class="btn" type="button" data-drawer-close>Close</button>
+        </div>
+
+        <div class="section">
+            <h4>Identity</h4>
+            <div class="grid two">
+                <div><label>ID</label><div class="status" id="builderCreateId">-</div></div>
+                <div><label>DGUID</label><div class="status mono" id="builderCreateDguid">-</div></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>Builder Details</h4>
+            <div class="grid">
+                <div><label>Name</label><input class="input" id="builderCreateName" placeholder="Builder name" /></div>
+                <div><label>Description</label><textarea id="builderCreateDescription" placeholder="Optional description"></textarea></div>
+                <div><label>Entry File Path</label><input class="input mono" id="builderCreateEntryFilePath" value="App.jsx" /></div>
+                <div><label>Preview Masterpage Id (optional)</label><input class="input" id="builderCreatePreviewMasterpageId" type="number" /></div>
+                <label style="display:flex;align-items:center;gap:8px;"><input id="builderCreateIsActive" type="checkbox" checked /> Active</label>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button class="btn" type="button" data-drawer-close>Cancel</button>
+            <button class="btn primary" type="button" id="builderCreateSubmit">Create Builder</button>
+        </div>
+    </div>
+</div>
+
+<div class="drawer" id="builderEditDrawer" aria-hidden="true">
+    <div class="backdrop" data-drawer-close></div>
+    <div class="panel">
+        <div class="header">
+            <div>
+                <h2 style="margin:0;font-size:1.35rem;">Edit Builder</h2>
+                <p class="muted" style="margin:6px 0 0;">Update builder metadata and entry file.</p>
+            </div>
+            <button class="btn" type="button" data-drawer-close>Close</button>
+        </div>
+
+        <div class="section">
+            <h4>Identity</h4>
+            <div class="grid two">
+                <div><label>ID</label><div class="status" id="builderEditId">-</div></div>
+                <div><label>DGUID</label><div class="status mono" id="builderEditDguid">-</div></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>Builder Details</h4>
+            <div class="grid">
+                <div><label>Name</label><input class="input" id="builderEditName" placeholder="Builder name" /></div>
+                <div><label>Description</label><textarea id="builderEditDescription" placeholder="Optional description"></textarea></div>
+                <div><label>Entry File Path</label><input class="input mono" id="builderEditEntryFilePath" value="App.jsx" /></div>
+                <div><label>Preview Masterpage Id (optional)</label><input class="input" id="builderEditPreviewMasterpageId" type="number" /></div>
+                <label style="display:flex;align-items:center;gap:8px;"><input id="builderEditIsActive" type="checkbox" /> Active</label>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button class="btn" type="button" data-drawer-close>Cancel</button>
+            <button class="btn primary" type="button" id="builderEditSubmit">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<div class="confirm-modal" id="builderDeleteModal" aria-hidden="true">
+    <div class="confirm-card">
+        <h4 data-confirm-title>Delete Builder?</h4>
+        <p class="muted" data-confirm-message>This action cannot be undone.</p>
+        <div class="confirm-actions">
+            <button class="btn" type="button" data-confirm-close>Cancel</button>
+            <button class="btn primary" type="button" data-confirm-submit>Delete</button>
+        </div>
+    </div>
+</div>
+
+<form id="antiForgery" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
+
+@section Scripts {
+<script src="/js/tool-database-sync.js"></script>
+<script>
+(function () {
+  const canManage = @Model.CanManage.ToString().ToLowerInvariant();
+
+  // Data from server (fast initial render)
+  const builders = @Html.Raw(Model.ReactBuildersJson);
+  const pagesInitial = @Html.Raw(Model.PagesJson);
+
+  const baseUrl = "@Url.Page(null)";
+
+  const endpoints = {
+    nextIdentity: baseUrl + "?handler=NextIdentity",
+    create: baseUrl + "?handler=Create",
+    update: baseUrl + "?handler=Update",
+    del: baseUrl + "?handler=Delete",
+    pages: baseUrl + "?handler=Pages",
+    connections: (pageId) => baseUrl + "?handler=Connections&pageId=" + encodeURIComponent(pageId),
+    saveConnections: baseUrl + "?handler=SaveConnections"
+  };
+
+  const el = {
+    search: document.getElementById("search"),
+    tbody: document.getElementById("builderTableBody"),
+    pagination: document.getElementById("builderPagination"),
+    prevPage: document.getElementById("prevPage"),
+    nextPage: document.getElementById("nextPage"),
+    pageInfo: document.getElementById("pageInfo"),
+
+    createDrawer: document.getElementById("builderCreateDrawer"),
+    editDrawer: document.getElementById("builderEditDrawer"),
+    openDrawerBtn: document.getElementById("openDrawer"),
+
+    // Create fields
+    c_id: document.getElementById("builderCreateId"),
+    c_dguid: document.getElementById("builderCreateDguid"),
+    c_name: document.getElementById("builderCreateName"),
+    c_desc: document.getElementById("builderCreateDescription"),
+    c_entry: document.getElementById("builderCreateEntryFilePath"),
+    c_preview: document.getElementById("builderCreatePreviewMasterpageId"),
+    c_active: document.getElementById("builderCreateIsActive"),
+    c_submit: document.getElementById("builderCreateSubmit"),
+
+    // Edit fields
+    e_id: document.getElementById("builderEditId"),
+    e_dguid: document.getElementById("builderEditDguid"),
+    e_name: document.getElementById("builderEditName"),
+    e_desc: document.getElementById("builderEditDescription"),
+    e_entry: document.getElementById("builderEditEntryFilePath"),
+    e_preview: document.getElementById("builderEditPreviewMasterpageId"),
+    e_active: document.getElementById("builderEditIsActive"),
+    e_submit: document.getElementById("builderEditSubmit"),
+
+    // Delete modal
+    delModal: document.getElementById("builderDeleteModal")
+  };
+
+  const csrfToken = () => {
+    const i = document.querySelector("#antiForgery input[name='__RequestVerificationToken']");
+    return i ? i.value : "";
+  };
+  window.BugenceToolDbSync?.init({
+    endpoint: "/Tools/ReactBuilder?handler=DatabaseSync",
+    requestVerificationToken: csrfToken(),
+    topButtonAnchorId: "openDrawer",
+    editButtonAnchorId: "builderEditSubmit",
+    editRecordIdElementId: "builderEditId",
+    editRowButtonSelector: ".icon-btn.edit"
+  });
+
+  async function apiGet(url) {
+    const res = await fetch(url, { credentials: "same-origin" });
+    if (!res.ok) throw new Error(await res.text() || ("GET " + res.status));
+    return await res.json();
+  }
+
+  async function apiPost(url, body) {
+    const res = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "RequestVerificationToken": csrfToken()
+      },
+      body: JSON.stringify(body || {})
+    });
+    if (!res.ok) throw new Error(await res.text() || ("POST " + res.status));
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    return ct.includes("application/json") ? await res.json() : await res.text();
+  }
+
+  function openDrawer(drawerEl) { drawerEl.classList.add("show"); drawerEl.setAttribute("aria-hidden","false"); }
+  function closeDrawer(drawerEl) { drawerEl.classList.remove("show"); drawerEl.setAttribute("aria-hidden","true"); }
+
+  // Close drawers on backdrop/close buttons
+  document.querySelectorAll("[data-drawer-close]").forEach(x => {
+    x.addEventListener("click", () => {
+      closeDrawer(el.createDrawer);
+      closeDrawer(el.editDrawer);
+    });
+  });
+
+  // ---------------------------
+  // Client state
+  // ---------------------------
+  const state = {
+    all: Array.isArray(builders) ? builders : [],
+    filtered: [],
+    page: 1,
+    pageSize: 8,
+    editRow: null,
+    deleteId: null,
+    pages: Array.isArray(pagesInitial) ? pagesInitial : []
+  };
+
+  function setFiltered() {
+    const q = (el.search?.value || "").toLowerCase().trim();
+    state.filtered = !q
+      ? [...state.all]
+      : state.all.filter(b => {
+          const hay = `${b.id} ${b.name} ${b.dguid} ${b.entryFilePath}`.toLowerCase();
+          return hay.includes(q);
+        });
+    state.page = 1;
+  }
+
+  function pagedRows() {
+    const total = state.filtered.length;
+    const pages = Math.max(1, Math.ceil(total / state.pageSize));
+    const p = Math.min(state.page, pages);
+    const start = (p - 1) * state.pageSize;
+    const items = state.filtered.slice(start, start + state.pageSize);
+    return { items, total, pages, p };
+  }
+
+  function renderTable() {
+    const { items, total, pages, p } = pagedRows();
+    el.tbody.innerHTML = "";
+
+    if (!items.length) {
+      el.tbody.innerHTML = `<tr><td colspan="7" class="muted" style="padding:26px;text-align:center;">No React builders yet.</td></tr>`;
+    } else {
+      for (const b of items) {
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-id", b.id);
+        tr.setAttribute("data-row-json", JSON.stringify({
+          id: b.id,
+          dguid: b.dguid || "",
+          name: b.name || "",
+          description: b.description || "",
+          entryFilePath: b.entryFilePath || "App.jsx",
+          previewMasterpageId: b.previewMasterpageId ?? null,
+          isActive: b.isActive !== false,
+          linkedPagesCount: b.linkedPagesCount ?? 0,
+          updatedAtUtc: b.updatedAtUtc || null
+        }));
+        tr.innerHTML = `
+          <td><strong>#${b.id}</strong></td>
+          <td><button class="name-btn open-editor" data-id="${b.id}">${escapeHtml(b.name || "")}</button></td>
+          <td class="mono">${escapeHtml(b.dguid || "")}</td>
+          <td class="mono">${escapeHtml(b.entryFilePath || "App.jsx")}</td>
+          <td class="muted">${b.linkedPagesCount ?? 0}</td>
+          <td class="muted">${formatDate(b.updatedAtUtc)}</td>
+          <td>
+            ${canManage ? `
+              <div class="actions">
+                <button class="icon-btn edit" data-id="${b.id}" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                <button class="icon-btn delete" data-id="${b.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+              </div>` : ""}
+          </td>
+        `;
+        el.tbody.appendChild(tr);
+      }
+    }
+
+    if (total > state.pageSize) {
+      el.pagination.style.display = "flex";
+      el.pageInfo.textContent = `Page ${p} of ${pages}`;
+      el.prevPage.disabled = (p <= 1);
+      el.nextPage.disabled = (p >= pages);
+    } else {
+      el.pagination.style.display = "none";
+    }
+  }
+
+  function escapeHtml(s) {
+    return (s ?? "").toString()
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+
+  function formatDate(dt) {
+    if (!dt) return "-";
+    try {
+      const d = new Date(dt);
+      if (isNaN(d.getTime())) return "-";
+      return d.toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
+    } catch { return "-"; }
+  }
+
+  // ---------------------------
+  // Create
+  // ---------------------------
+  async function prepareCreate() {
+    el.c_id.textContent = "-";
+    el.c_dguid.textContent = "-";
+    el.c_name.value = "";
+    el.c_desc.value = "";
+    el.c_entry.value = "App.jsx";
+    el.c_preview.value = "";
+    el.c_active.checked = true;
+
+    try {
+      const r = await apiGet(endpoints.nextIdentity);
+      if (r && r.success) {
+        el.c_id.textContent = "#" + r.nextId;
+        el.c_dguid.textContent = r.dguid || "-";
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  async function submitCreate() {
+    const payload = {
+      Name: (el.c_name.value || "").trim(),
+      Description: (el.c_desc.value || "").trim(),
+      EntryFilePath: (el.c_entry.value || "App.jsx").trim(),
+      PreviewMasterpageId: el.c_preview.value ? parseInt(el.c_preview.value, 10) : null,
+      IsActive: !!el.c_active.checked
+    };
+
+    if (!payload.Name) return alert("Please provide builder name.");
+
+    el.c_submit.disabled = true;
+    try {
+      const r = await apiPost(endpoints.create, payload);
+      if (!r || r.success !== true) throw new Error((r && r.message) ? r.message : "Create failed.");
+
+      window.location.href = "/Tools/ReactBuilder";
+    } catch (e) {
+      alert((e && e.message) ? e.message : "Create failed.");
+    } finally {
+      el.c_submit.disabled = false;
+    }
+  }
+
+  // ---------------------------
+  // Edit
+  // ---------------------------
+  function resolveRowForEdit(id, sourceEl) {
+    let row = state.all.find(x => x.id === id);
+    const hasShape = row && (row.name || row.description || row.dguid || row.entryFilePath || typeof row.isActive === "boolean");
+    if (hasShape) return row;
+
+    const tr = sourceEl?.closest("tr") || el.tbody?.querySelector(`tr[data-id="${id}"]`);
+    if (!tr) return row || null;
+
+    const raw = tr.getAttribute("data-row-json");
+    if (!raw) return row || null;
+
+    try {
+      const parsed = JSON.parse(raw);
+      row = Object.assign({}, row || {}, parsed);
+      return row;
+    } catch {
+      return row || null;
+    }
+  }
+
+  function openEditDrawerById(id, sourceEl) {
+    const row = resolveRowForEdit(id, sourceEl);
+    if (!row) return;
+
+    state.editRow = row;
+
+    el.e_id.textContent = "#" + row.id;
+    el.e_dguid.textContent = row.dguid || "-";
+    el.e_name.value = row.name || "";
+    el.e_desc.value = row.description || "";
+    el.e_entry.value = row.entryFilePath || "App.jsx";
+    el.e_preview.value = (row.previewMasterpageId ?? "");
+    el.e_active.checked = (row.isActive !== false);
+
+    openDrawer(el.editDrawer);
+  }
+
+  async function submitEdit() {
+    if (!state.editRow) return;
+
+    const payload = {
+      Id: state.editRow.id,
+      Name: (el.e_name.value || "").trim(),
+      Description: (el.e_desc.value || "").trim(),
+      EntryFilePath: (el.e_entry.value || "App.jsx").trim(),
+      PreviewMasterpageId: el.e_preview.value ? parseInt(el.e_preview.value, 10) : null,
+      IsActive: !!el.e_active.checked
+    };
+
+    if (!payload.Name) return alert("Please provide builder name.");
+
+    el.e_submit.disabled = true;
+    try {
+      const r = await apiPost(endpoints.update, payload);
+      if (!r || r.success !== true) throw new Error((r && r.message) ? r.message : "Update failed.");
+
+      window.location.reload();
+    } catch (e) {
+      alert((e && e.message) ? e.message : "Update failed.");
+    } finally {
+      el.e_submit.disabled = false;
+    }
+  }
+
+  // ---------------------------
+  // Delete
+  // ---------------------------
+  function openDeleteModal(id) {
+    state.deleteId = id;
+    el.delModal.classList.add("show");
+    el.delModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeDeleteModal() {
+    state.deleteId = null;
+    el.delModal.classList.remove("show");
+    el.delModal.setAttribute("aria-hidden", "true");
+  }
+
+  async function submitDelete() {
+    if (!state.deleteId) return;
+    const id = state.deleteId;
+
+    const submitBtn = el.delModal.querySelector("[data-confirm-submit]");
+    submitBtn.disabled = true;
+
+    try {
+      const r = await apiPost(endpoints.del, { Id: id });
+      if (!r || r.success !== true) throw new Error((r && r.message) ? r.message : "Delete failed.");
+      window.location.reload();
+    } catch (e) {
+      alert((e && e.message) ? e.message : "Delete failed.");
+    } finally {
+      submitBtn.disabled = false;
+      closeDeleteModal();
+    }
+  }
+
+  // ---------------------------
+  // Event wiring
+  // ---------------------------
+  el.search?.addEventListener("input", () => { setFiltered(); renderTable(); });
+
+  el.prevPage?.addEventListener("click", () => { state.page = Math.max(1, state.page - 1); renderTable(); });
+  el.nextPage?.addEventListener("click", () => { state.page = state.page + 1; renderTable(); });
+
+  if (el.openDrawerBtn) {
+    el.openDrawerBtn.addEventListener("click", async () => {
+      await prepareCreate();
+      openDrawer(el.createDrawer);
+    });
+  }
+
+  el.c_submit?.addEventListener("click", submitCreate);
+  el.e_submit?.addEventListener("click", submitEdit);
+
+  el.tbody?.addEventListener("click", (e) => {
+    const openBtn = e.target.closest("button.open-editor");
+    if (openBtn) {
+      const id = parseInt(openBtn.getAttribute("data-id"), 10);
+      if (id) window.location.href = "/Tools/ReactBuilderEditor?id=" + encodeURIComponent(id);
+      return;
+    }
+
+    const editBtn = e.target.closest("button.edit");
+    if (editBtn) {
+      const id = parseInt(editBtn.getAttribute("data-id"), 10);
+      if (id) openEditDrawerById(id, editBtn);
+      return;
+    }
+
+    const delBtn = e.target.closest("button.delete");
+    if (delBtn) {
+      const id = parseInt(delBtn.getAttribute("data-id"), 10);
+      if (id) openDeleteModal(id);
+      return;
+    }
+  });
+
+  // Delete modal buttons
+  el.delModal?.querySelector("[data-confirm-close]")?.addEventListener("click", closeDeleteModal);
+  el.delModal?.addEventListener("click", (e) => { if (e.target === el.delModal) closeDeleteModal(); });
+  el.delModal?.querySelector("[data-confirm-submit]")?.addEventListener("click", submitDelete);
+
+  // ---------------------------
+  // Init
+  // ---------------------------
+  setFiltered();
+  renderTable();
+
+})();
+</script>
+}

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management | Bugence</title>
+    
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* --- CORE THEME --- */
+        :root { 
+            --bg: #050505; 
+            --surface: #0a0a0a; 
+            --border: rgba(255,255,255,0.08); 
+            --text: #ffffff; 
+            --muted: #a1a1aa; 
+            --accent: #06b6d4; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b;
+            --purple: #8b5cf6;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+        body { margin:0; background: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; display:flex; height: 100vh; overflow: hidden; }
+
+        /* --- LAYOUT --- */
+        .shell { display:flex; width:100%; height:100%; }
+        
+        aside { 
+            width: 260px; flex-shrink: 0; background: var(--bg); 
+            border-right: 1px solid var(--border); padding: 24px; 
+            display: flex; flex-direction: column; z-index: 10; 
+        }
+        
+        main { 
+            flex-grow: 1; padding: 40px 60px; overflow-y: auto; 
+            background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); 
+            position: relative; 
+        }
+
+        /* --- SIDEBAR COMPONENTS --- */
+        .brand { font-family: 'Cabinet Grotesk', sans-serif; font-weight:800; font-size: 1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background: rgba(6,182,212,0.1); color:var(--accent); }
+
+        /* --- HEADER --- */
+        .header { margin-bottom: 40px; }
+        .header h1 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.5rem; margin: 0 0 10px; }
+        
+        /* --- PROJECT SWITCHER --- */
+        .project-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 8px; display: block; font-weight: 500; }
+        
+        .project-switcher {
+            display: inline-flex; align-items: center; 
+            background: var(--surface); border: 1px solid var(--border); 
+            border-radius: 10px; cursor: pointer; transition: 0.2s;
+            position: relative; width: 100%; max-width: 300px;
+        }
+        .project-switcher:hover { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(6,182,212,0.1); }
+        
+        .project-select {
+            appearance: none; -webkit-appearance: none;
+            background: transparent; border: none; color: white; 
+            font-family: inherit; font-weight: 700; font-size: 1rem; 
+            cursor: pointer; width: 100%; padding: 12px 40px 12px 16px;
+            z-index: 2; position: relative;
+        }
+        .project-select option { background-color: #111; color: white; padding: 12px; }
+
+        .select-arrow { 
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%); 
+            pointer-events: none; color: var(--muted); font-size: 0.8rem; z-index: 1; 
+        }
+
+        /* --- INVITE CARD --- */
+        .invite-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; 
+            padding: 25px; margin-bottom: 40px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
+            transition: opacity 0.2s;
+        }
+        .card-label { font-size: 0.9rem; font-weight: 700; color: white; margin-bottom: 15px; display: block; }
+
+        .invite-grid { display: grid; grid-template-columns: 1fr 200px 140px; gap: 15px; }
+        
+        .input-wrapper { position: relative; }
+        .form-input { 
+            width: 100%; background: #111; border: 1px solid var(--border); padding: 12px 15px 12px 40px; 
+            border-radius: 8px; color: white; outline: none; transition: 0.2s; font-family: inherit; font-size: 0.95rem;
+        }
+        .form-input:focus { border-color: var(--accent); }
+        .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+        .role-select {
+            width: 100%; background: #111; border: 1px solid var(--border); padding: 0 15px;
+            border-radius: 8px; color: white; outline: none; cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 15px center; background-size: 16px;
+        }
+        .role-select:focus { border-color: var(--accent); }
+
+        .btn-invite { 
+            background: var(--accent); color: black; border: none; border-radius: 8px; font-weight: 700; 
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; 
+        }
+        .btn-invite:hover { background: #0891b2; color: white; }
+
+        /* --- MEMBER TABLE --- */
+        .table-wrapper {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; 
+            overflow: hidden; transition: opacity 0.2s;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { 
+            text-align: left; padding: 18px 25px; background: rgba(255,255,255,0.02); 
+            border-bottom: 1px solid var(--border); color: var(--muted); font-size: 0.75rem; 
+            text-transform: uppercase; font-weight: 700; letter-spacing: 1px;
+        }
+        td { padding: 20px 25px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.03); }
+
+        /* User Profile Cell */
+        .user-cell { display: flex; align-items: center; gap: 15px; }
+        .avatar { 
+            width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; 
+            font-weight: 800; font-size: 0.9rem; color: rgba(255,255,255,0.9); text-transform: uppercase;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        .user-info { display: flex; flex-direction: column; gap: 3px; }
+        .user-name { font-weight: 700; font-size: 0.95rem; color: white; }
+        .user-email { font-size: 0.8rem; color: var(--muted); }
+
+        /* Roles & Status */
+        .role-badge { 
+            padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; 
+            border: 1px solid transparent; display: inline-block; min-width: 80px; text-align: center;
+        }
+        .role-Owner { background: rgba(139, 92, 246, 0.1); color: var(--purple); border-color: rgba(139, 92, 246, 0.2); }
+        .role-Admin { background: rgba(6, 182, 212, 0.1); color: var(--accent); border-color: rgba(6, 182, 212, 0.2); }
+        .role-Editor { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
+        .role-Viewer { background: rgba(255, 255, 255, 0.05); color: var(--muted); border-color: var(--border); }
+
+        .status-text { font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .status-Active { color: var(--success); }
+        .status-Pending { color: var(--warning); }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        /* Actions */
+        .action-btn { 
+            background: transparent; border: 1px solid var(--border); color: var(--muted); 
+            width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: inline-flex; 
+            align-items: center; justify-content: center; transition: 0.2s; 
+        }
+        .action-btn:hover { color: white; border-color: white; }
+        .action-btn.delete:hover { color: var(--danger); border-color: var(--danger); }
+
+    </style>
+</head>
+<body>
+
+    <div class="shell">
+        <aside>
+            <a href="/Dashboard/Index" class="brand"><i class="fa-solid fa-bug" style="color:var(--accent)"></i> BUGENCE</a>
+            
+            <a href="/Dashboard/Index" class="nav-item active"><i class="fa-solid fa-layer-group"></i> Overview</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-folder"></i> Projects</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Analytics</a>
+            
+            <div class="menu-cat">Tools</div>
+            <a href="#" class="nav-item"><i class="fa-solid fa-book"></i> Library</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-file-code"></i> Text Editor</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-eye"></i> Live Preview</a>
+            
+            <div class="menu-cat">Configuration</div>
+            <a href="/ProjectHub/Team" class="nav-item active" style="background: rgba(6,182,212,0.1); color:var(--accent);"><i class="fa-solid fa-users"></i> Team</a>
+            <a href="/ProjectHub/Domains" class="nav-item"><i class="fa-solid fa-globe"></i> Domains</a>
+            <a href="/ProjectHub/GlobalSettings" class="nav-item"><i class="fa-solid fa-gear"></i> Global Settings</a>
+        </aside>
+
+        <main>
+            <div class="header">
+                <div style="font-size:0.9rem; color:var(--accent); margin-bottom:10px; font-weight:600;">
+                    <i class="fa-solid fa-arrow-left"></i> <a href="/Dashboard/Index" style="color:inherit; text-decoration:none;">Back to Dashboard</a>
+                </div>
+                <h1>Team Members</h1>
+                
+                <div style="margin-top:20px;">
+                    <span class="project-label">Manage Access For</span>
+                    <div class="project-switcher">
+                        <select id="projectSelect" class="project-select" onchange="switchProject()">
+                            <option value="2">High-Tech Heroes</option>
+                            <option value="3">Bugence Static</option>
+                            <option value="4">SaaS Dashboard</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down select-arrow"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="teamContent">
+
+                <div class="invite-card">
+                    <span class="card-label">Invite New Member</span>
+                    <div class="invite-grid">
+                        <div class="input-wrapper">
+                            <i class="fa-regular fa-envelope input-icon"></i>
+                            <input type="email" class="form-input" id="inviteEmail" placeholder="Enter email address...">
+                        </div>
+                        <select class="role-select" id="inviteRole">
+                            <option value="Admin">Admin</option>
+                            <option value="Editor" selected>Editor</option>
+                            <option value="Viewer">Viewer</option>
+                        </select>
+                        <button class="btn-invite" onclick="inviteUser()">
+                            Invite <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">User</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Last Active</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTable">
+                            </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // --- 1. MOCK DATA ---
+        const projectTeams = {
+            "2": [ // High-Tech Heroes
+                { id: 1, name: 'Administrator', email: 'admin@bugence.app', role: 'Owner', status: 'Active', lastActive: 'Now', color: '#8b5cf6' },
+                { id: 2, name: 'Sarah Designer', email: 'sarah@design.co', role: 'Editor', status: 'Active', lastActive: '2h ago', color: '#ef4444' },
+                { id: 3, name: 'Mike Dev', email: 'mike@dev.io', role: 'Admin', status: 'Active', lastActive: '1d ago', color: '#06b6d4' }
+            ],
+            "3": [ // Bugence Static
+                { id: 1, name: 'Administrator', email: 'admin@bugence.app', role: 'Owner', status: 'Active', lastActive: 'Now', color: '#8b5cf6' },
+                { id: 4, name: 'John Client', email: 'john@client.com', role: 'Viewer', status: 'Pending', lastActive: '-', color: '#f59e0b' }
+            ],
+            "4": [ // SaaS Dashboard (Empty Team Example)
+                { id: 1, name: 'Administrator', email: 'admin@bugence.app', role: 'Owner', status: 'Active', lastActive: 'Now', color: '#8b5cf6' }
+            ]
+        };
+
+        // --- 2. SWITCH PROJECT ---
+        function switchProject() {
+            const select = document.getElementById('projectSelect');
+            const pid = select.value;
+            const members = projectTeams[pid];
+
+            // Fade animation
+            const content = document.getElementById('teamContent');
+            content.style.opacity = '0.5';
+
+            setTimeout(() => {
+                renderMembers(members);
+                content.style.opacity = '1';
+            }, 200);
+        }
+
+        // --- 3. RENDER FUNCTION ---
+        function renderMembers(memberList) {
+            const tbody = document.getElementById('membersTable');
+            tbody.innerHTML = '';
+
+            memberList.forEach(m => {
+                const initials = m.name.split(' ').map(n => n[0]).join('').substring(0,2);
+                const isOwner = m.role === 'Owner';
+                
+                // Status Logic
+                const statusClass = m.status === 'Active' ? 'status-Active' : 'status-Pending';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="user-cell">
+                            <div class="avatar" style="background:${m.color}">${initials}</div>
+                            <div class="user-info">
+                                <span class="user-name">${m.name}</span>
+                                <span class="user-email">${m.email}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="role-badge role-${m.role}">${m.role}</span>
+                    </td>
+                    <td>
+                        <span class="status-text ${statusClass}">
+                            <span class="status-dot"></span> ${m.status}
+                        </span>
+                    </td>
+                    <td style="color:var(--muted); font-size:0.9rem;">
+                        ${m.lastActive}
+                    </td>
+                    <td style="text-align:right;">
+                        ${!isOwner ? `
+                            <button class="action-btn" title="Edit Role"><i class="fa-solid fa-pencil"></i></button>
+                            <button class="action-btn delete" title="Remove User" onclick="removeUser(${m.id})"><i class="fa-solid fa-trash"></i></button>
+                        ` : `<span style="font-size:0.8rem; color:#444; font-weight:700;">OWNER</span>`}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // --- 4. ACTIONS ---
+        function inviteUser() {
+            const email = document.getElementById('inviteEmail').value;
+            const role = document.getElementById('inviteRole').value;
+            const pid = document.getElementById('projectSelect').value;
+
+            if(email) {
+                // Add to Current Project List
+                projectTeams[pid].push({
+                    id: Date.now(),
+                    name: email.split('@')[0], // Temp name from email
+                    email: email,
+                    role: role,
+                    status: 'Pending',
+                    lastActive: '-',
+                    color: '#'+Math.floor(Math.random()*16777215).toString(16) // Random color
+                });
+                
+                document.getElementById('inviteEmail').value = '';
+                renderMembers(projectTeams[pid]);
+            }
+        }
+
+        function removeUser(id) {
+            const pid = document.getElementById('projectSelect').value;
+            
+            if(confirm('Remove this user from the project?')) {
+                const index = projectTeams[pid].findIndex(m => m.id === id);
+                if (index > -1) {
+                    projectTeams[pid].splice(index, 1);
+                    renderMembers(projectTeams[pid]);
+                }
+            }
+        }
+
+        // Init with High-Tech Heroes
+        renderMembers(projectTeams["2"]);
+    </script>
+</body>
+</html>

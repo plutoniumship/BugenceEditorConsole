@@ -1,0 +1,38 @@
+@model BugenceEditConsole.Pages.Dashboard.IndexModel
+
+@{
+    var metrics = new[]
+    {
+        new { Label = "Total modules", Value = Model.TotalPageCount.ToString(), Description = "Managed via Bugence Visual Editor." },
+        new { Label = "Text frames", Value = Model.EditableTextBlocks.ToString(), Description = "Copy blocks ready for live narrative edits." },
+        new { Label = "Imagery slots", Value = Model.EditableImageBlocks.ToString(), Description = "Hero visuals synced to Pete's storyline." }
+    };
+}
+
+<div class="dashboard-card__badge">
+    <span class="fa-solid fa-satellite-dish dashboard-card__badge-icon"></span>
+    Bugence Mission Control
+</div>
+<p class="dashboard-card__intro text-base text-ink/70 max-w-3xl">
+    Direct every element of Pete's subscription experience. Orchestrate the four hero pages, preview changes in real time, and deploy with Bugence's adaptive audit spine.
+</p>
+<div class="flex flex-wrap gap-3 pt-2">
+       class="cursor-magnet ripple inline-flex items-center gap-3 rounded-full bg-black px-6 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white shadow-lg shadow-black/30 transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/40">
+        <span class="fa-solid fa-pen-to-square text-xs"></span>
+        Edit Content
+    </a>
+       class="cursor-magnet ripple inline-flex items-center gap-3 rounded-full border border-black/10 px-6 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-black/70 transition hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/15">
+        <span class="fa-solid fa-eye text-xs text-accent"></span>
+        Live Preview
+    </a>
+</div>
+<div class="dashboard-card__metric-grid grid gap-4 pt-6 sm:grid-cols-2 lg:grid-cols-3">
+    @foreach (var metric in metrics)
+    {
+        <div class="dashboard-card__metric rounded-2xl border border-black/10 bg-white/60 px-5 py-4 shadow-sm">
+            <p class="dashboard-card__metric-label text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-ink/45">@metric.Label</p>
+            <p class="dashboard-card__metric-value pt-3 text-3xl font-semibold text-ink">@metric.Value</p>
+            <p class="dashboard-card__metric-desc pt-2 text-sm text-ink/60">@metric.Description</p>
+        </div>
+    }
+</div>

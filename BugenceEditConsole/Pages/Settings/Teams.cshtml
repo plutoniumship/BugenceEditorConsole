@@ -1,0 +1,273 @@
+@page
+@model BugenceEditConsole.Pages.Settings.TeamsModel
+@{
+    ViewData["Title"] = "Teams";
+    ViewData["BodyClass"] = "page-settings-teams";
+
+    var members = Model.Members;
+    var canManageMembers = Model.CanManageMembers;
+}
+
+@section Head {
+<style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --purple:#8b5cf6; }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
+        main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); position:relative; }
+        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background:rgba(6,182,212,0.1); color:var(--accent); }
+        .profile-block { margin-top:auto; padding-top:20px; border-top:1px solid var(--border); position:relative; }
+        .profile-card { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; cursor:pointer; position:relative; }
+        .profile-card .avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#22d3ee); display:grid; place-items:center; font-weight:800; color:#00131a; border:none; }
+        .profile-menu { position:absolute; left:0; right:0; bottom:calc(100% + 8px); background:#0b0e14; border:1px solid var(--border); border-radius:12px; padding:8px 0; display:none; box-shadow:0 20px 40px rgba(0,0,0,0.45); }
+        .profile-card.show .profile-menu { display:block; }
+        .profile-menu a { display:block; padding:8px 12px; color:white; text-decoration:none; font-weight:600; }
+        .profile-menu a:hover { background:rgba(255,255,255,0.05); }
+        .header { margin-bottom:40px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.5rem; margin:0 0 10px; }
+        .project-label { font-size:0.9rem; color:var(--muted); margin-bottom:8px; display:block; font-weight:500; }
+        .project-switcher { display:inline-flex; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:10px; cursor:pointer; transition:0.2s; position:relative; width:100%; max-width:300px; }
+        .project-switcher:hover { border-color:var(--accent); box-shadow:0 0 0 2px rgba(6,182,212,0.1); }
+        .project-select { appearance:none; -webkit-appearance:none; background:transparent; border:none; color:white; font-family:inherit; font-weight:700; font-size:1rem; cursor:pointer; width:100%; padding:12px 40px 12px 16px; z-index:2; position:relative; }
+        .project-select option { background-color:#111; color:white; padding:12px; }
+        .select-arrow { position:absolute; right:16px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--muted); font-size:0.8rem; z-index:1; }
+        .invite-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:25px; margin-bottom:40px; box-shadow:0 20px 40px -10px rgba(0,0,0,0.3); transition:opacity 0.2s; }
+        .card-label { font-size:0.9rem; font-weight:700; color:white; margin-bottom:15px; display:block; }
+        .invite-grid { display:grid; grid-template-columns:1fr 200px 140px; gap:15px; }
+        .input-wrapper { position:relative; }
+        .form-input { width:100%; background:#111; border:1px solid var(--border); padding:12px 15px 12px 40px; border-radius:8px; color:white; outline:none; transition:0.2s; font-family:inherit; font-size:0.95rem; }
+        .form-input:focus { border-color:var(--accent); }
+        .input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); }
+        .role-select { width:100%; background:#111; border:1px solid var(--border); padding:0 15px; border-radius:8px; color:white; outline:none; cursor:pointer; appearance:none; background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat:no-repeat; background-position:right 15px center; background-size:16px; }
+        .role-select:focus { border-color:var(--accent); }
+        .btn-invite { background:var(--accent); color:black; border:none; border-radius:8px; font-weight:700; cursor:pointer; transition:0.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+        .btn-invite:hover { background:#0891b2; color:white; }
+        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:opacity 0.2s; }
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; padding:18px 25px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
+        td { padding:20px 25px; border-bottom:1px solid var(--border); vertical-align:middle; color:var(--text); }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.03); }
+        .user-cell { display:flex; align-items:center; gap:15px; }
+        .avatar { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:0.9rem; color:rgba(255,255,255,0.9); text-transform:uppercase; border:2px solid rgba(255,255,255,0.1); }
+        .user-info { display:flex; flex-direction:column; gap:3px; }
+        .user-name { font-weight:700; font-size:0.95rem; color:white; }
+        .user-email { font-size:0.8rem; color:var(--muted); }
+        .user-title { font-size:0.75rem; color:#64748b; }
+        .role-badge { padding:4px 10px; border-radius:6px; font-size:0.75rem; font-weight:700; text-transform:uppercase; border:1px solid transparent; display:inline-block; min-width:80px; text-align:center; }
+        .role-Owner { background:rgba(139,92,246,0.1); color:var(--purple); border-color:rgba(139,92,246,0.2); }
+        .role-Admin { background:rgba(6,182,212,0.1); color:var(--accent); border-color:rgba(6,182,212,0.2); }
+        .role-Editor { background:rgba(16,185,129,0.1); color:var(--success); border-color:rgba(16,185,129,0.2); }
+        .role-Viewer { background:rgba(255,255,255,0.05); color:var(--muted); border-color:var(--border); }
+        .status-text { font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:6px; }
+        .status-Active { color:var(--success); }
+        .status-Pending { color:var(--warning); }
+        .status-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+        .action-btn { background:transparent; border:1px solid var(--border); color:var(--muted); width:32px; height:32px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:0.2s; }
+        .action-btn:hover { color:white; border-color:white; }
+        .action-btn.delete:hover { color:var(--danger); border-color:var(--danger); }
+        .action-group { display:inline-flex; align-items:center; gap:8px; }
+        .role-inline { height:32px; min-width:120px; font-size:0.8rem; padding:0 32px 0 10px; }
+        .role-inline option { font-size:0.8rem; }
+        .confirm-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:230; background:rgba(2,6,23,0.75); }
+        .confirm-modal.show { display:flex; }
+        .confirm-card {
+            width:min(420px, 92vw);
+            background:#0b0e14;
+            border:1px solid rgba(148,163,184,0.2);
+            border-radius:16px;
+            padding:20px;
+            box-shadow:0 30px 60px rgba(0,0,0,0.5);
+        }
+        .confirm-card h4 { margin:0 0 8px; font-family:'Cabinet Grotesk',sans-serif; font-size:1.2rem; }
+        .confirm-card p { margin:0; color:#94a3b8; font-size:0.9rem; line-height:1.4; }
+        .confirm-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+        .btn-cancel {
+            background:#111;
+            color:#e2e8f0;
+            border:1px solid rgba(255,255,255,0.12);
+            border-radius:8px;
+            padding:9px 12px;
+            font-weight:700;
+            cursor:pointer;
+        }
+        .btn-danger {
+            background:var(--danger);
+            color:#fff;
+            border:none;
+            border-radius:8px;
+            padding:9px 12px;
+            font-weight:700;
+            cursor:pointer;
+        }
+        .btn-danger:disabled, .btn-cancel:disabled { opacity:0.6; cursor:not-allowed; }
+    </style>
+}
+
+<div class="header">
+                <div style="font-size:0.9rem; color:var(--accent); margin-bottom:10px; font-weight:600;">
+                    <i class="fa-solid fa-arrow-left"></i> <a href="/Dashboard/Index" style="color:inherit; text-decoration:none;">Back to Dashboard</a>
+                </div>
+                <h1>Team Members</h1>
+                <div style="margin-top:20px;">
+                    <span class="project-label">Manage Access For</span>
+                    <div class="project-switcher">
+                        <select id="projectSelect" class="project-select">
+                            <option value="current">All Projects</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down select-arrow"></i>
+                    </div>
+                </div>
+            </div>
+            <div id="teamContent">
+                @if (canManageMembers)
+                {
+                    <div class="invite-card">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;">
+                            <span class="card-label" style="margin:0;">Invite New Member</span>
+                            <button class="btn-invite" id="createLoginBtn" type="button" style="background:#111; color:#e2e8f0; border:1px solid rgba(255,255,255,0.12); padding:8px 12px;">
+                                Create Login User <i class="fa-solid fa-user-plus"></i>
+                            </button>
+                        </div>
+                        <div class="invite-grid">
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-envelope input-icon"></i>
+                                <input type="text" class="form-input" id="inviteEmail" placeholder="Enter email address(es), separated by commas...">
+                            </div>
+                            <select class="role-select" id="inviteRole">
+                                <option value="Admin">Admin</option>
+                                <option value="Editor" selected>Editor</option>
+                                <option value="Viewer">Viewer</option>
+                            </select>
+                            <button class="btn-invite" id="inviteBtn">Invite <i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                        <div style="margin-top:8px; font-size:0.78rem; color:#94a3b8;">Use commas or spaces to invite multiple people at once.</div>
+                        <div id="inviteStatus" style="margin-top:12px; font-size:0.85rem; color:var(--muted);"></div>
+                    </div>
+
+                    <div class="invite-modal" id="createLoginModal" style="position:fixed; inset:0; background:rgba(2,6,23,0.75); display:none; align-items:center; justify-content:center; z-index:200;">
+                        <div style="width:min(520px, 92vw); background:#0f172a; border:1px solid rgba(148,163,184,0.2); border-radius:18px; padding:24px; box-shadow:0 30px 60px rgba(0,0,0,0.45);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <div>
+                                    <h3 style="margin:0;">Create Login User</h3>
+                                    <p style="margin:6px 0 0; color:#94a3b8; font-size:0.85rem;">Create a login and send an invite email.</p>
+                                </div>
+                                <button id="closeLoginModal" type="button" class="action-btn" style="border-radius:999px;">?</button>
+                            </div>
+                            <label style="display:block; font-size:0.85rem; color:#cbd5f5; margin-top:12px;">Full name</label>
+                            <input id="loginFullName" class="form-input" placeholder="e.g. Alex Rivera" style="padding-left:12px;" />
+                            <label style="display:block; font-size:0.85rem; color:#cbd5f5; margin-top:12px;">Email address</label>
+                            <input id="loginEmail" class="form-input" type="email" placeholder="alex@company.com" style="padding-left:12px;" />
+                            <label style="display:block; font-size:0.85rem; color:#cbd5f5; margin-top:12px;">Permissions</label>
+                            <select id="loginRole" class="role-select" style="height:44px;">
+                                <option value="Admin">Admin</option>
+                                <option value="Editor" selected>Editor</option>
+                                <option value="Viewer">Viewer</option>
+                            </select>
+                            <div id="loginStatus" style="margin-top:10px; font-size:0.85rem; color:var(--muted);"></div>
+                            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+                                <button id="cancelLoginCreate" type="button" class="action-btn">Cancel</button>
+                                <button id="saveLoginCreate" type="button" class="btn-invite">Save & Send Invite</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="invite-card" style="opacity:0.6;">
+                        <span class="card-label">Invite New Member</span>
+                        <div style="font-size:0.85rem; color:#94a3b8;">Only account owners or admins can invite, remove, or change team permissions.</div>
+                    </div>
+                }
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">User</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Last Active</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTable">
+                            @foreach (var member in members)
+                            {
+                                var initials = new string(member.Name
+                                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(part => char.ToUpperInvariant(part[0]))
+                                    .Take(2)
+                                    .ToArray());
+                                if (string.IsNullOrWhiteSpace(initials))
+                                {
+                                    initials = "AD";
+                                }
+                                <tr data-member-id="@(member.MemberId?.ToString() ?? string.Empty)">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="avatar" style="background:@member.Color">@initials</div>
+                                            <div class="user-info">
+                                                <span class="user-name">@member.Name</span>
+                                                <span class="user-email">@member.Email</span>
+                                                @if (!string.IsNullOrWhiteSpace(member.Title))
+                                                {
+                                                    <span class="user-title">@member.Title</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="role-badge role-@member.Role">@member.Role</span></td>
+                                    <td><span class="status-text status-@member.Status"><span class="status-dot"></span> @member.Status</span></td>
+                                    <td style="color:var(--muted); font-size:0.9rem;">@member.LastActive</td>
+                                    <td style="text-align:right;">
+                                        @if (member.IsOwner)
+                                        {
+                                            <span style="font-size:0.8rem; color:#444; font-weight:700;">OWNER</span>
+                                        }
+                                        else if (canManageMembers && member.MemberId.HasValue && !member.IsCurrentUser)
+                                        {
+                                            <div class="action-group">
+                                                <select class="role-select role-inline" data-role-select="true" data-member-id="@member.MemberId">
+                                                    <option value="Admin" selected="@(member.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Admin</option>
+                                                    <option value="Editor" selected="@(member.Role.Equals("Editor", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Editor</option>
+                                                    <option value="Viewer" selected="@(member.Role.Equals("Viewer", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Viewer</option>
+                                                </select>
+                                                <button class="action-btn save-role" type="button" data-member-id="@member.MemberId" title="Save role">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </button>
+                                                <button class="action-btn delete" type="button" data-member-id="@member.MemberId" title="Remove member">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                        else if (canManageMembers && member.IsPendingInvite && member.InviteId.HasValue)
+                                        {
+                                            <div class="action-group">
+                                                <button class="action-btn delete" type="button" data-invite-id="@member.InviteId" title="Delete invite">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size:0.8rem; color:#444; font-weight:700;">—</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+
+
+<form id="teamsAntiForgery" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Settings | Bugence</title>
+    
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* --- CORE THEME --- */
+        :root { 
+            --bg: #050505; 
+            --surface: #0a0a0a; 
+            --border: rgba(255,255,255,0.08); 
+            --text: #ffffff; 
+            --muted: #a1a1aa; 
+            --accent: #06b6d4; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b;
+            --purple: #8b5cf6;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+        body { margin:0; background: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; display:flex; height: 100vh; overflow: hidden; }
+
+        /* --- LAYOUT SHELL --- */
+        .shell { display:flex; width:100%; height:100%; }
+        
+        aside { 
+            width: 260px; flex-shrink: 0; background: var(--bg); 
+            border-right: 1px solid var(--border); padding: 24px; 
+            display: flex; flex-direction: column; z-index: 10; 
+        }
+        
+        main { 
+            flex-grow: 1; padding: 40px 60px; overflow-y: auto; 
+            background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); 
+            position: relative; 
+        }
+
+        /* --- SIDEBAR COMPONENTS --- */
+        .brand { font-family: 'Cabinet Grotesk', sans-serif; font-weight:800; font-size: 1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background: rgba(6,182,212,0.1); color:var(--accent); }
+
+        /* --- HEADER & SWITCHER --- */
+        .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .header h1 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.5rem; margin: 0 0 5px; }
+        .header p { color: var(--muted); margin: 0; }
+
+        .project-switcher {
+            display: inline-flex; align-items: center; 
+            background: var(--surface); border: 1px solid var(--border); 
+            border-radius: 10px; cursor: pointer; transition: 0.2s;
+            position: relative; width: 250px;
+        }
+        .project-switcher:hover { border-color: var(--accent); }
+        .project-select {
+            appearance: none; -webkit-appearance: none;
+            background: transparent; border: none; color: white; 
+            font-family: inherit; font-weight: 700; font-size: 0.95rem; 
+            cursor: pointer; width: 100%; padding: 10px 40px 10px 16px;
+            z-index: 2; position: relative;
+        }
+        .project-select option { background-color: #111; color: white; padding: 12px; }
+        .select-arrow { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); font-size: 0.8rem; z-index: 1; }
+
+        /* --- SETTINGS LAYOUT --- */
+        .settings-layout { display: grid; grid-template-columns: 240px 1fr; gap: 40px; }
+        
+        /* Internal Menu */
+        .settings-menu { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; }
+        .settings-link {
+            padding: 12px 15px; border-radius: 8px; color: var(--muted); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .settings-link:hover { color: white; background: rgba(255,255,255,0.03); }
+        .settings-link.active { color: var(--accent); background: rgba(6,182,212,0.1); }
+        .settings-link i { width: 18px; text-align: center; }
+
+        /* --- CARDS & FORMS --- */
+        .settings-content { animation: fadein 0.3s; }
+        @keyframes fadein { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 30px; }
+        .card-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; display:flex; justify-content:space-between; align-items:center; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .label { display: block; color: var(--muted); font-size: 0.85rem; margin-bottom: 8px; font-weight: 600; }
+        .input { width: 100%; background: #111; border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: white; font-family: inherit; transition: 0.2s; }
+        .input:focus { border-color: var(--accent); }
+        textarea.input { resize: vertical; min-height: 80px; }
+
+        .btn-save { background: var(--accent); color: black; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; float: right; }
+        .btn-save:hover { background: #0891b2; color: white; }
+        
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
+        .btn-outline:hover { border-color: white; }
+
+        /* --- VISUAL ELEMENTS --- */
+        /* Payment Methods */
+        .payment-card { display:flex; align-items:center; justify-content:space-between; padding:15px; border:1px solid var(--border); border-radius:8px; margin-bottom:10px; background:rgba(255,255,255,0.02); }
+        .card-brand { font-size:1.5rem; margin-right:15px; width:40px; text-align:center; }
+        .card-dots { letter-spacing:2px; margin-right:10px; color:var(--muted); }
+
+        /* API Key Tokens */
+        .token-item { display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1a1a1a; }
+        .token-item:last-child { border-bottom:none; }
+        .token-meta h4 { margin:0 0 4px; font-size:0.9rem; }
+        .token-meta p { margin:0; color:var(--muted); font-size:0.75rem; }
+        .token-val { font-family:monospace; background:#222; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:var(--accent); }
+
+        /* Webhook Logs */
+        .log-table { width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:15px; }
+        .log-table th { text-align:left; color:var(--muted); padding:8px 0; border-bottom:1px solid var(--border); font-size:0.7rem; text-transform:uppercase; }
+        .log-table td { padding:10px 0; border-bottom:1px solid #1a1a1a; color:#ddd; }
+        .status-badge { padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.7rem; }
+        .st-200 { background:rgba(16,185,129,0.1); color:var(--success); }
+        .st-500 { background:rgba(239,68,68,0.1); color:var(--danger); }
+
+        /* Integration Grid */
+        .int-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .int-card { padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,0.02); display: flex; flex-direction: column; gap: 15px; }
+        .int-header { display: flex; align-items: center; gap: 12px; }
+        .int-icon { width: 40px; height: 40px; background: white; border-radius: 8px; display: grid; place-items: center; font-size: 1.2rem; color: black; }
+        
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(18px); }
+
+        .hidden { display: none; }
+        .audit-filter { display:flex; gap:10px; margin-bottom:20px; }
+        .filter-select { background:#111; color:white; border:1px solid var(--border); padding:8px 12px; border-radius:6px; font-size:0.85rem; }
+    </style>
+</head>
+<body>
+
+    <div class="shell">
+        <aside>
+            <a href="/Dashboard/Index" class="brand"><i class="fa-solid fa-bug" style="color:var(--accent)"></i> BUGENCE</a>
+            
+            <a href="/Dashboard/Index" class="nav-item active"><i class="fa-solid fa-layer-group"></i> Overview</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-folder"></i> Projects</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Analytics</a>
+            
+            <div class="menu-cat">Tools</div>
+            <a href="#" class="nav-item"><i class="fa-solid fa-book"></i> Library</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-file-code"></i> Text Editor</a>
+            
+            <div class="menu-cat">Configuration</div>
+            <a href="/ProjectHub/Team" class="nav-item"><i class="fa-solid fa-users"></i> Team</a>
+            <a href="/ProjectHub/Domains" class="nav-item"><i class="fa-solid fa-globe"></i> Domains</a>
+            <a href="/ProjectHub/GlobalSettings" class="nav-item active" style="background: rgba(6,182,212,0.1); color:var(--accent);"><i class="fa-solid fa-gear"></i> Global Settings</a>
+        </aside>
+
+        <main>
+            <div class="header-row">
+                <div class="header">
+                    <h1>Global Settings</h1>
+                    <p>Workspace configuration for <span id="headerProjectName" style="color:white; font-weight:700;">High-Tech Heroes</span></p>
+                </div>
+                
+                <div class="project-switcher">
+                    <select id="projectSelect" class="project-select" onchange="updateProjectContext()">
+                        <option value="High-Tech Heroes">High-Tech Heroes</option>
+                        <option value="Bugence Static">Bugence Static</option>
+                        <option value="SaaS Dashboard">SaaS Dashboard</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+            </div>
+
+            <div class="settings-layout">
+                
+                <div class="settings-menu">
+                    <div class="settings-link active" onclick="showTab('general', this)"><i class="fa-solid fa-sliders"></i> General</div>
+                    <div class="settings-link" onclick="showTab('billing', this)"><i class="fa-solid fa-credit-card"></i> Billing & Plans</div>
+                    <div class="settings-link" onclick="showTab('api', this)"><i class="fa-solid fa-key"></i> API Access</div>
+                    <div class="settings-link" onclick="showTab('webhooks', this)"><i class="fa-solid fa-bolt"></i> Webhooks</div>
+                    <div class="settings-link" onclick="showTab('notifications', this)"><i class="fa-regular fa-bell"></i> Notifications</div>
+                    <div class="settings-link" onclick="showTab('security', this)"><i class="fa-solid fa-shield-halved"></i> Security & SSO</div>
+                    <div class="settings-link" onclick="showTab('integrations', this)"><i class="fa-brands fa-hubspot"></i> Integrations</div>
+                    <div class="settings-link" onclick="showTab('audit', this)"><i class="fa-solid fa-clock-rotate-left"></i> Audit Logs</div>
+                </div>
+
+                <div class="settings-content-wrapper">
+                    
+                    <div id="tab-general" class="settings-content">
+                        <div class="card">
+                            <div class="card-title">Workspace Identity</div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="label">Display Name</label>
+                                    <input type="text" class="input" id="inpName" value="High-Tech Heroes">
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">Slug URL</label>
+                                    <input type="text" class="input" id="inpSlug" value="hightech-heroes" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="label">Timezone</label>
+                                    <select class="input" style="appearance:none;"><option>UTC (Coordinated Universal Time)</option><option>EST (Eastern Standard Time)</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">Primary Language</label>
+                                    <select class="input" style="appearance:none;"><option>English (US)</option><option>French</option></select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="label">Workspace ID (Unique Identifier)</label>
+                                <div style="display:flex; gap:10px;">
+                                    <input type="text" class="input" value="ws_8273641928" readonly style="font-family:monospace; color:var(--muted);">
+                                    <button class="btn-outline">Copy</button>
+                                </div>
+                            </div>
+                            <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:700;">Data Export</div>
+                                    <div style="font-size:0.8rem; color:var(--muted);">Download all project data (GDPR).</div>
+                                </div>
+                                <button class="btn-outline">Start Export</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-billing" class="settings-content hidden">
+                        <div class="card">
+                            <div class="card-title">
+                                <span>Current Month Estimate</span>
+                                <span style="font-size:1.2rem; font-weight:800; color:var(--success);">$29.00</span>
+                            </div>
+                            <p style="color:var(--muted); font-size:0.9rem;">Your next invoice will be issued on Jan 1, 2026.</p>
+                            <div style="height:10px; background:#333; border-radius:5px; margin-top:15px; overflow:hidden;">
+                                <div style="width:45%; height:100%; background:var(--accent);"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:0.8rem; color:var(--muted);">
+                                <span>45% of included usage</span>
+                                <span>100 GB Limit</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Payment Methods <button class="btn-outline" style="font-size:0.7rem;">+ Add New</button></div>
+                            <div class="payment-card">
+                                <div style="display:flex; align-items:center;">
+                                    <div class="card-brand"><i class="fa-brands fa-cc-visa" style="color:white;"></i></div>
+                                    <div>
+                                        <div style="font-weight:700;">Visa ending in 4242</div>
+                                        <div style="font-size:0.8rem; color:var(--muted);">Expires 12/28 • Default</div>
+                                    </div>
+                                </div>
+                                <button class="btn-outline" style="border:none; color:var(--muted);"><i class="fa-solid fa-ellipsis"></i></button>
+                            </div>
+                            <div class="payment-card">
+                                <div style="display:flex; align-items:center;">
+                                    <div class="card-brand"><i class="fa-brands fa-cc-mastercard" style="color:#eb001b;"></i></div>
+                                    <div>
+                                        <div style="font-weight:700;">Mastercard ending in 8899</div>
+                                        <div style="font-size:0.8rem; color:var(--muted);">Expires 09/26</div>
+                                    </div>
+                                </div>
+                                <button class="btn-outline" style="border:none; color:var(--muted);"><i class="fa-solid fa-ellipsis"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-api" class="settings-content hidden">
+                        <div class="card">
+                            <div class="card-title">Access Tokens <button class="btn-save" style="width:auto; padding:8px 16px; font-size:0.8rem;">Generate New Token</button></div>
+                            
+                            <div class="token-item">
+                                <div class="token-meta">
+                                    <h4>CI/CD Pipeline</h4>
+                                    <p>Last used 2 hours ago • <span class="token-val">Read/Write</span></p>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <span class="token-val">bug_ci_...a9z</span>
+                                    <button class="btn-danger-text" style="font-size:0.7rem;">Revoke</button>
+                                </div>
+                            </div>
+
+                            <div class="token-item">
+                                <div class="token-meta">
+                                    <h4>Developer Local (John)</h4>
+                                    <p>Last used 5 mins ago • <span class="token-val">Full Access</span></p>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <span class="token-val">bug_dev_...1b2</span>
+                                    <button class="btn-danger-text" style="font-size:0.7rem;">Revoke</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-webhooks" class="settings-content hidden">
+                        <div class="card">
+                            <div class="card-title">Active Webhooks <button class="btn-outline">Add Endpoint</button></div>
+                            <div class="webhook-item">
+                                <div>
+                                    <div style="font-weight:700; margin-bottom:4px;">Slack Notifications</div>
+                                    <div class="webhook-url">https://hooks.slack.com/services/T000...</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <span class="status-badge st-200">Active</span>
+                                </div>
+                            </div>
+                            
+                            <h4 style="margin:20px 0 10px; color:var(--muted); font-size:0.8rem; text-transform:uppercase;">Recent Deliveries</h4>
+                            <table class="log-table">
+                                <thead><tr><th>Status</th><th>Event</th><th>Time</th><th>Duration</th></tr></thead>
+                                <tbody>
+                                    <tr><td><span class="status-badge st-200">200 OK</span></td><td>deployment.success</td><td>2m ago</td><td>120ms</td></tr>
+                                    <tr><td><span class="status-badge st-500">500 ERR</span></td><td>build.failed</td><td>1h ago</td><td>500ms</td></tr>
+                                    <tr><td><span class="status-badge st-200">200 OK</span></td><td>deployment.queued</td><td>1h 5m ago</td><td>90ms</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="tab-security" class="settings-content hidden">
+                        <div class="card">
+                            <div class="card-title">Authentication Config</div>
+                            
+                            <div style="margin-bottom:20px;">
+                                <label class="label">SAML SSO Configuration</label>
+                                <div class="form-row">
+                                    <input type="text" class="input" placeholder="Entry Point URL (e.g. Okta)">
+                                    <input type="text" class="input" placeholder="Issuer ID">
+                                </div>
+                                <textarea class="input" placeholder="X.509 Certificate"></textarea>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:20px;">
+                                <div>
+                                    <div style="font-weight:700;">Password Policy</div>
+                                    <div style="font-size:0.8rem; color:var(--muted);">Require symbols, numbers, and 12+ chars.</div>
+                                </div>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-integrations" class="settings-content hidden">
+                        <div class="int-grid">
+                            <div class="int-card">
+                                <div class="int-header">
+                                    <div class="int-icon"><i class="fa-brands fa-github"></i></div>
+                                    <div style="font-weight:700;">GitHub</div>
+                                </div>
+                                <div style="font-size:0.85rem; color:var(--muted);">Auto-deploy branches and PR previews.</div>
+                                <button class="btn-outline" style="width:100%; border-color:var(--success); color:var(--success);">Connected</button>
+                            </div>
+                            <div class="int-card">
+                                <div class="int-header">
+                                    <div class="int-icon" style="color:#4A154B"><i class="fa-brands fa-slack"></i></div>
+                                    <div style="font-weight:700;">Slack</div>
+                                </div>
+                                <div style="font-size:0.85rem; color:var(--muted);">Deployment notifications channel.</div>
+                                <button class="btn-outline" style="width:100%;">Connect</button>
+                            </div>
+                            <div class="int-card">
+                                <div class="int-header">
+                                    <div class="int-icon" style="color:black"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                    <div style="font-weight:700;">Vercel</div>
+                                </div>
+                                <div style="font-size:0.85rem; color:var(--muted);">Sync deployments to edge.</div>
+                                <button class="btn-outline" style="width:100%;">Connect</button>
+                            </div>
+                            <div class="int-card">
+                                <div class="int-header">
+                                    <div class="int-icon" style="color:#362D59"><i class="fa-solid fa-bug"></i></div>
+                                    <div style="font-weight:700;">Sentry</div>
+                                </div>
+                                <div style="font-size:0.85rem; color:var(--muted);">Error tracking and performance.</div>
+                                <button class="btn-outline" style="width:100%;">Connect</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-audit" class="settings-content hidden">
+                        <div class="card">
+                            <div class="card-title">
+                                <span>Activity Log</span>
+                                <button class="btn-outline"><i class="fa-solid fa-download"></i> Export CSV</button>
+                            </div>
+                            
+                            <div class="audit-filter">
+                                <select class="filter-select"><option>All Users</option><option>Administrator</option></select>
+                                <select class="filter-select"><option>All Events</option><option>Login</option><option>Deployment</option></select>
+                                <input type="date" class="filter-select">
+                            </div>
+
+                            <table class="log-table" style="margin:0;">
+                                <thead><tr><th>Actor</th><th>Action</th><th>Target</th><th>Date</th></tr></thead>
+                                <tbody>
+                                    <tr>
+                                        <td><div style="display:flex; gap:8px; align-items:center;"><div style="width:20px; height:20px; background:#444; border-radius:50%;"></div> Administrator</div></td>
+                                        <td>Settings Update</td>
+                                        <td>Billing</td>
+                                        <td>10 mins ago</td>
+                                    </tr>
+                                    <tr>
+                                        <td><div style="display:flex; gap:8px; align-items:center;"><div style="width:20px; height:20px; background:var(--accent); border-radius:50%;"></div> Sarah Des</div></td>
+                                        <td>API Key Created</td>
+                                        <td>CI/CD Token</td>
+                                        <td>2 hours ago</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- TAB SWITCHER ---
+        function showTab(tabName, el) {
+            document.querySelectorAll('.settings-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.settings-link').forEach(l => l.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        // --- PROJECT CONTEXT ---
+        function updateProjectContext() {
+            const select = document.getElementById('projectSelect');
+            const name = select.value;
+            const slug = name.toLowerCase().replace(/ /g, '-');
+
+            document.getElementById('headerProjectName').textContent = name;
+            document.getElementById('inpName').value = name;
+            document.getElementById('inpSlug').value = slug;
+        }
+    </script>
+</body>
+</html>

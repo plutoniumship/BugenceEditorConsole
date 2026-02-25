@@ -1,0 +1,936 @@
+@page "/Portal/Page={id:int}"
+@model BugenceEditConsole.Pages.Portal.PortalPageModel
+@{
+    Layout = null;
+    var adminView = Model.AdminViewEnabled;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@Model.PageTitle</title>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#050505;
+            --surface:#0a0a0a;
+            --surface-soft:#0f1218;
+            --border:rgba(255,255,255,0.08);
+            --text:#fff;
+            --muted:#a1a1aa;
+            --accent:#06b6d4;
+            --danger:#ef4444;
+            --danger-soft:rgba(239,68,68,0.14);
+            --danger-line:rgba(239,68,68,0.36);
+        }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; min-height:100vh; }
+        body.admin-mode {
+            background:
+                radial-gradient(circle at 82% 4%, rgba(239,68,68,0.08), transparent 32%),
+                radial-gradient(circle at 7% 94%, rgba(239,68,68,0.05), transparent 30%),
+                var(--bg);
+        }
+        .admin-command {
+            position: fixed;
+            left: 88px;
+            right: 24px;
+            top: 18px;
+            z-index: 1200;
+            height: 56px;
+            border-radius: 14px;
+            border: 1px solid var(--danger-line);
+            background: linear-gradient(160deg, rgba(8,11,16,0.7), rgba(6,8,12,0.58));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px 0 16px;
+            backdrop-filter: blur(16px);
+        }
+        .admin-command .admin-title {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            font-family:'Cabinet Grotesk',sans-serif;
+            font-size:1rem;
+            font-weight:700;
+            letter-spacing:0.2px;
+        }
+        .admin-command .admin-title i { color: var(--danger); }
+        .admin-command .admin-actions { display:flex; gap:8px; align-items:center; }
+        .admin-ghost-btn {
+            border:1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.03);
+            color:#e5e7eb;
+            border-radius: 10px;
+            font-weight:700;
+            padding:9px 12px;
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+        }
+        .admin-ghost-btn:hover { border-color: rgba(255,255,255,0.35); color:#fff; }
+        .admin-danger-btn {
+            border:1px solid var(--danger-line);
+            background: linear-gradient(135deg, #b91c1c, #ef4444);
+            color:#fff;
+            border-radius: 10px;
+            font-weight:700;
+            padding:9px 12px;
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+        }
+        .admin-danger-btn:hover { filter: brightness(1.06); }
+        .admin-rail {
+            position: fixed;
+            left: 16px;
+            top: 86px;
+            width: 56px;
+            border: 1px solid var(--danger-line);
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(10,14,18,0.88), rgba(8,10,14,0.76));
+            z-index: 1200;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+            padding:10px 8px;
+            backdrop-filter: blur(14px);
+        }
+        .admin-rail-btn {
+            width: 100%;
+            height: 38px;
+            border-radius: 10px;
+            border:1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.03);
+            color:#e5e7eb;
+            display:grid;
+            place-items:center;
+            cursor:pointer;
+        }
+        .admin-rail-btn.active,
+        .admin-rail-btn:hover {
+            border-color: var(--danger-line);
+            background: var(--danger-soft);
+            color:#fff;
+        }
+        .primary-btn { background:var(--accent); color:#00131a; border:none; border-radius:10px; font-weight:700; padding:10px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+        .primary-btn:hover { background:#0891b2; color:white; }
+        .drawer { position:fixed; inset:0; display:none; z-index:1400; }
+        .drawer.show { display:flex; }
+        .drawer-backdrop { flex:1; background:rgba(2,6,23,0.7); }
+        .drawer-panel {
+            width:min(560px, 95vw);
+            background:#050607;
+            border-left:1px solid var(--danger-line);
+            padding:24px;
+            overflow-y:auto;
+            box-shadow: -26px 0 60px rgba(0,0,0,0.55);
+        }
+        .drawer-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+        .drawer-header h3 { margin:0; font-family:'Cabinet Grotesk',sans-serif; font-size:1.4rem; }
+        .drawer-sub { color:#94a3b8; font-size:0.85rem; }
+        .drawer-section {
+            border:1px solid rgba(148,163,184,0.12);
+            border-radius:16px;
+            padding:16px;
+            background:linear-gradient(180deg, rgba(8,10,14,0.98), rgba(4,6,10,0.98));
+            margin-top:14px;
+        }
+        .drawer-section h4 { margin:0 0 8px; font-size:0.95rem; color:#e2e8f0; }
+        .form-input { width:100%; background:#0b0b0b; border:1px solid rgba(148,163,184,0.2); padding:12px 14px; border-radius:10px; color:white; outline:none; transition:0.2s; font-family:inherit; font-size:0.95rem; }
+        .form-input:focus { border-color:var(--accent); }
+        .footer-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+        .chip-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+        .chip-btn:hover { border-color:var(--accent); color:white; }
+        #editBodyTemplate {
+            width: 100%;
+            justify-content: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-color: rgba(239,68,68,0.5);
+            color: #fecaca;
+            background: linear-gradient(180deg, rgba(239,68,68,0.18), rgba(239,68,68,0.08));
+        }
+        #editBodyTemplate:hover {
+            border-color: rgba(239,68,68,0.85);
+            color: #fff1f2;
+            box-shadow: 0 10px 30px rgba(239,68,68,0.2);
+        }
+        .render-shell { min-height:100vh; }
+        body.admin-mode .render-shell {
+            padding-top: 86px;
+            padding-left: 84px;
+        }
+        #portletList .portlet-row {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            padding:10px 0;
+            border-bottom:1px solid rgba(148,163,184,0.15);
+        }
+        #portletList .portlet-row:last-child { border-bottom:none; }
+        #portletList .portlet-meta strong { color: #fca5a5; }
+        #portletList .portlet-tools { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+        .editor-field {
+            margin-bottom:10px;
+        }
+        .editor-field label {
+            display:block;
+            font-size:0.72rem;
+            letter-spacing:0.6px;
+            text-transform:uppercase;
+            color:#94a3b8;
+            margin-bottom:6px;
+            font-weight:700;
+        }
+        .editor-field .value {
+            border:1px solid rgba(148,163,184,0.2);
+            border-radius:10px;
+            padding:10px;
+            background:#0b0f16;
+            color:#e5e7eb;
+            font-size:0.84rem;
+            word-break:break-all;
+        }
+        .form-textarea {
+            min-height: 220px;
+            resize: vertical;
+            font-family: ui-monospace,SFMono-Regular,Menlo,monospace;
+            line-height: 1.45;
+        }
+        .template-drawer {
+            z-index: 1450;
+        }
+        .template-drawer .drawer-panel {
+            width:min(620px, 96vw);
+        }
+        .template-actions {
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-top:12px;
+        }
+        .template-actions .chip-btn,
+        .template-actions .primary-btn {
+            flex:1 1 180px;
+            justify-content:center;
+        }
+        .template-highlight {
+            border-color: rgba(239,68,68,0.6) !important;
+            background: rgba(239,68,68,0.12) !important;
+        }
+        @@media (max-width: 1100px) {
+            .admin-command {
+                left: 76px;
+                right: 12px;
+            }
+            body.admin-mode .render-shell {
+                padding-left: 72px;
+            }
+        }
+    </style>
+</head>
+<body class="@(adminView ? "admin-mode" : string.Empty)">
+@if (adminView)
+{
+    <div class="admin-command">
+        <div class="admin-title">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Admin View</span>
+        </div>
+        <div class="admin-actions">
+            <button class="admin-ghost-btn" id="openDrawer"><i class="fa-solid fa-cubes-stacked"></i> Portlets</button>
+            <button class="admin-danger-btn" id="saveMasterpage"><i class="fa-solid fa-floppy-disk"></i> Save Layout</button>
+        </div>
+    </div>
+
+    <div class="admin-rail">
+        <button class="admin-rail-btn active" id="openDrawerRail" title="Layout & Portlets"><i class="fa-solid fa-layer-group"></i></button>
+        <button class="admin-rail-btn" id="editBodyRail" title="Body Template Tools"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button class="admin-rail-btn" id="reloadRail" title="Reload"><i class="fa-solid fa-rotate"></i></button>
+    </div>
+}
+
+    <div class="render-shell" id="renderShell">
+        @Html.Raw(Model.RenderedHtml ?? string.Empty)
+        <div data-react-slot="top"></div>
+        <div data-react-slot="menu"></div>
+        <div data-react-slot="body"></div>
+        <div data-react-slot="subtemplate"></div>
+    </div>
+
+@if (adminView)
+{
+    <div class="drawer" id="drawer">
+        <div class="drawer-backdrop" id="drawerBackdrop"></div>
+        <div class="drawer-panel">
+            <div class="drawer-header">
+                <div>
+                    <h3>Page Layout</h3>
+                    <div class="drawer-sub">Choose masterpage and add portlets for zones.</div>
+                </div>
+                <button class="chip-btn" id="closeDrawer" type="button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="drawer-section">
+                <h4>Select Masterpage</h4>
+                <select class="form-input" id="masterpageId">
+                    <option value="">Select masterpage</option>
+                    @foreach (var item in Model.Masterpages)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </select>
+                <div class="muted" style="margin-top:8px;">Masterpage zones will load after selection.</div>
+            </div>
+
+            <div class="drawer-section">
+                <h4>Add Portlet</h4>
+                <label class="muted" style="display:block;margin-bottom:6px;">Zone</label>
+                <select class="form-input" id="zoneKey">
+                    <option value="">Select zone</option>
+                </select>
+                <label class="muted" style="display:block;margin:12px 0 6px;">Template Viewer</label>
+                <select class="form-input" id="templateViewerId">
+                    <option value="">Select templete viewer</option>
+                    @foreach (var item in Model.TemplateViewers)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </select>
+                <label class="muted" style="display:block;margin:12px 0 6px;">Order</label>
+                <input class="form-input" id="sortOrder" type="number" min="0" value="0" />
+                <button class="primary-btn" id="addPortlet" type="button" style="margin-top:12px;">Add Portlet</button>
+            </div>
+
+            <div class="drawer-section">
+                <h4>Existing Portlets</h4>
+                <button class="chip-btn" id="editBodyTemplate" type="button" style="margin-bottom:10px;">
+                    <i class="fa-solid fa-up-right-from-square"></i> View Body Template
+                </button>
+                <div id="portletList" class="muted">No portlets yet.</div>
+            </div>
+
+            <div class="muted" id="formStatus" style="margin-top:12px;"></div>
+            <div class="footer-actions">
+                <button class="chip-btn" id="cancelDrawer" type="button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="drawer template-drawer" id="templateDrawer">
+        <div class="drawer-backdrop" id="templateDrawerBackdrop"></div>
+        <div class="drawer-panel">
+            <div class="drawer-header">
+                <div>
+                    <h3 id="templateDrawerTitle">Template Viewer Editor</h3>
+                    <div class="drawer-sub">Quick edit this linked template, or open the full browser popup editor.</div>
+                </div>
+                <button class="chip-btn" id="closeTemplateDrawer" type="button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="drawer-section">
+                <h4>Template Metadata</h4>
+                <div class="editor-field">
+                    <label>Template Viewer ID</label>
+                    <div class="value" id="templateDrawerId">—</div>
+                </div>
+                <div class="editor-field">
+                    <label>DGUID</label>
+                    <div class="value" id="templateDrawerDguid">—</div>
+                </div>
+                <div class="editor-field">
+                    <label>Zone</label>
+                    <div class="value" id="templateDrawerZone">—</div>
+                </div>
+                <div class="editor-field">
+                    <label>Sort Order</label>
+                    <div class="value" id="templateDrawerSort">—</div>
+                </div>
+            </div>
+
+            <div class="drawer-section">
+                <h4>Quick Edit</h4>
+                <div class="editor-field">
+                    <label>Template Name</label>
+                    <input class="form-input" id="templateDrawerName" />
+                </div>
+                <div class="editor-field">
+                    <label>Template Type</label>
+                    <input class="form-input" id="templateDrawerType" />
+                </div>
+                <div class="editor-field">
+                    <label>Template Text</label>
+                    <textarea class="form-input form-textarea" id="templateDrawerCode" spellcheck="false"></textarea>
+                </div>
+                <div class="template-actions">
+                    <button class="chip-btn" id="openTemplatePopup" type="button"><i class="fa-solid fa-up-right-from-square"></i> Open Browser Popup</button>
+                    <button class="chip-btn" id="refreshTemplateDrawer" type="button"><i class="fa-solid fa-rotate"></i> Refresh from DB</button>
+                    <button class="primary-btn" id="saveTemplateDrawer" type="button"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                </div>
+            </div>
+
+            <div class="muted" id="templateFormStatus" style="margin-top:12px;"></div>
+            <div class="footer-actions">
+                <button class="chip-btn" id="cancelTemplateDrawer" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <form id="antiForgery" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+}
+
+@if (Model.HasReactSlots)
+{
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@@babel/standalone/babel.min.js"></script>
+    <script>
+        (function () {
+            const slotPayload = @Html.Raw(Model.ReactSlotPayloadJson);
+            const resolveTarget = (slot) => {
+                const named = document.querySelector(`[data-react-slot='${slot}']`);
+                if (named) return named;
+                if (slot === 'top') return document.querySelector('header') || document.body;
+                if (slot === 'menu') return document.querySelector('nav') || document.querySelector("[data-react-slot='top']") || document.body;
+                if (slot === 'body') return document.querySelector('main') || document.body;
+                return document.body;
+            };
+
+            const normalize = (value) => String(value || '').replace(/\\\\/g, '/').replace(/\/+/g, '/').replace(/^\//, '');
+            const dir = (path) => {
+                const idx = path.lastIndexOf('/');
+                return idx < 0 ? '' : path.slice(0, idx);
+            };
+            const extensions = ['', '.js', '.jsx', '.ts', '.tsx', '.json', '.css', '/index.js', '/index.jsx'];
+
+            const runSlot = (slot, workspace) => {
+                const target = resolveTarget(slot);
+                if (!target || !workspace || !Array.isArray(workspace.files)) return;
+                const moduleMap = {};
+                workspace.files.filter(f => f.nodeType === 'file').forEach(f => { moduleMap[f.path] = f; });
+
+                const resolve = (from, spec) => {
+                    if (!spec.startsWith('.')) return spec;
+                    const base = dir(from);
+                    const raw = normalize((base ? base + '/' : '') + spec);
+                    const parts = [];
+                    raw.split('/').forEach((part) => {
+                        if (!part || part === '.') return;
+                        if (part === '..') parts.pop();
+                        else parts.push(part);
+                    });
+                    const clean = parts.join('/');
+                    for (const ext of extensions) {
+                        if (moduleMap[clean + ext]) return clean + ext;
+                    }
+                    return clean;
+                };
+
+                const cache = {};
+                const req = (from, spec) => {
+                    if (spec === 'react') return window.React;
+                    if (spec === 'react-dom' || spec === 'react-dom/client') return window.ReactDOM;
+                    const id = resolve(from, spec);
+                    if (cache[id]) return cache[id].exports;
+                    const file = moduleMap[id];
+                    if (!file) throw new Error(`Module not found: ${spec}`);
+                    if (/\.css$/i.test(id)) {
+                        const style = document.createElement('style');
+                        style.textContent = file.content || '';
+                        document.head.appendChild(style);
+                        cache[id] = { exports: {} };
+                        return {};
+                    }
+                    if (/\.json$/i.test(id)) {
+                        cache[id] = { exports: JSON.parse(file.content || '{}') };
+                        return cache[id].exports;
+                    }
+                    const transformed = Babel.transform(file.content || '', { presets: [['env', { modules: 'commonjs' }], 'react'] }).code;
+                    const module = { exports: {} };
+                    cache[id] = module;
+                    new Function('require', 'module', 'exports', 'React', 'ReactDOM', transformed)((s) => req(id, s), module, module.exports, window.React, window.ReactDOM);
+                    return module.exports;
+                };
+
+                try {
+                    const entry = workspace.entryFilePath || 'App.jsx';
+                    const mod = req(entry, entry);
+                    const App = mod.default || mod.App || mod;
+                    const mount = document.createElement('div');
+                    mount.setAttribute('data-react-builder-slot', slot);
+                    target.appendChild(mount);
+                    const root = window.ReactDOM.createRoot(mount);
+                    root.render(window.React.createElement(App));
+
+                    if (@adminView.ToString().ToLowerInvariant()) {
+                        const badge = document.createElement('div');
+                        badge.style.cssText = 'margin:6px 0;padding:4px 8px;border:1px solid rgba(239,68,68,.45);border-radius:999px;font-size:.72rem;color:#fca5a5;background:rgba(239,68,68,.12);display:inline-flex;gap:8px;align-items:center;';
+                        badge.innerHTML = `<strong style=\"font-weight:700;text-transform:uppercase;\">${slot}</strong><a href=\"/Tools/ReactBuilderEditor?id=${workspace.builderId}\" style=\"color:#fecaca;text-decoration:none;\">Edit in React Builder</a>`;
+                        target.prepend(badge);
+                    }
+                } catch (err) {
+                    if (@adminView.ToString().ToLowerInvariant()) {
+                        const pre = document.createElement('pre');
+                        pre.style.cssText = 'white-space:pre-wrap;background:#220a0a;border:1px solid rgba(239,68,68,.5);color:#fecaca;padding:10px;border-radius:8px;margin:8px 0;';
+                        pre.textContent = `React slot error (${slot}): ${err && err.stack ? err.stack : err}`;
+                        target.appendChild(pre);
+                    }
+                }
+            };
+
+            Object.keys(slotPayload || {}).forEach((slot) => runSlot(slot, slotPayload[slot]));
+        })();
+    </script>
+}
+
+    <script src="/js/workflow-trigger-runner.js"></script>
+
+    <script>
+        const adminView = @adminView.ToString().ToLowerInvariant();
+        const openDrawer = document.getElementById('openDrawer');
+        const closeDrawer = document.getElementById('closeDrawer');
+        const cancelDrawer = document.getElementById('cancelDrawer');
+        const drawerBackdrop = document.getElementById('drawerBackdrop');
+        const drawer = document.getElementById('drawer');
+        const saveMasterpage = document.getElementById('saveMasterpage');
+        const masterpageId = document.getElementById('masterpageId');
+        const templateViewerId = document.getElementById('templateViewerId');
+        const zoneKey = document.getElementById('zoneKey');
+        const sortOrder = document.getElementById('sortOrder');
+        const addPortlet = document.getElementById('addPortlet');
+        const portletList = document.getElementById('portletList');
+        const formStatus = document.getElementById('formStatus');
+        const csrfToken = document.querySelector('#antiForgery input[name="__RequestVerificationToken"]')?.value || '';
+        const openDrawerRail = document.getElementById('openDrawerRail');
+        const editBodyRail = document.getElementById('editBodyRail');
+        const reloadRail = document.getElementById('reloadRail');
+        const editBodyTemplate = document.getElementById('editBodyTemplate');
+        const templateDrawer = document.getElementById('templateDrawer');
+        const templateDrawerBackdrop = document.getElementById('templateDrawerBackdrop');
+        const closeTemplateDrawer = document.getElementById('closeTemplateDrawer');
+        const cancelTemplateDrawer = document.getElementById('cancelTemplateDrawer');
+        const saveTemplateDrawer = document.getElementById('saveTemplateDrawer');
+        const refreshTemplateDrawer = document.getElementById('refreshTemplateDrawer');
+        const openTemplatePopup = document.getElementById('openTemplatePopup');
+        const templateDrawerTitle = document.getElementById('templateDrawerTitle');
+        const templateDrawerCode = document.getElementById('templateDrawerCode');
+        const templateDrawerName = document.getElementById('templateDrawerName');
+        const templateDrawerType = document.getElementById('templateDrawerType');
+        const templateDrawerDguid = document.getElementById('templateDrawerDguid');
+        const templateDrawerZone = document.getElementById('templateDrawerZone');
+        const templateDrawerSort = document.getElementById('templateDrawerSort');
+        const templateDrawerId = document.getElementById('templateDrawerId');
+        const templateFormStatus = document.getElementById('templateFormStatus');
+        let editingTemplateViewerId = null;
+        let editingTemplateContext = null;
+
+        const showDrawer = (show) => {
+            if (!drawer) return;
+            drawer.classList.toggle('show', show);
+        };
+
+        const showTemplateDrawer = (show) => {
+            if (!templateDrawer) return;
+            templateDrawer.classList.toggle('show', show);
+        };
+
+        const setStatus = (message, isError = false) => {
+            if (!formStatus) return;
+            formStatus.textContent = message;
+            formStatus.style.color = isError ? '#f59e0b' : '#94a3b8';
+        };
+
+        const setTemplateStatus = (message, isError = false) => {
+            if (!templateFormStatus) return;
+            templateFormStatus.textContent = message;
+            templateFormStatus.style.color = isError ? '#f59e0b' : '#94a3b8';
+        };
+
+        const getBodyPortlet = () => {
+            if (!Array.isArray(portlets)) return null;
+            const exact = portlets.find((portlet) => String(portlet?.zoneKey || '').trim().toLowerCase() === 'body');
+            if (exact) return exact;
+            const suffix = portlets.find((portlet) => String(portlet?.zoneKey || '').trim().toLowerCase().endsWith('-body'));
+            if (suffix) return suffix;
+            return portlets.find((portlet) => String(portlet?.zoneKey || '').toLowerCase().includes('body')) || null;
+        };
+
+        const openTemplateEditorById = async (templateId, zone = '—', order = '—', templateName = 'Template', options = {}) => {
+            const opts = options || {};
+            const id = Number(templateId);
+            if (!Number.isFinite(id) || id <= 0) {
+                setStatus('Invalid template viewer id.', true);
+                return;
+            }
+            editingTemplateViewerId = id;
+            editingTemplateContext = { zone: zone || '—', order: order || '—', templateName: templateName || 'Template' };
+            if (templateDrawerTitle) templateDrawerTitle.textContent = `Template Viewer Editor · ${templateName || 'Template'}`;
+            if (templateDrawerCode) templateDrawerCode.value = '';
+            if (templateDrawerName) templateDrawerName.value = templateName || '';
+            if (templateDrawerType) templateDrawerType.value = '';
+            if (templateDrawerDguid) templateDrawerDguid.textContent = '—';
+            if (templateDrawerZone) templateDrawerZone.textContent = zone || '—';
+            if (templateDrawerSort) templateDrawerSort.textContent = order || '—';
+            if (templateDrawerId) templateDrawerId.textContent = String(editingTemplateViewerId);
+            showTemplateDrawer(true);
+            if (opts.skipFetch === true) {
+                setTemplateStatus('Template context loaded. Use Refresh from DB or Open Browser Popup.');
+                return;
+            }
+            try {
+                setTemplateStatus('Loading template viewer...');
+                const res = await fetch(`/Portal/Page=@Model.PageId?handler=TemplateViewer&id=${id}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                if (res.redirected || (res.url && res.url.toLowerCase().includes('/login'))) {
+                    setTemplateStatus('Session check redirected to login. Use Open Browser Popup or sign in again.', true);
+                    return;
+                }
+                const data = await res.json();
+                if (!res.ok || !data?.success || !data.viewer) {
+                    setTemplateStatus(data?.message || 'Unable to load template viewer.', true);
+                    return;
+                }
+                editingTemplateViewerId = id;
+                editingTemplateContext = { zone: zone || '—', order: order || '—', templateName: data.viewer.name || templateName || 'Template' };
+                if (templateDrawerTitle) templateDrawerTitle.textContent = `Template Viewer Editor · ${data.viewer.name || 'Template'}`;
+                if (templateDrawerCode) templateDrawerCode.value = data.viewer.templateText || '';
+                if (templateDrawerName) templateDrawerName.value = data.viewer.name || '';
+                if (templateDrawerType) templateDrawerType.value = data.viewer.viewerType || '';
+                if (templateDrawerDguid) templateDrawerDguid.textContent = data.viewer.dguid || '—';
+                if (templateDrawerZone) templateDrawerZone.textContent = zone || '—';
+                if (templateDrawerSort) templateDrawerSort.textContent = order || '—';
+                if (templateDrawerId) templateDrawerId.textContent = String(editingTemplateViewerId);
+                setTemplateStatus('');
+            } catch (err) {
+                setTemplateStatus('Unable to load template viewer.', true);
+            }
+        };
+
+        const openTemplateViewerBrowser = (templateId) => {
+            const id = Number(templateId);
+            if (!Number.isFinite(id) || id <= 0) {
+                setStatus('Invalid body template id.', true);
+                return;
+            }
+            const width = Math.min(1440, Math.max(1000, window.screen.availWidth - 80));
+            const height = Math.min(900, Math.max(700, window.screen.availHeight - 80));
+            const left = Math.max(0, (window.screen.availWidth - width) / 2);
+            const top = Math.max(0, (window.screen.availHeight - height) / 2);
+            const url = `/Tools/TempleteViewer?editId=${id}&openEditor=1`;
+            const popup = window.open(
+                url,
+                'BugenceTempleteViewerEditor',
+                `width=${Math.round(width)},height=${Math.round(height)},left=${Math.round(left)},top=${Math.round(top)},resizable=yes,scrollbars=yes`
+            );
+            if (!popup) {
+                setTemplateStatus('Popup blocked by browser. Please allow popups for this site.', true);
+                return;
+            }
+            popup.focus();
+            setTemplateStatus('Opening template viewer browser popup...');
+        };
+
+        const focusBodyTemplateInDrawer = () => {
+            const bodyPortlet = getBodyPortlet();
+            showDrawer(true);
+            renderPortlets('body');
+            if (!bodyPortlet) {
+                setStatus('No body portlet found. Add one in the Body zone first.', true);
+                return;
+            }
+            setStatus(`Body is linked to "${bodyPortlet.templateViewerName || 'Template'}" (Order ${bodyPortlet.sortOrder ?? 0}).`);
+        };
+
+        const openBodyTemplateEditorDrawer = () => {
+            const bodyPortlet = getBodyPortlet();
+            showDrawer(true);
+            renderPortlets('body');
+            if (!bodyPortlet) {
+                setStatus('No body portlet found. Add one in the Body zone first.', true);
+                return;
+            }
+            openTemplateEditorById(
+                bodyPortlet.templateViewerId,
+                bodyPortlet.zoneKey,
+                bodyPortlet.sortOrder,
+                bodyPortlet.templateViewerName || 'Template',
+                { skipFetch: true }
+            );
+        };
+
+        const selectedMasterpage = '@Model.SelectedMasterpageId';
+        const selectedTemplateViewer = '@Model.SelectedTemplateViewerId';
+        if (masterpageId && selectedMasterpage) masterpageId.value = selectedMasterpage;
+        if (templateViewerId && selectedTemplateViewer) templateViewerId.value = selectedTemplateViewer;
+
+        const portlets = @Html.Raw(Model.PortletsJson);
+
+        const renderPortlets = (highlightZone = null) => {
+            if (!portletList) return;
+            if (!Array.isArray(portlets) || portlets.length === 0) {
+                portletList.textContent = 'No portlets yet.';
+                return;
+            }
+            portletList.innerHTML = '';
+            portlets.forEach((portlet) => {
+                const row = document.createElement('div');
+                row.className = 'portlet-row';
+                if (highlightZone && String(portlet.zoneKey || '').toLowerCase().includes(String(highlightZone).toLowerCase())) {
+                    row.classList.add('template-highlight');
+                }
+                const info = document.createElement('div');
+                info.className = 'portlet-meta';
+                info.innerHTML = `<strong>${portlet.zoneKey}</strong> · ${portlet.templateViewerName} <span style="color:#94a3b8;">(Order ${portlet.sortOrder})</span>`;
+                const actions = document.createElement('div');
+                actions.className = 'portlet-tools';
+                actions.innerHTML = `
+                    <button class="chip-btn" data-edit-template="${portlet.templateViewerId}" data-zone="${portlet.zoneKey}" data-order="${portlet.sortOrder}" data-name="${(portlet.templateViewerName || '').replace(/\"/g, '&quot;')}">Edit Template</button>
+                    <button class="chip-btn" data-edit="${portlet.id}">Edit</button>
+                    <button class="chip-btn" data-delete="${portlet.id}">Delete</button>
+                `;
+                row.appendChild(info);
+                row.appendChild(actions);
+                portletList.appendChild(row);
+            });
+        };
+
+        const loadZones = async (masterId) => {
+            if (!zoneKey) return;
+            zoneKey.innerHTML = '<option value=\"\">Select zone</option>';
+            if (!masterId) return;
+            try {
+                const res = await fetch(`/Portal/Page=@Model.PageId?handler=Zones&masterpageId=${masterId}`, { credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!Array.isArray(data?.zones)) return;
+                data.zones.forEach((zone) => {
+                    const option = document.createElement('option');
+                    option.value = zone;
+                    option.textContent = zone;
+                    zoneKey.appendChild(option);
+                });
+            } catch (err) {}
+        };
+
+        loadZones(masterpageId?.value);
+        masterpageId?.addEventListener('change', () => loadZones(masterpageId.value));
+
+        renderPortlets();
+
+        openDrawer?.addEventListener('click', () => showDrawer(true));
+        openDrawerRail?.addEventListener('click', () => showDrawer(true));
+        editBodyRail?.addEventListener('click', () => focusBodyTemplateInDrawer());
+        editBodyTemplate?.addEventListener('click', () => openBodyTemplateEditorDrawer());
+        reloadRail?.addEventListener('click', () => window.location.reload());
+        closeDrawer?.addEventListener('click', () => showDrawer(false));
+        cancelDrawer?.addEventListener('click', () => showDrawer(false));
+        drawerBackdrop?.addEventListener('click', () => showDrawer(false));
+        closeTemplateDrawer?.addEventListener('click', () => showTemplateDrawer(false));
+        cancelTemplateDrawer?.addEventListener('click', () => showTemplateDrawer(false));
+        templateDrawerBackdrop?.addEventListener('click', () => showTemplateDrawer(false));
+        openTemplatePopup?.addEventListener('click', () => openTemplateViewerBrowser(editingTemplateViewerId));
+        refreshTemplateDrawer?.addEventListener('click', async () => {
+            if (!editingTemplateViewerId) return;
+            await openTemplateEditorById(
+                editingTemplateViewerId,
+                editingTemplateContext?.zone || '—',
+                editingTemplateContext?.order || '—',
+                editingTemplateContext?.templateName || 'Template'
+            );
+        });
+
+        saveMasterpage?.addEventListener('click', async () => {
+            const masterValue = masterpageId?.value || '';
+            if (!masterValue) {
+                setStatus('Please select masterpage.', true);
+                return;
+            }
+            setStatus('Saving masterpage...');
+            saveMasterpage.disabled = true;
+            try {
+                const res = await fetch('/Portal/Page=@Model.PageId?handler=UpdateMasterpage', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        pageId: @Model.PageId,
+                        masterpageId: Number(masterValue)
+                    })
+                });
+                if (res.redirected) {
+                    window.location.href = res.url;
+                    return;
+                }
+                const data = await res.json();
+                if (!res.ok || !data?.success) {
+                    setStatus(data?.message || 'Unable to save layout.', true);
+                    return;
+                }
+                window.location.reload();
+            } catch (err) {
+                setStatus('Unable to save layout.', true);
+            } finally {
+                saveMasterpage.disabled = false;
+            }
+        });
+
+        portletList?.addEventListener('click', async (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            const actionButton = target.closest('button');
+            if (!(actionButton instanceof HTMLElement)) return;
+            const editTemplateId = actionButton.getAttribute('data-edit-template');
+            const editId = actionButton.getAttribute('data-edit');
+            const deleteId = actionButton.getAttribute('data-delete');
+            if (editTemplateId) {
+                const zone = actionButton.getAttribute('data-zone') || '—';
+                const order = actionButton.getAttribute('data-order') || '—';
+                const name = actionButton.getAttribute('data-name') || 'Template';
+                await openTemplateEditorById(editTemplateId, zone, order, name);
+                return;
+            }
+            if (editId) {
+                const portlet = portlets.find(p => String(p.id) === String(editId));
+                if (!portlet) return;
+                if (zoneKey) zoneKey.value = portlet.zoneKey || '';
+                if (templateViewerId) templateViewerId.value = portlet.templateViewerId || '';
+                if (sortOrder) sortOrder.value = portlet.sortOrder || 0;
+                if (addPortlet) {
+                    addPortlet.textContent = 'Update Portlet';
+                    addPortlet.setAttribute('data-editing', editId);
+                }
+                return;
+            }
+            if (deleteId) {
+                setStatus('Deleting portlet...');
+                try {
+                    const res = await fetch('/Portal/Page=@Model.PageId?handler=DeletePortlet', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': csrfToken
+                        },
+                        body: JSON.stringify({ id: Number(deleteId), pageId: @Model.PageId })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data?.success) {
+                        setStatus(data?.message || 'Unable to delete portlet.', true);
+                        return;
+                    }
+                    window.location.reload();
+                } catch (err) {
+                    setStatus('Unable to delete portlet.', true);
+                }
+            }
+        });
+
+        saveTemplateDrawer?.addEventListener('click', async () => {
+            if (!editingTemplateViewerId) return;
+            const name = templateDrawerName?.value?.trim() || '';
+            const type = templateDrawerType?.value?.trim() || '';
+            const text = templateDrawerCode?.value || '';
+            if (!name || !text) {
+                setTemplateStatus('Template name and content are required.', true);
+                return;
+            }
+            saveTemplateDrawer.disabled = true;
+            setTemplateStatus('Saving template viewer...');
+            try {
+                const res = await fetch('/Portal/Page=@Model.PageId?handler=UpdateTemplateViewer', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        id: editingTemplateViewerId,
+                        name,
+                        viewerType: type,
+                        templateText: text
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok || !data?.success) {
+                    setTemplateStatus(data?.message || 'Unable to save template viewer.', true);
+                    return;
+                }
+                setTemplateStatus('Template viewer updated.');
+                await openTemplateEditorById(
+                    editingTemplateViewerId,
+                    editingTemplateContext?.zone || '—',
+                    editingTemplateContext?.order || '—',
+                    editingTemplateContext?.templateName || 'Template'
+                );
+            } catch (err) {
+                setTemplateStatus('Unable to save template viewer.', true);
+            } finally {
+                saveTemplateDrawer.disabled = false;
+            }
+        });
+
+        addPortlet?.addEventListener('click', async () => {
+            const zoneValue = zoneKey?.value || '';
+            const viewerValue = templateViewerId?.value || '';
+            const orderValue = Number(sortOrder?.value || 0);
+            if (!zoneValue || !viewerValue) {
+                setStatus('Please select zone and template viewer.', true);
+                return;
+            }
+            const editingId = addPortlet.getAttribute('data-editing');
+            const endpoint = editingId ? 'UpdatePortlet' : 'AddPortlet';
+            setStatus(editingId ? 'Updating portlet...' : 'Adding portlet...');
+            addPortlet.disabled = true;
+            try {
+                const res = await fetch(`/Portal/Page=@Model.PageId?handler=${endpoint}`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': csrfToken
+                    },
+                    body: JSON.stringify(editingId ? {
+                        id: Number(editingId),
+                        pageId: @Model.PageId,
+                        zoneKey: zoneValue,
+                        templateViewerId: Number(viewerValue),
+                        sortOrder: orderValue
+                    } : {
+                        pageId: @Model.PageId,
+                        masterpageId: masterpageId?.value ? Number(masterpageId.value) : null,
+                        zoneKey: zoneValue,
+                        templateViewerId: Number(viewerValue),
+                        sortOrder: orderValue
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok || !data?.success) {
+                    setStatus(data?.message || 'Unable to save portlet.', true);
+                    return;
+                }
+                window.location.reload();
+            } catch (err) {
+                setStatus('Unable to save portlet.', true);
+            } finally {
+                addPortlet.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

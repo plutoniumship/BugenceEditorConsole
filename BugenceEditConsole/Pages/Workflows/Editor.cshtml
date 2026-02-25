@@ -1,0 +1,3228 @@
+@page
+@model BugenceEditConsole.Pages.Workflows.EditorModel
+@{
+    ViewData["Title"] = "Workflow Editor";
+    var workflow = Model.Workflow;
+}
+
+<style>
+    @@import url("https://api.fontshare.com/v2/css?f[]=satoshi@300,500,700&f[]=cabinet-grotesk@500,700,800&display=swap");
+
+    :root {
+        --surface: #050505;
+        --panel: #0c0c0c;
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --panel-soft: rgba(255, 255, 255, 0.05);
+        --accent: #dc2626;
+        --accent-2: #ef4444;
+        --accent-3: #fb7185;
+        --text-primary: #e5e7eb;
+        --text-muted: #9ca3af;
+        --text-strong: #f9fafb;
+        --shadow: 0 24px 50px rgba(0, 0, 0, 0.6);
+        --font-display: "Cabinet Grotesk", "Satoshi", sans-serif;
+        --font-body: "Satoshi", sans-serif;
+    }
+
+    .main-content {
+        background-color: #050505;
+        background-image:
+            radial-gradient(circle at 0% 0%, rgba(34, 211, 238, 0.06), transparent 38%),
+            linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        background-size: 100% 100%, 48px 48px, 48px 48px;
+    }
+
+    .content-shell {
+        max-width: 1760px;
+        margin: 0 auto;
+    }
+
+    .workflow-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr) 300px; gap: 18px; height: calc(100vh - 140px); }
+    .workflow-panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 18px;
+        padding: 18px;
+        overflow: auto;
+        box-shadow: var(--shadow);
+    }
+    .workflow-panel h3, .workflow-panel h4 { font-family: var(--font-display); color: var(--text-strong); }
+    .workflow-panel--left { display: flex; flex-direction: column; gap: 14px; }
+    .workflow-panel--right { display: flex; flex-direction: column; gap: 14px; }
+    .workflow-canvas-shell {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 12px;
+        min-width: 0;
+    }
+    .workflow-canvas {
+        position: relative;
+        background: radial-gradient(circle at 0% 0%, rgba(34, 211, 238, 0.08), transparent 45%),
+                    radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.07), transparent 45%),
+                    #050505;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        overflow: auto;
+        min-height: 460px;
+        box-shadow: var(--shadow);
+    }
+    .canvas-stage {
+        position: relative;
+        width: 2600px;
+        height: 1600px;
+        transform-origin: 0 0;
+    }
+    .canvas-guides {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .canvas-guides.active { opacity: 1; }
+    .guide-line {
+        position: absolute;
+        background: rgba(34, 211, 238, 0.5);
+        box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+    }
+    .guide-line.horizontal { height: 2px; width: 100%; }
+    .guide-line.vertical { width: 2px; height: 100%; }
+
+    .minimap {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        width: 200px;
+        height: 140px;
+        border-radius: 14px;
+        border: 1px solid rgba(148,163,184,0.25);
+        background: rgba(7, 10, 18, 0.85);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        z-index: 5;
+    }
+    .minimap-stage { position: absolute; inset: 8px; border-radius: 10px; background: rgba(15,23,42,0.7); }
+    .minimap-node {
+        position: absolute;
+        width: 10px;
+        height: 6px;
+        border-radius: 4px;
+        background: rgba(34, 211, 238, 0.7);
+    }
+    .minimap-viewport {
+        position: absolute;
+        border: 1px solid rgba(251, 191, 36, 0.8);
+        background: rgba(251, 191, 36, 0.15);
+        border-radius: 6px;
+        pointer-events: none;
+    }
+    .workflow-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .workflow-title { font-size: 1.4rem; font-weight: 700; margin: 0; font-family: var(--font-display); }
+    .workflow-meta { color: var(--text-muted); font-size: 0.85rem; }
+    .workflow-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(34, 211, 238, 0.15);
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    .workflow-save {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(135deg, var(--accent), #38bdf8);
+        color: #00131a;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(34, 211, 238, 0.25);
+    }
+    .workflow-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(12, 12, 12, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: var(--shadow);
+    }
+    .toolbar-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .toolbar-btn {
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(15, 23, 42, 0.7);
+        color: var(--text-primary);
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+    .toolbar-btn:hover { transform: translateY(-1px); border-color: rgba(34, 211, 238, 0.5); background: rgba(34, 211, 238, 0.08); }
+    .toolbar-btn.primary { background: rgba(34, 211, 238, 0.15); border-color: rgba(34, 211, 238, 0.4); color: var(--accent); }
+    .toolbar-pill {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.12);
+        color: var(--text-muted);
+        font-size: 0.75rem;
+    }
+    .toolbar-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    .toolbar-toggle input { accent-color: var(--accent); }
+
+    .panel-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(10, 10, 10, 0.8);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+    .panel-search input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-primary);
+        width: 100%;
+        font-size: 0.85rem;
+    }
+    .panel-subtitle { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+    .block-card {
+        background: linear-gradient(145deg, rgba(15, 15, 15, 0.95), rgba(10, 10, 10, 0.85));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 10px;
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .block-card:hover { transform: translateY(-2px); border-color: rgba(34, 211, 238, 0.4); }
+    .block-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: rgba(34, 211, 238, 0.15);
+        color: var(--accent);
+    }
+    .block-card strong { display: block; margin-bottom: 2px; font-size: 0.95rem; color: var(--text-strong); }
+    .block-card span { font-size: 0.78rem; color: var(--text-muted); }
+    .block-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .block-tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; background: rgba(148,163,184,0.12); color: var(--text-muted); }
+
+    .canvas-node {
+        position: absolute;
+        min-width: 200px;
+        background: linear-gradient(160deg, rgba(15,23,42,0.95), rgba(2,6,23,0.9));
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 16px;
+        padding: 12px 12px 10px;
+        color: var(--text-primary);
+        cursor: grab;
+        box-shadow: 0 18px 35px rgba(3, 6, 23, 0.55);
+    }
+    .canvas-node.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(34,211,238,0.25); }
+    .node-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .node-title { font-weight: 700; font-size: 0.95rem; margin: 0; font-family: var(--font-display); }
+    .node-type {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+    }
+    .node-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .node-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.12);
+        font-size: 0.7rem;
+        color: var(--text-muted);
+    }
+    .node-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .node-delete-btn {
+        width: 24px;
+        height: 24px;
+        border: 1px solid rgba(248, 113, 113, 0.28);
+        background: rgba(127, 29, 29, 0.35);
+        color: #fecaca;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .node-delete-btn:hover {
+        background: rgba(220, 38, 38, 0.45);
+        border-color: rgba(248, 113, 113, 0.52);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+    .node-ports { display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.7rem; color: var(--text-muted); }
+    .node-ports button {
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .node-port {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+        display: inline-block;
+    }
+    .node-port.out { background: var(--accent-2); }
+    .node-port.in { background: var(--accent-3); }
+
+    .canvas-grid {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+    }
+    .canvas-svg { position: absolute; inset: 0; pointer-events: auto; overflow: visible; }
+    .edge-label {
+        font-size: 11px;
+        fill: #e2e8f0;
+        paint-order: stroke;
+        stroke: rgba(15, 23, 42, 0.9);
+        stroke-width: 4px;
+    }
+    .edge-path { pointer-events: stroke; cursor: pointer; }
+    .edge-path-temp {
+        stroke-dasharray: 6 5;
+        opacity: 0.85;
+        pointer-events: none;
+    }
+    .property-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin: 12px 0 6px; }
+    .property-group input, .property-group textarea, .property-group select {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(148,163,184,0.2);
+        background: rgba(8, 12, 24, 0.9);
+        color: var(--text-primary);
+    }
+    .template-card {
+        border: 1px dashed rgba(148,163,184,0.3);
+        border-radius: 14px;
+        padding: 12px;
+        cursor: pointer;
+        background: rgba(8, 12, 24, 0.6);
+    }
+    .template-card strong { display: block; margin-bottom: 4px; color: var(--text-strong); }
+    .hint { color: var(--text-muted); font-size: 0.8rem; }
+    .email-preview {
+        border: 1px solid rgba(148,163,184,0.2);
+        border-radius: 10px;
+        padding: 10px;
+        background: rgba(8, 12, 24, 0.7);
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        max-height: 160px;
+        overflow: auto;
+    }
+    .inspector-section { padding: 12px; border-radius: 14px; background: rgba(8, 12, 24, 0.6); border: 1px solid rgba(148,163,184,0.15); }
+    .inspector-pill { font-size: 0.7rem; padding: 4px 8px; border-radius: 999px; background: rgba(34,211,238,0.15); color: var(--accent); }
+    .inspector-simple {
+        display: grid;
+        gap: 10px;
+    }
+    .inspector-advanced {
+        border: 1px solid rgba(148,163,184,0.22);
+        border-radius: 10px;
+        background: rgba(7, 10, 18, 0.5);
+        margin-top: 8px;
+        overflow: hidden;
+    }
+    .inspector-advanced > summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 10px 12px;
+        font-weight: 700;
+        color: #cbd5e1;
+        font-size: 0.8rem;
+    }
+    .inspector-advanced > summary::-webkit-details-marker { display: none; }
+    .inspector-advanced > div { padding: 0 12px 12px; }
+    .label-help {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        margin-left: 6px;
+        border-radius: 50%;
+        border: 1px solid rgba(148,163,184,0.35);
+        font-size: 0.65rem;
+        color: #cbd5e1;
+        cursor: help;
+        position: relative;
+    }
+    .label-help::after {
+        content: attr(data-help);
+        position: absolute;
+        left: calc(100% + 8px);
+        top: 50%;
+        transform: translateY(-50%);
+        min-width: 180px;
+        max-width: 240px;
+        border-radius: 8px;
+        border: 1px solid rgba(148,163,184,0.35);
+        background: #090f1a;
+        color: #e2e8f0;
+        font-size: 0.72rem;
+        line-height: 1.35;
+        padding: 8px;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 6;
+    }
+    .label-help:hover::after,
+    .label-help.is-open::after {
+        opacity: 1;
+    }
+    .inline-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .status-list { display: grid; gap: 8px; margin-top: 10px; }
+    .status-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(148,163,184,0.15);
+        background: rgba(8,12,24,0.7);
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    .status-item.error { border-color: rgba(248, 113, 113, 0.35); color: #fecaca; }
+    .status-item.warn { border-color: rgba(251, 191, 36, 0.35); color: #fde68a; }
+    .status-item.ok { border-color: rgba(74, 222, 128, 0.35); color: #bbf7d0; }
+    .status-item strong { color: var(--text-strong); }
+    .log-list { display: grid; gap: 8px; margin-top: 8px; max-height: 220px; overflow: auto; }
+    .log-item { padding: 10px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.15); background: rgba(8,12,24,0.7); font-size: 0.78rem; color: var(--text-muted); }
+    .log-item span { color: var(--text-strong); font-weight: 600; }
+    .snap-pill { font-size: 0.7rem; padding: 4px 8px; border-radius: 999px; background: rgba(251,191,36,0.15); color: #fcd34d; }
+    .action-props-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 220;
+        background: rgba(2, 6, 23, 0.72);
+        backdrop-filter: blur(2px);
+    }
+    .action-props-modal.show { display: flex; }
+    .action-props-panel {
+        width: min(1380px, 96vw);
+        max-height: 92vh;
+        overflow: auto;
+        background: linear-gradient(180deg, #0a0f18, #070b12);
+        border: 1px solid rgba(148,163,184,0.28);
+        border-radius: 16px;
+        box-shadow: 0 30px 70px rgba(0,0,0,0.55);
+    }
+    .action-props-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(148,163,184,0.2);
+    }
+    .action-props-title { margin: 0; font-size: 1.1rem; font-weight: 800; color: #dbeafe; }
+    .action-props-close {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid rgba(148,163,184,0.35);
+        background: #0f172a;
+        color: #cbd5e1;
+        cursor: pointer;
+    }
+    .action-props-body { padding: 14px 16px 10px; }
+    .action-props-section {
+        margin-bottom: 14px;
+        border: 1px solid rgba(96,165,250,0.3);
+        border-radius: 12px;
+        padding: 10px;
+        background: rgba(30,41,59,0.22);
+    }
+    .action-props-section h4 {
+        margin: 0 0 8px;
+        color: #93c5fd;
+        font-size: 0.95rem;
+        border-bottom: 1px solid rgba(148,163,184,0.2);
+        padding-bottom: 7px;
+    }
+    .action-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .action-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .action-grid-1 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .action-field label {
+        display: block;
+        font-size: 0.76rem;
+        color: #9fb3cb;
+        margin-bottom: 4px;
+        font-weight: 700;
+    }
+    .action-field input,
+    .action-field select,
+    .action-field textarea {
+        width: 100%;
+        border: 1px solid rgba(96,165,250,0.35);
+        border-radius: 8px;
+        background: #0b1322;
+        color: #e2e8f0;
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        font-family: inherit;
+    }
+    .action-field textarea { min-height: 78px; resize: vertical; }
+    .action-token-help {
+        margin-top: 6px;
+        color: #94a3b8;
+        font-size: 0.74rem;
+        line-height: 1.35;
+    }
+    .action-token-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    .action-token-chip {
+        border: 1px solid rgba(96,165,250,0.35);
+        border-radius: 999px;
+        background: rgba(15,23,42,0.8);
+        color: #bfdbfe;
+        font-size: 0.73rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        cursor: pointer;
+    }
+    .action-token-chip:hover {
+        border-color: rgba(147,197,253,0.7);
+        color: #dbeafe;
+    }
+    .action-token-import-btn {
+        margin-top: 8px;
+        border: 1px solid rgba(59,130,246,0.5);
+        border-radius: 8px;
+        background: rgba(30,58,138,0.35);
+        color: #dbeafe;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 7px 10px;
+        cursor: pointer;
+    }
+    .action-token-import-btn:hover {
+        border-color: rgba(147,197,253,0.8);
+        background: rgba(37,99,235,0.35);
+    }
+    .action-token-status {
+        margin-top: 6px;
+        color: #93c5fd;
+        font-size: 0.74rem;
+    }
+    .action-check-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin: 10px 0;
+    }
+    .action-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.86rem;
+        color: #dbeafe;
+        font-weight: 700;
+    }
+    .action-props-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 12px 16px 14px;
+        border-top: 1px solid rgba(148,163,184,0.2);
+    }
+    .action-btn {
+        border: 1px solid rgba(148,163,184,0.3);
+        border-radius: 8px;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .action-btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .action-btn.danger { background: #991b1b; border-color: #991b1b; color: #fff; }
+    .action-inspector-open {
+        margin-top: 10px;
+        border: 1px solid rgba(59,130,246,0.42);
+        border-radius: 10px;
+        background: rgba(59,130,246,0.12);
+        color: #bfdbfe;
+        font-weight: 700;
+        height: 36px;
+        width: 100%;
+        cursor: pointer;
+    }
+    .action-inspector-open:hover { background: rgba(59,130,246,0.2); }
+
+    /* Black + blood-red editor pass and fixed-height shell behavior */
+    body.workflow-editor-page,
+    body.workflow-editor-page .main-content {
+        overflow: hidden;
+    }
+    .main-content {
+        background-image:
+            radial-gradient(circle at 0% 0%, rgba(220, 38, 38, 0.08), transparent 40%),
+            radial-gradient(circle at 100% 0%, rgba(127, 29, 29, 0.11), transparent 46%),
+            linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    }
+    .workflow-shell {
+        height: calc(100dvh - 210px);
+        min-height: 0;
+        grid-template-columns: 240px minmax(0, 1fr) 320px;
+    }
+    .workflow-panel {
+        min-height: 0;
+    }
+    .workflow-panel::-webkit-scrollbar,
+    .action-props-panel::-webkit-scrollbar {
+        width: 9px;
+    }
+    .workflow-panel::-webkit-scrollbar-track,
+    .action-props-panel::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .workflow-panel::-webkit-scrollbar-thumb,
+    .action-props-panel::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: rgba(220, 38, 38, 0.28);
+    }
+    .workflow-panel::-webkit-scrollbar-thumb:hover,
+    .action-props-panel::-webkit-scrollbar-thumb:hover {
+        background: rgba(220, 38, 38, 0.42);
+    }
+    .workflow-shell.left-collapsed {
+        grid-template-columns: 72px minmax(0, 1fr) 320px;
+    }
+    .workflow-shell.right-collapsed {
+        grid-template-columns: 240px minmax(0, 1fr) 72px;
+    }
+    .workflow-shell.left-collapsed.right-collapsed {
+        grid-template-columns: 72px minmax(0, 1fr) 72px;
+    }
+    .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        background: linear-gradient(180deg, rgba(12, 12, 12, 0.96), rgba(12, 12, 12, 0.84));
+        padding-bottom: 8px;
+    }
+    .panel-head-title {
+        margin: 0;
+        font-size: 0.84rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fecaca;
+    }
+    .panel-toggle-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        border: 1px solid rgba(220, 38, 38, 0.45);
+        background: rgba(220, 38, 38, 0.14);
+        color: #fecaca;
+        cursor: pointer;
+    }
+    .workflow-shell.left-collapsed .workflow-panel--left,
+    .workflow-shell.right-collapsed .workflow-panel--right {
+        overflow: hidden;
+        padding: 12px;
+        align-items: center;
+    }
+    .workflow-shell.left-collapsed .workflow-panel--left > :not(.panel-head),
+    .workflow-shell.right-collapsed .workflow-panel--right > :not(.panel-head) {
+        display: none;
+    }
+    .workflow-shell.left-collapsed .workflow-panel--left .panel-head,
+    .workflow-shell.right-collapsed .workflow-panel--right .panel-head {
+        width: 100%;
+        justify-content: center;
+    }
+    .workflow-shell.left-collapsed .workflow-panel--left .panel-head-title,
+    .workflow-shell.right-collapsed .workflow-panel--right .panel-head-title {
+        display: none;
+    }
+    .workflow-canvas-shell,
+    .workflow-canvas {
+        min-height: 0;
+    }
+    .workflow-save {
+        background: linear-gradient(135deg, #b91c1c, #ef4444);
+        color: #fff7f7;
+        box-shadow: 0 10px 30px rgba(220, 38, 38, 0.28);
+    }
+    .workflow-status-pill,
+    .toolbar-btn.primary,
+    .block-icon,
+    .inspector-pill {
+        background: rgba(220, 38, 38, 0.16);
+        color: #fecaca;
+    }
+    .toolbar-btn:hover {
+        border-color: rgba(220, 38, 38, 0.55);
+        background: rgba(220, 38, 38, 0.1);
+    }
+    .workflow-canvas {
+        background: radial-gradient(circle at 0% 0%, rgba(220, 38, 38, 0.08), transparent 45%),
+                    radial-gradient(circle at 100% 0%, rgba(127, 29, 29, 0.12), transparent 45%),
+                    #050505;
+    }
+    .canvas-node {
+        background: linear-gradient(160deg, rgba(20, 7, 7, 0.96), rgba(10, 2, 2, 0.92));
+    }
+    .canvas-node.selected {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 2px rgba(220,38,38,0.28);
+    }
+    .guide-line {
+        background: rgba(220, 38, 38, 0.6);
+        box-shadow: 0 0 12px rgba(220, 38, 38, 0.35);
+    }
+    .action-props-modal {
+        display: none;
+        pointer-events: none;
+        visibility: hidden;
+        z-index: 3400;
+        background: transparent;
+    }
+    .action-props-modal.show {
+        display: block;
+        pointer-events: auto;
+        visibility: visible;
+    }
+    .action-props-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(3px);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .action-props-modal.show .action-props-backdrop {
+        opacity: 1;
+    }
+    .action-props-modal:not(.show) .action-props-backdrop {
+        opacity: 0;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    .action-props-panel {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: min(760px, 92vw);
+        max-height: 100vh;
+        border-right: none;
+        border-radius: 16px 0 0 16px;
+        transform: translateX(105%);
+        transition: transform 0.24s ease;
+        background: linear-gradient(180deg, #0d0808, #080404);
+    }
+    .action-props-modal.show .action-props-panel {
+        transform: translateX(0);
+    }
+    .action-props-modal {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+    .action-props-modal:not(.show) {
+        display: none !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
+    }
+    .action-props-modal.show {
+        display: block !important;
+        pointer-events: auto !important;
+        visibility: visible !important;
+    }
+    .action-props-title {
+        color: #fee2e2;
+    }
+    .action-props-close {
+        border: 1px solid rgba(220,38,38,0.5);
+        background: #2b0c0c;
+        color: #fee2e2;
+    }
+    .action-props-section {
+        border-color: rgba(220,38,38,0.35);
+        background: rgba(127, 29, 29, 0.14);
+    }
+    .action-props-section h4 {
+        color: #fca5a5;
+    }
+    .action-field input,
+    .action-field select,
+    .action-field textarea {
+        border-color: rgba(220,38,38,0.4);
+        background: #120808;
+    }
+    .action-btn.primary {
+        background: #dc2626;
+        border-color: #dc2626;
+    }
+    .panel-mobile-btn {
+        display: none;
+    }
+    @@media (max-width: 1024px) {
+        .workflow-shell {
+            grid-template-columns: 1fr !important;
+            height: calc(100dvh - 190px);
+        }
+        .panel-mobile-btn {
+            display: inline-flex;
+        }
+        .workflow-panel--left,
+        .workflow-panel--right {
+            position: fixed;
+            top: 88px;
+            bottom: 14px;
+            width: min(86vw, 360px);
+            z-index: 3350;
+            transition: transform 0.22s ease;
+        }
+        .workflow-panel--left {
+            left: 10px;
+            transform: translateX(-110%);
+        }
+        .workflow-panel--right {
+            right: 10px;
+            transform: translateX(110%);
+        }
+        body.editor-left-open .workflow-panel--left {
+            transform: translateX(0);
+        }
+        body.editor-right-open .workflow-panel--right {
+            transform: translateX(0);
+        }
+    }
+</style>
+
+<div class="workflow-header">
+    <div>
+        <div class="workflow-title">@workflow.Name</div>
+        <div class="workflow-meta">Last updated @workflow.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy 'at' h:mm tt") · @workflow.Status</div>
+    </div>
+    <div class="workflow-status-pill"><span class="fa-solid fa-circle-notch"></span> @workflow.Status</div>
+    <button class="workflow-save" id="saveWorkflowBtn"><i class="fa-solid fa-floppy-disk"></i> Save Workflow</button>
+</div>
+
+<div class="workflow-shell" id="workflowShell">
+    <div class="workflow-panel workflow-panel--left">
+        <div class="panel-head">
+            <h4 class="panel-head-title">Block Library</h4>
+            <button type="button" class="panel-toggle-btn" id="toggleLeftPanel" aria-label="Toggle left panel">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+        </div>
+        <div class="panel-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="blockSearch" placeholder="Search blocks or templates" />
+        </div>
+        <div>
+            <div class="panel-subtitle">Core Blocks</div>
+            <div class="block-card" data-node-type="workflowStart">
+                <div class="block-icon"><i class="fa-solid fa-flag"></i></div>
+                <div>
+                    <strong>Workflow Start</strong>
+                    <span>Entry point for workflow execution</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Common</span>
+                        <span class="block-tag">Start</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="facebookLeadTrigger">
+                <div class="block-icon"><i class="fa-brands fa-facebook"></i></div>
+                <div>
+                    <strong>Facebook Lead Trigger</strong>
+                    <span>Start workflow from Facebook lead-form submit</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Lead Ads</span>
+                        <span class="block-tag">Trigger</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="email">
+                <div class="block-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+                <div>
+                    <strong>Send Email</strong>
+                    <span>Send HTML email and personalize outreach</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Communication</span>
+                        <span class="block-tag">Email</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="sms">
+                <div class="block-icon"><i class="fa-solid fa-comment-sms"></i></div>
+                <div>
+                    <strong>Send SMS</strong>
+                    <span>Send quick SMS reachout message</span>
+                    <div class="block-tags">
+                        <span class="block-tag">SMS</span>
+                        <span class="block-tag">Reachout</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="delay">
+                <div class="block-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                <div>
+                    <strong>Wait / Delay</strong>
+                    <span>Pause before next workflow action</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Timing</span>
+                        <span class="block-tag">Automation</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="sqlCondition">
+                <div class="block-icon"><i class="fa-solid fa-code-branch"></i></div>
+                <div>
+                    <strong>SQL Condition</strong>
+                    <span>Branch the flow using SQL logic</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Logic</span>
+                        <span class="block-tag">SQL</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="updateRecord">
+                <div class="block-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div>
+                    <strong>Update Record</strong>
+                    <span>Update record fields and assignment</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Application</span>
+                        <span class="block-tag">Update</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="updateReassign">
+                <div class="block-icon"><i class="fa-solid fa-share-from-square"></i></div>
+                <div>
+                    <strong>Update and Reassign</strong>
+                    <span>Move ownership with field updates</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Routing</span>
+                        <span class="block-tag">User</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="runSql">
+                <div class="block-icon"><i class="fa-solid fa-database"></i></div>
+                <div>
+                    <strong>Run SQL</strong>
+                    <span>Execute SQL on workflow transition</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Data</span>
+                        <span class="block-tag">Thread</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="decision">
+                <div class="block-icon"><i class="fa-solid fa-check"></i></div>
+                <div>
+                    <strong>Decision</strong>
+                    <span>Set a decision checkpoint in flow</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Condition</span>
+                        <span class="block-tag">Branch</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="createTask">
+                <div class="block-icon"><i class="fa-solid fa-list-check"></i></div>
+                <div>
+                    <strong>Create Task</strong>
+                    <span>Create follow-up task for team</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Task</span>
+                        <span class="block-tag">Ops</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="webhook">
+                <div class="block-icon"><i class="fa-solid fa-plug"></i></div>
+                <div>
+                    <strong>Webhook / API Call</strong>
+                    <span>Push workflow payload to external service</span>
+                    <div class="block-tags">
+                        <span class="block-tag">API</span>
+                        <span class="block-tag">Integration</span>
+                    </div>
+                </div>
+            </div>
+            <div class="block-card" data-node-type="workflowEnd">
+                <div class="block-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+                <div>
+                    <strong>Workflow End</strong>
+                    <span>Finish workflow execution</span>
+                    <div class="block-tags">
+                        <span class="block-tag">Common</span>
+                        <span class="block-tag">End</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="panel-subtitle">Workflow Templates</div>
+            <div class="template-card" data-template="standard-flow">
+                <strong>Standard Flow</strong>
+                <span class="hint">Start → SQL Condition → Update → Run SQL → End</span>
+            </div>
+            <div class="template-card" data-template="decision-flow">
+                <strong>Decision Flow</strong>
+                <span class="hint">Start → Decision → Update/Reassign → End</span>
+            </div>            <div class="template-card" data-template="sql-heavy">
+                <strong>SQL Heavy</strong>
+                <span class="hint">Start -> SQL Condition -> Run SQL -> Update -> End</span>
+            </div>
+            <div class="template-card" data-template="fb-email-wait-email">
+                <strong>Facebook Lead to Follow-up</strong>
+                <span class="hint">Facebook Lead -> Email -> Wait -> Follow-up Email</span>
+            </div>
+            <div class="template-card" data-template="fb-sms-wait-email">
+                <strong>Facebook + SMS Reachout</strong>
+                <span class="hint">Facebook Lead -> SMS -> Wait -> Email</span>
+            </div>
+            <div class="template-card" data-template="fb-qualify-route">
+                <strong>Lead Qualification Route</strong>
+                <span class="hint">Facebook Lead -> Condition -> Assign/Reassign</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="workflow-canvas-shell">
+        <div class="workflow-toolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-btn panel-mobile-btn" data-action="openLeftPanel"><i class="fa-solid fa-bars-staggered"></i></button>
+                <button class="toolbar-btn primary" data-action="test"><i class="fa-solid fa-play"></i> Test Run</button>
+                <button class="toolbar-btn" data-action="autoLayout"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto Layout</button>
+                <button class="toolbar-btn" data-action="center"><i class="fa-solid fa-crosshairs"></i> Center</button>
+                <button class="toolbar-btn" data-action="openActionProps"><i class="fa-solid fa-sliders"></i> Action Properties</button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" data-action="zoomOut"><i class="fa-solid fa-minus"></i></button>
+                <span class="toolbar-pill" id="zoomLabel">100%</span>
+                <button class="toolbar-btn" data-action="zoomIn"><i class="fa-solid fa-plus"></i></button>
+                <button class="toolbar-btn" data-action="resetZoom"><i class="fa-solid fa-arrows-rotate"></i></button>
+                <button class="toolbar-btn" data-action="fit"><i class="fa-solid fa-expand"></i> Fit</button>
+            </div>
+            <div class="toolbar-group">
+                <label class="toolbar-toggle"><input type="checkbox" id="snapToggle" checked /> Snap to grid</label>
+                <label class="toolbar-toggle"><input type="checkbox" id="guideToggle" checked /> Guides</label>
+                <button class="toolbar-btn panel-mobile-btn" data-action="openRightPanel"><i class="fa-solid fa-sliders"></i></button>
+            </div>
+        </div>
+        <div class="workflow-canvas" id="workflowCanvas">
+            <div class="canvas-stage" id="canvasStage">
+                <div class="canvas-grid"></div>
+                <div class="canvas-guides" id="canvasGuides">
+                    <div class="guide-line horizontal" id="guideH"></div>
+                    <div class="guide-line vertical" id="guideV"></div>
+                </div>
+                <svg class="canvas-svg" id="workflowEdges"></svg>
+            </div>
+            <div class="minimap" id="canvasMinimap">
+                <div class="minimap-stage" id="minimapStage"></div>
+                <div class="minimap-viewport" id="minimapViewport"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="workflow-panel workflow-panel--right">
+        <div class="panel-head">
+            <h4 class="panel-head-title">Inspector</h4>
+            <button type="button" class="panel-toggle-btn" id="toggleRightPanel" aria-label="Toggle right panel">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+        <div class="inspector-section">
+            <h3 style="margin-top:0;">Workflow</h3>
+            <div class="property-group">
+                <label for="workflowNameInput">Workflow name</label>
+                <input id="workflowNameInput" value="@workflow.Name" />
+            </div>
+            <div class="property-group">
+                <label for="workflowCaptionInput">Caption</label>
+                <input id="workflowCaptionInput" value="@(workflow.Caption ?? workflow.Name)" />
+            </div>
+            <div class="property-group">
+                <label for="workflowDescInput">Description</label>
+                <textarea id="workflowDescInput" rows="3">@workflow.Description</textarea>
+            </div>
+            <div class="property-group">
+                <label for="workflowStatusInput">Status</label>
+                <select id="workflowStatusInput">
+                    <option value="Draft" selected="@(workflow.Status.Equals("Draft", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Draft</option>
+                    <option value="Active" selected="@(workflow.Status.Equals("Active", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Active</option>
+                    <option value="Paused" selected="@(workflow.Status.Equals("Paused", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Paused</option>
+                </select>
+            </div>
+            <div class="property-group">
+                <label for="workflowTypeInput">Workflow type</label>
+                <select id="workflowTypeInput">
+                    <option value="Application Workflow" selected="@(string.Equals(workflow.WorkflowType, "Application Workflow", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Application Workflow</option>
+                    <option value="System Workflow" selected="@(string.Equals(workflow.WorkflowType, "System Workflow", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">System Workflow</option>
+                    <option value="Notification Workflow" selected="@(string.Equals(workflow.WorkflowType, "Notification Workflow", StringComparison.OrdinalIgnoreCase) ? "selected" : null)">Notification Workflow</option>
+                </select>
+            </div>
+            <div class="inline-row">
+                <div class="property-group">
+                    <label for="workflowApplicationIdInput">Application ID</label>
+                    <input id="workflowApplicationIdInput" value="@workflow.ApplicationId" placeholder="e.g. Activities" />
+                </div>
+                <div class="property-group">
+                    <label for="workflowFileListIdInput">FileListID</label>
+                    <input id="workflowFileListIdInput" type="number" value="@workflow.FileListId" />
+                </div>
+            </div>
+            <div class="inline-row">
+                <div class="property-group">
+                    <label for="workflowViewOnApplicationInput">ViewOnApplication</label>
+                    <input id="workflowViewOnApplicationInput" type="number" value="@workflow.ViewOnApplication" />
+                </div>
+                <div class="property-group">
+                    <label for="workflowStartupTypeInput">StartupType</label>
+                    <input id="workflowStartupTypeInput" type="number" value="@workflow.StartupType" />
+                </div>
+            </div>
+            <div class="property-group">
+                <label for="workflowStartupArg1Input">StartupArgument1</label>
+                <input id="workflowStartupArg1Input" value="@workflow.StartupArgument1" />
+            </div>
+            <div class="property-group">
+                <label for="workflowStartupArg2Input">StartupArgument2</label>
+                <input id="workflowStartupArg2Input" value="@workflow.StartupArgument2" />
+            </div>
+            <div class="inline-row">
+                <div class="property-group">
+                    <label for="workflowDiagramInput">Diagram</label>
+                    <input id="workflowDiagramInput" value="@workflow.Diagram" />
+                </div>
+                <div class="property-group">
+                    <label for="workflowKpiActivityInput">KPIActivity</label>
+                    <input id="workflowKpiActivityInput" value="@workflow.KpiActivity" />
+                </div>
+            </div>
+            <div class="property-group">
+                <label for="workflowInactiveInput">InActive</label>
+                <select id="workflowInactiveInput">
+                    <option value="false" selected="@(!workflow.InActive ? "selected" : null)">0 - Active</option>
+                    <option value="true" selected="@(workflow.InActive ? "selected" : null)">1 - Inactive</option>
+                </select>
+            </div>
+            <div class="inline-row">
+                <div class="inspector-pill">Auto-save on</div>
+                <div class="inspector-pill">Live sync ready</div>
+            </div>
+        </div>
+
+        <div class="inspector-section" id="nodeInspector">
+            <h4 style="margin-top:0;">Node Settings</h4>
+            <div class="hint">Select a block on the canvas to edit it.</div>
+        </div>
+
+        <div class="inspector-section" id="edgeInspector" style="display:none;">
+            <h4 style="margin-top:0;">Edge Settings</h4>
+            <label>Label</label>
+            <input id="edgeLabelInput" placeholder="e.g. VIP path" />
+            <div class="hint">Click a connector to edit its label.</div>
+        </div>
+
+        <div class="inspector-section">
+            <h4 style="margin-top:0;">Validation</h4>
+            <div class="inline-row">
+                <div class="snap-pill">Rules engine on</div>
+                <div class="snap-pill">Live checks</div>
+            </div>
+            <div class="status-list" id="validationList"></div>
+        </div>
+
+        <div class="inspector-section">
+            <h4 style="margin-top:0;">Execution Logs</h4>
+            <div class="log-list" id="executionLogs"></div>
+        </div>
+    </div>
+</div>
+
+<form id="workflowSaveToken" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="action-props-modal" id="actionPropsModal">
+    <div class="action-props-backdrop" id="actionPropsBackdrop"></div>
+    <div class="action-props-panel">
+        <div class="action-props-head">
+            <h3 class="action-props-title">Action Properties</h3>
+            <button class="action-props-close" id="actionPropsClose" type="button">X</button>
+        </div>
+        <div class="action-props-body">
+            <div class="action-props-section">
+                <h4>Action Info</h4>
+                <div class="action-grid-3">
+                    <div class="action-field"><label>Action Type ID</label><input id="apActionTypeId" /></div>
+                    <div class="action-field"><label>Lane ID</label><input id="apLaneId" type="number" min="1" /></div>
+                    <div class="action-field"><label>Action ID</label><input id="apActionId" /></div>
+                </div>
+                <div class="action-grid-2" style="margin-top:10px;">
+                    <div class="action-field"><label>Action Name</label><input id="apActionName" /></div>
+                    <div class="action-field"><label>Action Mapping</label><input id="apActionMapping" /></div>
+                </div>
+            </div>
+            <div class="action-props-section" id="apJourneySection">
+                <h4>Journey Info</h4>
+                <div class="action-grid-3">
+                    <div class="action-field"><label>Journey Image</label><input id="apJourneyImage" /></div>
+                    <div class="action-field"><label>Journey Text</label><textarea id="apJourneyText"></textarea></div>
+                    <div class="action-grid-1">
+                        <div class="action-field"><label>Complete Within</label><input id="apCompleteWithin" type="number" min="0" /></div>
+                        <div class="action-field"><label>Unit</label><input id="apUnit" placeholder="Minutes/Hours/Days" /></div>
+                        <div class="action-field"><label>Average (Time as unit above)</label><input id="apAverage" type="number" min="0" /></div>
+                    </div>
+                </div>
+            </div>
+            <div class="action-check-row" id="apCheckRow">
+                <label class="action-check"><input type="checkbox" id="apAssignToUser" /> Assign to User</label>
+                <label class="action-check"><input type="checkbox" id="apSendEmail" /> Send Email</label>
+                <label class="action-check"><input type="checkbox" id="apHideComments" /> Hide Comments</label>
+            </div>
+            <div class="action-props-section" id="apAssignSection">
+                <h4>Assign to User Options</h4>
+                <div class="action-grid-3">
+                    <div class="action-field"><label>Selection Mode</label><input id="apSelectionMode" /></div>
+                    <div class="action-field"><label>User</label><input id="apUser" /></div>
+                    <div class="action-field"><label>Field</label><input id="apField" /></div>
+                </div>
+            </div>
+            <div class="action-props-section" id="apEmailSection">
+                <h4>Email Options</h4>
+                <div class="action-grid-2">
+                    <div class="action-field"><label>Mail To</label><input id="apMailTo" /></div>
+                    <div class="action-field">
+                        <label>SMTP Profile</label>
+                        <select id="apSmtpProfileDguid">
+                            <option value="">Default SMTP</option>
+                        </select>
+                    </div>
+                    <div class="action-field"><label>Email Subject</label><input id="apEmailSubject" /></div>
+                    <div class="action-field">
+                        <label>Email Body</label>
+                        <textarea id="apEmailBody"></textarea>
+                        <button type="button" class="action-token-import-btn" id="apImportFormTokensBtn">Import form fields as ^^ tokens</button>
+                        <div class="action-token-status" id="apImportFormTokensStatus">No imported fields yet.</div>
+                        <div class="action-token-chips" id="apImportFormTokensChips"></div>
+                        <div class="action-token-help">
+                            Use <code>^firstname^</code> or <code>{{firstname}}</code>. Tokens resolve from submitted field <code>name</code> or fallback <code>id</code>.
+                        </div>
+                        <div class="action-token-chips">
+                            <button type="button" class="action-token-chip" data-token-target="apEmailBody" data-token-value="^email^">^email^</button>
+                            <button type="button" class="action-token-chip" data-token-target="apEmailBody" data-token-value="^sourceUrl^">^sourceUrl^</button>
+                            <button type="button" class="action-token-chip" data-token-target="apEmailBody" data-token-value="^elementId^">^elementId^</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-token-help" style="margin-top: 6px;">
+                    Subject also supports tokens (for example <code>^firstname^</code>).
+                </div>
+                <div class="action-token-chips">
+                    <button type="button" class="action-token-chip" data-token-target="apEmailSubject" data-token-value="^email^">^email^</button>
+                    <button type="button" class="action-token-chip" data-token-target="apEmailSubject" data-token-value="^sourceUrl^">^sourceUrl^</button>
+                    <button type="button" class="action-token-chip" data-token-target="apEmailSubject" data-token-value="^elementId^">^elementId^</button>
+                </div>
+            </div>
+            <div class="action-props-section" id="apAdvancedSection">
+                <h4>Advanced</h4>
+                <div class="action-grid-1">
+                    <label class="action-check" id="apRunThreadWrap"><input type="checkbox" id="apRunInSeparateThread" /> Run in separate thread</label>
+                    <div class="action-field" id="apSqlCommandWrap"><label>SQL / Command</label><textarea id="apSqlCommand"></textarea></div>
+                    <div class="action-field" id="apWfRecordFieldWrap"><label>WFRecordField</label><input id="apWfRecordField" /></div>
+                    <div class="action-field" id="apOnErrorActionWrap"><label>On Error Action</label><textarea id="apOnErrorAction"></textarea></div>
+                </div>
+            </div>
+        </div>
+        <div class="action-props-footer">
+            <button class="action-btn" id="apCancelBtn" type="button">Cancel</button>
+            <button class="action-btn danger" id="apDeleteBtn" type="button">Delete</button>
+            <button class="action-btn primary" id="apSubmitBtn" type="button">Submit</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const workflowId = '@workflow.Id';
+    const initialDefinition = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(workflow.DefinitionJson ?? "{}"));
+    const csrfToken = document.querySelector('#workflowSaveToken input[name="__RequestVerificationToken"]')?.value || "";
+
+    const canvas = document.getElementById('workflowCanvas');
+    const stage = document.getElementById('canvasStage');
+    const workflowShell = document.getElementById('workflowShell');
+    const edgesSvg = document.getElementById('workflowEdges');
+    const nodeInspector = document.getElementById('nodeInspector');
+    const edgeInspector = document.getElementById('edgeInspector');
+    const edgeLabelInput = document.getElementById('edgeLabelInput');
+    const workflowNameInput = document.getElementById('workflowNameInput');
+    const workflowCaptionInput = document.getElementById('workflowCaptionInput');
+    const workflowDescInput = document.getElementById('workflowDescInput');
+    const workflowStatusInput = document.getElementById('workflowStatusInput');
+    const workflowTypeInput = document.getElementById('workflowTypeInput');
+    const workflowApplicationIdInput = document.getElementById('workflowApplicationIdInput');
+    const workflowFileListIdInput = document.getElementById('workflowFileListIdInput');
+    const workflowViewOnApplicationInput = document.getElementById('workflowViewOnApplicationInput');
+    const workflowStartupTypeInput = document.getElementById('workflowStartupTypeInput');
+    const workflowStartupArg1Input = document.getElementById('workflowStartupArg1Input');
+    const workflowStartupArg2Input = document.getElementById('workflowStartupArg2Input');
+    const workflowDiagramInput = document.getElementById('workflowDiagramInput');
+    const workflowKpiActivityInput = document.getElementById('workflowKpiActivityInput');
+    const workflowInactiveInput = document.getElementById('workflowInactiveInput');
+    const saveWorkflowBtn = document.getElementById('saveWorkflowBtn');
+    const zoomLabel = document.getElementById('zoomLabel');
+    const blockSearch = document.getElementById('blockSearch');
+    const snapToggle = document.getElementById('snapToggle');
+    const guideToggle = document.getElementById('guideToggle');
+    const canvasGuides = document.getElementById('canvasGuides');
+    const guideH = document.getElementById('guideH');
+    const guideV = document.getElementById('guideV');
+    const minimapStage = document.getElementById('minimapStage');
+    const minimapViewport = document.getElementById('minimapViewport');
+    const validationList = document.getElementById('validationList');
+    const executionLogs = document.getElementById('executionLogs');
+    const actionPropsModal = document.getElementById('actionPropsModal');
+    const actionPropsBackdrop = document.getElementById('actionPropsBackdrop');
+    const actionPropsClose = document.getElementById('actionPropsClose');
+    const toggleLeftPanel = document.getElementById('toggleLeftPanel');
+    const toggleRightPanel = document.getElementById('toggleRightPanel');
+    const apCancelBtn = document.getElementById('apCancelBtn');
+    const apDeleteBtn = document.getElementById('apDeleteBtn');
+    const apSubmitBtn = document.getElementById('apSubmitBtn');
+    const apAssignSection = document.getElementById('apAssignSection');
+    const apEmailSection = document.getElementById('apEmailSection');
+    const apAssignToUser = document.getElementById('apAssignToUser');
+    const apSendEmail = document.getElementById('apSendEmail');
+    const apJourneySection = document.getElementById('apJourneySection');
+    const apCheckRow = document.getElementById('apCheckRow');
+    const apAdvancedSection = document.getElementById('apAdvancedSection');
+    const apRunThreadWrap = document.getElementById('apRunThreadWrap');
+    const apSqlCommandWrap = document.getElementById('apSqlCommandWrap');
+    const apWfRecordFieldWrap = document.getElementById('apWfRecordFieldWrap');
+    const apOnErrorActionWrap = document.getElementById('apOnErrorActionWrap');
+    const apImportFormTokensBtn = document.getElementById('apImportFormTokensBtn');
+    const apImportFormTokensStatus = document.getElementById('apImportFormTokensStatus');
+    const apImportFormTokensChips = document.getElementById('apImportFormTokensChips');
+
+    let activeActionNodeId = null;
+    let smtpProfiles = [];
+    let importedFormTokens = [];
+
+    const state = (() => {
+        try {
+            const parsed = JSON.parse(initialDefinition || '{}');
+            const edges = (parsed.edges || []).map(edge => ({
+                id: edge.id || `edge-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                from: edge.from,
+                to: edge.to,
+                label: edge.label || ''
+            }));
+            return {
+                nodes: parsed.nodes || [],
+                edges,
+                meta: parsed.meta || { version: 1 }
+            };
+        } catch {
+            return { nodes: [], edges: [], meta: { version: 1 } };
+        }
+    })();
+
+    let activeNodeId = null;
+    let activeEdgeId = null;
+    let connectFromId = null;
+    let connectFromPort = null;
+    let connectDrag = null;
+    let zoom = 1;
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+    let panScroll = { x: 0, y: 0 };
+    const gridSize = 20;
+    const magnetThreshold = 10;
+
+    const nodeTypes = {
+        workflowStart: { label: 'Workflow Start', color: '#ef4444', icon: 'fa-flag' },
+        facebookLeadTrigger: { label: 'Facebook Lead Trigger', color: '#f43f5e', icon: 'fa-square-facebook' },
+        sqlCondition: { label: 'SQL Condition', color: '#f87171', icon: 'fa-code-branch' },
+        updateRecord: { label: 'Update Record', color: '#fb7185', icon: 'fa-chart-line' },
+        updateReassign: { label: 'Update and Reassign', color: '#f43f5e', icon: 'fa-share-from-square' },
+        runSql: { label: 'Run SQL', color: '#b91c1c', icon: 'fa-database' },
+        decision: { label: 'Decision', color: '#dc2626', icon: 'fa-check' },
+        workflowEnd: { label: 'Workflow End', color: '#f87171', icon: 'fa-flag-checkered' },
+        trigger: { label: 'Trigger', color: '#ef4444', icon: 'fa-bolt' },
+        email: { label: 'Email', color: '#fb7185', icon: 'fa-envelope-open-text' },
+        sms: { label: 'Send SMS', color: '#f87171', icon: 'fa-comment-sms' },
+        delay: { label: 'Delay', color: '#f87171', icon: 'fa-hourglass-half' },
+        condition: { label: 'Condition', color: '#dc2626', icon: 'fa-code-branch' },
+        tag: { label: 'Tag', color: '#fca5a5', icon: 'fa-tag' },
+        webhook: { label: 'Webhook', color: '#b91c1c', icon: 'fa-plug' },
+        createTask: { label: 'Create Task', color: '#ef4444', icon: 'fa-list-check' }
+    };
+
+    const actionTypeByNode = {
+        workflowStart: 'Act1',
+        facebookLeadTrigger: 'Act1',
+        workflowEnd: 'Act2',
+        decision: 'Act6',
+        updateRecord: 'Act9',
+        runSql: 'Act12',
+        sqlCondition: 'Act18',
+        updateReassign: 'Act10',
+        trigger: 'Act1',
+        email: 'Act2',
+        sms: 'Act2',
+        delay: 'Act4',
+        condition: 'Act18',
+        tag: 'Act9',
+        webhook: 'Act14',
+        createTask: 'Act7'
+    };
+
+    const createActionDefaults = (node) => {
+        const base = {
+            actionTypeId: actionTypeByNode[node.type] || 'Act0',
+            laneId: 1,
+            actionId: `SHP${String(Math.floor(Math.random() * 9000) + 1000)}`,
+            actionName: node.name || (nodeTypes[node.type]?.label || 'Action'),
+            actionMapping: 'Not mapped',
+            journeyImage: '',
+            journeyText: '',
+            completeWithin: 0,
+            unit: '',
+            average: 0,
+            assignToUser: false,
+            sendEmail: false,
+            hideComments: true,
+            selectionMode: 'User Field',
+            user: '',
+            field: 'AssignedTo',
+            mailTo: 'Current User',
+            emailAddress: '',
+            emailAddressField: 'No Field Selected',
+            emailTitle: '',
+            emailSubject: '',
+            emailBody: '',
+            smtpProfileDguid: '',
+            runInSeparateThread: false,
+            sqlCommand: '',
+            wfRecordField: 'No Field Selected',
+            onErrorAction: ''
+        };
+
+        if (node.type === 'workflowStart') {
+            return { ...base, actionName: 'Workflow Start', wfRecordField: 'No Field Selected' };
+        }
+        if (node.type === 'facebookLeadTrigger') {
+            return { ...base, actionName: 'Facebook Lead Trigger', actionMapping: 'Facebook Lead Submit' };
+        }
+        if (node.type === 'workflowEnd') {
+            return { ...base, actionName: 'Workflow End', runInSeparateThread: true };
+        }
+        if (node.type === 'sqlCondition') {
+            return {
+                ...base,
+                actionName: 'SQL Condition',
+                runInSeparateThread: true,
+                sqlCommand: "Select Count(*) as TCount from DCXCRMActivities where (AssignedTo = 2 or AssignedTo = 5) and AID = '^AID^'"
+            };
+        }
+        if (node.type === 'runSql') {
+            return {
+                ...base,
+                actionName: 'Run SQL',
+                runInSeparateThread: true,
+                sqlCommand: "update DCXCRMActivities\nset Completedate = getdate(), [Status] = 'Done'"
+            };
+        }
+        if (node.type === 'updateRecord') {
+            return { ...base, actionName: 'Update Record', assignToUser: true, sendEmail: true };
+        }
+        if (node.type === 'updateReassign') {
+            return { ...base, actionName: 'Update and Reassign', assignToUser: true, sendEmail: true };
+        }
+        if (node.type === 'decision') {
+            return { ...base, actionName: 'Decision', assignToUser: true, sendEmail: true };
+        }
+        if (node.type === 'email') {
+            return {
+                ...base,
+                actionName: 'Email',
+                sendEmail: true,
+                emailTitle: node.data?.subject || '',
+                emailSubject: node.data?.subject || '',
+                emailBody: node.data?.body || ''
+            };
+        }
+        if (node.type === 'sms') {
+            return { ...base, actionName: 'Send SMS', sendEmail: false, actionMapping: 'SMS Delivery' };
+        }
+        if (node.type === 'createTask') {
+            return { ...base, actionName: 'Create Task', assignToUser: true, actionMapping: 'Task Assignment' };
+        }
+        return base;
+    };
+
+    const ensureActionProps = (node) => {
+        node.data = node.data || {};
+        if (!node.data.actionProps) {
+            node.data.actionProps = createActionDefaults(node);
+        } else {
+            node.data.actionProps = { ...createActionDefaults(node), ...node.data.actionProps };
+        }
+        return node.data.actionProps;
+    };
+
+    const getActionProps = (node) => ensureActionProps(node);
+
+    const setActionSectionsState = () => {
+        if (apAssignSection) apAssignSection.style.display = apAssignToUser?.checked ? 'block' : 'none';
+        if (apEmailSection) apEmailSection.style.display = apSendEmail?.checked ? 'block' : 'none';
+    };
+
+    const applyActionTypeMode = (nodeType) => {
+        const isSqlAction = nodeType === 'runSql' || nodeType === 'sqlCondition';
+        const isStart = nodeType === 'workflowStart';
+        const isEnd = nodeType === 'workflowEnd';
+        const isDecision = nodeType === 'decision';
+        const isUpdate = nodeType === 'updateRecord' || nodeType === 'updateReassign';
+        const showJourney = !isEnd;
+        const showThread = isSqlAction || isEnd || isStart;
+        const showSql = isSqlAction;
+        const showWfField = isStart || isDecision || isUpdate;
+        const showErrorAction = isSqlAction || isDecision;
+        const showChecks = true;
+
+        if (apJourneySection) apJourneySection.style.display = showJourney ? 'block' : 'none';
+        if (apCheckRow) apCheckRow.style.display = showChecks ? 'grid' : 'none';
+        if (apAdvancedSection) apAdvancedSection.style.display = 'block';
+        if (apRunThreadWrap) apRunThreadWrap.style.display = showThread ? 'inline-flex' : 'none';
+        if (apSqlCommandWrap) apSqlCommandWrap.style.display = showSql ? 'block' : 'none';
+        if (apWfRecordFieldWrap) apWfRecordFieldWrap.style.display = showWfField ? 'block' : 'none';
+        if (apOnErrorActionWrap) apOnErrorActionWrap.style.display = showErrorAction ? 'block' : 'none';
+    };
+
+    const fillActionModal = (props) => {
+        const setVal = (id, value) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.value = value ?? '';
+        };
+        const setCheck = (id, value) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.checked = Boolean(value);
+        };
+        setVal('apActionTypeId', props.actionTypeId);
+        setVal('apLaneId', props.laneId);
+        setVal('apActionId', props.actionId);
+        setVal('apActionName', props.actionName);
+        setVal('apActionMapping', props.actionMapping);
+        setVal('apJourneyImage', props.journeyImage);
+        setVal('apJourneyText', props.journeyText);
+        setVal('apCompleteWithin', props.completeWithin);
+        setVal('apUnit', props.unit);
+        setVal('apAverage', props.average);
+        setCheck('apAssignToUser', props.assignToUser);
+        setCheck('apSendEmail', props.sendEmail);
+        setCheck('apHideComments', props.hideComments);
+        setVal('apSelectionMode', props.selectionMode);
+        setVal('apUser', props.user);
+        setVal('apField', props.field);
+        setVal('apMailTo', props.mailTo);
+        setVal('apEmailSubject', props.emailSubject || props.emailTitle || '');
+        setVal('apEmailBody', props.emailBody || '');
+        setVal('apSmtpProfileDguid', props.smtpProfileDguid || '');
+        const smtpSelect = document.getElementById('apSmtpProfileDguid');
+        if (smtpSelect) {
+            smtpSelect.dataset.pendingValue = props.smtpProfileDguid || '';
+        }
+        setCheck('apRunInSeparateThread', props.runInSeparateThread);
+        setVal('apSqlCommand', props.sqlCommand);
+        setVal('apWfRecordField', props.wfRecordField);
+        setVal('apOnErrorAction', props.onErrorAction);
+        setActionSectionsState();
+        addFieldHelpIcons(actionPropsModal);
+    };
+
+    const readActionModal = () => {
+        const val = (id) => document.getElementById(id)?.value || '';
+        const num = (id, fallback = 0) => Number(val(id) || fallback);
+        const checked = (id) => Boolean(document.getElementById(id)?.checked);
+        return {
+            actionTypeId: val('apActionTypeId').trim(),
+            laneId: num('apLaneId', 1),
+            actionId: val('apActionId').trim(),
+            actionName: val('apActionName').trim(),
+            actionMapping: val('apActionMapping').trim(),
+            journeyImage: val('apJourneyImage').trim(),
+            journeyText: val('apJourneyText').trim(),
+            completeWithin: num('apCompleteWithin', 0),
+            unit: val('apUnit').trim(),
+            average: num('apAverage', 0),
+            assignToUser: checked('apAssignToUser'),
+            sendEmail: checked('apSendEmail'),
+            hideComments: checked('apHideComments'),
+            selectionMode: val('apSelectionMode').trim(),
+            user: val('apUser').trim(),
+            field: val('apField').trim(),
+            mailTo: val('apMailTo').trim(),
+            emailAddress: '',
+            emailAddressField: '',
+            emailTitle: val('apEmailSubject').trim(),
+            emailSubject: val('apEmailSubject').trim(),
+            emailBody: val('apEmailBody'),
+            smtpProfileDguid: val('apSmtpProfileDguid').trim(),
+            runInSeparateThread: checked('apRunInSeparateThread'),
+            sqlCommand: val('apSqlCommand'),
+            wfRecordField: val('apWfRecordField').trim(),
+            onErrorAction: val('apOnErrorAction')
+        };
+    };
+
+    const syncSmtpProfileSelect = () => {
+        const select = document.getElementById('apSmtpProfileDguid');
+        if (!select) return;
+        const current = select.value || select.dataset.pendingValue || '';
+        select.innerHTML = '';
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = 'Default SMTP';
+        select.appendChild(defaultOpt);
+
+        smtpProfiles.forEach(profile => {
+            const option = document.createElement('option');
+            option.value = profile.dguid || '';
+            option.textContent = `${profile.name || 'SMTP'} (${profile.host || 'host'}:${profile.port || 587})`;
+            select.appendChild(option);
+        });
+
+        if (current) {
+            select.value = current;
+        }
+        delete select.dataset.pendingValue;
+    };
+
+    const loadSmtpProfiles = async () => {
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('handler', 'SmtpProfiles');
+            const response = await fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                return;
+            }
+            const data = await response.json();
+            smtpProfiles = Array.isArray(data?.profiles) ? data.profiles : [];
+            syncSmtpProfileSelect();
+        } catch {
+            // keep default option only
+        }
+    };
+
+    const insertTokenAtCursor = (input, token) => {
+        if (!input || typeof token !== 'string' || !token) return;
+        input.focus();
+        if (typeof input.selectionStart === 'number' && typeof input.selectionEnd === 'number') {
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const current = input.value || '';
+            input.value = `${current.slice(0, start)}${token}${current.slice(end)}`;
+            const caret = start + token.length;
+            input.selectionStart = caret;
+            input.selectionEnd = caret;
+        } else {
+            input.value = `${input.value || ''}${token}`;
+        }
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    const bindActionTokenChips = () => {
+        document.querySelectorAll('.action-token-chip[data-token-target][data-token-value]').forEach((button) => {
+            if (button.dataset.bound === 'true') return;
+            button.dataset.bound = 'true';
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-token-target') || '';
+                const token = button.getAttribute('data-token-value') || '';
+                const target = document.getElementById(targetId);
+                if (!target) return;
+                insertTokenAtCursor(target, token);
+            });
+        });
+    };
+
+    const setImportTokenStatus = (message, isError = false) => {
+        if (!apImportFormTokensStatus) return;
+        apImportFormTokensStatus.textContent = message || '';
+        apImportFormTokensStatus.style.color = isError ? '#fca5a5' : '#93c5fd';
+    };
+
+    const appendTokensToBody = (tokens) => {
+        const body = document.getElementById('apEmailBody');
+        if (!body || !Array.isArray(tokens) || !tokens.length) return;
+        const existing = body.value || '';
+        const toAppend = tokens.filter(token => token && !existing.includes(token));
+        if (!toAppend.length) return;
+        const separator = existing.trim().length ? '\n' : '';
+        body.value = `${existing}${separator}${toAppend.join('\n')}`;
+        body.dispatchEvent(new Event('input', { bubbles: true }));
+        body.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    const renderImportedTokenChips = (tokens) => {
+        if (!apImportFormTokensChips) return;
+        apImportFormTokensChips.innerHTML = '';
+        if (!Array.isArray(tokens) || !tokens.length) return;
+        tokens.forEach((row) => {
+            const token = row?.token || '';
+            if (!token) return;
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'action-token-chip';
+            button.textContent = token;
+            button.title = `${row?.projectName || ''} ${row?.file ? `- ${row.file}` : ''}`.trim();
+            button.addEventListener('click', () => {
+                const target = document.getElementById('apEmailBody');
+                if (!target) return;
+                insertTokenAtCursor(target, token);
+            });
+            apImportFormTokensChips.appendChild(button);
+        });
+    };
+
+    const importConnectedFormTokens = async () => {
+        const currentWorkflowId = (workflowId || '').trim();
+        if (!currentWorkflowId) {
+            setImportTokenStatus('Workflow ID is missing.', true);
+            return;
+        }
+
+        try {
+            setImportTokenStatus('Scanning connected forms...');
+            const url = new URL(window.location.href);
+            url.searchParams.set('handler', 'ImportFormTokens');
+            url.searchParams.set('id', currentWorkflowId);
+            const response = await fetch(url.toString(), {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data?.success === false) {
+                throw new Error(data?.message || 'Unable to import form tokens.');
+            }
+
+            importedFormTokens = Array.isArray(data?.tokens) ? data.tokens : [];
+            renderImportedTokenChips(importedFormTokens);
+
+            if (!importedFormTokens.length) {
+                setImportTokenStatus('No form fields found. Make sure a form button is connected to this workflow in Visual Editor.');
+                return;
+            }
+
+            const tokens = importedFormTokens.map(item => item?.token).filter(Boolean);
+            appendTokensToBody(tokens);
+            setImportTokenStatus(`Imported ${tokens.length} token(s) into Email Body. Click a chip to insert at cursor.`);
+        } catch (error) {
+            setImportTokenStatus(error?.message || 'Unable to import form tokens.', true);
+        }
+    };
+
+    const isMobileViewport = () => window.matchMedia('(max-width: 1024px)').matches;
+
+    const setLeftPanelOpen = (open) => {
+        if (!isMobileViewport()) return;
+        if (open) {
+            document.body.classList.remove('editor-right-open');
+        }
+        document.body.classList.toggle('editor-left-open', !!open);
+    };
+
+    const setRightPanelOpen = (open) => {
+        if (!isMobileViewport()) return;
+        if (open) {
+            document.body.classList.remove('editor-left-open');
+        }
+        document.body.classList.toggle('editor-right-open', !!open);
+    };
+
+    const showActionModal = (show) => {
+        if (!actionPropsModal) return;
+        actionPropsModal.classList.toggle('show', show);
+        document.body.classList.toggle('editor-right-open', false);
+        if (!show) {
+            document.body.classList.remove('editor-left-open', 'editor-right-open');
+        }
+    };
+
+    const openActionProperties = (nodeId) => {
+        const node = state.nodes.find(n => n.id === nodeId);
+        if (!node) return;
+        activeActionNodeId = nodeId;
+        node.data = node.data || {};
+        const props = getActionProps(node);
+        syncSmtpProfileSelect();
+        fillActionModal(props);
+        applyActionTypeMode(node.type);
+        showActionModal(true);
+    };
+
+    const injectActionButton = (node) => {
+        if (!nodeInspector) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'action-inspector-open';
+        btn.textContent = 'Open Action Properties';
+        btn.addEventListener('click', () => openActionProperties(node.id));
+        nodeInspector.appendChild(btn);
+    };
+
+    const createNode = (type, x = 120, y = 120) => {
+        const id = `node-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        const defaults = {
+            name: nodeTypes[type]?.label || 'Node',
+            data: {}
+        };
+        const node = { id, type, x: snapValue(x), y: snapValue(y), ...defaults };
+        node.data = {
+            ...(type === 'email' ? { subject: 'Welcome to Bugence', preheader: 'Let’s get started', body: '<p>Hello!</p><p>Thanks for joining.</p>' } : {}),
+            actionProps: createActionDefaults(node)
+        };
+        if (type === 'email') {
+            node.data = {
+                ...node.data,
+                fromName: node.data.fromName || 'Bugence Team',
+                fromEmail: node.data.fromEmail || 'noreply@bugence.com',
+                toMode: node.data.toMode || 'Current User',
+                toField: node.data.toField || 'Email',
+                htmlBody: node.data.htmlBody || node.data.body || '',
+                fallbackText: node.data.fallbackText || ''
+            };
+        }
+        if (type === 'facebookLeadTrigger') {
+            node.data = {
+                ...node.data,
+                pageId: '',
+                formId: '',
+                triggerEvent: 'leadgen.form.submit',
+                mappingMode: 'Lead Fields'
+            };
+        }
+        if (type === 'sms') {
+            node.data = {
+                ...node.data,
+                provider: 'Twilio',
+                to: '',
+                toField: 'Phone',
+                messageTemplate: 'Hi {{name}}, thanks for your interest. We will reach out shortly.'
+            };
+        }
+        if (type === 'delay') {
+            node.data = {
+                ...node.data,
+                value: node.data.value || '2',
+                unit: node.data.unit || 'hours',
+                resumeRule: node.data.resumeRule || 'Continue after exact delay'
+            };
+        }
+        state.nodes.push(node);
+        render();
+    };
+
+    const renderEdges = () => {
+        edgesSvg.innerHTML = '';
+        if (!edgesSvg.querySelector('defs')) {
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.innerHTML = `
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"></path>
+                </marker>
+            `;
+            edgesSvg.appendChild(defs);
+        }
+        state.edges.forEach(edge => {
+            const from = state.nodes.find(n => n.id === edge.from);
+            const to = state.nodes.find(n => n.id === edge.to);
+            if (!from || !to) return;
+            const startX = from.x + 190;
+            const startY = from.y + 38;
+            const endX = to.x - 10;
+            const endY = to.y + 38;
+            const midX = (startX + endX) / 2;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`);
+            path.setAttribute('stroke', '#ef4444');
+            path.setAttribute('stroke-width', edge.id === activeEdgeId ? '3' : '2.2');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('marker-end', 'url(#arrow)');
+            path.setAttribute('class', 'edge-path');
+            path.dataset.edgeId = edge.id || '';
+            path.addEventListener('click', (event) => {
+                event.stopPropagation();
+                setActiveEdge(edge.id);
+            });
+            edgesSvg.appendChild(path);
+
+            const label = resolveEdgeLabel(edge, from);
+            if (label) {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', String(midX));
+                text.setAttribute('y', String((startY + endY) / 2 - 8));
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('class', 'edge-label');
+                text.textContent = label;
+                edgesSvg.appendChild(text);
+            }
+        });
+
+        renderConnectionPreview();
+    };
+
+    const getPortPosition = (node, port) => {
+        const isOut = port === 'out';
+        const x = node.x + (isOut ? 190 : -10);
+        const y = node.y + 38;
+        return { x, y };
+    };
+
+    const toStagePoint = (clientX, clientY) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = (clientX - rect.left + canvas.scrollLeft) / zoom;
+        const y = (clientY - rect.top + canvas.scrollTop) / zoom;
+        return { x, y };
+    };
+
+    const edgePathD = (startX, startY, endX, endY) => {
+        const midX = (startX + endX) / 2;
+        return `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
+    };
+
+    const renderConnectionPreview = () => {
+        if (!connectDrag || !connectDrag.active) return;
+        const fromNode = state.nodes.find(n => n.id === connectDrag.fromNodeId);
+        if (!fromNode) return;
+
+        const startPort = connectDrag.fromPort;
+        const start = getPortPosition(fromNode, startPort);
+        const end = { x: connectDrag.toX, y: connectDrag.toY };
+        const d = edgePathD(start.x, start.y, end.x, end.y);
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('stroke', '#fb7185');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('class', 'edge-path-temp');
+        edgesSvg.appendChild(path);
+    };
+
+    const renderNodes = () => {
+        stage.querySelectorAll('.canvas-node').forEach(node => node.remove());
+        state.nodes.forEach(node => {
+            const el = document.createElement('div');
+            el.className = `canvas-node ${node.id === activeNodeId ? 'selected' : ''}`;
+            el.style.left = `${node.x}px`;
+            el.style.top = `${node.y}px`;
+            el.dataset.nodeId = node.id;
+            const icon = nodeTypes[node.type]?.icon || 'fa-circle-dot';
+            const actionProps = getActionProps(node);
+            const nodeMeta = node.type === 'email'
+                ? (node.data?.subject || 'Configure email')
+                : node.type === 'sms'
+                    ? (node.data?.messageTemplate || 'Configure SMS message')
+                    : node.type === 'delay'
+                        ? `${node.data?.value || '1'} ${node.data?.unit || 'hours'} wait`
+                        : node.type === 'facebookLeadTrigger'
+                            ? `Form ${node.data?.formId || 'not linked'}`
+                            : (actionProps.actionTypeId ? `${actionProps.actionTypeId} · ${actionProps.actionMapping || 'Not mapped'}` : 'Configure in inspector');
+            el.innerHTML = `
+                <div class="node-header">
+                    <div>
+                        <div class="node-title">${node.name}</div>
+                        <div class="node-type">${nodeTypes[node.type]?.label || node.type}</div>
+                    </div>
+                    <div class="node-controls">
+                        <span class="node-badge"><i class="fa-solid ${icon}"></i>${node.type}</span>
+                        <button type="button" class="node-delete-btn" data-node-delete="${node.id}" title="Delete card">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="node-meta">${nodeMeta}</div>
+                <div class="node-ports">
+                    <button type="button" data-port="in" data-node-id="${node.id}"><span class="node-port in"></span>In</button>
+                    <button type="button" data-port="out" data-node-id="${node.id}">Out<span class="node-port out"></span></button>
+                </div>
+            `;
+            el.addEventListener('mousedown', (event) => startDrag(event, node.id));
+            el.addEventListener('click', (event) => {
+                event.stopPropagation();
+                setActiveNode(node.id);
+            });
+            el.querySelectorAll('[data-port]').forEach(port => {
+                port.addEventListener('mousedown', (event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    beginConnectionDrag(node.id, port.getAttribute('data-port'), event);
+                });
+                port.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    handleConnect(node.id, port.getAttribute('data-port'));
+                });
+            });
+            const deleteBtn = el.querySelector('[data-node-delete]');
+            deleteBtn?.addEventListener('mousedown', (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+            });
+            deleteBtn?.addEventListener('click', (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                deleteNode(node.id);
+            });
+            stage.appendChild(el);
+        });
+    };
+
+    const resolveEdgeLabel = (edge, fromNode) => {
+        if (edge.label && edge.label.trim()) return edge.label;
+        if (fromNode?.type !== 'condition' && fromNode?.type !== 'decision' && fromNode?.type !== 'sqlCondition') return '';
+        const outgoing = state.edges.filter(e => e.from === fromNode.id);
+        const index = outgoing.findIndex(e => e === edge);
+        if (index === 0) return fromNode.data?.trueLabel || 'True';
+        if (index === 1) return fromNode.data?.falseLabel || 'False';
+        return fromNode.data?.label || 'Branch';
+    };
+
+    const render = () => {
+        renderNodes();
+        renderEdges();
+        updateMinimap();
+        runValidation();
+    };
+
+    const setActiveNode = (id) => {
+        activeNodeId = id;
+        activeEdgeId = null;
+        if (edgeInspector) edgeInspector.style.display = 'none';
+        renderNodes();
+        renderNodeInspector();
+    };
+
+    const setActiveEdge = (id) => {
+        activeEdgeId = id;
+        activeNodeId = null;
+        renderEdges();
+        renderNodes();
+        if (edgeInspector) edgeInspector.style.display = 'block';
+        if (nodeInspector) nodeInspector.style.display = 'none';
+        const edge = state.edges.find(e => e.id === id);
+        if (edgeLabelInput) edgeLabelInput.value = edge?.label || '';
+    };
+
+    const renderLegacyNodeInspector = (node) => {
+        if (!nodeInspector) return false;
+        const isLegacy = ['workflowStart', 'workflowEnd', 'decision', 'sqlCondition', 'runSql', 'updateRecord', 'updateReassign'].includes(node.type);
+        if (!isLegacy) return false;
+        const props = getActionProps(node);
+        const details = [];
+        details.push(`<label>Action Name</label><input id="legacyActionName" value="${props.actionName || node.name}" />`);
+        details.push(`<label>Action Mapping</label><input id="legacyActionMapping" value="${props.actionMapping || 'Not mapped'}" />`);
+        if (node.type === 'sqlCondition' || node.type === 'runSql') {
+            details.push(`<label>SQL / Command</label><textarea id="legacySqlCommand" rows="4">${props.sqlCommand || ''}</textarea>`);
+        }
+        if (node.type === 'decision' || node.type === 'updateRecord' || node.type === 'updateReassign') {
+            details.push(`<label>Assign Field</label><input id="legacyField" value="${props.field || 'AssignedTo'}" />`);
+        }
+        if (node.type === 'workflowStart') {
+            details.push(`<label>WFRecordField</label><input id="legacyWfRecordField" value="${props.wfRecordField || 'No Field Selected'}" />`);
+        }
+        nodeInspector.innerHTML = `
+            <h4 style="margin-top:0;">${nodeTypes[node.type]?.label || 'Action'} Settings</h4>
+            ${details.join('')}
+            <div class="hint">Use Action Properties for full legacy fields and behavior.</div>
+        `;
+        const legacyActionName = document.getElementById('legacyActionName');
+        const legacyActionMapping = document.getElementById('legacyActionMapping');
+        const legacySqlCommand = document.getElementById('legacySqlCommand');
+        const legacyField = document.getElementById('legacyField');
+        const legacyWfRecordField = document.getElementById('legacyWfRecordField');
+        legacyActionName?.addEventListener('input', () => {
+            node.name = legacyActionName.value;
+            node.data.actionProps = { ...getActionProps(node), actionName: legacyActionName.value };
+            renderNodes();
+        });
+        legacyActionMapping?.addEventListener('input', () => {
+            node.data.actionProps = { ...getActionProps(node), actionMapping: legacyActionMapping.value };
+        });
+        legacySqlCommand?.addEventListener('input', () => {
+            node.data.actionProps = { ...getActionProps(node), sqlCommand: legacySqlCommand.value };
+        });
+        legacyField?.addEventListener('input', () => {
+            node.data.actionProps = { ...getActionProps(node), field: legacyField.value };
+        });
+        legacyWfRecordField?.addEventListener('input', () => {
+            node.data.actionProps = { ...getActionProps(node), wfRecordField: legacyWfRecordField.value };
+        });
+        return true;
+    };
+
+    const addFieldHelpIcons = (scope) => {
+        if (!scope) return;
+        const hints = {
+            'workflow name': 'Name shown in lists and reports for this workflow.',
+            'caption': 'Short label displayed in compact headers.',
+            'description': 'What this workflow does and who should use it.',
+            'status': 'Current run-state: Draft, Active, or Paused.',
+            'workflow type': 'Groups workflow for app/system usage.',
+            'subject': 'Email subject line sent to the recipient.',
+            'email html': 'HTML body content. You can use inline styles here.',
+            'from email': 'Mailbox used as sender for outbound email.',
+            'recipient field': 'Field that stores lead phone/email value.',
+            'duration': 'How long the workflow should wait before next action.',
+            'resume rule': 'Rule used to continue workflow after wait expires.',
+            'endpoint': 'External URL to call from this step.',
+            'payload preview': 'Payload body that will be posted to endpoint.',
+            'action name': 'Human-friendly name for this action in the graph.',
+            'action mapping': 'Logical action mapping used by the engine.',
+            'sql command': 'SQL executed by SQL-related steps.',
+            'on error action': 'Fallback step/action when execution fails.'
+        };
+        scope.querySelectorAll('label').forEach((label) => {
+            if (label.querySelector('.label-help')) return;
+            const key = (label.textContent || '').trim().toLowerCase();
+            const tip = hints[key];
+            if (!tip) return;
+            const icon = document.createElement('span');
+            icon.className = 'label-help';
+            icon.textContent = 'i';
+            icon.setAttribute('data-help', tip);
+            icon.setAttribute('tabindex', '0');
+            icon.addEventListener('click', (event) => {
+                event.preventDefault();
+                icon.classList.toggle('is-open');
+            });
+            icon.addEventListener('blur', () => icon.classList.remove('is-open'));
+            label.appendChild(icon);
+        });
+    };
+
+    const renderNodeInspector = () => {
+        if (!nodeInspector) return;
+        const node = state.nodes.find(n => n.id === activeNodeId);
+        if (!node) {
+            nodeInspector.innerHTML = '<h4 style="margin-top:0;">Node Settings</h4><div class="hint">Select a block on the canvas to edit it.</div>';
+            if (edgeInspector) edgeInspector.style.display = 'none';
+            nodeInspector.style.display = 'block';
+            return;
+        }
+        if (edgeInspector) edgeInspector.style.display = 'none';
+        nodeInspector.style.display = 'block';
+        if (renderLegacyNodeInspector(node)) {
+            injectActionButton(node);
+            return;
+        }
+        if (node.type === 'facebookLeadTrigger') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Facebook Lead Trigger</h4>
+                <div class="inspector-simple">
+                    <label>Facebook Page ID</label>
+                    <input id="fbPageId" value="${node.data?.pageId || ''}" placeholder="Page ID for lead ads form" />
+                    <label>Lead Form ID</label>
+                    <input id="fbFormId" value="${node.data?.formId || ''}" placeholder="Form ID from Facebook Lead Ads" />
+                </div>
+                <details class="inspector-advanced" open>
+                    <summary>Advanced Mapping</summary>
+                    <div>
+                        <label>Trigger Event</label>
+                        <input id="fbTriggerEvent" value="${node.data?.triggerEvent || 'leadgen.form.submit'}" />
+                        <label>Mapping Mode</label>
+                        <select id="fbMappingMode">
+                            <option value="Lead Fields">Lead Fields</option>
+                            <option value="Custom Mapping">Custom Mapping</option>
+                        </select>
+                    </div>
+                </details>
+            `;
+            const fbPageId = document.getElementById('fbPageId');
+            const fbFormId = document.getElementById('fbFormId');
+            const fbTriggerEvent = document.getElementById('fbTriggerEvent');
+            const fbMappingMode = document.getElementById('fbMappingMode');
+            if (fbMappingMode && node.data?.mappingMode) fbMappingMode.value = node.data.mappingMode;
+            fbPageId?.addEventListener('input', () => { node.data.pageId = fbPageId.value; renderNodes(); });
+            fbFormId?.addEventListener('input', () => { node.data.formId = fbFormId.value; renderNodes(); });
+            fbTriggerEvent?.addEventListener('input', () => { node.data.triggerEvent = fbTriggerEvent.value; });
+            fbMappingMode?.addEventListener('change', () => { node.data.mappingMode = fbMappingMode.value; });
+        } else if (node.type === 'email') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Email Builder</h4>
+                <div class="inspector-simple">
+                    <label>From name</label>
+                    <input id="emailFromName" value="${node.data?.fromName || 'Bugence Team'}" />
+                    <label>From email</label>
+                    <input id="emailFromEmail" value="${node.data?.fromEmail || 'noreply@bugence.com'}" />
+                    <label>Subject</label>
+                    <input id="emailSubject" value="${node.data?.subject || ''}" />
+                </div>
+                <details class="inspector-advanced" open>
+                    <summary>Advanced Delivery</summary>
+                    <div>
+                        <label>Recipient mode</label>
+                        <select id="emailToMode">
+                            <option value="Current User">Current User</option>
+                            <option value="Custom Email">Custom Email</option>
+                            <option value="Field Value">Field Value</option>
+                        </select>
+                        <label>Recipient field</label>
+                        <input id="emailToField" value="${node.data?.toField || 'Email'}" />
+                        <label>Preheader</label>
+                        <input id="emailPreheader" value="${node.data?.preheader || ''}" />
+                        <label>Email HTML</label>
+                        <textarea id="emailBody" rows="6">${node.data?.htmlBody || node.data?.body || ''}</textarea>
+                        <label>Fallback plain text</label>
+                        <textarea id="emailFallback" rows="3">${node.data?.fallbackText || ''}</textarea>
+                        <label>Preview</label>
+                        <div class="email-preview" id="emailPreview"></div>
+                    </div>
+                </details>
+            `;
+            const fromName = document.getElementById('emailFromName');
+            const fromEmail = document.getElementById('emailFromEmail');
+            const subject = document.getElementById('emailSubject');
+            const toMode = document.getElementById('emailToMode');
+            const toField = document.getElementById('emailToField');
+            const preheader = document.getElementById('emailPreheader');
+            const body = document.getElementById('emailBody');
+            const fallback = document.getElementById('emailFallback');
+            const preview = document.getElementById('emailPreview');
+            if (toMode && node.data?.toMode) toMode.value = node.data.toMode;
+            const updatePreview = () => {
+                if (preview) preview.innerHTML = body?.value || '';
+            };
+            fromName?.addEventListener('input', () => {
+                node.data.fromName = fromName.value;
+            });
+            fromEmail?.addEventListener('input', () => {
+                node.data.fromEmail = fromEmail.value;
+            });
+            subject?.addEventListener('input', () => {
+                node.data.subject = subject.value;
+                renderNodes();
+            });
+            toMode?.addEventListener('change', () => {
+                node.data.toMode = toMode.value;
+            });
+            toField?.addEventListener('input', () => {
+                node.data.toField = toField.value;
+            });
+            preheader?.addEventListener('input', () => {
+                node.data.preheader = preheader.value;
+            });
+            body?.addEventListener('input', () => {
+                node.data.htmlBody = body.value;
+                node.data.body = body.value;
+                updatePreview();
+            });
+            fallback?.addEventListener('input', () => {
+                node.data.fallbackText = fallback.value;
+            });
+            updatePreview();
+        } else if (node.type === 'sms') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">SMS Workflow</h4>
+                <div class="inspector-simple">
+                    <label>Provider</label>
+                    <select id="smsProvider">
+                        <option value="Twilio">Twilio</option>
+                        <option value="MessageBird">MessageBird</option>
+                        <option value="Vonage">Vonage</option>
+                    </select>
+                    <label>Recipient Field</label>
+                    <input id="smsToField" value="${node.data?.toField || 'Phone'}" />
+                </div>
+                <details class="inspector-advanced" open>
+                    <summary>Message</summary>
+                    <div>
+                        <label>Direct Phone (optional)</label>
+                        <input id="smsTo" value="${node.data?.to || ''}" placeholder="+1..." />
+                        <label>Message Template</label>
+                        <textarea id="smsTemplate" rows="5">${node.data?.messageTemplate || ''}</textarea>
+                    </div>
+                </details>
+            `;
+            const smsProvider = document.getElementById('smsProvider');
+            const smsToField = document.getElementById('smsToField');
+            const smsTo = document.getElementById('smsTo');
+            const smsTemplate = document.getElementById('smsTemplate');
+            if (smsProvider && node.data?.provider) smsProvider.value = node.data.provider;
+            smsProvider?.addEventListener('change', () => { node.data.provider = smsProvider.value; });
+            smsToField?.addEventListener('input', () => { node.data.toField = smsToField.value; });
+            smsTo?.addEventListener('input', () => { node.data.to = smsTo.value; });
+            smsTemplate?.addEventListener('input', () => { node.data.messageTemplate = smsTemplate.value; renderNodes(); });
+        } else if (node.type === 'trigger') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Trigger Settings</h4>
+                <label>Trigger Source</label>
+                <select id="triggerSource">
+                    <option value="button">Button Click</option>
+                    <option value="form">Form Submit</option>
+                    <option value="webhook">Webhook</option>
+                </select>
+                <label>Event Name</label>
+                <input id="triggerEvent" value="${node.data?.event || 'LeadCapture'}" />
+                <label>Filters</label>
+                <textarea id="triggerFilters" rows="4">${node.data?.filters || 'country = US'}</textarea>
+            `;
+            const triggerEvent = document.getElementById('triggerEvent');
+            const triggerFilters = document.getElementById('triggerFilters');
+            triggerEvent?.addEventListener('input', () => {
+                node.data.event = triggerEvent.value;
+            });
+            triggerFilters?.addEventListener('input', () => {
+                node.data.filters = triggerFilters.value;
+            });
+        } else if (node.type === 'delay') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Delay Settings</h4>
+                <div class="inspector-simple">
+                    <label>Duration</label>
+                    <div class="inline-row">
+                        <input id="delayValue" value="${node.data?.value || '2'}" />
+                        <select id="delayUnit">
+                            <option value="minutes">Minutes</option>
+                            <option value="hours">Hours</option>
+                            <option value="days">Days</option>
+                        </select>
+                    </div>
+                </div>
+                <details class="inspector-advanced" open>
+                    <summary>Advanced Timing</summary>
+                    <div>
+                        <label>Resume Rule</label>
+                        <input id="delayResumeRule" value="${node.data?.resumeRule || 'Continue after exact delay'}" />
+                        <label>Notes</label>
+                        <textarea id="delayNotes" rows="3">${node.data?.notes || ''}</textarea>
+                    </div>
+                </details>
+            `;
+            const delayValue = document.getElementById('delayValue');
+            const delayUnit = document.getElementById('delayUnit');
+            const delayResumeRule = document.getElementById('delayResumeRule');
+            const delayNotes = document.getElementById('delayNotes');
+            if (delayUnit && node.data?.unit) delayUnit.value = node.data.unit;
+            delayValue?.addEventListener('input', () => {
+                node.data.value = delayValue.value;
+                renderNodes();
+            });
+            delayUnit?.addEventListener('change', () => {
+                node.data.unit = delayUnit.value;
+                renderNodes();
+            });
+            delayResumeRule?.addEventListener('input', () => {
+                node.data.resumeRule = delayResumeRule.value;
+            });
+            delayNotes?.addEventListener('input', () => {
+                node.data.notes = delayNotes.value;
+            });
+        } else if (node.type === 'createTask') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Create Task</h4>
+                <div class="inspector-simple">
+                    <label>Task Name</label>
+                    <input id="taskName" value="${node.data?.taskName || node.name || 'Follow-up Task'}" />
+                    <label>Assign To</label>
+                    <input id="taskAssignee" value="${node.data?.assignee || 'Sales Queue'}" />
+                </div>
+                <details class="inspector-advanced" open>
+                    <summary>Advanced Task Options</summary>
+                    <div>
+                        <label>Priority</label>
+                        <select id="taskPriority">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                        <label>Task Notes</label>
+                        <textarea id="taskNotes" rows="3">${node.data?.notes || ''}</textarea>
+                    </div>
+                </details>
+            `;
+            const taskName = document.getElementById('taskName');
+            const taskAssignee = document.getElementById('taskAssignee');
+            const taskPriority = document.getElementById('taskPriority');
+            const taskNotes = document.getElementById('taskNotes');
+            if (taskPriority && node.data?.priority) taskPriority.value = node.data.priority;
+            taskName?.addEventListener('input', () => { node.data.taskName = taskName.value; node.name = taskName.value; renderNodes(); });
+            taskAssignee?.addEventListener('input', () => { node.data.assignee = taskAssignee.value; });
+            taskPriority?.addEventListener('change', () => { node.data.priority = taskPriority.value; });
+            taskNotes?.addEventListener('input', () => { node.data.notes = taskNotes.value; });
+        } else if (node.type === 'condition') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Condition Builder</h4>
+                <label>Logic</label>
+                <textarea id="conditionLogic" rows="4">${node.data?.logic || 'score > 70'}</textarea>
+                <label>True Path Label</label>
+                <input id="conditionTrue" value="${node.data?.trueLabel || 'High Intent'}" />
+                <label>False Path Label</label>
+                <input id="conditionFalse" value="${node.data?.falseLabel || 'Needs Nurture'}" />
+            `;
+            const conditionLogic = document.getElementById('conditionLogic');
+            const conditionTrue = document.getElementById('conditionTrue');
+            const conditionFalse = document.getElementById('conditionFalse');
+            conditionLogic?.addEventListener('input', () => {
+                node.data.logic = conditionLogic.value;
+            });
+            conditionTrue?.addEventListener('input', () => {
+                node.data.trueLabel = conditionTrue.value;
+                renderEdges();
+            });
+            conditionFalse?.addEventListener('input', () => {
+                node.data.falseLabel = conditionFalse.value;
+                renderEdges();
+            });
+        } else if (node.type === 'tag') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Tag Settings</h4>
+                <label>Tag Name</label>
+                <input id="tagName" value="${node.data?.tag || 'Hot Lead'}" />
+                <label>Notes</label>
+                <textarea id="tagNotes" rows="3">${node.data?.notes || ''}</textarea>
+            `;
+            const tagName = document.getElementById('tagName');
+            const tagNotes = document.getElementById('tagNotes');
+            tagName?.addEventListener('input', () => {
+                node.data.tag = tagName.value;
+                node.name = tagName.value;
+                renderNodes();
+            });
+            tagNotes?.addEventListener('input', () => {
+                node.data.notes = tagNotes.value;
+            });
+        } else if (node.type === 'webhook') {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Webhook Settings</h4>
+                <label>Endpoint</label>
+                <input id="webhookUrl" value="${node.data?.url || 'https://api.example.com/hook'}" />
+                <label>Method</label>
+                <select id="webhookMethod">
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="PATCH">PATCH</option>
+                </select>
+                <label>Payload Preview</label>
+                <textarea id="webhookBody" rows="4">${node.data?.payload || '{ \"event\": \"workflow\" }'}</textarea>
+            `;
+            const webhookUrl = document.getElementById('webhookUrl');
+            const webhookMethod = document.getElementById('webhookMethod');
+            const webhookBody = document.getElementById('webhookBody');
+            webhookUrl?.addEventListener('input', () => {
+                node.data.url = webhookUrl.value;
+            });
+            webhookMethod?.addEventListener('change', () => {
+                node.data.method = webhookMethod.value;
+            });
+            webhookBody?.addEventListener('input', () => {
+                node.data.payload = webhookBody.value;
+            });
+        } else {
+            nodeInspector.innerHTML = `
+                <h4 style="margin-top:0;">Node Settings</h4>
+                <label>Name</label>
+                <input id="nodeNameInput" value="${node.name}" />
+                <label>Notes</label>
+                <textarea id="nodeNotes" rows="4">${node.data?.notes || ''}</textarea>
+            `;
+            const nameInput = document.getElementById('nodeNameInput');
+            const notesInput = document.getElementById('nodeNotes');
+            nameInput?.addEventListener('input', () => {
+                node.name = nameInput.value;
+                renderNodes();
+            });
+            notesInput?.addEventListener('input', () => {
+                node.data.notes = notesInput.value;
+            });
+        }
+        addFieldHelpIcons(nodeInspector);
+        injectActionButton(node);
+    };
+
+    const applyZoom = (value) => {
+        zoom = Math.min(Math.max(value, 0.6), 1.6);
+        if (stage) stage.style.transform = `scale(${zoom})`;
+        if (zoomLabel) zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+        updateMinimap();
+    };
+
+    const snapValue = (value) => {
+        if (!snapToggle?.checked) return value;
+        return Math.round(value / gridSize) * gridSize;
+    };
+
+    const applyMagneticSnap = (nodeId, x, y) => {
+        const others = state.nodes.filter(n => n.id !== nodeId);
+        let snappedX = x;
+        let snappedY = y;
+        let nearX = null;
+        let nearY = null;
+        const width = 200;
+        const height = 90;
+        others.forEach(other => {
+            const xTargets = [other.x, other.x + width / 2, other.x + width];
+            const yTargets = [other.y, other.y + height / 2, other.y + height];
+            xTargets.forEach(target => {
+                if (Math.abs(target - x) <= magnetThreshold) {
+                    snappedX = target;
+                    nearX = target;
+                }
+            });
+            yTargets.forEach(target => {
+                if (Math.abs(target - y) <= magnetThreshold) {
+                    snappedY = target;
+                    nearY = target;
+                }
+            });
+        });
+        if (nearX !== null || nearY !== null) {
+            updateGuides({ x: nearX ?? x, y: nearY ?? y });
+        } else {
+            updateGuides(null);
+        }
+        return { x: snappedX, y: snappedY };
+    };
+
+    const updateGuides = (node) => {
+        if (!guideToggle?.checked || !canvasGuides || !guideH || !guideV || !node) {
+            canvasGuides?.classList.remove('active');
+            return;
+        }
+        canvasGuides.classList.add('active');
+        guideH.style.top = `${node.y}px`;
+        guideV.style.left = `${node.x}px`;
+    };
+
+    const updateMinimap = () => {
+        if (!minimapStage || !minimapViewport) return;
+        minimapStage.innerHTML = '';
+        const scaleX = (minimapStage.clientWidth - 0) / stage.clientWidth;
+        const scaleY = (minimapStage.clientHeight - 0) / stage.clientHeight;
+        state.nodes.forEach(node => {
+            const dot = document.createElement('div');
+            dot.className = 'minimap-node';
+            dot.style.left = `${node.x * scaleX}px`;
+            dot.style.top = `${node.y * scaleY}px`;
+            minimapStage.appendChild(dot);
+        });
+        const viewWidth = canvas.clientWidth / (stage.clientWidth * zoom) * minimapStage.clientWidth;
+        const viewHeight = canvas.clientHeight / (stage.clientHeight * zoom) * minimapStage.clientHeight;
+        const viewLeft = canvas.scrollLeft / (stage.clientWidth * zoom) * minimapStage.clientWidth;
+        const viewTop = canvas.scrollTop / (stage.clientHeight * zoom) * minimapStage.clientHeight;
+        minimapViewport.style.width = `${Math.max(20, viewWidth)}px`;
+        minimapViewport.style.height = `${Math.max(20, viewHeight)}px`;
+        minimapViewport.style.left = `${viewLeft}px`;
+        minimapViewport.style.top = `${viewTop}px`;
+    };
+
+    const renderExecutionLogs = (entries) => {
+        if (!executionLogs) return;
+        executionLogs.innerHTML = '';
+        if (!entries.length) {
+            executionLogs.innerHTML = '<div class="log-item">No executions yet. Trigger the workflow to see logs here.</div>';
+            return;
+        }
+        entries.forEach(entry => {
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            const stamp = new Date(entry.executedAtUtc).toLocaleString();
+            const step = entry.stepName ? ` · ${entry.stepName}` : '';
+            item.innerHTML = `<span>${stamp}</span> · ${entry.status}${step} · ${entry.message}`;
+            executionLogs.appendChild(item);
+        });
+    };
+
+    const fetchExecutionLogs = async () => {
+        try {
+            const res = await fetch(`/Workflows/Editor?handler=Logs&id=${workflowId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (Array.isArray(data?.logs)) {
+                renderExecutionLogs(data.logs);
+            }
+        } catch {
+            // ignore polling errors
+        }
+    };
+
+    let logPollIntervalId = null;
+    const ensureLogPolling = () => {
+        if (logPollIntervalId) {
+            return;
+        }
+        fetchExecutionLogs();
+        logPollIntervalId = window.setInterval(fetchExecutionLogs, 8000);
+    };
+
+    const connectLogStream = () => {
+        if (typeof EventSource === 'undefined') {
+            ensureLogPolling();
+            return false;
+        }
+        const source = new EventSource(`/Workflows/Editor?handler=LogStream&id=${workflowId}`);
+        source.onmessage = (event) => {
+            try {
+                const entry = JSON.parse(event.data);
+                if (!executionLogs) return;
+                if (executionLogs.textContent?.includes('No executions yet')) {
+                    executionLogs.innerHTML = '';
+                }
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                const stamp = new Date(entry.executedAtUtc).toLocaleString();
+                const step = entry.stepName ? ` · ${entry.stepName}` : '';
+                item.innerHTML = `<span>${stamp}</span> · ${entry.status}${step} · ${entry.message}`;
+                executionLogs.prepend(item);
+                while (executionLogs.children.length > 8) {
+                    executionLogs.removeChild(executionLogs.lastChild);
+                }
+            } catch {
+                // ignore malformed entries
+            }
+        };
+        source.onerror = () => {
+            source.close();
+            ensureLogPolling();
+        };
+        return true;
+    };
+
+    const runValidation = () => {
+        if (!validationList) return;
+        validationList.innerHTML = '';
+        const issues = [];
+        const starts = state.nodes.filter(n => n.type === 'workflowStart' || n.type === 'trigger' || n.type === 'facebookLeadTrigger');
+        const ends = state.nodes.filter(n => n.type === 'workflowEnd' || n.type === 'email');
+        if (starts.length === 0) {
+            issues.push({ type: 'error', text: 'Add a Workflow Start action.' });
+        }
+        if (ends.length === 0) {
+            issues.push({ type: 'warn', text: 'Add a Workflow End action.' });
+        }
+        state.nodes.forEach(node => {
+            const outgoing = state.edges.filter(edge => edge.from === node.id);
+            const incoming = state.edges.filter(edge => edge.to === node.id);
+            if (node.type !== 'trigger' && node.type !== 'workflowStart' && node.type !== 'facebookLeadTrigger' && incoming.length === 0) {
+                issues.push({ type: 'warn', text: `${node.name} is not connected from any step.` });
+            }
+            if (node.type === 'email' && (!node.data?.subject || !(node.data?.htmlBody || node.data?.body))) {
+                issues.push({ type: 'warn', text: `${node.name} is missing email content.` });
+            }
+            if ((node.type === 'condition' || node.type === 'decision' || node.type === 'sqlCondition') && outgoing.length < 2) {
+                issues.push({ type: 'warn', text: `${node.name} should have two branches.` });
+            }
+            if (node.type === 'webhook' && !node.data?.url) {
+                issues.push({ type: 'error', text: `${node.name} webhook endpoint is empty.` });
+            }
+        });
+        if (issues.length === 0) {
+            const ok = document.createElement('div');
+            ok.className = 'status-item ok';
+            ok.innerHTML = `<i class="fa-solid fa-circle-check"></i><div><strong>All checks passed.</strong><div>Ready to publish.</div></div>`;
+            validationList.appendChild(ok);
+            return;
+        }
+        issues.slice(0, 6).forEach(issue => {
+            const row = document.createElement('div');
+            row.className = `status-item ${issue.type}`;
+            row.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><div>${issue.text}</div>`;
+            validationList.appendChild(row);
+        });
+    };
+
+    const startDrag = (event, id) => {
+        if (event.button !== 0) return;
+        const node = state.nodes.find(n => n.id === id);
+        if (!node) return;
+        setActiveNode(id);
+        const startX = event.clientX;
+        const startY = event.clientY;
+        const originX = node.x;
+        const originY = node.y;
+        const onMove = (moveEvent) => {
+            const rawX = originX + (moveEvent.clientX - startX) / zoom;
+            const rawY = originY + (moveEvent.clientY - startY) / zoom;
+            const snapped = applyMagneticSnap(node.id, rawX, rawY);
+            node.x = snapValue(snapped.x);
+            node.y = snapValue(snapped.y);
+            render();
+        };
+        const onUp = () => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+            updateGuides(null);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+    };
+
+    const updateConnectHint = (text) => {
+        const hint = document.querySelector('.workflow-meta');
+        if (hint) hint.textContent = text;
+    };
+
+    const clearConnectionState = () => {
+        connectFromId = null;
+        connectFromPort = null;
+        connectDrag = null;
+        renderEdges();
+        updateConnectHint('Workflow ready.');
+    };
+
+    const deleteNode = (nodeId) => {
+        if (!nodeId) return;
+
+        state.nodes = state.nodes.filter(node => node.id !== nodeId);
+        state.edges = state.edges.filter(edge => edge.from !== nodeId && edge.to !== nodeId);
+
+        if (activeNodeId === nodeId) {
+            activeNodeId = null;
+        }
+        if (activeEdgeId && !state.edges.some(edge => edge.id === activeEdgeId)) {
+            activeEdgeId = null;
+        }
+        if (connectFromId === nodeId) {
+            clearConnectionState();
+            return;
+        }
+
+        render();
+        renderNodeInspector();
+    };
+
+    const tryConnectPorts = (sourceNodeId, sourcePort, targetNodeId, targetPort) => {
+        if (!sourceNodeId || !targetNodeId || sourceNodeId === targetNodeId) return false;
+        if (!sourcePort || !targetPort || sourcePort === targetPort) return false;
+
+        const from = sourcePort === 'out' ? sourceNodeId : targetNodeId;
+        const to = sourcePort === 'out' ? targetNodeId : sourceNodeId;
+        if (!from || !to || from === to) return false;
+
+        if (!state.edges.some(edge => edge.from === from && edge.to === to)) {
+            state.edges.push({
+                id: `edge-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                from,
+                to,
+                label: ''
+            });
+        }
+
+        renderEdges();
+        return true;
+    };
+
+    const beginConnectionDrag = (nodeId, port, event) => {
+        if (!nodeId || !port) return;
+        const point = toStagePoint(event.clientX, event.clientY);
+        connectFromId = nodeId;
+        connectFromPort = port;
+        connectDrag = {
+            active: true,
+            fromNodeId: nodeId,
+            fromPort: port,
+            toX: point.x,
+            toY: point.y
+        };
+        renderEdges();
+        updateConnectHint('Drag to another port to connect.');
+    };
+
+    const handleConnect = (nodeId, port) => {
+        if (!nodeId || !port) return;
+
+        if (!connectFromId) {
+            connectFromId = nodeId;
+            connectFromPort = port;
+            updateConnectHint('Select the opposite port on another node.');
+            return;
+        }
+
+        if (tryConnectPorts(connectFromId, connectFromPort, nodeId, port)) {
+            clearConnectionState();
+            return;
+        }
+
+        connectFromId = nodeId;
+        connectFromPort = port;
+        updateConnectHint('Select the opposite port on another node.');
+    };
+
+    window.addEventListener('mousemove', (event) => {
+        if (!connectDrag?.active) return;
+        const point = toStagePoint(event.clientX, event.clientY);
+        connectDrag.toX = point.x;
+        connectDrag.toY = point.y;
+        renderEdges();
+    });
+
+    window.addEventListener('mouseup', (event) => {
+        if (!connectDrag?.active) return;
+        const portButton = event.target instanceof Element ? event.target.closest('[data-port][data-node-id]') : null;
+        if (portButton) {
+            const targetNodeId = portButton.getAttribute('data-node-id');
+            const targetPort = portButton.getAttribute('data-port');
+            if (tryConnectPorts(connectDrag.fromNodeId, connectDrag.fromPort, targetNodeId, targetPort)) {
+                clearConnectionState();
+                return;
+            }
+        }
+        clearConnectionState();
+    });
+
+    canvas?.addEventListener('click', (event) => {
+        const target = event.target.closest('.canvas-node');
+        if (!target) {
+            if (connectFromId) {
+                clearConnectionState();
+                return;
+            }
+            activeNodeId = null;
+            activeEdgeId = null;
+            if (edgeInspector) edgeInspector.style.display = 'none';
+            if (nodeInspector) nodeInspector.style.display = 'block';
+            renderNodes();
+            renderNodeInspector();
+        }
+    });
+
+    document.querySelectorAll('[data-node-type]').forEach(card => {
+        card.addEventListener('click', () => {
+            const rect = canvas.getBoundingClientRect();
+            createNode(card.getAttribute('data-node-type'), rect.width / (2 * zoom) - 100, rect.height / (2 * zoom) - 40);
+            if (isMobileViewport()) {
+                setLeftPanelOpen(false);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-template]').forEach(card => {
+        card.addEventListener('click', () => {
+            const template = card.getAttribute('data-template');
+            state.nodes = [];
+            state.edges = [];
+            if (template === 'standard-flow') {
+                createNode('workflowStart', 120, 120);
+                createNode('sqlCondition', 390, 120);
+                createNode('updateRecord', 660, 70);
+                createNode('runSql', 660, 220);
+                createNode('workflowEnd', 940, 140);
+                state.edges.push({ id: `edge-${Date.now()}-1`, from: state.nodes[0].id, to: state.nodes[1].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-2`, from: state.nodes[1].id, to: state.nodes[2].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-3`, from: state.nodes[2].id, to: state.nodes[3].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-4`, from: state.nodes[1].id, to: state.nodes[3].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-5`, from: state.nodes[3].id, to: state.nodes[4].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-6`, from: state.nodes[2].id, to: state.nodes[4].id, label: '' });
+            } else if (template === 'decision-flow') {
+                createNode('workflowStart', 120, 140);
+                createNode('decision', 390, 140);
+                createNode('updateRecord', 660, 80);
+                createNode('updateReassign', 660, 220);
+                createNode('workflowEnd', 940, 150);
+                state.edges.push({ id: `edge-${Date.now()}-1`, from: state.nodes[0].id, to: state.nodes[1].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-2`, from: state.nodes[1].id, to: state.nodes[2].id, label: 'Yes' });
+                state.edges.push({ id: `edge-${Date.now()}-3`, from: state.nodes[1].id, to: state.nodes[3].id, label: 'No' });
+                state.edges.push({ id: `edge-${Date.now()}-4`, from: state.nodes[2].id, to: state.nodes[4].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-5`, from: state.nodes[3].id, to: state.nodes[4].id, label: '' });
+            } else if (template === 'sql-heavy') {
+                createNode('workflowStart', 120, 140);
+                createNode('sqlCondition', 390, 140);
+                createNode('runSql', 660, 70);
+                createNode('runSql', 660, 230);
+                createNode('workflowEnd', 940, 150);
+                state.edges.push({ id: `edge-${Date.now()}-1`, from: state.nodes[0].id, to: state.nodes[1].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-2`, from: state.nodes[1].id, to: state.nodes[2].id, label: 'True' });
+                state.edges.push({ id: `edge-${Date.now()}-3`, from: state.nodes[1].id, to: state.nodes[3].id, label: 'False' });
+                state.edges.push({ id: `edge-${Date.now()}-4`, from: state.nodes[2].id, to: state.nodes[4].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-5`, from: state.nodes[3].id, to: state.nodes[4].id, label: '' });
+            } else if (template === 'fb-email-wait-email') {
+                createNode('facebookLeadTrigger', 120, 140);
+                createNode('email', 400, 140);
+                createNode('delay', 680, 140);
+                createNode('email', 960, 140);
+                state.edges.push({ id: `edge-${Date.now()}-1`, from: state.nodes[0].id, to: state.nodes[1].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-2`, from: state.nodes[1].id, to: state.nodes[2].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-3`, from: state.nodes[2].id, to: state.nodes[3].id, label: '' });
+            } else if (template === 'fb-sms-wait-email') {
+                createNode('facebookLeadTrigger', 120, 140);
+                createNode('sms', 400, 140);
+                createNode('delay', 680, 140);
+                createNode('email', 960, 140);
+                state.edges.push({ id: `edge-${Date.now()}-1`, from: state.nodes[0].id, to: state.nodes[1].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-2`, from: state.nodes[1].id, to: state.nodes[2].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-3`, from: state.nodes[2].id, to: state.nodes[3].id, label: '' });
+            } else if (template === 'fb-qualify-route') {
+                createNode('facebookLeadTrigger', 120, 140);
+                createNode('condition', 390, 140);
+                createNode('updateRecord', 680, 90);
+                createNode('updateReassign', 680, 240);
+                state.edges.push({ id: `edge-${Date.now()}-1`, from: state.nodes[0].id, to: state.nodes[1].id, label: '' });
+                state.edges.push({ id: `edge-${Date.now()}-2`, from: state.nodes[1].id, to: state.nodes[2].id, label: 'Qualified' });
+                state.edges.push({ id: `edge-${Date.now()}-3`, from: state.nodes[1].id, to: state.nodes[3].id, label: 'Needs follow-up' });
+            }
+            render();
+        });
+    });
+
+    saveWorkflowBtn?.addEventListener('click', async () => {
+        saveWorkflowBtn.disabled = true;
+        try {
+            const payload = {
+                id: workflowId,
+                name: workflowNameInput?.value || 'Untitled Workflow',
+                caption: workflowCaptionInput?.value || workflowNameInput?.value || 'Untitled Workflow',
+                description: workflowDescInput?.value || '',
+                status: workflowStatusInput?.value || 'Draft',
+                workflowType: workflowTypeInput?.value || 'Application Workflow',
+                applicationId: workflowApplicationIdInput?.value || '',
+                fileListId: Number(workflowFileListIdInput?.value || 0),
+                viewOnApplication: Number(workflowViewOnApplicationInput?.value || 0),
+                startupType: Number(workflowStartupTypeInput?.value || 1),
+                startupArgument1: workflowStartupArg1Input?.value || '',
+                startupArgument2: workflowStartupArg2Input?.value || '',
+                diagram: workflowDiagramInput?.value || '',
+                kpiActivity: workflowKpiActivityInput?.value || '',
+                inActive: workflowInactiveInput?.value === 'true',
+                definitionJson: JSON.stringify({ nodes: state.nodes, edges: state.edges, meta: state.meta })
+            };
+            const res = await fetch('/Workflows/Editor?handler=Save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': csrfToken
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok || !data?.success) {
+                alert(data?.message || 'Unable to save workflow.');
+                return;
+            }
+        } catch (err) {
+            alert('Unable to save workflow.');
+        } finally {
+            saveWorkflowBtn.disabled = false;
+        }
+    });
+
+    edgeLabelInput?.addEventListener('input', () => {
+        const edge = state.edges.find(e => e.id === activeEdgeId);
+        if (!edge) return;
+        edge.label = edgeLabelInput.value;
+        renderEdges();
+    });
+
+    document.querySelectorAll('[data-action]').forEach(button => {
+        button.addEventListener('click', () => {
+            const action = button.getAttribute('data-action');
+            if (action === 'zoomIn') applyZoom(zoom + 0.1);
+            if (action === 'zoomOut') applyZoom(zoom - 0.1);
+            if (action === 'resetZoom') applyZoom(1);
+            if (action === 'center') {
+                canvas.scrollTo({ left: (stage.clientWidth * zoom) / 2 - canvas.clientWidth / 2, top: (stage.clientHeight * zoom) / 2 - canvas.clientHeight / 2, behavior: 'smooth' });
+            }
+            if (action === 'fit') {
+                const scaleX = canvas.clientWidth / stage.clientWidth;
+                const scaleY = canvas.clientHeight / stage.clientHeight;
+                applyZoom(Math.min(scaleX, scaleY));
+                canvas.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+            }
+            if (action === 'autoLayout') {
+                autoLayout();
+            }
+            if (action === 'test') {
+                alert('Test run queued. We will simulate the workflow with sample data.');
+            }
+            if (action === 'openActionProps') {
+                const targetNodeId = activeNodeId || state.nodes[0]?.id || null;
+                if (targetNodeId) {
+                    openActionProperties(targetNodeId);
+                } else {
+                    alert('Add a node first, then open Action Properties.');
+                }
+            }
+            if (action === 'openLeftPanel') {
+                setLeftPanelOpen(!document.body.classList.contains('editor-left-open'));
+            }
+            if (action === 'openRightPanel') {
+                setRightPanelOpen(!document.body.classList.contains('editor-right-open'));
+            }
+        });
+    });
+
+    toggleLeftPanel?.addEventListener('click', () => {
+        if (isMobileViewport()) {
+            setLeftPanelOpen(!document.body.classList.contains('editor-left-open'));
+            return;
+        }
+        workflowShell?.classList.toggle('left-collapsed');
+    });
+
+    toggleRightPanel?.addEventListener('click', () => {
+        if (isMobileViewport()) {
+            setRightPanelOpen(!document.body.classList.contains('editor-right-open'));
+            return;
+        }
+        workflowShell?.classList.toggle('right-collapsed');
+    });
+
+    apAssignToUser?.addEventListener('change', setActionSectionsState);
+    apSendEmail?.addEventListener('change', setActionSectionsState);
+    actionPropsClose?.addEventListener('click', () => showActionModal(false));
+    apCancelBtn?.addEventListener('click', () => showActionModal(false));
+    actionPropsBackdrop?.addEventListener('click', () => showActionModal(false));
+
+    apDeleteBtn?.addEventListener('click', () => {
+        if (!activeActionNodeId) return;
+        const node = state.nodes.find(n => n.id === activeActionNodeId);
+        if (!node) return;
+        node.data = node.data || {};
+        node.data.actionProps = createActionDefaults(node);
+        showActionModal(false);
+        renderNodeInspector();
+    });
+
+    apSubmitBtn?.addEventListener('click', () => {
+        if (!activeActionNodeId) return;
+        const node = state.nodes.find(n => n.id === activeActionNodeId);
+        if (!node) return;
+        const payload = readActionModal();
+        node.data = node.data || {};
+        node.data.actionProps = payload;
+        if (payload.actionName) {
+            node.name = payload.actionName;
+        }
+        if (node.type === 'email') {
+            node.data.subject = payload.emailSubject || payload.emailTitle || '';
+            node.data.body = payload.emailBody || '';
+        }
+        showActionModal(false);
+        render();
+        renderNodeInspector();
+    });
+
+    const autoLayout = () => {
+        const incoming = {};
+        state.nodes.forEach(node => incoming[node.id] = 0);
+        state.edges.forEach(edge => {
+            if (incoming[edge.to] !== undefined) incoming[edge.to] += 1;
+        });
+        const roots = state.nodes.filter(node => incoming[node.id] === 0);
+        const levels = new Map();
+        const queue = [...roots];
+        roots.forEach(node => levels.set(node.id, 0));
+        while (queue.length) {
+            const current = queue.shift();
+            if (!current) continue;
+            const nextEdges = state.edges.filter(edge => edge.from === current.id);
+            nextEdges.forEach(edge => {
+                const next = edge.to;
+                const nextLevel = (levels.get(current.id) ?? 0) + 1;
+                if (!levels.has(next) || levels.get(next) < nextLevel) {
+                    levels.set(next, nextLevel);
+                    const nextNode = state.nodes.find(n => n.id === next);
+                    if (nextNode) queue.push(nextNode);
+                }
+            });
+        }
+        const columns = {};
+        state.nodes.forEach(node => {
+            const level = levels.get(node.id) ?? 0;
+            if (!columns[level]) columns[level] = [];
+            columns[level].push(node);
+        });
+        Object.entries(columns).forEach(([level, nodes]) => {
+            nodes.forEach((node, index) => {
+                node.x = snapValue(140 + Number(level) * 320);
+                node.y = snapValue(120 + index * 160);
+            });
+        });
+        render();
+    };
+
+    blockSearch?.addEventListener('input', () => {
+        const query = (blockSearch.value || '').toLowerCase();
+        document.querySelectorAll('.block-card, .template-card').forEach(card => {
+            const text = card.textContent?.toLowerCase() || '';
+            card.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+
+    const handlePanStart = (event) => {
+        if (event.button === 1 || event.code === 'Space' || event.altKey) {
+            isPanning = true;
+            panStart = { x: event.clientX, y: event.clientY };
+            panScroll = { x: canvas.scrollLeft, y: canvas.scrollTop };
+            canvas.style.cursor = 'grabbing';
+        }
+    };
+
+    const handlePanMove = (event) => {
+        if (!isPanning) return;
+        const dx = event.clientX - panStart.x;
+        const dy = event.clientY - panStart.y;
+        canvas.scrollLeft = panScroll.x - dx;
+        canvas.scrollTop = panScroll.y - dy;
+        updateMinimap();
+    };
+
+    const handlePanEnd = () => {
+        isPanning = false;
+        canvas.style.cursor = '';
+    };
+
+    canvas?.addEventListener('mousedown', (event) => {
+        const target = event.target.closest('.canvas-node');
+        if (!target && (event.button === 1 || event.altKey)) {
+            handlePanStart(event);
+        }
+    });
+    window.addEventListener('mousemove', handlePanMove);
+    window.addEventListener('mouseup', handlePanEnd);
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (actionPropsModal?.classList.contains('show')) {
+                showActionModal(false);
+                return;
+            }
+            setLeftPanelOpen(false);
+            setRightPanelOpen(false);
+        }
+        if (event.code === 'Space') {
+            canvas.style.cursor = 'grab';
+        }
+    });
+    window.addEventListener('keyup', (event) => {
+        if (event.code === 'Space') {
+            canvas.style.cursor = '';
+        }
+    });
+
+    canvas?.addEventListener('scroll', () => {
+        updateMinimap();
+    });
+
+    minimapStage?.addEventListener('click', (event) => {
+        const rect = minimapStage.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+        const targetX = (clickX / minimapStage.clientWidth) * stage.clientWidth * zoom - canvas.clientWidth / 2;
+        const targetY = (clickY / minimapStage.clientHeight) * stage.clientHeight * zoom - canvas.clientHeight / 2;
+        canvas.scrollTo({ left: targetX, top: targetY, behavior: 'smooth' });
+    });
+
+    snapToggle?.addEventListener('change', () => {
+        // no-op: affects snapping only
+    });
+    guideToggle?.addEventListener('change', () => {
+        canvasGuides?.classList.toggle('active', guideToggle.checked);
+    });
+
+    document.body.classList.add('workflow-editor-page');
+    window.addEventListener('resize', () => {
+        if (!isMobileViewport()) {
+            document.body.classList.remove('editor-left-open', 'editor-right-open');
+        }
+    });
+
+    // Safety reset: prevent stale blur/backdrop classes after navigation or refresh.
+    showActionModal(false);
+    addFieldHelpIcons(document.querySelector('.workflow-panel--right'));
+    bindActionTokenChips();
+    apImportFormTokensBtn?.addEventListener('click', importConnectedFormTokens);
+    loadSmtpProfiles();
+
+    applyZoom(1);
+    fetchExecutionLogs();
+    if (!connectLogStream()) {
+        setInterval(fetchExecutionLogs, 8000);
+    }
+    render();
+</script>

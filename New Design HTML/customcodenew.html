@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bugence IDE Pro | v4.5.0 Enterprise</title>
+    
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/jetbrains-mono@1.0.6/css/jetbrains-mono.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+
+    <style>
+        /* * --- SECTION 1: CORE THEMING & VARIABLES ---
+         * Defines the semantic colors and layout constraints.
+         */
+        :root {
+            --bg-activity: #111114;
+            --bg-sidebar: #09090b;
+            --bg-editor: #1e1e1e;
+            --bg-panel: #09090b;
+            --bg-status: #06b6d4;
+            --bg-modal: #1c1c1e;
+            --bg-input: #27272a;
+            
+            --border: #27272a;
+            --hover: #2a2d2e;
+            --selection: #37373d;
+            
+            --text-main: #e4e4e7;
+            --text-muted: #71717a;
+            --accent: #06b6d4;
+            --accent-glow: rgba(6, 182, 212, 0.2);
+            
+            --git-add: #10b981;
+            --git-mod: #eab308;
+            --git-del: #ef4444;
+
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+
+            --tab-height: 35px;
+            --status-height: 22px;
+            --activity-width: 50px;
+            --sidebar-width: 260px;
+        }
+
+        /* --- SECTION 2: RESET & GLOBAL DEFAULTS --- */
+        * { box-sizing: border-box; outline: none; user-select: none; }
+        
+        body { 
+            margin: 0; padding: 0; background: var(--bg-sidebar); 
+            color: var(--text-main); font-family: 'Satoshi', sans-serif; 
+            height: 100vh; width: 100vw; overflow: hidden; 
+        }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-sidebar); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; border: 2px solid var(--bg-sidebar); }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        /* --- SECTION 3: LAYOUT ARCHITECTURE --- */
+        .ide-layout {
+            display: grid;
+            grid-template-columns: var(--activity-width) var(--sidebar-width) 1fr; 
+            grid-template-rows: 1fr var(--status-height);
+            height: 100vh; width: 100vw;
+            transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Activity Bar Positioning */
+        .activity-bar {
+            grid-column: 1; grid-row: 1;
+            background: var(--bg-activity); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; padding-top: 15px; z-index: 200;
+        }
+        
+        .act-item {
+            width: 48px; height: 48px; display: grid; place-items: center; 
+            color: var(--text-muted); font-size: 1.2rem; cursor: pointer; position: relative;
+            transition: all 0.2s;
+        }
+        .act-item:hover { color: white; background: rgba(255,255,255,0.03); }
+        .act-item.active { color: white; border-left: 2px solid var(--accent); background: rgba(255,255,255,0.05); }
+        .act-bottom { margin-top: auto; padding-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
+
+        /* --- SECTION 4: SIDEBAR COMPONENT --- */
+        .sidebar {
+            grid-column: 2; grid-row: 1;
+            background: var(--bg-sidebar); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+        }
+        
+        .sidebar-view { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+        .sidebar-view.active { display: flex; }
+
+        .sidebar-header {
+            height: 40px; padding: 0 15px; display: flex; align-items: center; justify-content: space-between;
+            font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.5px;
+        }
+
+        /* File Explorer UI */
+        .file-tree { flex: 1; overflow-y: auto; padding-top: 5px; }
+        .tree-item {
+            display: flex; align-items: center; padding: 5px 15px; gap: 8px; cursor: pointer;
+            font-size: 0.88rem; color: #a1a1aa; border-left: 2px solid transparent; transition: 0.1s;
+        }
+        .tree-item:hover { background: var(--hover); color: #fff; }
+        .tree-item.active { background: var(--selection); color: white; border-left-color: var(--accent); }
+        .tree-indent { display: inline-block; width: 14px; }
+        
+        .arrow { font-size: 0.6rem; color: var(--text-muted); transition: 0.2s; margin-right: 4px; }
+        .folder-open > .tree-item .arrow { transform: rotate(90deg); color: white; }
+        .sub-tree { display: none; border-left: 1px solid #1a1a1a; margin-left: 20px; }
+        .folder-open > .sub-tree { display: block; }
+
+        /* Search & Git Inputs */
+        .sidebar-body { padding: 15px; }
+        .ide-input { 
+            width: 100%; background: var(--bg-input); border: 1px solid transparent; 
+            color: white; padding: 10px; font-size: 0.85rem; margin-bottom: 12px; outline: none; 
+            border-radius: 4px; border: 1px solid #333;
+        }
+        .ide-input:focus { border-color: var(--accent); background: #111; }
+        .btn-primary { width: 100%; background: var(--accent); border: none; padding: 10px; color: white; font-weight: 800; cursor: pointer; border-radius: 4px; font-size: 0.85rem; transition: 0.3s; }
+        .btn-primary:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--accent-glow); }
+
+        /* --- SECTION 5: EDITOR CORE --- */
+        .editor-area {
+            grid-column: 3; grid-row: 1;
+            background: var(--bg-editor); display: flex; flex-direction: column; overflow: hidden; position: relative;
+        }
+
+        /* Tab Bar Rendering */
+        .tabs-container { height: var(--tab-height); background: var(--bg-sidebar); display: flex; overflow-x: auto; border-bottom: 1px solid var(--border); }
+        .tab {
+            min-width: 140px; max-width: 220px; padding: 0 10px 0 15px; display: flex; align-items: center; gap: 10px;
+            background: #141414; color: var(--text-muted); font-size: 0.85rem; cursor: pointer;
+            border-right: 1px solid var(--border); border-top: 2px solid transparent; position: relative;
+        }
+        .tab.active { background: var(--bg-editor); color: white; border-top-color: var(--accent); }
+        .tab-close { 
+            margin-left: auto; font-size: 0.75rem; opacity: 0; width: 20px; height: 20px; 
+            display: grid; place-items: center; border-radius: 4px; 
+        }
+        .tab:hover .tab-close { opacity: 1; }
+        .tab-close:hover { background: #333; color: white; }
+        .dirty-dot { width: 8px; height: 8px; background: white; border-radius: 50%; display: none; position: absolute; right: 12px; }
+        .tab.dirty .dirty-dot { display: block; }
+        .tab.dirty:hover .dirty-dot { display: none; }
+
+        .monaco-host { flex: 1; position: relative; overflow: hidden; }
+        #monaco-root { position: absolute; inset: 0; }
+
+        /* --- SECTION 6: PANEL SYSTEM --- */
+        .bottom-panel {
+            height: 220px; background: var(--bg-panel); border-top: 1px solid var(--border);
+            display: flex; flex-direction: column; transition: height 0.15s ease;
+        }
+        .panel-nav {
+            height: 35px; display: flex; align-items: center; padding: 0 15px; gap: 25px; border-bottom: 1px solid var(--border);
+        }
+        .p-tab { 
+            font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); 
+            cursor: pointer; height: 100%; display: flex; align-items: center; border-bottom: 2px solid transparent; 
+            letter-spacing: 0.5px;
+        }
+        .p-tab.active { color: white; border-bottom-color: var(--accent); }
+        .p-actions { margin-left: auto; display: flex; gap: 15px; cursor: pointer; color: var(--text-muted); }
+        .p-actions i:hover { color: white; }
+
+        .panel-content { flex: 1; display: none; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #ccc; overflow-y: auto; }
+        .panel-content.active { display: block; }
+        .prompt { color: var(--accent); font-weight: 900; margin-right: 12px; }
+        .cmd-in { background: transparent; border: none; color: white; font: inherit; outline: none; width: 75%; }
+
+        /* --- SECTION 7: STATUS BAR --- */
+        .status-bar {
+            grid-column: 1 / span 3; grid-row: 2;
+            background: var(--accent); color: black;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; font-size: 0.76rem; font-weight: 900; z-index: 50;
+        }
+        .sb-grp { display: flex; gap: 18px; align-items: center; }
+
+        /* --- SECTION 8: MODALS & POPUPS --- */
+        .modal-portal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 10000; 
+            display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+        .modal-card {
+            width: 720px; background: var(--bg-modal); border: 1px solid #333; border-radius: 12px;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.9); overflow: hidden; animation: zoomIn 0.3s;
+        }
+        .modal-header { padding: 20px 30px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); }
+        .modal-body { padding: 35px; color: #ccc; max-height: 80vh; overflow-y: auto; line-height: 1.6; }
+
+        /* FIX: Tooltip Portal */
+        .ext-help-popup {
+            position: fixed; top: 120px; left: 320px; width: 340px; background: #222225;
+            border: 1px solid var(--accent); border-radius: 10px; padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8); z-index: 11000; display: none;
+            animation: fadeIn 0.3s;
+        }
+        .ext-help-popup h4 { margin: 0 0 12px; color: var(--accent); font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        .ext-help-popup p { font-size: 0.88rem; color: #bbb; margin-bottom: 15px; }
+
+        /* Documentation UI */
+        .doc-step { display: flex; gap: 20px; margin-bottom: 35px; }
+        .doc-num { width: 40px; height: 40px; background: var(--accent); color: black; font-weight: 900; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; font-size: 1.1rem; }
+        .doc-content h4 { color: white; margin: 0 0 10px; font-size: 1.1rem; }
+        .doc-content pre { background: #000; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-top: 15px; overflow-x: auto; font-family: 'JetBrains Mono'; }
+
+        /* Progress Rendering */
+        .progress-track { width: 100%; height: 12px; background: #111; border-radius: 10px; margin: 30px 0; overflow: hidden; border: 1px solid #333; }
+        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 0.1s linear; }
+
+        /* Toasts */
+        .toast {
+            position: fixed; bottom: 45px; right: 25px; background: #252526; color: white;
+            padding: 15px 25px; border-left: 5px solid var(--accent); box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transform: translateY(180px); transition: 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28); 
+            z-index: 100000; border-radius: 4px; display:flex; align-items:center; gap:15px;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        @keyframes zoomIn { from{opacity:0; transform:scale(0.96) translateY(10px);} to{opacity:1; transform:scale(1) translateY(0);} }
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+        
+        .explorer-menu-trigger { cursor: pointer; transition: 0.2s; }
+        .explorer-menu-trigger:hover { color: white; transform: rotate(90deg); }
+
+        .i-js { color: #f1e05a; } .i-html { color: #e34c26; } .i-css { color: #563d7c; } .i-json { color: #cbcb41; }
+    </style>
+</head>
+<body>
+
+    <div class="modal-portal" id="settingsPortal" onclick="if(event.target===this) window.toggleSettings()">
+        <div class="modal-card" style="width: 480px;">
+            <div class="modal-header">
+                <strong style="font-weight:900; letter-spacing:1px;"><i class="fa-solid fa-microchip"></i> WORKSPACE CONFIG</strong>
+                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="window.toggleSettings()"></i>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:25px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="color:white; font-weight:700;">Editor Font Size</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Adjust visual density</div>
+                    </div>
+                    <input type="number" class="ide-input" style="width:80px; margin:0;" id="setFontSize" value="14" onchange="window.applySettings()">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="color:white; font-weight:700;">Minimap Visibility</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Code overview map</div>
+                    </div>
+                    <input type="checkbox" id="setMinimap" checked onchange="window.applySettings()">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="color:white; font-weight:700;">Render Whitespace</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Show dots/arrows</div>
+                    </div>
+                    <input type="checkbox" id="setWhitespace" onchange="window.applySettings()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-portal" id="docsPortal" onclick="if(event.target===this) window.toggleDocs()">
+        <div class="modal-card">
+            <div class="modal-header">
+                <strong style="font-weight:900; letter-spacing:1px;"><i class="fa-solid fa-book-open"></i> BUGENCE EXTENSION SDK</strong>
+                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="window.toggleDocs()"></i>
+            </div>
+            <div class="modal-body">
+                <div class="doc-step">
+                    <div class="doc-num">01</div>
+                    <div class="doc-content">
+                        <h4>Construct Your Manifest</h4>
+                        <p>Extensions are defined by a <code>manifest.json</code>. This acts as the blueprint for the IDE's kernel to load your assets.</p>
+                        <pre><code>{
+  "id": "bugence.linter-pro",
+  "name": "Linter Pro",
+  "version": "1.0.4",
+  "main": "entry.js",
+  "permissions": ["editor.write"]
+}</code></pre>
+                    </div>
+                </div>
+                <div class="doc-step">
+                    <div class="doc-num">02</div>
+                    <div class="doc-content">
+                        <h4>Register Lifecycle Hooks</h4>
+                        <p>Use the global <code>bugence</code> API in your entry script to hook into the editor events.</p>
+                        <pre><code>export function activate(ctx) {
+  bugence.editor.onDidSave(() => {
+    bugence.window.showToast("Linter Check Passed!");
+  });
+}</code></pre>
+                    </div>
+                </div>
+                <div class="doc-step">
+                    <div class="doc-num">03</div>
+                    <div class="doc-content">
+                        <h4>Compile & Deploy</h4>
+                        <p>Generate a <code>.vsix</code> or <code>.json</code> package. Head to the Extensions view in the sidebar and use the Installer Wizard.</p>
+                    </div>
+                </div>
+                <button class="btn-primary" style="padding:15px;" onclick="window.toggleDocs()">Got it, Start Building</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-portal" id="installPortal">
+        <div class="modal-card" style="width: 550px;">
+            <div class="modal-header">
+                <strong style="font-weight:900;"><i class="fa-solid fa-rocket"></i> EXTENSION DEPLOYMENT</strong>
+                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="window.closeInstaller()"></i>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                <div id="phase-upload">
+                    <p style="margin-bottom:30px; font-weight:700; color:#eee;">UPLOAD EXTENSION ARCHIVE</p>
+                    <div style="border:2px dashed #444; padding:60px; border-radius:15px; cursor:pointer;" onclick="document.getElementById('realFileInput').click()">
+                        <i class="fa-solid fa-folder-open" style="font-size:4rem; color:var(--accent); margin-bottom:20px;"></i>
+                        <div style="font-weight:900; font-size:1.2rem;">Choose .vsix or .json</div>
+                        <div style="font-size:0.8rem; color:#666; margin-top:10px;">Max manifest size: 25MB</div>
+                        <input type="file" id="realFileInput" style="display:none" onchange="window.runInstallerSequence()">
+                    </div>
+                </div>
+                <div id="phase-progress" style="display:none;">
+                    <h3 id="installMainStatus" style="color:white; margin:0; letter-spacing:2px;">UNPACKING STREAM...</h3>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="installProgFill"></div>
+                    </div>
+                    <p id="installSubtext" style="font-size:0.85rem; color:#888; font-family:'JetBrains Mono';">Verifying manifest checksum...</p>
+                </div>
+                <div id="phase-success" style="display:none;">
+                    <i class="fa-solid fa-circle-check" style="font-size:5rem; color:var(--success); margin-bottom:25px;"></i>
+                    <h2 style="color:white; margin:0; font-weight:900;">PLUGIN ACTIVATED</h2>
+                    <p style="margin-top:15px; color:#aaa;">The module has been successfully hot-loaded into the global namespace.</p>
+                    <button class="btn-primary" style="margin-top:35px; width:200px;" onclick="window.closeInstaller()">Finalize</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check" id="toastIcon" style="color:var(--success); font-size:1.2rem;"></i>
+        <span id="toastMsg" style="font-weight:700;">System Ready</span>
+    </div>
+
+    <div class="ide-layout">
+        
+        <aside class="activity-bar">
+            <div class="act-item active" onclick="window.switchSidebar('explorer', this)" title="Explorer"><i class="fa-regular fa-copy"></i></div>
+            <div class="act-item" onclick="window.switchSidebar('search', this)" title="Search"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <div class="act-item" onclick="window.switchSidebar('git', this)" title="Source Control"><i class="fa-solid fa-code-branch"></i></div>
+            <div class="act-item" onclick="window.switchSidebar('extensions', this)" title="Marketplace"><i class="fa-solid fa-cubes"></i></div>
+            <div class="act-bottom">
+                <div class="act-item" onclick="location.href='/Dashboard/Index'" title="Dashboard"><i class="fa-solid fa-house-chimney"></i></div>
+                <div class="act-item" onclick="window.toggleSettings()" title="Settings"><i class="fa-solid fa-gear"></i></div>
+            </div>
+        </aside>
+
+        <aside class="sidebar">
+            
+            <div class="ext-help-popup" id="extHelpPopup">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h4 style="margin:0;"><i class="fa-solid fa-puzzle-piece"></i> Dynamic Plugins</h4>
+                    <i class="fa-solid fa-xmark" style="cursor:pointer; color:#666;" onclick="window.hideTooltip()"></i>
+                </div>
+                <p>Extend the IDE with custom themes, AI linting, or private snippet libraries via our secure Sandbox API.</p>
+                <a href="javascript:void(0)" onclick="window.toggleDocs()" style="color:var(--accent); font-weight:900; text-decoration:none; font-size:0.85rem; display:block;">ACCESS DEVELOPER HUB &rarr;</a>
+            </div>
+
+            <div id="view-explorer" class="sidebar-view active">
+                <div class="sidebar-header">
+                    <span>Explorer</span>
+                    <i class="fa-solid fa-ellipsis explorer-menu-trigger" onclick="window.toggleExplorerMenu()"></i>
+                    <div class="explorer-menu" id="explorerMenu">
+                        <div class="ex-item" onclick="window.showToast('File: new_index.js created')"><i class="fa-solid fa-file-circle-plus"></i> New File</div>
+                        <div class="ex-item" onclick="window.showToast('Folder: components created')"><i class="fa-solid fa-folder-plus"></i> New Folder</div>
+                        <div style="height:1px; background:#333; margin:5px 0;"></div>
+                        <div class="ex-item" onclick="window.collapseAllFolders()"><i class="fa-solid fa-minus"></i> Collapse All</div>
+                    </div>
+                </div>
+                <div style="padding:12px 20px; font-weight:900; font-size:0.78rem; color:white; border-top:1px solid var(--border); background:#111; letter-spacing:0.8px;">
+                    <i class="fa-solid fa-chevron-down" style="font-size:0.6rem; margin-right:8px;"></i> HIGH-TECH HEROES
+                </div>
+                <div class="file-tree" id="fileTreeContainer"></div>
+            </div>
+
+            <div id="view-search" class="sidebar-view">
+                <div class="sidebar-header"><span>Global Search</span></div>
+                <div class="sidebar-body">
+                    <input type="text" class="ide-input" placeholder="Search Query">
+                    <input type="text" class="ide-input" placeholder="Replacement String">
+                </div>
+            </div>
+
+            <div id="view-git" class="sidebar-view">
+                <div class="sidebar-header"><span>Source Control</span></div>
+                <div class="sidebar-body">
+                    <input type="text" class="ide-input" placeholder="Commit (Ctrl+Enter)">
+                    <div style="padding:5px 0; font-size:0.75rem; font-weight:900; color:#555; margin-bottom:10px; border-bottom:1px solid #1a1a1a;">STAGED CHANGES</div>
+                    <div class="tree-item"><span style="display:flex; align-items:center; gap:8px;"><i class="fa-brands fa-js i-js"></i> app.js</span> <span style="margin-left:auto; color:var(--git-mod); font-weight:900;">M</span></div>
+                </div>
+            </div>
+
+            <div id="view-extensions" class="sidebar-view">
+                <div class="sidebar-header"><span>Marketplace</span></div>
+                <div class="sidebar-content" style="padding:15px;">
+                    <button class="btn-primary" onclick="window.openInstaller()"><i class="fa-solid fa-plus"></i> Deploy Extension</button>
+                    <div style="margin-top:25px; font-size:0.7rem; font-weight:900; color:#444; letter-spacing:1.5px; margin-bottom:10px;">INSTALLED KERNELS</div>
+                    <div class="ext-item">
+                        <div class="ext-icon"><i class="fa-brands fa-react"></i></div>
+                        <div><div style="font-weight:900; font-size:0.85rem; color:#ccc;">React.js Runtime</div><div style="font-size:0.72rem; color:#555;">v18.2.0 • Native</div></div>
+                    </div>
+                    <div id="customExtensionHost"></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="editor-area">
+            <div class="tabs-container" id="tabsBar"></div>
+            
+            <div class="monaco-host">
+                <div id="monaco-root"></div>
+            </div>
+
+            <div class="bottom-panel" id="bottomPanel">
+                <div class="panel-nav">
+                    <div class="p-tab active" onclick="window.switchPanel('terminal', this)">Terminal</div>
+                    <div class="p-tab" onclick="window.switchPanel('output', this)">Output</div>
+                    <div class="p-tab" onclick="window.switchPanel('problems', this)">Problems <span style="background:#cc0000; border-radius:10px; padding:0 8px; margin-left:8px; color:white; font-size:0.65rem;">2</span></div>
+                    <div class="p-actions">
+                        <i class="fa-solid fa-chevron-up" onclick="window.resizePanel('up')"></i>
+                        <i class="fa-solid fa-chevron-down" onclick="window.resizePanel('down')"></i>
+                        <i class="fa-solid fa-xmark" onclick="window.resizePanel('close')"></i>
+                    </div>
+                </div>
+                
+                <div id="content-terminal" class="panel-content active">
+                    <div id="terminalLog">
+                        <div class="term-line">Bugence WebKernel v5.0.0 [x64-cloud]</div>
+                        <div class="term-line" style="color:#555;">Environment: PRODUCTION | Container: hex-99-fb</div>
+                    </div>
+                    <div class="term-line">
+                        <span class="prompt">admin@bugence:~/heroes$</span>
+                        <input type="text" class="cmd-in" id="termIn" autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
+
+                <div id="content-output" class="panel-content">
+                    <div>[09:15:22] Extension host initialized.</div>
+                    <div>[09:15:24] Prettier loaded for document scope.</div>
+                </div>
+
+                <div id="content-problems" class="panel-content">
+                    <div style="color:var(--git-mod); cursor:pointer;"><i class="fa-solid fa-triangle-exclamation"></i> src/App.js [Line 12, Col 4]: 'const data' is unused.</div>
+                    <div style="color:var(--git-del); cursor:pointer;"><i class="fa-solid fa-circle-xmark"></i> src/style.css [Line 5, Col 10]: Expected semicolon in block.</div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="status-bar">
+            <div class="sb-grp">
+                <span title="Active Branch"><i class="fa-solid fa-code-branch"></i> master*</span>
+                <span title="Connection Status"><i class="fa-solid fa-signal"></i> Synchronized</span>
+                <span title="Syntax Errors"><i class="fa-solid fa-circle-xmark"></i> 0</span>
+            </div>
+            <div class="sb-grp">
+                <span id="cursorPosIndicator">Ln 1, Col 1</span>
+                <span>Spaces: 4</span>
+                <span>UTF-8</span>
+                <span id="langIndicator">PLAIN TEXT</span>
+                <span title="System Health"><i class="fa-solid fa-heartbeat"></i></span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        /**
+         * --- SECTION 1: SYSTEM DATABASE (VIRTUAL FS) ---
+         * Defines the directory structure and file contents.
+         */
+        const VFS = {
+            "src": {
+                type: "folder",
+                children: {
+                    "assets": {
+                        type: "folder",
+                        children: {
+                            "logo.svg": { type: "file", icon: "fa-solid fa-image", content: "<svg viewBox='0 0 100 100'>...</svg>" },
+                            "banner.png": { type: "file", icon: "fa-solid fa-image", content: "BINARY_STREAM" }
+                        }
+                    },
+                    "components": {
+                        type: "folder",
+                        children: {
+                            "Navbar.js": { type: "file", icon: "fa-brands fa-js i-js", content: "export default function Navbar() {\n    return <nav>Heroes Nav</nav>;\n}" },
+                            "Footer.js": { type: "file", icon: "fa-brands fa-js i-js", content: "const Footer = () => <footer>© 2025 Bugence</footer>;" },
+                            "Card.jsx": { type: "file", icon: "fa-brands fa-react", content: "export const Card = ({ title }) => <div className='card'>{title}</div>;" }
+                        }
+                    },
+                    "hooks": {
+                        type: "folder",
+                        children: {
+                            "useAuth.js": { type: "file", icon: "fa-brands fa-js i-js", content: "export const useAuth = () => { return true; };" },
+                            "useFetch.js": { type: "file", icon: "fa-brands fa-js i-js", content: "// Helper for API calls" }
+                        }
+                    },
+                    "App.js": { type: "file", icon: "fa-brands fa-js i-js", content: "import Navbar from './components/Navbar';\n\nfunction Main() {\n  console.log('Heroes App Online');\n}", git: "M" },
+                    "global.css": { type: "file", icon: "fa-brands fa-css3-alt i-css", content: "body {\n  background: #000;\n  color: #fff;\n}", git: "M" }
+                }
+            },
+            "public": { 
+                type: "folder", 
+                children: { 
+                    "index.html": { type: "file", icon: "fa-brands fa-html5 i-html", content: "<!DOCTYPE html>\n<html>\n  <body><div id='root'></div></body>\n</html>" } 
+                } 
+            },
+            "package.json": { type: "file", icon: "fa-solid fa-gear i-json", content: "{\n  \"name\": \"bugence-heroes\",\n  \"version\": \"2.4.0\",\n  \"main\": \"src/App.js\"\n}" },
+            "README.md": { type: "file", icon: "fa-solid fa-circle-info", content: "# PROJECT HEROES\n\nEnterprise development node." }
+        };
+
+        /**
+         * --- SECTION 2: GLOBAL STATE MANAGER ---
+         */
+        window.ideState = {
+            openTabs: [],
+            activePath: null,
+            editor: null,
+            models: {}, // Monaco text models (preserves undo history)
+            config: { fontSize: 14, minimap: true, wordWrap: false, whitespace: false }
+        };
+
+        /**
+         * --- SECTION 3: IDE INITIALIZATION ---
+         */
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+            
+            // Defining high-end visual theme
+            monaco.editor.defineTheme('bugence-premium-dark', {
+                base: 'vs-dark', inherit: true,
+                rules: [{ background: '1e1e1e' }],
+                colors: {
+                    'editor.background': '#1e1e1e',
+                    'editor.lineHighlightBackground': '#2a2a2a',
+                    'editor.selectionBackground': '#37373d',
+                    'editorCursor.foreground': '#06b6d4',
+                    'editorLineNumber.foreground': '#555'
+                }
+            });
+
+            window.ideState.editor = monaco.editor.create(document.getElementById('monaco-root'), {
+                value: '// IDE KERNEL v5.0.0 Ready\n// Select a file to stream code data.',
+                language: 'javascript', theme: 'bugence-premium-dark',
+                automaticLayout: true, fontFamily: "'JetBrains Mono', monospace",
+                fontSize: window.ideState.config.fontSize,
+                minimap: { enabled: window.ideState.config.minimap },
+                cursorSmoothCaretAnimation: "on",
+                smoothScrolling: true,
+                padding: { top: 20 }
+            });
+
+            // Tracking Cursor Position
+            window.ideState.editor.onDidChangeCursorPosition(e => {
+                document.getElementById('cursorPosIndicator').innerText = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+            });
+
+            // Handle Dirty State Marking
+            window.ideState.editor.onDidChangeModelContent(() => {
+                if(window.ideState.activePath) {
+                    const tabEl = document.querySelector(`.tab[data-path="${window.ideState.activePath}"]`);
+                    if(tabEl) tabEl.classList.add('dirty');
+                }
+            });
+
+            // Global Keybind: Save (Ctrl/Cmd + S)
+            window.ideState.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                window.showToast("Saved to virtual persistent storage");
+                if(window.ideState.activePath) {
+                    const tabEl = document.querySelector(`.tab[data-path="${window.ideState.activePath}"]`);
+                    if(tabEl) tabEl.classList.remove('dirty');
+                }
+            });
+
+            window.renderFileTree();
+        });
+
+        /**
+         * --- SECTION 4: GLOBAL EXPORTED UI HANDLERS ---
+         * Explicitly bound to window to resolve ReferenceErrors.
+         */
+        window.switchSidebar = function(viewId, btn) {
+            document.querySelectorAll('.sidebar-view').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            
+            document.querySelectorAll('.act-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Manage tooltip visibility (fixed position portal)
+            const tt = document.getElementById('extHelpPopup');
+            tt.style.display = (viewId === 'extensions') ? 'block' : 'none';
+        };
+
+        window.switchPanel = function(panelId, btn) {
+            document.querySelectorAll('.panel-content').forEach(p => p.classList.remove('active'));
+            document.getElementById('content-' + panelId).classList.add('active');
+            
+            document.querySelectorAll('.p-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+        };
+
+        window.resizePanel = function(action) {
+            const p = document.getElementById('bottomPanel');
+            if(action === 'up') p.style.height = '480px';
+            if(action === 'down') p.style.height = '220px';
+            if(action === 'close') p.style.height = '35px';
+            window.ideState.editor.layout();
+        };
+
+        window.toggleSettings = function() {
+            const el = document.getElementById('settingsPortal');
+            el.style.display = (el.style.display === 'flex' ? 'none' : 'flex');
+        };
+
+        window.toggleDocs = function() {
+            const el = document.getElementById('docsPortal');
+            el.style.display = (el.style.display === 'flex' ? 'none' : 'flex');
+        };
+
+        window.applySettings = function() {
+            const size = document.getElementById('setFontSize').value;
+            const mini = document.getElementById('setMinimap').checked;
+            const wrap = document.getElementById('setWordWrap').checked ? 'on' : 'off';
+            const ws = document.getElementById('setWhitespace').checked ? 'all' : 'none';
+            
+            window.ideState.editor.updateOptions({
+                fontSize: parseInt(size),
+                minimap: { enabled: mini },
+                wordWrap: wrap,
+                renderWhitespace: ws
+            });
+        };
+
+        /**
+         * --- SECTION 5: RECURSIVE FILE SYSTEM RENDERER ---
+         */
+        window.renderFileTree = function() {
+            const box = document.getElementById('fileTreeContainer');
+            box.innerHTML = window.generateTreeRecursive(VFS, "");
+        };
+
+        window.generateTreeRecursive = function(node, path) {
+            let html = "";
+            for(let key in node) {
+                const item = node[key]; 
+                const currentPath = path ? `${path}/${key}` : key;
+                
+                if(item.type === 'folder') {
+                    html += `
+                        <div class="tree-wrapper">
+                            <div class="tree-item" onclick="window.toggleFolder(this)">
+                                <span class="tree-indent"></span>
+                                <i class="fa-solid fa-chevron-right arrow"></i>
+                                <i class="fa-solid fa-folder" style="color:#dcb67a; margin-right:8px;"></i> ${key}
+                            </div>
+                            <div class="sub-tree">${window.generateTreeRecursive(item.children, currentPath)}</div>
+                        </div>`;
+                } else {
+                    let gitTag = item.git ? `<span style="margin-left:auto; color:#eab308; font-weight:900; font-size:0.7rem;">${item.git}</span>` : '';
+                    // CLEAN FIX: Ensuring no unescaped characters or tokens in attributes
+                    html += `
+                        <div class="tree-item" onclick="window.openFile('${currentPath}', '${key}', '${item.icon}')">
+                            <span class="tree-indent"></span>
+                            <i class="${item.icon}" style="margin-right:10px; width:14px;"></i> ${key} ${gitTag}
+                        </div>`;
+                }
+            }
+            return html;
+        };
+
+        window.toggleFolder = function(el) { el.parentElement.classList.toggle('folder-open'); };
+
+        /**
+         * --- SECTION 6: TABS & KERNEL MODEL ENGINE ---
+         */
+        window.openFile = function(path, name, icon) {
+            if(!window.ideState.openTabs.find(t => t.path === path)) {
+                window.ideState.openTabs.push({ path, name, icon });
+            }
+            window.setActiveTab(path);
+            window.renderTabsUI();
+        };
+
+        window.renderTabsUI = function() {
+            const bar = document.getElementById('tabsBar');
+            bar.innerHTML = window.ideState.openTabs.map(t => `
+                <div class="tab ${t.path === window.ideState.activePath ? 'active' : ''}" onclick="window.setActiveTab('${t.path}')" data-path="${t.path}">
+                    <i class="${t.icon}"></i> ${t.name}
+                    <div class="dirty-dot"></div>
+                    <div class="tab-close" onclick="window.closeTab(event, '${t.path}')"><i class="fa-solid fa-xmark"></i></div>
+                </div>`).join('');
+        };
+
+        window.setActiveTab = function(path) {
+            window.ideState.activePath = path;
+            const tabData = window.ideState.openTabs.find(t => t.path === path);
+            
+            let lang = 'javascript';
+            if(path.endsWith('.html')) lang = 'html';
+            if(path.endsWith('.css')) lang = 'css';
+            if(path.endsWith('.json')) lang = 'json';
+
+            // Multi-model persistence logic
+            if (!window.ideState.models[path]) {
+                const rawContent = window.fetchVFSContent(path);
+                window.ideState.models[path] = monaco.editor.createModel(rawContent, lang);
+            }
+
+            window.ideState.editor.setModel(window.ideState.models[path]);
+            document.getElementById('langIndicator').innerText = lang.toUpperCase();
+            window.renderTabsUI();
+        };
+
+        window.closeTab = function(e, path) {
+            e.stopPropagation();
+            window.ideState.openTabs = window.ideState.openTabs.filter(t => t.path !== path);
+            if(window.ideState.activePath === path) {
+                if(window.ideState.openTabs.length > 0) window.setActiveTab(window.ideState.openTabs[window.ideState.openTabs.length-1].path);
+                else { window.ideState.activePath = null; window.ideState.editor.setValue(''); }
+            }
+            window.renderTabsUI();
+        };
+
+        window.fetchVFSContent = function(path) {
+            const parts = path.split('/'); 
+            let curr = VFS;
+            for(let p of parts) { curr = curr[p] || curr.children[p]; }
+            return curr.content || "";
+        };
+
+        /**
+         * --- SECTION 7: EXTENSION DEPLOYMENT ENGINE ---
+         */
+        window.openInstaller = function() {
+            const m = document.getElementById('installPortal');
+            m.style.display = 'flex';
+            document.getElementById('phase-upload').style.display = 'block';
+            document.getElementById('phase-progress').style.display = 'none';
+            document.getElementById('phase-success').style.display = 'none';
+        };
+
+        window.closeInstaller = function() { document.getElementById('installPortal').style.display = 'none'; };
+
+        window.runInstallerSequence = function() {
+            const file = document.getElementById('realFileInput').files[0];
+            if(!file) return;
+
+            document.getElementById('phase-upload').style.display = 'none';
+            document.getElementById('phase-progress').style.display = 'block';
+            
+            let prog = 0;
+            const bar = document.getElementById('installProgFill');
+            const mainText = document.getElementById('installMainStatus');
+            const sub = document.getElementById('installSubtext');
+
+            const timer = setInterval(() => {
+                prog += Math.random() * 8;
+                if(prog > 100) prog = 100;
+                bar.style.width = prog + '%';
+
+                if(prog > 12) { mainText.innerText = "UNPACKING..."; sub.innerText = "Extracting tarball binary stream..."; }
+                if(prog > 35) { mainText.innerText = "LINKING..."; sub.innerText = "Verifying manifest ID (ext.kernel.Heroes)..."; }
+                if(prog > 60) { mainText.innerText = "REGISTERING..."; sub.innerText = "Injecting virtual sandbox hooks..."; }
+                if(prog > 88) { mainText.innerText = "BOOTSTRAPPING..."; sub.innerText = "Hot-reloading extension point context..."; }
+
+                if(prog === 100) {
+                    clearInterval(timer);
+                    document.getElementById('phase-progress').style.display = 'none';
+                    document.getElementById('phase-success').style.display = 'block';
+                    
+                    // Permanent Sidebar Injection
+                    document.getElementById('customExtensionHost').innerHTML += `
+                        <div class="ext-item" style="border-left: 3px solid var(--success)">
+                            <div style="width:32px; height:32px; background:var(--success); color:black; display:grid; place-items:center; border-radius:4px;"><i class="fa-solid fa-puzzle-piece"></i></div>
+                            <div>
+                                <div style="font-weight:900; font-size:0.85rem;">${file.name.split('.')[0]}</div>
+                                <div style="font-size:0.7rem; color:var(--success);">Status: Active • Cloud Load</div>
+                            </div>
+                        </div>`;
+                }
+            }, 100);
+        };
+
+        /**
+         * --- SECTION 8: TERMINAL INTERPRETER ---
+         */
+        const terminalInput = document.getElementById('termIn');
+        terminalInput.addEventListener('keydown', e => {
+            if(e.key === 'Enter') {
+                const cmd = terminalInput.value.trim().toLowerCase();
+                const log = document.getElementById('terminalLog');
+                const line = document.createElement('div');
+                line.className = 'term-line';
+                line.innerHTML = `<span class="prompt">admin@bugence:~$</span> ${cmd}`;
+                log.appendChild(line);
+
+                const out = document.createElement('div');
+                out.className = 'term-line';
+                
+                if(cmd === 'ls') out.innerText = "src  public  package.json  README.md";
+                else if(cmd === 'help') out.innerText = "Available: ls, clear, date, whoami, bugence-v, npm start";
+                else if(cmd === 'clear') { log.innerHTML = ''; out.style.display = 'none'; }
+                else if(cmd === 'npm start') out.innerHTML = "<span style='color:var(--success)'>[READY] Development server running at http://localhost:3000</span>";
+                else if(cmd === 'whoami') out.innerText = "administrator-heroes-node-1";
+                else if(cmd !== '') out.innerText = `bash: ${cmd}: binary not found`;
+                
+                if(cmd !== 'clear' && cmd !== '') log.appendChild(out);
+                terminalInput.value = '';
+                document.getElementById('content-terminal').scrollTop = document.getElementById('content-terminal').scrollHeight;
+            }
+        });
+
+        /**
+         * --- SECTION 9: UTILITIES ---
+         */
+        window.showToast = function(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3500);
+        };
+
+        window.hideTooltip = function() { document.getElementById('extHelpPopup').style.display = 'none'; };
+        window.toggleExplorerMenu = function() { document.getElementById('explorerMenu').classList.toggle('show'); };
+        window.collapseAllFolders = function() { 
+            document.querySelectorAll('.folder-open').forEach(el => el.classList.remove('folder-open')); 
+            document.getElementById('explorerMenu').classList.remove('show');
+        };
+
+        window.onclick = function(e) {
+            if (!e.target.closest('.sidebar-header')) {
+                document.getElementById('explorerMenu').classList.remove('show');
+            }
+        };
+
+    </script>
+</body>
+</html>

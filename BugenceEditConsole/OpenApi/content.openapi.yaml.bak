@@ -1,0 +1,529 @@
+openapi: 3.0.3
+info:
+  title: Bugence Content API
+  version: 0.3.0
+  description: OpenAPI specification for the Bugence Visual Edit Dashboard content endpoints.
+servers:
+  - url: /
+paths:
+  /api/content/pages:
+    get:
+      summary: List content pages with summary metadata
+      responses:
+        "200":
+          description: Pages loaded successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCollectionResponse'
+        "401":
+          description: Authentication required.
+  /api/content/pages/{pageId}:
+    get:
+      summary: Retrieve a page and its sections
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Page content retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentPageResponse'
+        "304":
+          description: Not modified.
+        "401":
+          description: Authentication required.
+        "404":
+          description: Page not found.
+  /api/content/sections:
+    get:
+      summary: Retrieve sections for a page
+      parameters:
+        - name: pageId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Sections loaded successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SectionsResponse'
+        "304":
+          description: Not modified.
+        "400":
+          description: Missing or invalid query parameter.
+        "401":
+          description: Authentication required.
+        "404":
+          description: Page not found.
+  /api/content/history:
+    get:
+      summary: Retrieve recent content history entries
+      parameters:
+        - name: pageId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: take
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: History entries loaded successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentHistoryResponse'
+        "304":
+          description: Not modified.
+        "401":
+          description: Authentication required.
+  /api/content/pages/{pageId}/sections:
+    post:
+      summary: Create or update a page section
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SectionUpsertForm'
+      responses:
+        "200":
+          description: Section saved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SectionMutationResponse'
+        "400":
+          description: Invalid request payload.
+        "401":
+          description: Authentication required.
+        "412":
+          description: Precondition failed due to ETag mismatch.
+  /api/content/pages/{pageId}/publish:
+    post:
+      summary: Publish all sections in a page to the static asset
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Publish completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishResponse'
+        "400":
+          description: Publish failed due to validation errors.
+        "401":
+          description: Authentication required.
+        "412":
+          description: Precondition failed due to ETag mismatch.
+  /api/content/pages/{pageId}/sections/{sectionId}:
+    delete:
+      summary: Delete an existing page section
+      parameters:
+        - name: pageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Section deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteSectionResponse'
+        "400":
+          description: Delete request rejected.
+        "401":
+          description: Authentication required.
+        "404":
+          description: Section not found.
+        "412":
+          description: Precondition failed due to ETag mismatch.
+components:
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+    IsoDate:
+      type: string
+      format: date-time
+    SectionContentType:
+      type: string
+      enum:
+        - Text
+        - Html
+        - Image
+        - RichText
+    PageSummary:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+        - slug
+    ContentPageListItem:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PageSummary'
+      properties:
+        updatedAtUtc:
+          $ref: '#/components/schemas/IsoDate'
+        lastPublishedAtUtc:
+          $ref: '#/components/schemas/IsoDate'
+          nullable: true
+        sectionCount:
+          type: integer
+        textSections:
+          type: integer
+        imageSections:
+          type: integer
+      required:
+        - updatedAtUtc
+        - sectionCount
+        - textSections
+        - imageSections
+    PageCollectionTotals:
+      type: object
+      properties:
+        pageCount:
+          type: integer
+        sectionCount:
+          type: integer
+        textSections:
+          type: integer
+        imageSections:
+          type: integer
+        latestUpdateUtc:
+          $ref: '#/components/schemas/IsoDate'
+          nullable: true
+      required:
+        - pageCount
+        - sectionCount
+        - textSections
+        - imageSections
+    PageCollectionResponse:
+      type: object
+      properties:
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentPageListItem'
+        totals:
+          $ref: '#/components/schemas/PageCollectionTotals'
+        etag:
+          type: string
+          nullable: true
+      required:
+        - pages
+        - totals
+    PageSectionWithHistory:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        sectionKey:
+          type: string
+        title:
+          type: string
+          nullable: true
+        contentType:
+          $ref: '#/components/schemas/SectionContentType'
+        contentValue:
+          type: string
+          nullable: true
+        mediaPath:
+          type: string
+          nullable: true
+        mediaAltText:
+          type: string
+          nullable: true
+        cssSelector:
+          type: string
+          nullable: true
+        displayOrder:
+          type: integer
+        isLocked:
+          type: boolean
+        updatedAtUtc:
+          $ref: '#/components/schemas/IsoDate'
+        lastPublishedAtUtc:
+          $ref: '#/components/schemas/IsoDate'
+          nullable: true
+        previousContentValue:
+          type: string
+          nullable: true
+        etag:
+          type: string
+          nullable: true
+      required:
+        - id
+        - sectionKey
+        - contentType
+        - displayOrder
+        - isLocked
+        - updatedAtUtc
+    ContentPageResponse:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/PageSummary'
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageSectionWithHistory'
+        etag:
+          type: string
+          nullable: true
+        sectionsEtag:
+          type: string
+          nullable: true
+        pageEtag:
+          type: string
+          nullable: true
+      required:
+        - page
+        - sections
+    SectionsResponse:
+      type: object
+      properties:
+        page:
+          type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            name:
+              type: string
+            slug:
+              type: string
+            description:
+              type: string
+              nullable: true
+            updatedAtUtc:
+              $ref: '#/components/schemas/IsoDate'
+            lastPublishedAtUtc:
+              $ref: '#/components/schemas/IsoDate'
+              nullable: true
+          required:
+            - id
+            - name
+            - slug
+            - updatedAtUtc
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageSectionWithHistory'
+        etag:
+          type: string
+          nullable: true
+        pageEtag:
+          type: string
+          nullable: true
+      required:
+        - page
+        - sections
+    ContentHistoryEntry:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        sitePageId:
+          $ref: '#/components/schemas/Uuid'
+        pageSectionId:
+          $ref: '#/components/schemas/Uuid'
+          nullable: true
+        fieldKey:
+          type: string
+        previousValue:
+          type: string
+          nullable: true
+        newValue:
+          type: string
+          nullable: true
+        changeSummary:
+          type: string
+          nullable: true
+        performedByUserId:
+          type: string
+        performedByDisplayName:
+          type: string
+          nullable: true
+        performedAtUtc:
+          $ref: '#/components/schemas/IsoDate'
+        diff:
+          $ref: '#/components/schemas/ContentHistoryEntryDiff'
+          nullable: true
+      required:
+        - id
+        - sitePageId
+        - fieldKey
+        - performedByUserId
+        - performedAtUtc
+    ContentHistoryEntryDiff:
+      type: object
+      properties:
+        changeType:
+          type: string
+          enum:
+            - added
+            - removed
+            - modified
+            - unchanged
+        previousLength:
+          type: integer
+          format: int32
+        currentLength:
+          type: integer
+          format: int32
+        characterDelta:
+          type: integer
+          format: int32
+        containsHtml:
+          type: boolean
+        snippet:
+          type: string
+          nullable: true
+      required:
+        - changeType
+        - previousLength
+        - currentLength
+        - characterDelta
+        - containsHtml
+    ContentHistoryResponse:
+      type: object
+      properties:
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentHistoryEntry'
+        etag:
+          type: string
+          nullable: true
+      required:
+        - history
+    SectionMutationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          nullable: true
+        section:
+          $ref: '#/components/schemas/PageSectionWithHistory'
+          nullable: true
+        pageEtag:
+          type: string
+          nullable: true
+      required:
+        - message
+    PublishResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        publishedAtUtc:
+          $ref: '#/components/schemas/IsoDate'
+        warnings:
+          type: array
+          items:
+            type: string
+        etag:
+          type: string
+          nullable: true
+      required:
+        - message
+        - publishedAtUtc
+        - warnings
+    DeleteSectionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        section:
+          type: object
+          nullable: true
+          properties:
+            id:
+              $ref: '#/components/schemas/Uuid'
+            sectionKey:
+              type: string
+            contentType:
+              $ref: '#/components/schemas/SectionContentType'
+            cssSelector:
+              type: string
+              nullable: true
+            updatedAtUtc:
+              $ref: '#/components/schemas/IsoDate'
+        pageEtag:
+          type: string
+          nullable: true
+      required:
+        - message
+    SectionUpsertForm:
+      type: object
+      properties:
+        sectionId:
+          type: string
+          format: uuid
+          nullable: true
+        selector:
+          type: string
+          nullable: true
+        contentType:
+          $ref: '#/components/schemas/SectionContentType'
+          nullable: true
+        contentValue:
+          type: string
+          nullable: true
+        mediaAltText:
+          type: string
+          nullable: true
+        image:
+          type: string
+          format: binary
+          nullable: true

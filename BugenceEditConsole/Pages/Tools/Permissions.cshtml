@@ -1,0 +1,511 @@
+@page
+@model BugenceEditConsole.Pages.Tools.PermissionsModel
+@{
+    ViewData["Title"] = "Permissions";
+    ViewData["BodyClass"] = "page-tools-permissions";
+    var canManage = Model.CanManage;
+}
+@section Head {
+<style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --danger:#ef4444; }
+        * { box-sizing:border-box; outline:none; }
+        .tool-page-main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); position:relative; }
+        .header { margin-bottom:24px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.5rem; margin:0 0 8px; }
+        .header p { margin:0; color:var(--muted); font-size:0.95rem; }
+        .primary-btn { background:var(--accent); color:#00131a; border:none; border-radius:10px; font-weight:700; padding:12px 16px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+        .primary-btn:hover { background:#0891b2; color:white; }
+        .table-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+        .search-input { width:min(360px, 100%); background:#0b0b0b; border:1px solid rgba(148,163,184,0.2); padding:10px 14px; border-radius:10px; color:white; font-size:0.9rem; }
+        .search-input:focus { border-color:var(--accent); }
+        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; padding:16px 14px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.72rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
+        td { padding:16px 14px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); font-size:0.88rem; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.03); }
+        .muted { color:var(--muted); font-size:0.82rem; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:0.78rem; }
+        .badge { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 8px; font-size:0.72rem; font-weight:700; border:1px solid rgba(148,163,184,0.24); }
+        .badge.admin { color:#7de9ff; border-color:rgba(34,211,238,0.45); background:rgba(34,211,238,0.12); }
+        .badge.viewonly { color:#accdff; border-color:rgba(59,130,246,0.45); background:rgba(59,130,246,0.12); }
+        .badge.noaccess { color:#fecaca; border-color:rgba(239,68,68,0.45); background:rgba(239,68,68,0.12); }
+        .badge.enabled { color:#86efac; border-color:rgba(34,197,94,0.45); background:rgba(34,197,94,0.12); }
+        .badge.disabled { color:#fca5a5; border-color:rgba(239,68,68,0.45); background:rgba(239,68,68,0.12); }
+        .action-group { display:inline-flex; gap:8px; align-items:center; justify-content:flex-end; }
+        .action-btn { background:transparent; border:1px solid var(--border); color:var(--muted); width:34px; height:34px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:0.2s; }
+        .action-btn:hover { color:white; border-color:white; }
+        .action-btn.delete:hover { color:var(--danger); border-color:var(--danger); }
+        .empty-state { padding:40px; text-align:center; color:var(--muted); }
+        .pagination { display:flex; align-items:center; gap:8px; margin-top:16px; justify-content:flex-end; }
+        .page-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+        .page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+        .page-info { color:var(--muted); font-size:0.85rem; }
+        .drawer { position:fixed; inset:0; display:none; z-index:200; }
+        .drawer.show { display:flex; }
+        .drawer-backdrop { flex:1; background:rgba(2,6,23,0.65); }
+        .drawer-panel { width:min(560px, 92vw); background:#050607; border-left:1px solid rgba(148,163,184,0.2); padding:24px; overflow-y:auto; }
+        .drawer-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+        .drawer-header h3 { margin:0; font-family:'Cabinet Grotesk',sans-serif; font-size:1.4rem; }
+        .drawer-sub { color:#94a3b8; font-size:0.85rem; }
+        .drawer-section { border:1px solid rgba(148,163,184,0.12); border-radius:16px; padding:16px; background:linear-gradient(180deg, rgba(8,10,14,0.98), rgba(4,6,10,0.98)); margin-top:14px; }
+        .drawer-section h4 { margin:0 0 8px; font-size:0.95rem; color:#e2e8f0; }
+        .two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .form-input { width:100%; background:#0b0b0b; border:1px solid rgba(148,163,184,0.2); padding:12px 14px; border-radius:10px; color:white; outline:none; transition:0.2s; font-family:inherit; font-size:0.92rem; }
+        .form-input:focus { border-color:var(--accent); }
+        .form-textarea { min-height:90px; resize:vertical; }
+        .id-display { background:#0b0b0b; border:1px solid rgba(148,163,184,0.2); padding:12px 14px; border-radius:10px; color:#e2e8f0; font-weight:700; letter-spacing:0.2px; }
+        .chip-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+        .chip-btn:hover { border-color:var(--accent); color:white; }
+        .footer-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+        .confirm-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:220; }
+        .confirm-modal.show { display:flex; }
+        .confirm-card { width:min(420px, 92vw); background:#0b0e14; border:1px solid rgba(148,163,184,0.2); border-radius:16px; padding:20px; box-shadow:0 30px 60px rgba(0,0,0,0.5); }
+        .confirm-card h4 { margin:0 0 6px; font-family:'Cabinet Grotesk',sans-serif; }
+        .confirm-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+        @@media (max-width: 900px) { main { padding:32px 24px; } aside { display:none; } }
+    </style>
+}
+<main class="tool-page-main">
+            <div class="header">
+                <div>
+                    <h1>Permissions</h1>
+                    <p>Define high-level permission records with explicit access and scope controls.</p>
+                </div>
+            </div>
+
+            <div class="table-toolbar">
+                <input class="search-input" id="recordSearch" placeholder="Search by name, subject, scope, access, or DGUID..." />
+                @if (canManage)
+                {
+                    <button class="primary-btn" id="openDrawer"><i class="fa-solid fa-plus"></i> New Record</button>
+                }
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:7%;">App ID</th>
+                            <th style="width:7%;">ID</th>
+                            <th style="width:14%;">Name</th>
+                            <th style="width:10%;">Subject Type</th>
+                            <th style="width:14%;">Subject Key</th>
+                            <th style="width:11%;">Access</th>
+                            <th style="width:10%;">Scope</th>
+                            <th style="width:8%;">Status</th>
+                            <th style="width:10%;">Updated</th>
+                            <th style="width:16%;">DGUID</th>
+                            <th style="width:9%; text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Records.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="11" class="empty-state">No permission records yet. Create one to get started.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var record in Model.Records)
+                            {
+                                var accessClass = (record.AccessLevel ?? string.Empty).Replace(" ", string.Empty).ToLowerInvariant();
+                                <tr data-record-id="@record.Id">
+                                    <td><strong>#@record.Id</strong></td>
+                                    <td><strong>@record.DisplayId</strong></td>
+                                    <td>@record.Name</td>
+                                    <td class="muted">@record.SubjectType</td>
+                                    <td class="muted">@record.SubjectKey</td>
+                                    <td><span class="badge @accessClass">@record.AccessLevel</span></td>
+                                    <td class="muted">@record.Scope</td>
+                                    <td><span class="badge @(record.IsEnabled ? "enabled" : "disabled")">@(record.IsEnabled ? "Enabled" : "Disabled")</span></td>
+                                    <td class="muted">@record.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</td>
+                                    <td class="mono">@record.Dguid</td>
+                                    <td style="text-align:right;">
+                                        @if (canManage)
+                                        {
+                                            <div class="action-group">
+                                                <button class="action-btn edit-record" type="button" data-record-id="@record.Id" title="Edit">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </button>
+                                                <button class="action-btn delete delete-record" type="button" data-record-id="@record.Id" title="Delete">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="recordPagination" style="display:none;">
+                <button class="page-btn" id="prevPage">Previous</button>
+                <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                <button class="page-btn" id="nextPage">Next</button>
+            </div>
+        </main>
+
+    <div class="drawer" id="drawer">
+        <div class="drawer-backdrop" id="drawerBackdrop"></div>
+        <div class="drawer-panel">
+            <div class="drawer-header">
+                <div>
+                    <h3 id="drawerTitle">Create Permission Record</h3>
+                    <div class="drawer-sub">Define access, target subject, and scope.</div>
+                </div>
+                <button class="action-btn" id="closeDrawer" type="button"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="drawer-section">
+                <h4>Record Identity</h4>
+                <div class="two-col">
+                    <div>
+                        <label class="muted">Application ID</label>
+                        <div class="id-display" id="idDisplay">1</div>
+                    </div>
+                    <div>
+                        <label class="muted">DGUID</label>
+                        <div class="id-display mono" id="dguidDisplay">Generating...</div>
+                    </div>
+                </div>
+                <input type="hidden" id="recordId" />
+            </div>
+
+            <div class="drawer-section">
+                <h4>Core Details</h4>
+                <div class="two-col">
+                    <input class="form-input" id="recordName" placeholder="Name (required)" />
+                    <select class="form-input" id="recordAccessLevel">
+                        <option value="">Access Level (required)</option>
+                        <option value="Admin">Admin</option>
+                        <option value="ViewOnly">ViewOnly</option>
+                        <option value="NoAccess">NoAccess</option>
+                    </select>
+                </div>
+                <div class="two-col" style="margin-top:10px;">
+                    <select class="form-input" id="recordSubjectType">
+                        <option value="">Subject Type (required)</option>
+                        <option value="User">User</option>
+                        <option value="Role">Role</option>
+                        <option value="Team">Team</option>
+                        <option value="Table">Application Table</option>
+                    </select>
+                    <input class="form-input" id="recordSubjectKey" placeholder="Subject Key (required)" />
+                </div>
+                <div class="two-col" style="margin-top:10px;">
+                    <input class="form-input" id="recordScope" placeholder="Scope (e.g. Applications, Billing, DUsers)" />
+                    <select class="form-input" id="recordStatus">
+                        <option value="true">Enabled</option>
+                        <option value="false">Disabled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="drawer-section">
+                <h4>Notes</h4>
+                <textarea class="form-input form-textarea" id="recordNotes" placeholder="Optional notes, policy references, or audit comments"></textarea>
+            </div>
+
+            <div class="muted" id="formStatus" style="margin-top:12px;"></div>
+            <div class="footer-actions">
+                <button class="chip-btn" id="cancelDrawer" type="button">Cancel</button>
+                <button class="primary-btn" id="saveRecord" type="button">Save Record</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="confirm-modal" id="confirmModal">
+        <div class="drawer-backdrop"></div>
+        <div class="confirm-card">
+            <h4>Delete Record</h4>
+            <div class="muted">Are you sure you want to delete this permission record?</div>
+            <div class="confirm-actions">
+                <button class="chip-btn" id="cancelDelete">Cancel</button>
+                <button class="primary-btn" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <form id="antiForgery" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <script src="/js/tool-database-sync.js"></script>
+@section Scripts {
+    <script>
+        const profileCard = document.getElementById('profileCard');
+        profileCard?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            profileCard.classList.toggle('show');
+        });
+        document.addEventListener('click', (event) => {
+            if (!(event.target instanceof HTMLElement)) return;
+            if (!event.target.closest('.profile-card')) {
+                profileCard?.classList.remove('show');
+            }
+        });
+
+        const canManage = @canManage.ToString().ToLowerInvariant();
+        const records = @Html.Raw(Model.RecordsJson);
+        const antiForgeryToken = document.querySelector('#antiForgery input[name="__RequestVerificationToken"]')?.value ?? '';
+        window.BugenceToolDbSync?.init({
+            endpoint: '/Tools/Permissions?handler=DatabaseSync',
+            requestVerificationToken: antiForgeryToken,
+            topButtonAnchorId: 'openDrawer',
+            editButtonAnchorId: 'saveRecord',
+            editRecordIdElementId: 'recordId',
+            editRowButtonSelector: '.edit-record'
+        });
+
+        const drawer = document.getElementById('drawer');
+        const openDrawerBtn = document.getElementById('openDrawer');
+        const closeDrawerBtn = document.getElementById('closeDrawer');
+        const cancelDrawerBtn = document.getElementById('cancelDrawer');
+        const drawerBackdrop = document.getElementById('drawerBackdrop');
+        const drawerTitle = document.getElementById('drawerTitle');
+
+        const recordIdInput = document.getElementById('recordId');
+        const idDisplay = document.getElementById('idDisplay');
+        const dguidDisplay = document.getElementById('dguidDisplay');
+        const recordName = document.getElementById('recordName');
+        const recordSubjectType = document.getElementById('recordSubjectType');
+        const recordSubjectKey = document.getElementById('recordSubjectKey');
+        const recordAccessLevel = document.getElementById('recordAccessLevel');
+        const recordScope = document.getElementById('recordScope');
+        const recordStatus = document.getElementById('recordStatus');
+        const recordNotes = document.getElementById('recordNotes');
+        const formStatus = document.getElementById('formStatus');
+
+        const saveRecordBtn = document.getElementById('saveRecord');
+        const confirmModal = document.getElementById('confirmModal');
+        const cancelDeleteBtn = document.getElementById('cancelDelete');
+        const confirmDeleteBtn = document.getElementById('confirmDelete');
+
+        const recordSearch = document.getElementById('recordSearch');
+        const pagination = document.getElementById('recordPagination');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageInfo = document.getElementById('pageInfo');
+
+        let editingId = null;
+        let deletingId = null;
+        let currentPage = 1;
+        const pageSize = 8;
+        let filteredRows = [];
+
+        const tableRows = () => Array.from(document.querySelectorAll('tbody tr[data-record-id]'));
+
+        function closeDrawer() {
+            drawer?.classList.remove('show');
+            clearForm();
+        }
+
+        function clearForm() {
+            editingId = null;
+            recordIdInput.value = '';
+            recordName.value = '';
+            recordSubjectType.value = '';
+            recordSubjectKey.value = '';
+            recordAccessLevel.value = '';
+            recordScope.value = '';
+            recordStatus.value = 'true';
+            recordNotes.value = '';
+            formStatus.textContent = '';
+            drawerTitle.textContent = 'Create Permission Record';
+        }
+
+        async function loadNextIdentity() {
+            idDisplay.textContent = '...';
+            dguidDisplay.textContent = 'Generating...';
+            try {
+                const response = await fetch('/Tools/Permissions?handler=NextIdentity', { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to load identity');
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message || 'Failed to load identity');
+                idDisplay.textContent = data.nextId;
+                dguidDisplay.textContent = data.dguid;
+            } catch (error) {
+                idDisplay.textContent = '—';
+                dguidDisplay.textContent = 'Unavailable';
+                formStatus.textContent = error.message || 'Unable to load identity.';
+            }
+        }
+
+        function applyPagination() {
+            const query = (recordSearch?.value || '').trim().toLowerCase();
+            const rows = tableRows();
+            filteredRows = rows.filter((row) => row.textContent.toLowerCase().includes(query));
+
+            const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+            if (currentPage > totalPages) currentPage = totalPages;
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+
+            rows.forEach((row) => row.style.display = 'none');
+            filteredRows.slice(start, end).forEach((row) => row.style.display = 'table-row');
+
+            if (pagination) {
+                pagination.style.display = filteredRows.length > pageSize ? 'flex' : 'none';
+            }
+
+            if (pageInfo) {
+                pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            }
+
+            if (prevPageBtn) prevPageBtn.disabled = currentPage <= 1;
+            if (nextPageBtn) nextPageBtn.disabled = currentPage >= totalPages;
+        }
+
+        function bindEditButtons() {
+            document.querySelectorAll('.edit-record').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const id = Number(button.getAttribute('data-record-id'));
+                    const record = records.find((r) => r.id === id);
+                    if (!record) return;
+
+                    editingId = id;
+                    recordIdInput.value = String(id);
+                    idDisplay.textContent = String(record.id);
+                    dguidDisplay.textContent = record.dguid || '—';
+                    recordName.value = record.name || '';
+                    recordSubjectType.value = record.subjectType || '';
+                    recordSubjectKey.value = record.subjectKey || '';
+                    recordAccessLevel.value = record.accessLevel || '';
+                    recordScope.value = record.scope || '';
+                    recordStatus.value = String(record.isEnabled);
+                    recordNotes.value = record.notes || '';
+                    drawerTitle.textContent = 'Edit Permission Record';
+                    formStatus.textContent = '';
+                    drawer?.classList.add('show');
+                });
+            });
+        }
+
+        function bindDeleteButtons() {
+            document.querySelectorAll('.delete-record').forEach((button) => {
+                button.addEventListener('click', () => {
+                    deletingId = Number(button.getAttribute('data-record-id'));
+                    confirmModal?.classList.add('show');
+                });
+            });
+        }
+
+        openDrawerBtn?.addEventListener('click', async () => {
+            clearForm();
+            drawer?.classList.add('show');
+            await loadNextIdentity();
+        });
+
+        [closeDrawerBtn, cancelDrawerBtn, drawerBackdrop].forEach((el) => {
+            el?.addEventListener('click', closeDrawer);
+        });
+
+        cancelDeleteBtn?.addEventListener('click', () => {
+            deletingId = null;
+            confirmModal?.classList.remove('show');
+        });
+
+        confirmDeleteBtn?.addEventListener('click', async () => {
+            if (!deletingId || !canManage) return;
+            confirmDeleteBtn.disabled = true;
+            try {
+                const response = await fetch('/Tools/Permissions?handler=Delete', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': antiForgeryToken
+                    },
+                    body: JSON.stringify({ id: deletingId })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Unable to delete record.');
+                }
+                window.location.reload();
+            } catch (error) {
+                alert(error.message || 'Unable to delete record.');
+            } finally {
+                confirmDeleteBtn.disabled = false;
+                confirmModal?.classList.remove('show');
+            }
+        });
+
+        saveRecordBtn?.addEventListener('click', async () => {
+            if (!canManage) return;
+            formStatus.textContent = '';
+
+            const payload = {
+                id: editingId ?? 0,
+                dguid: dguidDisplay.textContent?.trim() || '',
+                name: recordName.value.trim(),
+                subjectType: recordSubjectType.value.trim(),
+                subjectKey: recordSubjectKey.value.trim(),
+                accessLevel: recordAccessLevel.value.trim(),
+                scope: recordScope.value.trim(),
+                isEnabled: recordStatus.value === 'true',
+                notes: recordNotes.value.trim()
+            };
+
+            if (!payload.name || !payload.subjectType || !payload.subjectKey || !payload.accessLevel || !payload.scope) {
+                formStatus.textContent = 'Name, Subject Type, Subject Key, Access Level, and Scope are required.';
+                return;
+            }
+
+            saveRecordBtn.disabled = true;
+            try {
+                const response = await fetch(`/Tools/Permissions?handler=${editingId ? 'Update' : 'Create'}`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': antiForgeryToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Unable to save record.');
+                }
+                window.location.reload();
+            } catch (error) {
+                formStatus.textContent = error.message || 'Unable to save record.';
+            } finally {
+                saveRecordBtn.disabled = false;
+            }
+        });
+
+        recordSearch?.addEventListener('input', () => {
+            currentPage = 1;
+            applyPagination();
+        });
+
+        prevPageBtn?.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage -= 1;
+                applyPagination();
+            }
+        });
+
+        nextPageBtn?.addEventListener('click', () => {
+            const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+            if (currentPage < totalPages) {
+                currentPage += 1;
+                applyPagination();
+            }
+        });
+
+        bindEditButtons();
+        bindDeleteButtons();
+        applyPagination();
+    </script>
+}
+

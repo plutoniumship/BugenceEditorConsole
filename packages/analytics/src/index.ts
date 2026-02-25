@@ -1,0 +1,1 @@
+﻿export { initInsightsAnalytics } from "./insightsConsole";

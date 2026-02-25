@@ -1,0 +1,28 @@
+@page
+@model BugenceEditConsole.Pages.Auth.TrialExpiredModel
+@{
+    ViewData["Title"] = "Bugence - Trial Ended";
+    Layout = "/Pages/Shared/_AuthLayout.cshtml";
+}
+
+<div class="centered-card">
+    <div class="ripple-card">
+        <div class="card-tag">Trial Expired</div>
+        <h1>Your free hour is up</h1>
+        <p>To unlock all features, choose a package and complete checkout.</p>
+        <div class="card-actions">
+            <a href="/Settings/Billing" class="btn-submit">View Plans</a>
+            <a href="/Auth/Logout" class="btn-secondary">Sign out</a>
+        </div>
+    </div>
+</div>
+
+@section Head {
+    <style>
+        .centered-card { min-height: 70vh; display: flex; align-items: center; justify-content: center; }
+        .ripple-card { background: #0a0a0a; border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 32px; max-width: 520px; text-align: center; color: white; box-shadow: 0 30px 80px rgba(0,0,0,0.6); }
+        .card-tag { display: inline-block; font-size: 0.75rem; letter-spacing: 1px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.15); color: #a1a1aa; margin-bottom: 12px; }
+        .card-actions { display: flex; justify-content: center; gap: 12px; margin-top: 20px; }
+        .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.2); padding: 10px 18px; border-radius: 12px; color: #e5e7eb; text-decoration: none; }
+    </style>
+}

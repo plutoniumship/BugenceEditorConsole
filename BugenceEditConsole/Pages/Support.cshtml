@@ -1,0 +1,273 @@
+@page
+@model BugenceEditConsole.Pages.SupportModel
+@{
+    ViewData["Title"] = "Support  Bugence Mission Desk";
+    ViewData["BodyClass"] = "bg-black support-dark";
+}
+
+<div class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-7">
+
+    <!-- top head -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.35em] text-slate-200">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span>
+                Bugence Visual Editor / Mission control
+            </div>
+            <div>
+                <h1 class="text-2xl md:text-3xl font-display text-white">Support &amp; Concierge</h1>
+                <p class="text-sm text-slate-300 max-w-2xl">
+                    Reach Bugence operators, raise urgent actions, or review mission incidents without leaving the cockpit.
+                </p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+               class="inline-flex items-center gap-2 rounded-full bg-white/0 border border-white/15 px-4 py-1.5 text-sm text-white hover:bg-white/10">
+                <span class="fa-solid fa-desktop"></span>
+                Live site
+            </a>
+            <a asp-page="/Dashboard/Index"
+               class="inline-flex items-center gap-2 rounded-full bg-[#C9971A] px-4 py-1.5 text-sm font-semibold text-black shadow-[0_18px_40px_rgba(201,151,26,.35)] hover:bg-[#b0800f]">
+                <span class="fa-solid fa-gauge"></span>
+                Back to dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- top 2 panels -->
+    <div class="grid gap-6 lg:grid-cols-2">
+        <!-- concierge panel -->
+        <div class="bg-white rounded-3xl border border-slate-900/5 shadow-[0_22px_60px_rgba(0,0,0,.25)] overflow-hidden">
+            <div class="border-b border-slate-200/75 px-6 py-4 flex items-center justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.32em] text-slate-500">Priority channels</p>
+                    <h2 class="text-lg font-semibold text-slate-950">Talk to the concierge pod</h2>
+                </div>
+                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-800">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                    Online
+                </span>
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- email -->
+                <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 hover:border-amber-400/90 transition">
+                    <div class="h-10 w-10 rounded-2xl bg-slate-900/90 text-amber-300 flex items-center justify-center">
+                        <span class="fa-solid fa-envelope-open-text text-sm"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Email</p>
+                        <p class="text-xs text-slate-500">info@@bugence.com</p>
+                    </div>
+                    <span class="fa-solid fa-arrow-right-long text-slate-300"></span>
+                </div>
+
+                <!-- slack -->
+                <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 hover:border-amber-400/90 transition">
+                    <div class="h-10 w-10 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                        <span class="fa-brands fa-slack text-sm"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Slack connect</p>
+                        <p class="text-xs text-slate-500">#bugence-mission-support</p>
+                    </div>
+                    <span class="fa-solid fa-arrow-right-long text-slate-300"></span>
+                </div>
+
+                <!-- direct line -->
+                <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 hover:border-amber-400/90 transition">
+                    <div class="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                        <span class="fa-solid fa-phone text-sm"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Direct line</p>
+                        <p class="text-xs text-slate-500">+1 (415) 555-2048</p>
+                    </div>
+                    <span class="fa-solid fa-arrow-right-long text-slate-300"></span>
+                </div>
+
+                <!-- schedule -->
+                <div class="flex items-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3">
+                    <div class="h-10 w-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                        <span class="fa-solid fa-calendar-check text-sm"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Schedule concierge</p>
+                        <p class="text-xs text-slate-500">30-minute pairing session</p>
+                    </div>
+                    <button class="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1.5 text-[10px] font-semibold text-white hover:bg-slate-800">
+                        <span class="fa-solid fa-plus text-[9px]"></span>
+                        Book
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- fast actions -->
+        <div class="bg-white rounded-3xl border border-slate-900/5 shadow-[0_22px_60px_rgba(0,0,0,.25)] overflow-hidden">
+            <div class="border-b border-slate-200/75 px-6 py-4 flex items-center justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.32em] text-slate-500">Fast actions</p>
+                    <h2 class="text-lg font-semibold text-slate-950">Request a rapid response</h2>
+                </div>
+                <span class="inline-flex items-center gap-1 rounded-full bg-slate-900 text-white px-3 py-1 text-[10px]">
+                    <span class="fa-regular fa-clock"></span>
+                    5 min SLA
+                </span>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div class="h-10 w-10 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center">
+                        <span class="fa-solid fa-rotate-left text-sm"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950 flex items-center gap-2">
+                            Production rollback
+                            <span class="rounded-full bg-slate-900 text-white text-[9px] px-2 py-0.5 uppercase tracking-wide">Rollback</span>
+                        </p>
+                        <p class="text-xs text-slate-500">Tag the ticket with ROLLBACK for immediate restore.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                    <div class="h-10 w-10 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                        <span class="fa-solid fa-flask text-sm"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Sandbox walkthrough</p>
+                        <p class="text-xs text-slate-500">Validate new modules ahead of launch.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                    <div class="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                        <span class="fa-solid fa-users text-sm"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Crew onboarding</p>
+                        <p class="text-xs text-slate-500">Macros, cheat sheets, and CTA scripts.</p>
+                    </div>
+                </div>
+
+                <button class="inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-4 py-1.75 text-sm font-semibold hover:bg-black">
+                    <span class="fa-solid fa-calendar-day"></span>
+                    Schedule time
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- lower 3 cards -->
+    <div class="grid gap-6 lg:grid-cols-3">
+        <!-- ops status -->
+        <div class="bg-white rounded-3xl border border-slate-900/5 shadow-[0_14px_40px_rgba(0,0,0,.2)] p-6 space-y-5">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.32em] text-slate-500">Service heartbeat</p>
+                    <h3 class="text-base font-semibold text-slate-950">Operational status</h3>
+                </div>
+                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-semibold text-emerald-700">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                    Green
+                </span>
+            </div>
+            <div class="grid gap-3">
+                <div class="rounded-2xl border border-slate-200 px-4 py-3">
+                    <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400">Uptime (90 days)</p>
+                    <p class="text-lg font-semibold text-slate-950 mt-1">99.978%</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 px-4 py-3">
+                    <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400">Incidents this quarter</p>
+                    <p class="text-lg font-semibold text-slate-950 mt-1">1</p>
+                </div>
+                <div class="flex gap-3">
+                    <div class="flex-1 rounded-2xl border border-slate-200 px-4 py-3">
+                        <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400">Last incident</p>
+                        <p class="text-sm font-semibold text-slate-950 mt-1">Oct 23, 2025  09:30</p>
+                    </div>
+                    <div class="flex-1 rounded-2xl border border-slate-200 px-4 py-3">
+                        <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400">Next maintenance</p>
+                        <p class="text-sm font-semibold text-slate-950 mt-1">Nov 09, 2025  07:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- latest tickets -->
+        <div class="bg-white rounded-3xl border border-slate-900/5 shadow-[0_14px_40px_rgba(0,0,0,.2)] p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.32em] text-slate-500">Active missions</p>
+                    <h3 class="text-base font-semibold text-slate-950">Latest tickets &amp; knowledge</h3>
+                </div>
+                <a href="#" class="text-[11px] text-slate-500 hover:text-slate-900">View all</a>
+            </div>
+            <div class="space-y-3">
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Hero imagery sync offset</p>
+                        <p class="text-[11px] text-slate-500">OPS-2219  Opened Nov 03 @@ 08:30</p>
+                    </div>
+                    <span class="rounded-full bg-amber-100 text-amber-700 text-[10px] px-3 py-1 font-semibold uppercase tracking-wide">In progress</span>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Community CTA copy refresh</p>
+                        <p class="text-[11px] text-slate-500">OPS-2213  Opened Nov 02 @@ 09:30</p>
+                    </div>
+                    <span class="rounded-full bg-emerald-100 text-emerald-700 text-[10px] px-3 py-1 font-semibold uppercase tracking-wide">Resolved</span>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-950">Analytics feed handshake</p>
+                        <p class="text-[11px] text-slate-500">OPS-2208  Opened Oct 31 @@ 09:30</p>
+                    </div>
+                    <span class="rounded-full bg-sky-100 text-sky-700 text-[10px] px-3 py-1 font-semibold uppercase tracking-wide">Monitoring</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- knowledge / quick -->
+        <div class="bg-white rounded-3xl border border-slate-900/5 shadow-[0_14px_40px_rgba(0,0,0,.2)] p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.32em] text-slate-500">Knowledge &amp; handoff</p>
+                    <h3 class="text-base font-semibold text-slate-950">Self-service</h3>
+                </div>
+                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">
+                    <span class="fa-solid fa-bolt text-[9px]"></span>
+                    Fast
+                </span>
+            </div>
+            <div class="grid gap-3">
+                <a class="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:border-amber-400/80"
+                   href="#">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-950">Content update SOP</p>
+                        <p class="text-[11px] text-slate-500">Step-by-step for editors</p>
+                    </div>
+                    <span class="fa-solid fa-arrow-right text-slate-300"></span>
+                </a>
+                <a class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 hover:border-amber-400/80"
+                   href="#">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-950">Bugence lock / unlock guide</p>
+                        <p class="text-[11px] text-slate-500">When a block is managed</p>
+                    </div>
+                    <span class="fa-solid fa-arrow-right text-slate-300"></span>
+                </a>
+                <a class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 hover:border-amber-400/80"
+                   href="#">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-950">Escalate to VIP lane</p>
+                        <p class="text-[11px] text-slate-500">For Pete / exec comms</p>
+                    </div>
+                    <span class="fa-solid fa-arrow-right text-slate-300"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

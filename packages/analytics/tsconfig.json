@@ -1,0 +1,13 @@
+﻿{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2021"],
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true,
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

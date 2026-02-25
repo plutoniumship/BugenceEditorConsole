@@ -1,0 +1,25 @@
+@using System.Linq
+@model BugenceEditConsole.Pages.Dashboard.IndexModel
+
+<span class="dashboard-card__eyebrow">Activity signal</span>
+<div class="space-y-4">
+    @foreach (var log in Model.RecentLogs)
+    {
+        <article class="dashboard-card__event timeline-event rounded-xl border border-black/10 bg-white/70 px-5 py-4 shadow-sm">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="dashboard-card__event-title text-sm font-semibold text-ink">@log.FieldKey</p>
+                    <p class="dashboard-card__event-meta text-xs uppercase tracking-[0.24em] text-ink/45">@log.PerformedByDisplayName</p>
+                </div>
+                <span class="dashboard-card__event-timestamp text-xs text-ink/60">@log.PerformedAtUtc.ToLocalTime().ToString("MMM dd · HH:mm")</span>
+            </div>
+            <p class="dashboard-card__event-summary pt-3 text-sm text-ink/70">@log.ChangeSummary</p>
+        </article>
+    }
+    @if (!Model.RecentLogs.Any())
+    {
+        <div class="dashboard-card__empty rounded-xl border border-dashed border-black/10 bg-white/70 px-5 py-6 text-center text-sm text-ink/60">
+            No activity logged yet. Once edits publish, Bugence records the full narrative here.
+        </div>
+    }
+</div>

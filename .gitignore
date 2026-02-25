@@ -1,0 +1,22 @@
+packages/*/dist
+BugenceEditConsole/SiteUploads/
+
+# OS/editor artifacts
+.DS_Store
+.vs/
+.vscode/
+
+# Build/package outputs
+node_modules/
+**/bin/
+**/obj/
+**/publish/
+
+# Local databases and logs
+*.db-shm
+*.db-wal
+*.binlog
+
+# Large archives (blocked by GitHub size limits)
+*.zip
+*.rar

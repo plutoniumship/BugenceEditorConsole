@@ -1,0 +1,268 @@
+@page
+@model BugenceEditConsole.Pages.Settings.BillingModel
+@using BugenceEditConsole.Services
+@{
+    ViewData["Title"] = "Billing";
+    ViewData["BodyClass"] = "page-settings-billing";
+
+    var managePayment = string.Equals(Request?.Query["manage"], "payment", StringComparison.OrdinalIgnoreCase);
+    var userName = (User?.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(User.Identity?.Name))
+        ? User.Identity!.Name!
+        : "Administrator";
+    var userInitials = new string(userName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Where(part => !string.IsNullOrWhiteSpace(part))
+        .Select(part => char.ToUpperInvariant(part[0]))
+        .Take(2)
+        .ToArray());
+    if (string.IsNullOrWhiteSpace(userInitials))
+    {
+        userInitials = "AD";
+    }
+    var userEmail = User?.Claims?.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+    var displayEmail = string.IsNullOrWhiteSpace(userEmail) ? "—" : userEmail;
+    var subscription = Model.Subscription;
+    var plan = BillingPlanCatalog.GetPlan(subscription?.PlanKey);
+    var intervalLabel = subscription?.Interval switch
+    {
+        SubscriptionInterval.SixMonths => "6 Months",
+        SubscriptionInterval.Yearly => "Yearly",
+        SubscriptionInterval.Trial => "Trial",
+        _ => "Monthly"
+    };
+    var price = subscription?.Interval switch
+    {
+        SubscriptionInterval.SixMonths => plan.SixMonthPrice,
+        SubscriptionInterval.Yearly => plan.YearlyPrice,
+        _ => plan.MonthlyPrice
+    };
+}
+
+@section Head {
+<style>
+        :root {
+            --bg: #050505;
+            --surface: #0a0a0a;
+            --surface-hover: #121212;
+            --border: rgba(255,255,255,0.08);
+            --text: #ffffff;
+            --muted: #a1a1aa;
+            --accent: #06b6d4;
+            --accent-dim: rgba(6,182,212,0.1);
+            --purple: #8b5cf6;
+        }
+        * { box-sizing: border-box; outline: none; }
+        body { margin:0; background: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; display:flex; height: 100vh; overflow: hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside {
+            width: 260px; flex-shrink: 0; background: #050505;
+            border-right: 1px solid var(--border); padding: 24px;
+            display: flex; flex-direction: column; z-index: 20;
+        }
+        main { flex-grow: 1; padding: 0; overflow-y: auto; background: radial-gradient(circle at 100% 0%, rgba(139,92,246,0.05), transparent 70%); position: relative; }
+        .content-container { max-width: 1400px; margin: 0 auto; padding: 40px; }
+        .brand { font-family: 'Cabinet Grotesk', sans-serif; font-weight:800; font-size: 1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-label { font-size:0.7rem; color:#444; font-weight:700; margin:20px 0 8px 12px; text-transform:uppercase; letter-spacing:1px; }
+        .text-secondary { color: var(--muted); }
+        .nav-item {
+            padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center;
+            font-weight:600; border-radius:10px; margin-bottom:4px; transition: 0.2s; font-size:0.9rem;
+        }
+        .nav-item:hover { background: var(--surface-hover); color: white; }
+        .nav-item.active { background: var(--surface-hover); color: white; border: 1px solid var(--border); }
+        .nav-icon { width: 20px; text-align: center; }
+        .avatar-chip { background: rgba(255,255,255,0.06); border: 1px solid var(--border); display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:12px; color:white; cursor:pointer; transition:0.2s; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02); }
+        .avatar-chip:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.2); }
+        .avatar-dot { width:34px; height:34px; border-radius:50%; background: linear-gradient(135deg, #2dd4bf, #06b6d4); color:#041017; font-weight:800; display:grid; place-items:center; }
+        .avatar-meta { display:flex; flex-direction:column; line-height:1.2; }
+        .dropdown-wrapper { position: relative; }
+        .dropdown-menu {
+            position: absolute; top: 120%; right: 0; width: 320px;
+            background: #0c0c0c; border: 1px solid var(--border); border-radius: 16px;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.8);
+            opacity: 0; transform: translateY(-10px); pointer-events: none;
+            transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100;
+            overflow: hidden;
+        }
+        .dropdown-menu.top-open { top: auto; bottom: 120%; transform: translateY(10px); }
+        .dropdown-menu.top-open.show { transform: translateY(0); }
+        .dropdown-menu.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .profile-dd { border-radius: 16px; }
+        .profile-dd .dd-body { padding: 10px; }
+        .profile-dd .profile-option {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 10px; text-decoration: none;
+            color: #e5e7eb; font-weight: 600; transition: 0.2s;
+        }
+        .profile-dd .profile-option:hover { background: rgba(255,255,255,0.06); color: white; }
+        .profile-dd .profile-option i { width: 18px; text-align: center; color: var(--muted); }
+        .profile-dd .profile-option:hover i { color: white; }
+        #sidebarProfileDropdown { width: 240px; left: 0; right: auto; }
+        #sidebarProfileDropdown .dd-body { display: flex; flex-direction: column; gap: 6px; }
+        #sidebarProfileDropdown .profile-option { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+        #sidebarProfileDropdown .profile-option:hover { border-color: rgba(255,255,255,0.2); }
+
+        .page-header { margin-bottom: 20px; }
+        .page-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.4rem; margin: 0 0 8px; }
+        .page-subtitle { color: var(--muted); margin: 0; }
+
+        .plan-card { background: linear-gradient(135deg, #0f0f0f, #050505); border: 1px solid var(--accent); border-radius: 20px; padding: 35px; position: relative; overflow: hidden; margin-bottom: 40px; }
+        .plan-badge { background: var(--accent); color: black; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 15px; display: inline-block; }
+        .usage-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 30px; }
+        .usage-item { flex: 1; }
+        .usage-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .progress-bg { height: 6px; background: #222; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); border-radius: 10px; box-shadow: 0 0 10px var(--accent); }
+
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 50px; }
+        .custom-input {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 12px;
+        }
+        .price-meta { margin: 12px 0 0; display: grid; gap: 6px; font-size: 0.8rem; color: var(--muted); }
+        .price-row { display: flex; justify-content: space-between; gap: 8px; }
+        .price-row strong { color: #e5e7eb; font-weight: 700; }
+        .checkout-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .checkout-overlay.show { display: flex; }
+        .checkout-card {
+            width: min(560px, 92vw); background: #0c0c0c; border: 1px solid var(--border);
+            border-radius: 20px; padding: 26px; box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+        }
+        .checkout-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.4rem; margin: 0 0 6px; }
+        .checkout-sub { color: var(--muted); margin: 0 0 18px; }
+        .checkout-row { display: grid; gap: 10px; margin-bottom: 14px; }
+        .checkout-row label { font-size: 0.8rem; color: var(--muted); }
+        .checkout-row select { background: #080808; border: 1px solid var(--border); color: white; padding: 10px 12px; border-radius: 12px; }
+        .checkout-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+        .price-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 30px; transition: 0.3s; cursor: pointer; }
+        .price-box:hover { border-color: var(--accent); transform: translateY(-5px); }
+        .price-box.selected { border-color: var(--purple); background: rgba(139,92,246,0.02); }
+        .price-val { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.5rem; font-weight: 800; margin: 15px 0; }
+        .price-val span { font-size: 1rem; color: var(--muted); font-weight: 400; }
+
+        .table { width: 100%; border-collapse: collapse; margin-top: 40px; }
+        .table th { text-align: left; padding: 15px; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .table td { padding: 20px 15px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 0.9rem; }
+        .btn-download { background: transparent; border: 1px solid var(--border); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .btn-download:hover { background: white; color: black; }
+
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #111; border: 1px solid var(--accent); color: white; padding: 16px 24px; border-radius: 12px; display: none; z-index: 1000; }
+
+        @@media (max-width: 1100px) {
+            .pricing-grid, .usage-section { grid-template-columns: 1fr; }
+        }
+        @@media (max-width: 720px) {
+            .content-container { padding: 24px 16px 40px; }
+            aside { display: none; }
+        }
+    </style>
+}
+
+<div class="content-container">
+
+                <div class="page-header">
+                    <h1 class="page-title">Billing & Subscription</h1>
+                    <p class="page-subtitle">Manage your enterprise credits, plans, and historical invoices.</p>
+                </div>
+
+                <div class="plan-card">
+                    <span class="plan-badge">Active Plan</span>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap;">
+                        <div>
+                            <h2 style="margin:0; font-family:'Cabinet Grotesk'; font-size:2.5rem;">@plan.Name</h2>
+                            <p style="color:var(--muted); margin:5px 0 0;">Status: <b>@(subscription?.Status ?? "Trial")</b> • Interval: <b>@intervalLabel</b></p>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:2rem; font-weight:800;">@($"${price:0}") <span style="font-size:1rem; color:var(--muted);">/ @intervalLabel</span></div>
+                        </div>
+                    </div>
+
+                    <div class="usage-section">
+                        <div class="usage-item">
+                            <div class="usage-label"><span>Storage</span> <span>@(plan.StorageLimitBytes > 0 ? $"{Math.Round(plan.StorageLimitBytes / 1024m / 1024m / 1024m, 1)} GB" : "Custom")</span></div>
+                            <div class="progress-bg"><div class="progress-fill" style="width: 15%;"></div></div>
+                        </div>
+                        <div class="usage-item">
+                            <div class="usage-label"><span>Projects</span> <span>@(plan.ProjectLimit > 0 ? plan.ProjectLimit.ToString() : "Custom")</span></div>
+                            <div class="progress-bg"><div class="progress-fill" style="width: 30%;"></div></div>
+                        </div>
+                        <div class="usage-item">
+                            <div class="usage-label"><span>Collaborators</span> <span>@(plan.CollaboratorLimit > 0 ? plan.CollaboratorLimit.ToString() : "Custom")</span></div>
+                            <div class="progress-bg"><div class="progress-fill" style="width: 20%;"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plan-card" style="border-color:rgba(255,255,255,0.08); margin-top: 24px;">
+                    <span class="plan-badge" style="background:#111; color:#e5e7eb;">Payment Method</span>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+                        <div>
+                            <h3 style="margin:0 0 6px; font-family:'Cabinet Grotesk';">@(Model.PaymentMethod is null ? "No payment method on file" : $"{Model.PaymentMethod.Provider} ending {Model.PaymentMethod.Last4}")</h3>
+                            <p style="color:var(--muted); margin:0;">@(Model.PaymentMethod is null ? "Add a payment method to activate paid plans." : $"Expires {Model.PaymentMethod.ExpMonth}/{Model.PaymentMethod.ExpYear}")</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <a href="/Settings/Billing?manage=payment" class="btn-download" id="managePaymentBtn" style="padding:10px 16px; border-radius:10px; text-decoration:none;">Manage Payment</a>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="font-family:'Cabinet Grotesk'; margin-top:50px;">Switch Tiers</h3>
+                <div class="pricing-grid">
+                    @foreach (var tier in BillingPlanCatalog.Plans)
+                    {
+                        var isSelected = string.Equals(tier.Key, plan.Key, StringComparison.OrdinalIgnoreCase) ? "selected" : "";
+                        <div class="price-box @isSelected">
+                            <div style="font-weight:700; color:@(isSelected == "selected" ? "var(--accent)" : "inherit");">@tier.Name</div>
+                            <div class="price-val">@((tier.IsCustom || tier.MonthlyPrice == 0) ? "Custom" : $"${tier.MonthlyPrice:0}") <span>/mo</span></div>
+                            <div class="price-meta">
+                                <div class="price-row"><span>Monthly</span><strong>@(tier.IsCustom ? "Custom" : $"${tier.MonthlyPrice:0}")</strong></div>
+                                <div class="price-row"><span>6-Month</span><strong>@(tier.IsCustom ? "Custom" : $"${tier.SixMonthPrice:0}")</strong></div>
+                                <div class="price-row"><span>Yearly</span><strong>@(tier.IsCustom ? "Custom" : $"${tier.YearlyPrice:0}")</strong></div>
+                            </div>
+                            <ul style="padding:0; list-style:none; font-size:0.8rem; color:var(--muted); line-height:2;">
+                                @foreach (var feat in tier.Features.Take(3))
+                                {
+                                    <li><i class="fa-solid fa-check" style="color:var(--accent)"></i> @feat</li>
+                                }
+                            </ul>
+                            @if (tier.IsCustom)
+                            {
+                                <a class="btn-download" href="mailto:billing@bugence.app?subject=Enterprise%20Plan" style="text-decoration:none;">Contact Sales</a>
+                            }
+                            else
+                            {
+                                <button class="btn-download" type="button" data-plan="@tier.Key" data-name="@tier.Name">Update Plan</button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <h3 style="font-family:'Cabinet Grotesk'; margin-top:60px;">Invoice History</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Invoice ID</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" style="color:var(--muted); text-align:center;">No invoices yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+
+

@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAVID ASK | THE EXPERIENCE</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700&family=Playfair+Display:ital,wght@0,900;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --dark: #050505;
+            --soft-white: #f5f5f5;
+            --primary-gold: #c5a059;
+            --dark-bg: #0a0a0a;
+            --text-gray: #a1a1a1;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        .text-gold { color: var(--primary-gold); }
+        .bg-gold { background-color: var(--primary-gold); }
+
+        /* --- LUXURY CUSTOM CURSOR --- */
+        #cursor {
+            width: 8px; height: 8px;
+            background: var(--gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+        }
+
+        #cursor-outline {
+            width: 40px; height: 40px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 0.1s ease-out;
+        }
+
+        /* --- NAVIGATION --- */
+        .nav-link-custom {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            position: relative;
+            transition: all 0.4s ease;
+        }
+
+        .nav-link-custom:hover { color: var(--gold); }
+
+        /* --- HERO ENHANCEMENTS --- */
+        .hero-title-main {
+            font-size: clamp(2.5rem, 6vw, 5.5rem);
+            line-height: 1.1;
+            font-weight: 900;
+            margin-bottom: 2rem;
+        }
+
+        .hero-quote-sub {
+            font-size: clamp(1rem, 1.5vw, 1.5rem);
+            opacity: 0.7;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+
+        .text-reveal {
+            background: linear-gradient(to right, #fff 50%, #777 50%);
+            background-size: 200% 100%;
+            background-position: 100% 0;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: background-position 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .hero-container:hover .text-reveal { background-position: 0 0; }
+
+        /* --- BUTTONS & SHAKE ANIMATION --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-4px) rotate(-1deg); }
+            50% { transform: translateX(4px) rotate(1deg); }
+            75% { transform: translateX(-4px) rotate(-1deg); }
+            100% { transform: translateX(0); }
+        }
+
+        .btn-luxury {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 16px 40px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 0.7rem;
+            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn-luxury:hover { 
+            color: black; 
+            border-color: var(--gold); 
+            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .btn-luxury::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: var(--gold);
+            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: -1;
+        }
+
+        .btn-luxury:hover::before { left: 0; }
+
+        .btn-luxury-gold {
+            background: var(--gold);
+            color: black;
+            border-color: var(--gold);
+            font-weight: 700;
+        }
+
+        /* --- UNSEEN GAP SECTION --- */
+        .gap-section { background-color: #0a0a0a; position: relative; overflow: hidden; }
+        .gap-headline {
+            font-size: clamp(4rem, 10vw, 12rem);
+            line-height: 0.85;
+            letter-spacing: -0.05em;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .gap-headline-filled {
+            position: absolute;
+            top: 0; left: 0;
+            color: #fff;
+            clip-path: inset(0 100% 0 0);
+            transition: clip-path 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .gap-section:hover .gap-headline-filled { clip-path: inset(0 0 0 0); }
+
+        .mission-box {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border-left: 2px solid var(--gold);
+            padding: 60px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- PHILOSOPHY SECTION --- */
+        .manifesto-v3 { background-color: #000; padding: 160px 0; position: relative; }
+        .pillar-card {
+            position: relative;
+            padding: 80px 40px;
+            background: transparent;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            height: 100%;
+        }
+
+        .pillar-card:last-child { border-right: none; }
+        .pillar-card:hover {
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: inset 0 0 40px rgba(212, 175, 55, 0.03);
+        }
+
+        .pillar-number {
+            font-size: 12rem;
+            position: absolute;
+            top: 20px; right: 0;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(212, 175, 55, 0.1);
+            z-index: 1;
+            transition: all 0.8s ease;
+        }
+
+        .pillar-card:hover .pillar-number {
+            -webkit-text-stroke: 1px rgba(212, 175, 55, 0.4);
+            transform: translateY(-20px) translateX(-20px);
+        }
+
+        .pillar-content { position: relative; z-index: 2; }
+
+        .pillar-accent-line {
+            width: 40px; height: 1px;
+            background: var(--gold);
+            margin-bottom: 40px;
+            transition: width 0.6s ease;
+        }
+
+        .pillar-card:hover .pillar-accent-line { width: 100px; }
+
+        /* --- MOSAIC GRID SECTION --- */
+        .mosaic-grid {
+            max-width: 1500px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+            padding: 100px 24px;
+        }
+
+        .mosaic-item {
+            position: relative;
+            background: #0a0a0a;
+            overflow: hidden;
+            text-decoration: none !important;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .mosaic-podcast { grid-column: span 8; height: 650px; }
+        .mosaic-cards { grid-column: span 4; height: 450px; align-self: end; }
+        .mosaic-speaking { grid-column: span 5; height: 750px; margin-top: -100px; }
+        .mosaic-grit { grid-column: span 7; height: 550px; }
+
+        @media (max-width: 992px) {
+            .mosaic-grid { padding: 40px 20px; }
+            .mosaic-item { grid-column: span 12 !important; height: 500px !important; margin-top: 0 !important; }
+        }
+
+        .mosaic-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: grayscale(1) brightness(0.4) contrast(1.1);
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(1.1);
+        }
+
+        .mosaic-item:hover .mosaic-img { filter: grayscale(0) brightness(0.6) contrast(1); transform: scale(1); }
+
+        .mosaic-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 50px;
+            z-index: 10;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 60%);
+        }
+
+        .mosaic-title {
+            font-size: clamp(2rem, 3.5vw, 5rem);
+            line-height: 0.9;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: #fff;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .mosaic-item:hover .mosaic-title { transform: translateY(0); color: var(--gold); }
+
+        .mosaic-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4em;
+            color: var(--gold);
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.6s ease;
+        }
+
+        .mosaic-item:hover .mosaic-label { opacity: 1; transform: translateX(0); }
+
+        /* --- REDESIGNED APPROACH SECTION --- */
+        .approach-section {
+            background-color: #000;
+            padding: 160px 0;
+            position: relative;
+            z-index: 5;
+        }
+
+        .approach-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 60px 45px;
+            height: 100%;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .approach-card:hover {
+            background: rgba(212, 175, 55, 0.02);
+            border-color: var(--gold);
+            transform: translateY(-15px);
+        }
+
+        .approach-card::after {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .approach-card:hover::after { opacity: 1; }
+
+        .pillar-tag {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+            color: var(--gold);
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        .pillar-headline {
+            font-size: 2.5rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+            transition: color 0.4s ease;
+        }
+
+        .approach-card:hover .pillar-headline { color: var(--gold); }
+
+        .pillar-body {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.7;
+            font-weight: 300;
+            transition: color 0.4s ease;
+        }
+
+        .approach-card:hover .pillar-body { color: rgba(255, 255, 255, 0.9); }
+
+        /* --- FOOTER --- */
+        .footer-link {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: 0.3s;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .footer-link:hover { color: var(--primary-gold); transform: translateX(5px); }
+
+        .social-circle {
+            width: 40px; height: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.4s;
+            color: white;
+            text-decoration: none;
+        }
+
+        .social-circle:hover {
+            border-color: var(--primary-gold);
+            background: var(--primary-gold);
+            color: black;
+            transform: translateY(-5px);
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-gold); }
+
+        /* --- TEXTURE --- */
+        body::after {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.03; pointer-events: none; z-index: 9997;
+        }
+        /* --- DESIGNED SECTION: THE BOOK --- */
+        .book-feature-section {
+            background-color: #050505;
+            padding: 160px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-visual-frame {
+            position: relative;
+            padding: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .book-visual-frame:hover {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.03);
+            transform: scale(1.02);
+        }
+
+        .book-title-large {
+            font-size: clamp(4rem, 8vw, 8rem);
+            line-height: 0.9;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            margin-bottom: 2.5rem;
+        }
+
+        .book-accent-glow {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        /* --- DESIGNED SECTION: CONVERSATION CARDS --- */
+        .cards-feature-section {
+            background-color: #000;
+            padding: 160px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cards-headline-large {
+            font-size: clamp(3rem, 6vw, 6rem);
+            line-height: 0.95;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            margin-bottom: 3rem;
+        }
+
+        .card-stack-visual {
+            position: relative;
+            height: 600px;
+            width: 100%;
+        }
+
+        .floating-deck-card {
+            position: absolute;
+            width: 320px;
+            height: 450px;
+            background: #111;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 2px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .floating-deck-card img {
+            width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); opacity: 0.6;
+            transition: all 0.8s ease;
+        }
+
+        .floating-deck-card:hover { border-color: var(--gold); z-index: 50 !important; }
+        .floating-deck-card:hover img { filter: grayscale(0); opacity: 1; }
+
+        /* Specific Fan-out Positions */
+        .card-1 { transform: rotate(-10deg) translateX(-40px); z-index: 10; }
+        .card-2 { transform: rotate(0deg) translateZ(20px); z-index: 20; top: 20px; left: 60px; }
+        .card-3 { transform: rotate(10deg) translateX(40px); z-index: 5; top: 40px; left: 120px; }
+
+        @media (max-width: 992px) {
+            .card-stack-visual { height: 500px; }
+            .floating-deck-card { width: 250px; height: 350px; left: 50% !important; transform: translateX(-50%) !important; top: 0 !important; }
+            .card-1 { margin-left: -40px; transform: rotate(-5deg) !important; }
+            .card-3 { margin-left: 40px; transform: rotate(5deg) !important; }
+        }
+        /* --- REDESIGNED SECTION: MUSIC --- */
+        .music-redesign-section {
+            background-color: #000;
+            padding: 160px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .music-column-sticky {
+            position: sticky;
+            top: 150px;
+        }
+
+        .music-image-wrap {
+            position: relative;
+            z-index: 2;
+        }
+
+        .music-image-frame {
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 15px;
+            background: #0a0a0a;
+            position: relative;
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .music-image-frame:hover {
+            border-color: var(--gold);
+            transform: scale(1.02);
+        }
+
+        .music-glow-orb {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            animation: pulse-glow 6s infinite ease-in-out;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+        }
+
+        .music-body-copy {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.6);
+            font-weight: 300;
+            margin-bottom: 2.5rem;
+        }
+
+        .music-body-copy strong {
+            color: #fff;
+            font-weight: 400;
+        }
+        /* --- REDEFINED OPT-IN SECTION --- */
+        .optin-cinematic {
+            background-color: #000;
+            padding: 160px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .optin-glow {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .optin-cinematic:hover .optin-glow { opacity: 1; }
+
+        .optin-headline-large {
+            font-size: clamp(3rem, 7vw, 7rem);
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            margin-bottom: 2rem;
+        }
+
+        .optin-form-wrap {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .optin-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 20px 0;
+            color: #fff;
+            font-size: 1.25rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            text-align: center;
+            transition: border-color 0.6s ease;
+        }
+
+        .optin-input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .optin-input::placeholder { color: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+
+<body class="bg-[#050505]">
+
+    <div id="cursor"></div>
+    <div id="cursor-outline"></div>
+
+    <nav class="fixed top-0 w-full z-[100] px-12 py-10 flex justify-between items-center mix-blend-difference">
+        <a href="#" class="text-white no-underline tracking-[0.5em] uppercase serif text-xl font-bold">
+            David <span class="text-[#D4AF37]">Ask</span>
+        </a>
+
+        <div class="hidden lg:flex items-center gap-12">
+            <ul class="flex gap-10 mb-0 list-none">
+                <li><a href="#manifesto" class="nav-link-custom">The Experience</a></li>
+                <li><a href="#podcast" class="nav-link-custom">Podcast</a></li>
+                <li><a href="https://davidaskmusic.com/" class="nav-link-custom" target="_blank">Music</a></li>
+                <li><a href="#speaking" class="nav-link-custom">Speaking</a></li>
+            </ul>
+            <a href="#optin" class="btn-luxury !py-2 !px-8 text-[0.6rem]">Get Started</a>
+        </div>
+    </nav>
+
+    <section class="h-screen relative flex items-center justify-center overflow-hidden hero-container">
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-30 scale-110">
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-father-and-son-walking-in-a-forest-41135-large.mp4" type="video/mp4">
+        </video>
+
+        <div class="relative z-10 text-center container px-6">
+            <div class="hero-title serif" data-aos="fade-up">
+                <h1 class="hero-title-main text-reveal">The greatest gift you can give your son is to help him see who he already is.</h1>
+                <p class="hero-quote-sub italic text-gold serif">“The Greatest Good you can do for another is not to share with him your riches, but to reveal to him his own.” — Benjamin Disraeli</p>
+            </div>
+
+            <p class="max-w-xl mx-auto mt-10 text-lg text-white/40 tracking-widest uppercase text-[0.7rem] font-light" data-aos="fade-up" data-aos-delay="200">
+                Helping fathers transition from providers to guides.
+            </p>
+
+            <div class="flex flex-col md:flex-row justify-center gap-6 mt-12" data-aos="fade-up" data-aos-delay="400">
+                <a href="#optin" class="btn-luxury btn-luxury-gold">Get Weekly Questions</a>
+                <a href="#podcast" class="btn-luxury">Listen to Podcast</a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-20">
+            <i class="bi bi-chevron-down text-3xl"></i>
+        </div>
+    </section>
+
+    <section class="py-24 container mx-auto px-6">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-12 lg:mb-0" data-aos="fade-right">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800" alt="David" class="rounded-none grayscale hover:grayscale-0 transition duration-1000 w-full h-[600px] object-cover">
+                    <div class="absolute -bottom-6 -right-6 w-48 h-48 bg-gold opacity-10 hidden md:block"></div>
+                </div>
+            </div>
+            <div class="col-lg-5 offset-lg-1" data-aos="fade-left">
+                <h2 class="text-4xl mb-8 leading-tight">Most dads are building something they never saw modeled.</h2>
+                <p class="text-gray-400 text-lg mb-8 leading-relaxed">
+                    Many fathers grew up without open conversations, emotional presence, or guidance rooted in calm strength. Now you’re raising a son and trying to create something you didn’t see. 
+                    <strong>That takes intention. It takes courage.</strong>
+                </p>
+                <ul class="list-none p-0 space-y-4 mb-10">
+                    <li class="flex gap-4"><i class="bi bi-check2 text-gold"></i> Life feels loud, but you want more connection.</li>
+                    <li class="flex gap-4"><i class="bi bi-check2 text-gold"></i> You want to guide without lecturing.</li>
+                    <li class="flex gap-4"><i class="bi bi-check2 text-gold"></i> You're breaking old patterns, not repeat them.</li>
+                </ul>
+                <a href="#" class="btn-luxury">Learn more about David</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-[#050505]">
+        <div class="mosaic-grid">
+            <a href="#" class="mosaic-item mosaic-podcast" data-aos="fade-up">
+                <img src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=1200" class="mosaic-img" alt="Podcast">
+                <div class="mosaic-overlay">
+                    <span class="mosaic-label">Audio Experience</span>
+                    <h3 class="mosaic-title serif italic">The Ask Experience Podcast</h3>
+                </div>
+            </a>
+            <a href="#" class="mosaic-item mosaic-cards" data-aos="fade-up" data-aos-delay="200">
+                <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=1000" class="mosaic-img" alt="Cards">
+                <div class="mosaic-overlay">
+                    <span class="mosaic-label">Performance</span>
+                    <h3 class="mosaic-title serif italic">David Ask Music</h3>
+                </div>
+            </a>
+            <a href="#" class="mosaic-item mosaic-speaking" data-aos="fade-up">
+                <img src="https://images.pexels.com/photos/2833037/pexels-photo-2833037.jpeg?auto=compress&cs=tinysrgb&w=1200" class="mosaic-img" alt="Speaking">
+                <div class="mosaic-overlay">
+                    <span class="mosaic-label">Public Keynote</span>
+                    <h3 class="mosaic-title serif italic">Speaking & Booking</h3>
+                </div>
+            </a>
+            <a href="#" class="mosaic-item mosaic-grit" data-aos="fade-up" data-aos-delay="300">
+                <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=1000" class="mosaic-img" alt="Book">
+                <div class="mosaic-overlay">
+                    <span class="mosaic-label">Interactive Tools</span>
+                    <h3 class="mosaic-title serif italic">Conversation Cards</h3>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <section class="gap-section py-60">
+        <div class="container mx-auto px-6 relative">
+            <div class="row align-items-center">
+                <div class="col-lg-8" data-aos="fade-right">
+                    <div class="relative mb-20">
+                        <h2 class="gap-headline serif italic">The Unseen <br>Gap.
+                            <span class="gap-headline-filled serif italic">The Unseen <br>Gap.</span>
+                        </h2>
+                    </div>
+                    <p class="text-3xl md:text-4xl leading-tight text-white/60 font-light max-w-2xl mb-12">
+                        Most dads are building something they never saw modeled. We provide the tools to bridge the silence between fathers and sons.
+                    </p>
+                </div>
+                <div class="col-lg-4" data-aos="fade-left">
+                    <div class="mission-box">
+                        <p class="text-gold mb-8 uppercase tracking-[0.4em] text-[0.7rem] font-bold">The Mission</p>
+                        <p class="italic text-2xl serif leading-relaxed text-white/90">
+                            “You want more connection but life feels loud. You want to guide your son without lecturing.”
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="approach" class="approach-section">
+        <div class="container">
+            <div class="row justify-content-center text-center mb-32">
+                <div class="col-lg-10" data-aos="fade-up">
+                    <h2 class="text-5xl md:text-7xl serif italic leading-tight mb-10">
+                        Relationships grow where good questions live. <br>
+                        <span class="text-gold">“Ask the right questions and remove the question marks.”</span>
+                    </h2>
+                    <p class="text-xl text-white/50 max-w-2xl mx-auto font-light leading-relaxed">
+                        You don’t need perfect speeches or parenting formulas. You need simple rhythms and better questions that open doors, not close them.
+                    </p>
+                </div>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="approach-card">
+                        <span class="pillar-tag">Approach / 01</span>
+                        <h3 class="pillar-headline serif italic">Notice</h3>
+                        <p class="pillar-body">Pay attention to your son’s world: what matters to him, what worries him, how he sees himself.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="approach-card">
+                        <span class="pillar-tag">Approach / 02</span>
+                        <h3 class="pillar-headline serif italic">Name</h3>
+                        <p class="pillar-body">Give language to the thoughts and feelings he may not have words for yet.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="approach-card">
+                        <span class="pillar-tag">Approach / 03</span>
+                        <h3 class="pillar-headline serif italic">Nurture</h3>
+                        <p class="pillar-body">Ask questions that shape identity, develop resilience, and reveal the good that is already within him.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<section id="book" class="book-feature-section">
+        <div class="book-accent-glow"></div>
+        <div class="container relative z-10">
+            <div class="row align-items-center">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <h4 class="text-gold uppercase tracking-[0.5em] text-[0.65rem] mb-10">Featured: The Book</h4>
+                    <h2 class="book-title-large serif italic">Guardians of Grit</h2>
+                    <p class="text-2xl text-white/60 font-light leading-relaxed mb-12 max-w-xl">
+                        A book for fathers who want to raise sons who are strong, kind, and grounded in who they are. Guardians of Grit blends stories, practical guidance, and powerful questions that help dads build connection that lasts.
+                    </p>
+                    <div class="magnetic-wrap">
+                        <a href="#" class="btn-luxury btn-luxury-gold">Get Book Updates</a>
+                    </div>
+                </div>
+
+                <div class="col-lg-5 offset-lg-1" data-aos="fade-left">
+                    <div class="book-visual-frame overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=1000" 
+                             alt="Guardians of Grit" 
+                             class="w-full grayscale hover:grayscale-0 transition-all duration-1000 object-cover h-[700px] transform hover:scale-105">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="cards" class="cards-feature-section">
+        <div class="container relative z-10">
+            <div class="row align-items-center">
+                <div class="col-lg-6 order-2 order-lg-1" data-aos="fade-right">
+                    <div class="card-stack-visual">
+                        <div class="floating-deck-card card-1">
+                            <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=800" alt="">
+                        </div>
+                        <div class="floating-deck-card card-2">
+                            <img src="https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&q=80&w=800" alt="">
+                        </div>
+                        <div class="floating-deck-card card-3">
+                            <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=800" alt="">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5 offset-lg-1 order-1 order-lg-2 mb-20 lg:mb-0" data-aos="fade-left">
+                    <h4 class="text-gold uppercase tracking-[0.5em] text-[0.65rem] mb-10">Featured: Conversation Cards</h4>
+                    <h2 class="cards-headline-large serif italic">Conversation Cards for Fathers and Sons</h2>
+                    <p class="text-2xl text-white/60 font-light leading-relaxed mb-12">
+                        A simple deck of thoughtful questions to spark honest conversation during car rides, walks, and quiet moments.
+                    </p>
+                    <div class="magnetic-wrap">
+                        <a href="#" class="btn-luxury btn-luxury-gold">Join the Waitlist</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="music" class="music-redesign-section">
+        <div class="container">
+            <div class="row align-items-start">
+                <div class="col-lg-5 music-column-sticky">
+                    <h4 class="text-gold uppercase tracking-[0.5em] text-[0.65rem] mb-10" data-aos="fade-up">Featured: Music</h4>
+                    <h2 class="text-6xl md:text-7xl serif italic leading-[0.95] mb-12" data-aos="fade-up">
+                        Open Arms - <br> in English and Italian
+                    </h2>
+                    <div class="magnetic-wrap" data-aos="fade-up" data-aos-delay="200">
+                        <a href="https://linktr.ee/davidaskmusic" target="_blank" class="btn-luxury btn-luxury-gold">Explore Music</a>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 offset-lg-1 content-scroll-reveal">
+                    <div class="music-image-wrap mb-24" data-aos="fade-left">
+                        <div class="music-glow-orb"></div>
+                        <div class="music-image-frame">
+                            <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=1200" 
+                                 class="w-full grayscale hover:grayscale-0 transition-all duration-1000" alt="Musical Depth">
+                        </div>
+                    </div>
+
+                    <div class="music-text-layers">
+                        <p class="music-body-copy" data-aos="fade-up">
+                            With a voice often likened to <strong>Andrea Bocelli and Josh Groban</strong>, David delivers more than notes—he delivers nuance. His classical-pop blend resonates with emotional clarity, pulling audiences into a sonic journey that feels timeless and immediate.
+                        </p>
+                        <p class="music-body-copy" data-aos="fade-up">
+                            His latest project, a bilingual (English–Italian) rendition of Journey’s iconic 1982 ballad <strong>“Open Arms,”</strong> showcases his ability to honor the familiar while introducing something entirely new. As the first known version of the song to be translated into Italian, this release is the cornerstone of a larger initiative—a multi-version series designed for orchestral arrangements, multilingual interpretations, and special-use moments like weddings and cinematic placements.
+                        </p>
+                        <p class="music-body-copy italic serif text-white" data-aos="fade-up">
+                            But David’s gift extends beyond vocal ability. His performances are immersive, often described as transcendent—elevating the listener into something spiritual, reflective, and healing. His connection with the audience is not merely auditory; it’s emotional. It’s visual. It’s soul-to-soul.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="optin" class="optin-cinematic">
+        <div class="optin-glow"></div>
+        <div class="container relative z-10 text-center px-6">
+            <h4 class="text-gold uppercase tracking-[0.6em] text-[0.6rem] mb-12" data-aos="fade-up">The Connection</h4>
+            <h2 class="optin-headline-large serif italic" data-aos="fade-up" data-aos-delay="100">Start with 10 Questions</h2>
+            <p class="text-xl text-white/40 font-light mb-20 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up" data-aos-delay="200">
+                Get a weekly question you can ask your son—simple, meaningful, and designed to build character and connection over time.
+            </p>
+            
+            <div class="optin-form-wrap" data-aos="fade-up" data-aos-delay="300">
+                <form action="#" class="flex flex-col gap-12">
+                    <input type="email" placeholder="ENTER YOUR EMAIL ADDRESS" class="optin-input" required>
+                    <div class="magnetic-wrap mx-auto">
+                        <button type="submit" class="btn-luxury btn-luxury-gold !px-20">Join the List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <footer class="pt-24 pb-12 bg-black border-t border-zinc-900 px-6">
+        <div class="max-w-7xl mx-auto text-center">
+            <a href="#" class="text-white no-underline tracking-[0.4em] uppercase serif text-2xl mb-8 block">
+                David <span class="text-gold">Ask</span>
+            </a>
+            <p class="text-gray-500 max-w-lg mx-auto mb-10 text-sm leading-relaxed">
+                Helping fathers navigate the journey of raising sons who know their own worth through the power of connection and conversation.
+            </p>
+            <div class="flex justify-center gap-6 mb-12">
+                <a href="#" class="social-circle"><i class="bi bi-instagram"></i></a>
+                <a href="#" class="social-circle"><i class="bi bi-spotify"></i></a>
+                <a href="#" class="social-circle"><i class="bi bi-youtube"></i></a>
+                <a href="#" class="social-circle"><i class="bi bi-linkedin"></i></a>
+            </div>
+            <div class="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-[10px] uppercase tracking-widest text-gray-600 mb-0">&copy; 2025 The Ask Experience. All Rights Reserved. Designed for Fathers.</p>
+                <div class="flex gap-8 text-[10px] uppercase tracking-widest text-gray-600">
+                    <a href="#" class="hover:text-gold no-underline transition">Privacy Policy</a>
+                    <a href="#" class="hover:text-gold no-underline transition">Terms of Service</a>
+                    <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-gold transition uppercase">Back to top ↑</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1200, once: true });
+        gsap.registerPlugin(ScrollTrigger);
+
+        const cursor = document.getElementById('cursor');
+        const outline = document.getElementById('cursor-outline');
+
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1 });
+            gsap.to(outline, { x: e.clientX - 16, y: e.clientY - 16, duration: 0.2 });
+        });
+
+        // Mosaic Parallax
+        gsap.utils.toArray('.mosaic-item').forEach((item, i) => {
+            const speed = (i % 2 === 0) ? -40 : 40;
+            gsap.to(item, {
+                y: speed,
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: 1.5
+                }
+            });
+        });
+
+        const links = document.querySelectorAll('a, button');
+        links.forEach(l => {
+            l.addEventListener('mouseenter', () => {
+                gsap.to(cursor, { scale: 4, background: 'rgba(212, 175, 55, 0.2)', duration: 0.3 });
+                gsap.to(outline, { opacity: 0, duration: 0.3 });
+            });
+            l.addEventListener('mouseleave', () => {
+                gsap.to(cursor, { scale: 1, background: '#D4AF37', duration: 0.3 });
+                gsap.to(outline, { opacity: 1, duration: 0.3 });
+            });
+        });
+
+        // Nav Scroll
+        const nav = document.getElementById('main-nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) nav.classList.add('nav-scrolled');
+            else nav.classList.remove('nav-scrolled');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+@model BugenceEditConsole.Pages.Dashboard.IndexModel
+
+<span class="dashboard-card__eyebrow">Bugence heartbeat</span>
+<p class="text-lg font-semibold text-ink pt-2">
+    @(Model.LastPublishedUtc?.ToString("MMM dd, yyyy - HH:mm 'UTC'") ?? "Awaiting first publish")
+</p>
+<p class="dashboard-card__intro text-sm text-ink/70">
+    Latest deployment recorded by the audit spine.
+</p>
+<ul class="dashboard-card__callout space-y-2 text-sm text-ink/80">
+    <li class="flex items-center gap-3">
+        <span class="fa-solid fa-user-astronaut text-accent"></span>
+        Pete Dulcamara — Concierge active
+    </li>
+    <li class="flex items-center gap-3">
+        <span class="fa-solid fa-lock text-accent"></span>
+        Zero trust shields enforced for all workflows
+    </li>
+    <li class="flex items-center gap-3">
+        <span class="fa-solid fa-robot text-accent"></span>
+        Automations aligned with studio storytelling cadence
+    </li>
+</ul>

@@ -1,0 +1,254 @@
+﻿@page
+@model BugenceEditConsole.Pages.Insights.LogsModel
+@{
+    ViewData["Title"] = "Change Logs";
+    ViewData["BodyClass"] = "bg-canvas profile-dark insights-dark";
+}
+
+<section class="space-y-12 px-6 sm:px-10 md:px-16 lg:px-20 py-12 relative text-white">
+
+    <!-- === HERO HEADER === -->
+    <header class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#0B111A]/90 via-[#141A24]/90 to-[#1E1A1A]/90 p-10 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+        <div class="absolute inset-0 opacity-70 pointer-events-none">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_15%_-10%,rgba(255,126,95,0.2),transparent_70%)]"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_90%_20%,rgba(254,180,123,0.15),transparent_60%)]"></div>
+        </div>
+
+        <div class="relative z-10">
+            <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[12px] uppercase tracking-[0.25em] text-amber-200 ring-1 ring-white/10 mb-4">
+                <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
+                Change Logs
+            </span>
+            <h1 class="text-4xl font-black bg-gradient-to-r from-rose-400 via-amber-300 to-orange-400 bg-clip-text text-transparent">
+                Activity Insights
+            </h1>
+            <p class="text-white/70 mt-2">Visualize the team’s most active editors, fields, and editing trends.</p>
+        </div>
+    </header>
+
+    <!-- === SUMMARY CARDS === -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="glass-card">
+            <p class="text-sm uppercase tracking-[0.2em] text-white/60">Total Changes</p>
+            <h3 class="text-3xl font-bold text-amber-300 mt-2">@Model.Analytics.TotalChanges</h3>
+        </div>
+        <div class="glass-card">
+            <p class="text-sm uppercase tracking-[0.2em] text-white/60">Top Editor</p>
+            <h3 class="text-3xl font-bold text-rose-300 mt-2">@Model.Analytics.TopEditors.FirstOrDefault()?.Label ?? "—"</h3>
+        </div>
+        <div class="glass-card">
+            <p class="text-sm uppercase tracking-[0.2em] text-white/60">Top Field</p>
+            <h3 class="text-3xl font-bold text-orange-300 mt-2">@Model.Analytics.TopFields.FirstOrDefault()?.Label ?? "—"</h3>
+        </div>
+        <div class="glass-card">
+            <p class="text-sm uppercase tracking-[0.2em] text-white/60">Editors</p>
+            <h3 class="text-3xl font-bold text-sky-300 mt-2">@Model.UniqueEditors</h3>
+        </div>
+    </div>
+
+    <!-- === TREND CHART === -->
+    <div class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-lg">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="text-xl font-semibold text-amber-300">Change Velocity</h2>
+            <div class="hidden sm:flex items-center gap-2 text-xs text-white/70">
+                <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+                <span class="h-2 w-2 rounded-full bg-white/40"></span>
+                <span class="h-2 w-2 rounded-full bg-white/20"></span>
+                <span class="uppercase tracking-[0.2em] text-white/50">time axis grouped & aligned</span>
+            </div>
+        </div>
+        <div class="mt-4 rounded-2xl border border-white/10 bg-[#0c0f17]/70 p-4">
+            <canvas id="trendChart" height="110"></canvas>
+        </div>
+        <div id="trendTicks" class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 text-[11px] text-white/70">
+            @if (Model.Analytics.Trend.Any())
+            {
+                var trendDates = Model.Analytics.Trend
+                    .Select(t => t.DayUtc)
+                    .Where(d => d != null)
+                    .Select(d => DateTime.Parse(d.ToString()).ToLocalTime())
+                    .OrderBy(d => d)
+                    .ToList();
+
+                var minDate = trendDates.First();
+                var maxDate = trendDates.Last();
+                var midDate = minDate.AddDays((maxDate - minDate).TotalDays / 2);
+
+                <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-white/50">Start</p>
+                    <p class="font-semibold text-white">@minDate:MMM dd, yyyy</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-white/50">Mid</p>
+                    <p class="font-semibold text-white">@midDate:MMM dd, yyyy</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-white/50">End</p>
+                    <p class="font-semibold text-white">@maxDate:MMM dd, yyyy</p>
+                </div>
+                <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-white/50">Span</p>
+                    <p class="font-semibold text-white">@((maxDate - minDate).Days) days</p>
+                </div>
+            }
+            else
+            {
+                <p class="col-span-full text-white/60">No trend data available.</p>
+            }
+        </div>
+    </div>
+
+    <!-- === TOP EDITORS & FIELDS === -->
+    <div class="grid md:grid-cols-2 gap-8">
+        <div class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 text-rose-300">Top Editors</h2>
+            @if (Model.Analytics.TopEditors.Any())
+            {
+                <ul class="space-y-3">
+                    @foreach (var e in Model.Analytics.TopEditors)
+                    {
+                        <li class="flex justify-between border-b border-white/10 pb-2">
+                            <span>@e.Label</span>
+                            <span class="font-semibold">@e.Changes edits</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+
+                <p class="text-white/60">No editor activity found.</p>
+            }
+        </div>
+
+        <div class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 text-orange-300">Hot Fields</h2>
+            @if (Model.Analytics.TopFields.Any())
+            {
+                <ul class="space-y-3">
+                    @foreach (var f in Model.Analytics.TopFields)
+                    {
+                        <li class="flex justify-between border-b border-white/10 pb-2">
+                            <span>@f.Label</span>
+                            <span class="font-semibold">@f.Changes changes</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+
+                <p class="text-white/60">No field data available.</p>
+            }
+        </div>
+    </div>
+
+    <!-- === STORYLINE === -->
+    <div class="rounded-3xl border border-white/10 bg-gradient-to-br from-[#1A1A1C]/80 via-[#101316]/90 to-[#0C0E10]/80 backdrop-blur-xl p-8 shadow-lg space-y-4">
+        <h2 class="text-xl font-semibold bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent">Narrative Insights</h2>
+        <ul class="space-y-4">
+            @foreach (var s in Model.Analytics.Storyline)
+            {
+                <li class="flex items-start gap-4 border-b border-white/10 pb-3">
+                    <i class="@s.Icon text-amber-300 text-lg mt-1"></i>
+                    <div>
+                        <strong class="text-white">@s.Title</strong>
+                        <p class="text-white/70 text-sm mt-1">@s.Summary</p>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <!-- === LATEST CHANGES FEED === -->
+    <div class="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-semibold text-sky-300">Latest changes</h2>
+                <p class="text-white/60 text-sm">Most recent updates across all editors and fields.</p>
+            </div>
+            <span class="text-[12px] text-white/70">
+                Showing @Model.LatestLogs.Count change(s)
+            </span>
+        </div>
+        @if (Model.LatestLogs.Any())
+        {
+            <ul class="divide-y divide-white/10">
+                @foreach (var log in Model.LatestLogs)
+                {
+                    var whenLocal = log.PerformedAtUtc.ToLocalTime();
+                    <li class="py-3 flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/10 grid place-items-center text-amber-300">
+                            <i class="fa-solid fa-pen-nib"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-white truncate">@(!string.IsNullOrWhiteSpace(log.FieldKey) ? log.FieldKey : "Unspecified field")</p>
+                                    <p class="text-[13px] text-white/65 truncate">@log.ChangeSummary</p>
+                                </div>
+                                <span class="text-[12px] text-white/60 whitespace-nowrap">@whenLocal:MMM dd | HH:mm</span>
+                            </div>
+                            <div class="text-[12px] text-white/60 mt-1 flex items-center gap-2">
+                                <span class="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-[2px]">
+                                    <i class="fa-solid fa-user"></i>
+                                    @(!string.IsNullOrWhiteSpace(log.PerformedByDisplayName) ? log.PerformedByDisplayName : log.PerformedByUserId ?? "Unknown")
+                                </span>
+                                <span class="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-[2px]">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                    @log.SitePageId
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="text-white/60">No changes recorded yet. Ship an update to populate this feed.</p>
+        }
+    </div>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const ctx = document.getElementById('trendChart');
+      if (!ctx) return;
+      const trend = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Analytics.Trend));
+      const points = Array.isArray(trend) ? trend : [];
+      const labels = points.map((x, i) => {
+        const raw = x.dayUtc || x.DayUtc || x.day || x.Day || null;
+        const parsed = raw ? Date.parse(raw) : NaN;
+        const d = Number.isNaN(parsed) ? Date.now() : parsed;
+        return new Date(d).toLocaleDateString();
+      });
+      const data = points.map(x => Number(x.changes ?? x.Changes ?? 0));
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Changes per Day',
+            data,
+            borderColor: 'rgba(255,170,90,1)',
+            backgroundColor: 'rgba(255,170,90,0.2)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 4,
+            pointBackgroundColor: 'rgba(255,126,95,1)',
+          }]
+        },
+        options: {
+          scales: {
+            x: { ticks: { color: '#ccc' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+            y: { ticks: { color: '#ccc' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          },
+          plugins: { legend: { labels: { color: '#aaa' } } }
+        }
+      });
+    });
+</script>

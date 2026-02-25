@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAVID ASK | THE JOURNEY</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Montserrat:wght@100;300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+
+    <style>
+        :root {
+            --gold: #c5a059;
+            --deep-black: #080808;
+            --clay: #1a1a1a;
+            --serif: 'Cormorant Garamond', serif;
+            --sans: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--deep-black);
+            color: #e0e0e0;
+            font-family: var(--sans);
+            overflow-x: hidden;
+        }
+
+        /* --- THE PROGRESS PATH --- */
+        #journey-line {
+            position: fixed;
+            left: 50px;
+            top: 0;
+            width: 1px;
+            height: 100vh;
+            background: rgba(255,255,255,0.05);
+            z-index: 50;
+        }
+
+        #journey-progress {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            background: var(--gold);
+            height: 0%;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        .serif { font-family: var(--serif); }
+        .text-huge { font-size: clamp(3rem, 12vw, 15rem); line-height: 0.8; letter-spacing: -0.04em; }
+        .text-gold { color: var(--gold); }
+
+        /* --- SECTIONS --- */
+        .chapter {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 10vh 10vw;
+        }
+
+        /* --- CINEMATIC ELEMENTS --- */
+        .vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .grain {
+            position: fixed;
+            inset: 0;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        .img-reveal-wrapper {
+            position: relative;
+            overflow: hidden;
+            clip-path: inset(0 100% 0 0);
+            transition: clip-path 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        .img-reveal-wrapper.active { clip-path: inset(0 0 0 0); }
+
+        /* --- BUTTONS --- */
+        .btn-path {
+            padding: 1.5rem 3rem;
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+            color: var(--gold);
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-path:hover {
+            background: var(--gold);
+            color: black;
+            border-color: var(--gold);
+        }
+
+        /* --- CUSTOM CURSOR --- */
+        #custom-cursor {
+            width: 12px; height: 12px;
+            background: var(--gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            mix-blend-mode: difference;
+        }
+
+        /* --- MASKED TEXT --- */
+        .mask-text {
+            overflow: hidden;
+            display: block;
+        }
+
+        .mask-text span {
+            display: block;
+            transform: translateY(110%);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="custom-cursor"></div>
+    <div class="grain"></div>
+    <div class="vignette"></div>
+
+    <div id="journey-line">
+        <div id="journey-progress"></div>
+    </div>
+
+    <nav class="fixed top-0 w-full z-[100] px-12 py-8 flex justify-between items-center">
+        <div class="serif italic text-2xl font-light tracking-tighter">David <span class="text-gold">Ask</span></div>
+        <div class="flex gap-8 items-center">
+            <a href="#optin" class="text-[0.6rem] tracking-[0.4em] uppercase hover:text-gold transition">The Call</a>
+            <div class="w-10 h-[1px] bg-white/20"></div>
+            <button class="text-xl"><i class="bi bi-list"></i></button>
+        </div>
+    </nav>
+
+    <section class="chapter flex-col !justify-center text-center">
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-20">
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-father-and-son-walking-in-a-forest-41135-large.mp4" type="video/mp4">
+        </video>
+        <div class="relative z-10">
+            <span class="text-gold uppercase tracking-[0.8em] text-[0.6rem] mb-8 block opacity-50">The First Step</span>
+            <h1 class="serif text-huge italic px-4">See who he<br>already is.</h1>
+            <p class="serif text-2xl mt-8 max-w-2xl mx-auto opacity-60 font-light italic">
+                “The greatest good you can do for another is not to share with him your riches, but to reveal to him his own.”
+            </p>
+            <div class="mt-20 flex flex-col items-center gap-4">
+                <div class="w-[1px] h-20 bg-gradient-to-b from-transparent to-gold"></div>
+                <span class="text-[0.5rem] tracking-[0.4em] uppercase text-gold">Scroll to begin</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter">
+        <div class="grid lg:grid-cols-2 gap-20 items-center">
+            <div class="img-reveal-wrapper" id="img-1">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=1200" class="w-full h-[80vh] object-cover grayscale">
+            </div>
+            <div class="space-y-10">
+                <h2 class="serif text-6xl italic leading-tight">Building what you<br>never saw modeled.</h2>
+                <div class="h-[1px] w-40 bg-gold"></div>
+                <p class="text-lg text-white/50 leading-loose max-w-md font-light">
+                    Many fathers grew up without open conversations. Now you’re trying to create connection out of silence. That takes more than effort—it takes <strong>intention.</strong>
+                </p>
+                <div class="flex flex-col gap-4 text-sm tracking-widest text-white/40 uppercase">
+                    <span class="flex items-center gap-4"><span class="w-2 h-2 rounded-full bg-gold"></span> Connection over noise</span>
+                    <span class="flex items-center gap-4"><span class="w-2 h-2 rounded-full bg-gold"></span> Guide without lecturing</span>
+                    <span class="flex items-center gap-4"><span class="w-2 h-2 rounded-full bg-gold"></span> Break the cycle</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter bg-[#0c0c0c]">
+        <div class="w-full">
+            <h2 class="serif text-8xl mb-32 opacity-10">The Approach</h2>
+            <div class="grid lg:grid-cols-3 gap-1">
+                <div class="p-16 border border-white/5 hover:bg-white/[0.02] transition-all group">
+                    <span class="text-gold serif italic text-3xl mb-10 block">01 / Notice</span>
+                    <h3 class="text-xl mb-6 uppercase tracking-widest">The Invisible</h3>
+                    <p class="text-white/40 leading-relaxed font-light">Pay attention to his world: what matters to him, what worries him, how he sees himself.</p>
+                </div>
+                <div class="p-16 border border-white/5 hover:bg-white/[0.02] transition-all group">
+                    <span class="text-gold serif italic text-3xl mb-10 block">02 / Name</span>
+                    <h3 class="text-xl mb-6 uppercase tracking-widest">The Language</h3>
+                    <p class="text-white/40 leading-relaxed font-light">Give language to the thoughts and feelings he may not have words for yet.</p>
+                </div>
+                <div class="p-16 border border-white/5 hover:bg-white/[0.02] transition-all group">
+                    <span class="text-gold serif italic text-3xl mb-10 block">03 / Nurture</span>
+                    <h3 class="text-xl mb-6 uppercase tracking-widest">The Identity</h3>
+                    <p class="text-white/40 leading-relaxed font-light">Ask questions that shape resilience and reveal the good already within him.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter flex-col">
+        <div class="mb-20 text-center">
+            <h2 class="serif text-7xl italic">The Experience</h2>
+        </div>
+        <div class="grid grid-cols-12 gap-6 w-full max-w-7xl mx-auto">
+            <div class="col-span-12 lg:col-span-8 h-[600px] relative overflow-hidden group">
+                <img src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=1200" class="w-full h-full object-cover grayscale group-hover:scale-105 transition-transform duration-1000">
+                <div class="absolute inset-0 bg-black/40 p-12 flex flex-col justify-end">
+                    <span class="text-gold uppercase tracking-widest text-xs mb-4">Podcast</span>
+                    <h3 class="serif text-5xl italic text-white">The Ask Experience</h3>
+                </div>
+            </div>
+            <div class="col-span-12 lg:col-span-4 h-[600px] relative overflow-hidden group">
+                <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=1200" class="w-full h-full object-cover grayscale group-hover:scale-105 transition-transform duration-1000">
+                <div class="absolute inset-0 bg-black/40 p-12 flex flex-col justify-end">
+                    <span class="text-gold uppercase tracking-widest text-xs mb-4">The Book</span>
+                    <h3 class="serif text-5xl italic text-white">Guardians of Grit</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter bg-black">
+        <div class="grid lg:grid-cols-2 items-center w-full">
+            <div class="order-2 lg:order-1 pr-20">
+                <span class="text-gold uppercase tracking-widest text-xs block mb-10">The Music</span>
+                <h2 class="serif text-7xl italic leading-none mb-10">Open Arms.</h2>
+                <p class="text-white/50 text-xl font-light italic serif leading-relaxed mb-10">
+                    With a voice likened to Andrea Bocelli, David delivers a bilingual journey—English and Italian—that transcends vocal ability to reach the soul.
+                </p>
+                <a href="https://linktr.ee/davidaskmusic" target="_blank" class="btn-path inline-block">Explore the Sound</a>
+            </div>
+            <div class="order-1 lg:order-2 mb-20 lg:mb-0 relative">
+                <div class="absolute -inset-10 bg-gold/5 blur-3xl rounded-full"></div>
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=1200" class="relative z-10 w-full grayscale border border-white/10 p-4 bg-clay">
+            </div>
+        </div>
+    </section>
+
+    <section id="optin" class="chapter !justify-center text-center">
+        <div class="max-w-4xl">
+            <h2 class="serif text-huge italic text-gold mb-10">Start the<br>Conversation.</h2>
+            <p class="text-xl text-white/40 mb-16 tracking-wide font-light">Join fathers worldwide receiving 10 life-shifting questions weekly.</p>
+            
+            <form class="relative max-w-md mx-auto">
+                <input type="email" placeholder="EMAIL ADDRESS" class="w-full bg-transparent border-b border-white/20 py-6 text-center text-2xl serif focus:outline-none focus:border-gold transition-all">
+                <button type="submit" class="mt-12 btn-path w-full">Join the List</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="py-20 px-12 border-t border-white/5 text-center">
+        <div class="serif italic text-4xl mb-10">David Ask</div>
+        <div class="flex justify-center gap-10 mb-10 text-white/30 text-xs tracking-[0.3em] uppercase">
+            <a href="#" class="hover:text-gold">Spotify</a>
+            <a href="#" class="hover:text-gold">Instagram</a>
+            <a href="#" class="hover:text-gold">LinkedIn</a>
+        </div>
+        <p class="text-[10px] tracking-[0.5em] text-white/20 uppercase">&copy; 2025 The Ask Experience. Built for Fathers.</p>
+    </footer>
+
+    <script>
+        // Smooth Scroll
+        const lenis = new Lenis();
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Journey Progress Line
+        gsap.to("#journey-progress", {
+            height: "100%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.3
+            }
+        });
+
+        // Image Revelations
+        gsap.utils.toArray('.img-reveal-wrapper').forEach(img => {
+            ScrollTrigger.create({
+                trigger: img,
+                start: "top 80%",
+                onEnter: () => img.classList.add('active')
+            });
+        });
+
+        // Cursor
+        const cursor = document.querySelector('#custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, {
+                x: e.clientX,
+                y: e.clientY,
+                duration: 0.6,
+                ease: "power3.out"
+            });
+        });
+
+        // Link hover effect
+        document.querySelectorAll('a, button').forEach(link => {
+            link.addEventListener('mouseenter', () => gsap.to(cursor, { scale: 3, opacity: 0.5 }));
+            link.addEventListener('mouseleave', () => gsap.to(cursor, { scale: 1, opacity: 1 }));
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+@page "/Application/Record={recordId:int}"
+@model BugenceEditConsole.Pages.Application.RecordModel
+@{
+    ViewData["Title"] = "Record";
+    ViewData["BodyClass"] = "page-application-record";
+
+    var columns = Model.Columns;
+    var values = Model.Values;
+}
+
+@section Head {
+<style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --purple:#8b5cf6; }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
+        main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); position:relative; }
+        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background:rgba(6,182,212,0.1); color:var(--accent); }
+        .profile-block { margin-top:auto; padding-top:20px; border-top:1px solid var(--border); position:relative; }
+        .profile-card { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; cursor:pointer; position:relative; }
+        .profile-card .avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#22d3ee); display:grid; place-items:center; font-weight:800; color:#00131a; border:none; }
+        .profile-menu { position:absolute; left:0; right:0; bottom:calc(100% + 8px); background:#0b0e14; border:1px solid var(--border); border-radius:12px; padding:8px 0; display:none; box-shadow:0 20px 40px rgba(0,0,0,0.45); }
+        .profile-card.show .profile-menu { display:block; }
+        .profile-menu a { display:block; padding:8px 12px; color:white; text-decoration:none; font-weight:600; }
+        .profile-menu a:hover { background:rgba(255,255,255,0.05); }
+        .header { margin-bottom:24px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.3rem; margin:0 0 6px; }
+        .header p { margin:0; color:var(--muted); font-size:0.95rem; }
+        .primary-btn { background:var(--accent); color:#00131a; border:none; border-radius:10px; font-weight:700; padding:12px 16px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+        .primary-btn:hover { background:#0891b2; color:white; }
+        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; padding:18px 25px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
+        td { padding:18px 25px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); }
+        tr:last-child td { border-bottom:none; }
+        .muted { color:var(--muted); font-size:0.85rem; }
+        .value-pill { background:rgba(255,255,255,0.06); border:1px solid var(--border); padding:4px 10px; border-radius:999px; font-size:0.75rem; }
+        .drawer { position:fixed; inset:0; display:none; z-index:200; }
+        .drawer.show { display:flex; }
+        .drawer-backdrop { flex:1; background:rgba(2,6,23,0.65); }
+        .drawer-panel { width:min(520px, 92vw); background:#0f172a; border-left:1px solid rgba(148,163,184,0.2); padding:24px; overflow-y:auto; }
+        .drawer-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+        .drawer-header h3 { margin:0; }
+        .form-input { width:100%; background:#111; border:1px solid var(--border); padding:12px 14px; border-radius:8px; color:white; outline:none; transition:0.2s; font-family:inherit; font-size:0.95rem; }
+        .form-input:focus { border-color:var(--accent); }
+        .chip-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+        .chip-btn:hover { border-color:var(--accent); color:white; }
+        .footer-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+        .image-preview { width:120px; height:120px; object-fit:cover; border-radius:10px; border:1px solid var(--border); }
+        @@media (max-width: 900px) { main { padding:32px 24px; } aside { display:none; } }
+    </style>
+}
+
+<div class="header">
+                <div>
+                    <h1>Application Record #@Model.RecordId</h1>
+                    <p>@(Model.RecordFound ? $"Table: {Model.TableName}" : "Record not found.")</p>
+                </div>
+                @if (Model.RecordFound && Model.CanManage)
+                {
+                    <button class="primary-btn" id="openDrawer"><i class="fa-solid fa-plus"></i> New Record</button>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="table-wrapper" style="padding:20px; margin-bottom:16px;">
+                    <div class="muted">@Model.ErrorMessage</div>
+                </div>
+            }
+
+            @if (Model.RecordFound)
+            {
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:30%;">Column</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var column in columns)
+                            {
+                                values.TryGetValue(column.Name, out var value);
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:700;">@column.Name</div>
+                                        <div class="muted">@column.Type</div>
+                                    </td>
+                                    <td>
+                                        @if (string.Equals(column.Type, "image", StringComparison.OrdinalIgnoreCase) && value is string path && !string.IsNullOrWhiteSpace(path))
+                                        {
+                                            <img src="@path" alt="@column.Name" class="image-preview" />
+                                            <div class="muted" style="margin-top:6px;">@path</div>
+                                        }
+                                        else if (value is null)
+                                        {
+                                            <span class="muted">—</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="value-pill">@value</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+
+
+

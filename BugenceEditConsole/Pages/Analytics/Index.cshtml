@@ -1,0 +1,614 @@
+﻿@page
+@model BugenceEditConsole.Pages.Analytics.IndexModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Analytics";
+    ViewData["BodyClass"] = "page-analytics-index";
+
+    string FmtNumber(double n) => n >= 1000 ? $"{n / 1000:0.#}K" : n.ToString("0");
+    string FmtDuration(TimeSpan ts) => ts.TotalHours >= 1 ? ts.ToString(@"h\h\ mm\m") : ts.ToString(@"m\m\ ss\s");
+    string DeltaClass(double value, bool lowerIsBetter = false)
+    {
+        if (Math.Abs(value) < 0.01) return "flat";
+        var positive = value > 0;
+        if (lowerIsBetter) positive = !positive;
+        return positive ? "up" : "down";
+    }
+    string DeltaText(double value)
+    {
+        if (Math.Abs(value) < 0.01) return "0% vs previous period";
+        var sign = value > 0 ? "+" : string.Empty;
+        return $"{sign}{value:0.##}% vs previous period";
+    }
+    string DeviceLabel(string value) => value?.Trim().ToLowerInvariant() switch
+    {
+        "desktop" => "Desktop",
+        "mobile" => "Mobile",
+        "tablet" => "Tablet",
+        _ => "Other"
+    };
+
+    var chartData = new
+    {
+        range = Model.SelectedRange,
+        data24h = Model.Snapshot.Traffic24h,
+        data7d = Model.Snapshot.Traffic7d,
+        data30d = Model.Snapshot.Traffic30d
+    };
+}
+
+@section Head {
+<style>
+    :root { --bg:#040404; --card:#0a0a0a; --border:rgba(255,255,255,.08); --muted:#9aa0ac; --text:#fff; --accent:#06b6d4; }
+    .analytics-shell { padding:30px 36px; }
+    .header-row { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:14px; }
+    .title h1 { margin:0 0 6px; font-family:'Cabinet Grotesk',sans-serif; font-size:2.1rem; }
+    .title p { margin:0; color:var(--muted); }
+    .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .project-select { background:var(--card); border:1px solid var(--border); color:#fff; border-radius:10px; padding:9px 12px; min-width:290px; }
+    .range-link { text-decoration:none; color:var(--muted); border:1px solid var(--border); border-radius:9px; padding:7px 11px; font-weight:700; }
+    .range-link.active { color:#fff; border-color:rgba(125,211,252,.7); background:rgba(56,189,248,.12); }
+    .export-btn { text-decoration:none; background:var(--accent); color:#031018; font-weight:800; border-radius:10px; padding:9px 13px; border:none; display:inline-flex; gap:8px; align-items:center; }
+    .domain-badge { margin-top:8px; display:inline-flex; align-items:center; gap:7px; color:#a5f3fc; border:1px solid rgba(6,182,212,.4); border-radius:999px; padding:4px 10px; font-size:.8rem; }
+
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:18px 0 12px; }
+    .metric { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:0 12px 28px rgba(0,0,0,.4); }
+    .metric-title { text-transform:uppercase; letter-spacing:.06em; font-size:.78rem; color:var(--muted); margin:0 0 6px; }
+    .metric-value { font-family:'Cabinet Grotesk',sans-serif; font-size:1.9rem; margin:0; color:#fff; }
+    .metric-sub { margin-top:4px; font-size:.85rem; font-weight:700; }
+    .metric-sub.up { color:#22c55e; }
+    .metric-sub.down { color:#ef4444; }
+    .metric-sub.flat { color:#94a3b8; }
+    .metric.realtime {
+        background: linear-gradient(145deg, rgba(16,185,129,0.15), rgba(10,10,10,0.85));
+        border-color: rgba(34,197,94,0.4);
+        position: relative;
+        overflow: hidden;
+    }
+    .live-label {
+        display:flex;
+        align-items:center;
+        gap:8px;
+        color:#bbf7d0;
+        letter-spacing:0.1em;
+        font-size:0.78rem;
+        text-transform:uppercase;
+    }
+    .live-dot {
+        width:9px;
+        height:9px;
+        border-radius:50%;
+        background:#22c55e;
+        box-shadow:0 0 10px rgba(34,197,94,0.9);
+        animation:pulseDot 1.6s ease-in-out infinite;
+    }
+    @@keyframes pulseDot {
+        0% { transform: scale(0.95); box-shadow:0 0 8px rgba(34,197,94,0.8); }
+        50% { transform: scale(1.2); box-shadow:0 0 16px rgba(34,197,94,0.9); }
+        100% { transform: scale(0.95); box-shadow:0 0 8px rgba(34,197,94,0.8); }
+    }
+
+    .chip-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:2px; }
+    .chip {
+        background:#0b1016;
+        border:1px solid var(--border);
+        border-radius:10px;
+        padding:10px 12px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    }
+    .chip .label { color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; }
+    .chip .value { color:#fff; font-weight:800; }
+
+    .panel { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; box-shadow:0 14px 30px rgba(0,0,0,.42); }
+    .panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .chart-shell { padding:12px; border-radius:12px; background:linear-gradient(180deg,rgba(59,130,246,.18),rgba(59,130,246,.05)); border:1px solid rgba(255,255,255,.05); }
+    #trafficChart { width:100%; height:260px; }
+
+    .grid { display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-top:12px; }
+    .grid-funnel { display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-top:12px; }
+    .subgrid { display:grid; grid-template-columns:1fr; gap:12px; }
+    .funnel-steps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+    .funnel-step { background:#0b1016; border:1px solid var(--border); border-radius:10px; padding:10px; }
+    .funnel-step .k { color:var(--muted); font-size:.76rem; text-transform:uppercase; letter-spacing:.06em; }
+    .funnel-step .v { color:#fff; font-size:1.25rem; font-weight:800; margin-top:4px; }
+    .funnel-step .d { color:#fca5a5; font-size:.75rem; margin-top:6px; }
+    .ok { color:#22c55e; }
+    .warn { color:#f59e0b; }
+    .bad { color:#ef4444; }
+
+    table { width:100%; border-collapse:collapse; }
+    th, td { border-bottom:1px solid rgba(255,255,255,.06); padding:9px 8px; text-align:left; }
+    th { color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; }
+    .bar { height:6px; background:#1f1f1f; border-radius:6px; position:relative; overflow:hidden; }
+    .bar span { position:absolute; left:0; top:0; bottom:0; border-radius:6px; background:linear-gradient(90deg,#0ea5e9,#3b82f6); }
+
+    .source-legend { display:flex; gap:14px; margin-top:10px; }
+    .source-pill { flex:1; background:#0b0f14; border:1px solid var(--border); border-radius:8px; padding:8px; text-align:center; }
+    .source-pill strong { display:block; font-size:1rem; }
+    .source-pill span { color:var(--muted); font-size:.75rem; }
+
+    .empty { background:var(--card); border:1px dashed rgba(255,255,255,.25); border-radius:14px; padding:22px; margin-top:14px; }
+    .empty h3 { margin:0 0 8px; }
+    .empty p { margin:0 0 14px; color:var(--muted); }
+    .empty a { display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:var(--accent); color:#031018; font-weight:800; padding:10px 14px; border-radius:10px; }
+
+    .meta-line { color:var(--muted); font-size:.84rem; margin-top:4px; }
+
+    @@media (max-width: 1100px) {
+        .analytics-shell { padding:16px 12px; }
+        .header-row { flex-direction:column; align-items:stretch; }
+        .project-select { min-width:0; width:100%; }
+        .metrics { grid-template-columns:1fr; }
+        .grid { grid-template-columns:1fr; }
+        .grid-funnel { grid-template-columns:1fr; }
+        .funnel-steps { grid-template-columns:1fr; }
+        .chip-row { grid-template-columns:1fr; }
+    }
+</style>
+}
+
+<div class="analytics-shell">
+    <div class="header-row">
+        <div class="title">
+            <h1>Analytics</h1>
+            <p>Real-time traffic and performance insights per connected project domain.</p>
+            @if (Model.HasEligibleProjects)
+            {
+                <div class="domain-badge"><i class="fa-solid fa-globe"></i> @Model.SelectedDomainName</div>
+                <div class="meta-line" id="lastEventSeenLabel">Last event seen: @(Model.Snapshot.LastEventSeenUtc?.ToLocalTime().ToString("MMM d, h:mm tt") ?? "No events yet")</div>
+            }
+        </div>
+
+        @if (Model.HasEligibleProjects)
+        {
+            <div class="controls">
+                <form method="get" id="projectSwitchForm">
+                    <input type="hidden" name="range" value="@Model.SelectedRange" />
+                    <select id="projectId" name="projectId" class="project-select" onchange="this.form.submit()">
+                        @foreach (var project in Model.Projects)
+                        {
+                            if (project.Id == Model.SelectedProjectId)
+                            {
+                                <option value="@project.Id" selected>@project.Name • @project.DomainName</option>
+                            }
+                            else
+                            {
+                                <option value="@project.Id">@project.Name • @project.DomainName</option>
+                            }
+                        }
+                    </select>
+                </form>
+
+                <a class="range-link @(Model.SelectedRange == "24h" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=24h">24H</a>
+                <a class="range-link @(Model.SelectedRange == "7d" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=7d">7D</a>
+                <a class="range-link @(Model.SelectedRange == "30d" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=30d">30D</a>
+
+                <a class="export-btn" href="?handler=Export&projectId=@Model.SelectedProjectId&range=@Model.SelectedRange"><i class="fa-solid fa-download"></i> Export CSV</a>
+            </div>
+        }
+    </div>
+
+    @if (!Model.HasEligibleProjects)
+    {
+        <div class="empty">
+            <h3>No eligible project found</h3>
+            <p>Analytics appears after a project has a custom domain connected with active SSL.</p>
+            <a href="/Settings/Domains"><i class="fa-solid fa-link"></i> Connect a Custom Domain</a>
+        </div>
+    }
+    else
+    {
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-title">Unique Visitors</div>
+                <div class="metric-value" id="kpiUniqueVisitors">@FmtNumber(Model.Snapshot.Current.UniqueVisitors)</div>
+                <div class="metric-sub @DeltaClass(Model.UniqueVisitorsDeltaPercent)" id="kpiUniqueDelta">@DeltaText(Model.UniqueVisitorsDeltaPercent)</div>
+            </div>
+            <div class="metric">
+                <div class="metric-title">Avg. Session Duration</div>
+                <div class="metric-value" id="kpiAvgSession">@FmtDuration(Model.Snapshot.Current.AvgSession)</div>
+                <div class="metric-sub @DeltaClass(Model.AvgSessionDeltaPercent)" id="kpiAvgDelta">@DeltaText(Model.AvgSessionDeltaPercent)</div>
+            </div>
+            <div class="metric">
+                <div class="metric-title">Bounce Rate</div>
+                <div class="metric-value" id="kpiBounceRate">@Model.Snapshot.Current.BounceRatePercent.ToString("0.##")%</div>
+                <div class="metric-sub @DeltaClass(Model.BounceRateDeltaPercent, lowerIsBetter: true)" id="kpiBounceDelta">@DeltaText(Model.BounceRateDeltaPercent)</div>
+            </div>
+            <div class="metric realtime">
+                <div class="metric-title live-label"><span class="live-dot"></span> Active Users Right Now</div>
+                <div class="metric-value" id="kpiActiveUsers">@Model.Snapshot.ActiveUsersNow.ToString("N0")</div>
+                <div class="metric-sub flat">Pageviews per minute: <strong id="kpiPpm">@Model.Snapshot.PageviewsPerMinute.ToString("N0")</strong></div>
+            </div>
+        </div>
+
+        <div class="chip-row">
+            <div class="chip"><span class="label">Pageviews</span><span class="value" id="kpiPageviews">@FmtNumber(Model.Snapshot.Current.Pageviews)</span></div>
+            <div class="chip"><span class="label">Sessions</span><span class="value" id="kpiSessions">@FmtNumber(Model.Snapshot.Current.Sessions)</span></div>
+            <div class="chip"><span class="label">Conversions</span><span class="value" id="kpiConversions">@FmtNumber(Model.Snapshot.ConversionCount)</span></div>
+            <div class="chip"><span class="label">Conversion Rate</span><span class="value" id="kpiConversionRate">@Model.Snapshot.ConversionRatePercent.ToString("0.##")%</span></div>
+            <div class="chip"><span class="label">Leads / 100 Sessions</span><span class="value" id="kpiLeadsPer100">@Model.Snapshot.LeadsPer100Sessions.ToString("0.##")</span></div>
+            <div class="chip"><span class="label">Overall Funnel Conversion</span><span class="value">@Model.Snapshot.Funnel.OverallConversionRatePercent.ToString("0.##")%</span></div>
+        </div>
+
+        <div class="chip-row" style="margin-top:12px;">
+            <div class="chip"><span class="label">Conversion Delta</span><span class="value @DeltaClass(Model.ConversionDeltaPercent)" id="kpiConversionDelta">@DeltaText(Model.ConversionDeltaPercent)</span></div>
+            <div class="chip"><span class="label">Conv. Rate Delta</span><span class="value @DeltaClass(Model.ConversionRateDeltaPercent)" id="kpiConversionRateDelta">@DeltaText(Model.ConversionRateDeltaPercent)</span></div>
+            <div class="chip"><span class="label">Leads/100 Delta</span><span class="value @DeltaClass(Model.LeadsPer100DeltaPercent)" id="kpiLeadsPer100Delta">@DeltaText(Model.LeadsPer100DeltaPercent)</span></div>
+            <div class="chip">
+                <span class="label">Tracking Status</span>
+                <span class="value @(Model.Readiness.HasTraffic ? (Model.Readiness.HasConversions ? "ok" : "warn") : "bad")">
+                    @(Model.Readiness.HasTraffic ? (Model.Readiness.HasConversions ? "Healthy" : "Traffic only") : "No traffic")
+                </span>
+            </div>
+        </div>
+
+        @if (Model.Readiness.HasTraffic && !Model.Readiness.HasConversions)
+        {
+            <div class="empty" style="margin-top:12px; border-style:solid; border-color:rgba(245,158,11,.3);">
+                <h3 style="margin-bottom:6px;">Traffic detected, no conversions yet.</h3>
+                <p style="margin-bottom:0;">Submit the project contact form once on the live domain to validate conversion tracking.</p>
+            </div>
+        }
+
+        <div class="panel" style="margin-top:12px;">
+            <div class="panel-head">
+                <h3 style="margin:0;">Traffic Overview</h3>
+                <span class="meta-line">Window: @Model.SelectedRange.ToUpperInvariant()</span>
+            </div>
+            <div class="chart-shell">
+                <svg id="trafficChart" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-label="Traffic trend chart">
+                    <defs>
+                        <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.55"/>
+                            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.05"/>
+                        </linearGradient>
+                    </defs>
+                    <path id="areaPath" d="" fill="url(#lineGradient)" stroke="none"></path>
+                    <path id="linePath" d="" fill="none" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="grid-funnel">
+            <div class="panel">
+                <h4 style="margin:0 0 10px;">Conversion Funnel</h4>
+                @if (Model.Snapshot.Funnel.Steps.Count == 0)
+                {
+                    <div class="meta-line">No funnel activity in this range.</div>
+                }
+                else
+                {
+                    <div class="funnel-steps">
+                        @foreach (var step in Model.Snapshot.Funnel.Steps)
+                        {
+                            <div class="funnel-step">
+                                <div class="k">@step.Label</div>
+                                <div class="v">@step.Sessions.ToString("N0")</div>
+                                <div class="d">Drop-off: @step.DropoffCount.ToString("N0") (@step.DropoffPercent.ToString("0.##")%)</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="panel">
+                <h4 style="margin:0 0 10px;">Tracking Readiness</h4>
+                <table>
+                    <tbody>
+                        <tr><td>Domain Connected</td><td>@(Model.Readiness.DomainConnected ? "Yes" : "No")</td></tr>
+                        <tr><td>SSL Active</td><td>@(Model.Readiness.SslActive ? "Yes" : "No")</td></tr>
+                        <tr><td>Traffic Seen</td><td>@(Model.Readiness.HasTraffic ? "Yes" : "No")</td></tr>
+                        <tr><td>Conversions Seen</td><td>@(Model.Readiness.HasConversions ? "Yes" : "No")</td></tr>
+                        <tr><td>Tracker Active</td><td>@(Model.Readiness.TrackerLikelyActive ? "Likely" : "Check publish")</td></tr>
+                    </tbody>
+                </table>
+                <div class="meta-line" style="margin-top:8px;">@Model.Readiness.StatusText</div>
+                <div class="meta-line">Last event: @(Model.Readiness.LastEventSeenUtc?.ToLocalTime().ToString("MMM d, h:mm tt") ?? "No events yet")</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="panel">
+                <h4 style="margin:0 0 10px;">Top Pages</h4>
+                <table>
+                    <thead>
+                        <tr><th>Page</th><th>Visits</th><th>Share</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Snapshot.TopPages.Count == 0)
+                        {
+                            <tr><td colspan="3" class="meta-line">No traffic yet for this range.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.Snapshot.TopPages)
+                            {
+                                <tr>
+                                    <td><span style="color:#67e8f9;">@item.Path</span></td>
+                                    <td>@item.Visits.ToString("N0")</td>
+                                    <td><div class="bar"><span style="width:@item.Percent.ToString("0.##")%;"></span></div></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subgrid">
+                <div class="panel">
+                    <h4 style="margin:0 0 10px;">Traffic Source</h4>
+                    <div class="source-legend">
+                        <div class="source-pill"><strong>@Model.Snapshot.Sources.NaPercent%</strong><span>North America</span></div>
+                        <div class="source-pill"><strong>@Model.Snapshot.Sources.EuPercent%</strong><span>Europe</span></div>
+                        <div class="source-pill"><strong>@Model.Snapshot.Sources.AsiaPercent%</strong><span>Asia</span></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h4 style="margin:0 0 10px;">Top Referrers</h4>
+                    <table>
+                        <thead><tr><th>Referrer</th><th>Visits</th></tr></thead>
+                        <tbody>
+                            @if (Model.TopReferrers.Count == 0)
+                            {
+                                <tr><td colspan="2" class="meta-line">No referrer data in this range.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var item in Model.TopReferrers)
+                                {
+                                    <tr><td>@item.Host</td><td>@item.Visits.ToString("N0")</td></tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <h4 style="margin:0 0 10px;">Conversion Referrers</h4>
+                    <table>
+                        <thead><tr><th>Referrer</th><th>Conversions</th></tr></thead>
+                        <tbody>
+                            @if (Model.ConversionReferrers.Count == 0)
+                            {
+                                <tr><td colspan="2" class="meta-line">No conversion referrer data in this range.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var item in Model.ConversionReferrers)
+                                {
+                                    <tr><td>@item.Host</td><td>@item.Visits.ToString("N0")</td></tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <h4 style="margin:0 0 10px;">Top Countries</h4>
+                    <table>
+                        <thead><tr><th>Country</th><th>Visits</th><th>Share</th></tr></thead>
+                        <tbody>
+                            @if (Model.TopCountries.Count == 0)
+                            {
+                                <tr><td colspan="3" class="meta-line">No country data in this range.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var item in Model.TopCountries)
+                                {
+                                    <tr>
+                                        <td>@item.Label (@item.Code)</td>
+                                        <td>@item.Visits.ToString("N0")</td>
+                                        <td><div class="bar"><span style="width:@item.Percent.ToString("0.##")%;"></span></div></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <h4 style="margin:0 0 10px;">Conversion Countries</h4>
+                    <table>
+                        <thead><tr><th>Country</th><th>Conversions</th><th>Share</th></tr></thead>
+                        <tbody>
+                            @if (Model.ConversionCountries.Count == 0)
+                            {
+                                <tr><td colspan="3" class="meta-line">No conversion country data in this range.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var item in Model.ConversionCountries)
+                                {
+                                    <tr>
+                                        <td>@item.Label (@item.Code)</td>
+                                        <td>@item.Visits.ToString("N0")</td>
+                                        <td><div class="bar"><span style="width:@item.Percent.ToString("0.##")%;"></span></div></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <h4 style="margin:0 0 10px;">Conversion Devices</h4>
+                    <table>
+                        <thead><tr><th>Device</th><th>Conversions</th><th>Share</th></tr></thead>
+                        <tbody>
+                            @if (Model.ConversionDevices.Count == 0)
+                            {
+                                <tr><td colspan="3" class="meta-line">No conversion device data in this range.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var item in Model.ConversionDevices)
+                                {
+                                    <tr>
+                                        <td>@DeviceLabel(item.DeviceType)</td>
+                                        <td>@item.Conversions.ToString("N0")</td>
+                                        <td><div class="bar"><span style="width:@item.Percent.ToString("0.##")%;"></span></div></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <h4 style="margin:0 0 10px;">Device Types</h4>
+                    <table>
+                        <thead><tr><th>Device</th><th>Visits</th><th>Share</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>Desktop</td>
+                                <td>@Model.Devices.Desktop.ToString("N0")</td>
+                                <td><div class="bar"><span style="width:@Model.Devices.DesktopPercent.ToString("0.#")%;"></span></div></td>
+                            </tr>
+                            <tr>
+                                <td>Mobile</td>
+                                <td>@Model.Devices.Mobile.ToString("N0")</td>
+                                <td><div class="bar"><span style="width:@Model.Devices.MobilePercent.ToString("0.#")%;"></span></div></td>
+                            </tr>
+                            <tr>
+                                <td>Tablet</td>
+                                <td>@Model.Devices.Tablet.ToString("N0")</td>
+                                <td><div class="bar"><span style="width:@Model.Devices.TabletPercent.ToString("0.#")%;"></span></div></td>
+                            </tr>
+                            @if (Model.Devices.Other > 0)
+                            {
+                                <tr>
+                                    <td>Other</td>
+                                    <td>@Model.Devices.Other.ToString("N0")</td>
+                                    <td><div class="bar"><span style="width:@Model.Devices.OtherPercent.ToString("0.#")%;"></span></div></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+(() => {
+    if (!document.body.classList.contains('page-analytics-index')) return;
+
+    const payload = @Html.Raw(JsonSerializer.Serialize(chartData));
+    const selectedProjectId = @Model.SelectedProjectId;
+    const activeRange = (payload?.range || '30d').toLowerCase();
+    const series = activeRange === '24h' ? (payload?.data24h || []) : (activeRange === '7d' ? (payload?.data7d || []) : (payload?.data30d || []));
+
+    const lp = document.getElementById('linePath');
+    const ap = document.getElementById('areaPath');
+    if (lp && ap && Array.isArray(series) && series.length > 0) {
+        const width = 1000;
+        const base = 240;
+        const min = Math.min(...series);
+        const max = Math.max(...series);
+        const span = Math.max(1, max - min);
+        const step = width / Math.max(1, series.length - 1);
+
+        const points = series.map((n, i) => {
+            const x = i * step;
+            const y = base - (((n - min) / span) * 180);
+            return [x, y];
+        });
+
+        const linePath = points.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' ');
+        const areaPath = `M0 ${base} ${points.map((p) => `L${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' ')} L${width} ${base} Z`;
+
+        lp.setAttribute('d', linePath);
+        ap.setAttribute('d', areaPath);
+    }
+
+    const numFmt = (n) => {
+        if (!Number.isFinite(n)) return '0';
+        return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K` : Math.round(n).toString();
+    };
+    const secFmt = (seconds) => {
+        const safe = Math.max(0, Math.round(Number(seconds) || 0));
+        const h = Math.floor(safe / 3600);
+        const m = Math.floor((safe % 3600) / 60);
+        const s = safe % 60;
+        if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
+        return `${m}m ${String(s).padStart(2, '0')}s`;
+    };
+    const deltaText = (value) => {
+        const n = Number(value) || 0;
+        if (Math.abs(n) < 0.01) return '0% vs previous period';
+        return `${n > 0 ? '+' : ''}${n.toFixed(2).replace(/\.00$/, '')}% vs previous period`;
+    };
+    const setDeltaClass = (el, value, lowerIsBetter = false) => {
+        if (!el) return;
+        el.classList.remove('up', 'down', 'flat');
+        const n = Number(value) || 0;
+        if (Math.abs(n) < 0.01) {
+            el.classList.add('flat');
+            return;
+        }
+        let positive = n > 0;
+        if (lowerIsBetter) positive = !positive;
+        el.classList.add(positive ? 'up' : 'down');
+    };
+    const toLocalLabel = (iso) => {
+        if (!iso) return 'No events yet';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return 'No events yet';
+        return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    };
+
+    const tick = async () => {
+        try {
+            const url = `/Analytics?handler=Live&projectId=${encodeURIComponent(String(selectedProjectId))}&range=${encodeURIComponent(activeRange)}`;
+            const r = await fetch(url, { credentials: 'same-origin' });
+            const p = await r.json().catch(() => null);
+            if (!r.ok || !p?.success) return;
+
+            const uv = document.getElementById('kpiUniqueVisitors');
+            const uvd = document.getElementById('kpiUniqueDelta');
+            const av = document.getElementById('kpiAvgSession');
+            const avd = document.getElementById('kpiAvgDelta');
+            const br = document.getElementById('kpiBounceRate');
+            const brd = document.getElementById('kpiBounceDelta');
+            const au = document.getElementById('kpiActiveUsers');
+            const ppm = document.getElementById('kpiPpm');
+            const pv = document.getElementById('kpiPageviews');
+            const ss = document.getElementById('kpiSessions');
+            const cv = document.getElementById('kpiConversions');
+            const cr = document.getElementById('kpiConversionRate');
+            const lp100 = document.getElementById('kpiLeadsPer100');
+            const cvd = document.getElementById('kpiConversionDelta');
+            const crd = document.getElementById('kpiConversionRateDelta');
+            const lpd = document.getElementById('kpiLeadsPer100Delta');
+            const ls = document.getElementById('lastEventSeenLabel');
+
+            if (uv) uv.textContent = numFmt(Number(p.uniqueVisitors));
+            if (uvd) { uvd.textContent = deltaText(Number(p.uniqueVisitorsDelta)); setDeltaClass(uvd, Number(p.uniqueVisitorsDelta)); }
+            if (av) av.textContent = secFmt(Number(p.avgSessionSeconds));
+            if (avd) { avd.textContent = deltaText(Number(p.avgSessionDelta)); setDeltaClass(avd, Number(p.avgSessionDelta)); }
+            if (br) br.textContent = `${(Number(p.bounceRate) || 0).toFixed(2).replace(/\.00$/, '')}%`;
+            if (brd) { brd.textContent = deltaText(Number(p.bounceRateDelta)); setDeltaClass(brd, Number(p.bounceRateDelta), true); }
+            if (au) au.textContent = (Number(p.activeUsers) || 0).toLocaleString();
+            if (ppm) ppm.textContent = (Number(p.pageviewsPerMinute) || 0).toLocaleString();
+            if (pv) pv.textContent = numFmt(Number(p.pageviews));
+            if (ss) ss.textContent = numFmt(Number(p.sessions));
+            if (cv) cv.textContent = numFmt(Number(p.conversions));
+            if (cr) cr.textContent = `${(Number(p.conversionRate) || 0).toFixed(2).replace(/\.00$/, '')}%`;
+            if (lp100) lp100.textContent = (Number(p.leadsPer100) || 0).toFixed(2).replace(/\.00$/, '');
+            if (cvd) { cvd.textContent = deltaText(Number(p.conversionDelta)); setDeltaClass(cvd, Number(p.conversionDelta)); }
+            if (crd) { crd.textContent = deltaText(Number(p.conversionRateDelta)); setDeltaClass(crd, Number(p.conversionRateDelta)); }
+            if (lpd) { lpd.textContent = deltaText(Number(p.leadsPer100Delta)); setDeltaClass(lpd, Number(p.leadsPer100Delta)); }
+            if (ls) ls.textContent = `Last event seen: ${toLocalLabel(p.lastEventSeenUtc)}`;
+        } catch {
+        }
+    };
+
+    setInterval(tick, 12000);
+})();
+</script>
+}

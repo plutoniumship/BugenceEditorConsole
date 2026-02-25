@@ -1,0 +1,855 @@
+﻿@page
+@using System.Linq
+@model BugenceEditConsole.Pages.Content.LibraryModel
+@{
+    ViewData["Title"] = "Content Library";
+    ViewData["BodyClass"] = "bg-canvas library-dark";
+
+    var pulse = Model.Pulse;
+    var lastUpdateLabel = pulse.LastUpdatedUtc is { } lastUtc
+        ? lastUtc.ToLocalTime().ToString("MMM dd, yyyy - HH:mm")
+        : "Awaiting first publish";
+
+    var spotlight = Model.Spotlight;
+    var hasPages = Model.Pages.Any();
+    var trending = Model.Pages
+        .OrderByDescending(p => p.UpdatedAtUtc)
+        .Take(3)
+        .ToList();
+    var lastUpdateIso = pulse.LastUpdatedUtc?.ToString("O");
+}
+
+<section class="space-y-8 lg:space-y-10" data-library-console>
+    <!-- Hero / Metrics Card -->
+    <header class="bg-white rounded-2xl border border-black/10 shadow-sm relative overflow-hidden">
+        <span class="pointer-events-none absolute inset-0 opacity-[.06] bg-[radial-gradient(80rem_50rem_at_80%_-10%,#fb923c_0%,transparent_50%)]"></span>
+        <div class="relative p-6 lg:p-8 grid gap-6 lg:grid-cols-[minmax(0,1fr),minmax(0,520px)] lg:items-center">
+            <div class="space-y-3">
+                <span class="inline-flex items-center gap-2 rounded-full bg-black/5 px-3 py-1 text-[13px] text-black">
+                    <span class="fa-solid fa-books"></span>
+                    Page Library
+                </span>
+                <h1 class="font-display text-3xl lg:text-4xl font-black text-black tracking-tight">Command every narrative surface across the Bugence orbit.</h1>
+                <p class="max-w-2xl text-sm leading-relaxed text-black/70">
+                    Audit modules, refine copy, and synchronize visuals with the same console that powers live hero experiments.
+                    Deploy within minutes, backed by audit trails and concierge-grade rollbacks.
+                </p>
+                <div class="flex flex-wrap gap-3 pt-1">
+                        <span class="fa-solid fa-eye"></span>
+                        Live preview
+                    </a>
+                    <a asp-page="/Content/EditBySlug" asp-route-slug="index" class="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black hover:border-black/20">
+                        <span class="fa-solid fa-gauge-high"></span>
+                        Jump to Index
+                    </a>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="rounded-xl border border-black/10 bg-white p-4">
+                    <span class="text-[12px] font-semibold tracking-wide text-black/60">Total modules</span>
+                    <strong class="block mt-1 text-3xl font-black text-black" data-library-metric="totalPages">@pulse.TotalPages</strong>
+                    <p class="text-[12px] text-black/60">Indexed across the Bugence storyline.</p>
+                </div>
+                <div class="rounded-xl border border-black/10 bg-white p-4">
+                    <span class="text-[12px] font-semibold tracking-wide text-black/60">Content blocks</span>
+                    <strong class="block mt-1 text-3xl font-black text-black" data-library-metric="totalSections">@pulse.TotalSections</strong>
+                    <p class="text-[12px] text-black/60">Combined text and visual surfaces.</p>
+                </div>
+                <div class="rounded-xl border border-black/10 bg-white p-4">
+                    <span class="text-[12px] font-semibold tracking-wide text-black/60">Active this week</span>
+                    <strong class="block mt-1 text-3xl font-black text-black" data-library-metric="activePastWeek">@pulse.ActivePastWeek</strong>
+                    <p class="text-[12px] text-black/60">Refreshed within the last seven days.</p>
+                </div>
+                <div class="rounded-xl border border-black/10 bg-white p-4">
+                    <span class="text-[12px] font-semibold tracking-wide text-black/60">Latest publish</span>
+                    <strong class="block mt-1 text-[15px] font-semibold text-black" data-library-metric="latestUpdate" data-library-latest="@lastUpdateIso">@lastUpdateLabel</strong>
+                    <p class="text-[12px] text-black/60">Recorded in mission telemetry.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Row: Search + Spotlight -->
+    <div class="grid gap-6 lg:gap-8 lg:grid-cols-3">
+        <!-- Search / Trending Card -->
+        <section class="lg:col-span-2 bg-white rounded-2xl border border-black/10 shadow-sm">
+            <header class="flex items-start justify-between gap-4 p-5 border-b border-black/10">
+                <div>
+                    <span class="block text-[12px] font-semibold tracking-wide text-black/60">Query the library</span>
+                    <h2 class="font-display text-xl font-bold text-black">Find a mission module</h2>
+                    <p class="text-[13px] text-black/60">Search by page name, slug, description, or experiment.</p>
+                </div>
+            </header>
+            <div class="p-5">
+                <form method="get" class="grid gap-3 md:grid-cols-[1fr_auto]">
+                    <label class="sr-only" for="term">Search content library</label>
+                    <div class="flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-2.5">
+                        <span class="fa-solid fa-magnifying-glass text-black/60"></span>
+                        <input type="search" id="term" name="term" value="@Model.Term" autocomplete="off"
+                               placeholder="Search by name, slug, description, or experiment"
+                               class="flex-1 outline-none text-sm text-black placeholder:text-black/40" />
+                        @if (!string.IsNullOrWhiteSpace(Model.Term))
+                        {
+                            <a asp-page="./Library" class="text-black/60 hover:text-black" aria-label="Clear search">
+                                <span class="fa-solid fa-circle-xmark"></span>
+                            </a>
+                        }
+                    </div>
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-full bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-700">
+                        <span class="fa-solid fa-arrow-right"></span>
+                        Filter narratives
+                    </button>
+                </form>
+
+                @if (trending.Any())
+                {
+                    <div class="mt-4">
+                        <span class="text-[12px] font-semibold tracking-wide text-black/60">Trending missions</span>
+                        <div class="mt-2 flex flex-wrap gap-2" data-library-trending>
+                            @foreach (var module in trending)
+                            {
+                                <a asp-page="./Library" asp-route-term="@module.Name"
+                                   class="inline-flex items-center gap-2 rounded-full border border-black/15 bg-black/[.03] px-3 py-1.5 text-[13px] text-black hover:bg-black/[.06]"
+                                   data-library-chip
+                                   data-library-term="@module.Name"
+                                   data-page-id="@module.Id"
+                                   data-page-updated="@module.UpdatedAtUtc.ToUniversalTime().ToString("O")">
+                                    <span class="fa-solid fa-sparkles" aria-hidden="true"></span>
+                                    @module.Name
+                                    <span class="text-black/50">@module.UpdatedAtUtc.ToLocalTime().ToString("MMM dd | HH:mm")</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <!-- Spotlight Card -->
+        <section class="bg-white rounded-2xl border border-black/10 shadow-sm">
+            <header class="flex items-start justify-between gap-4 p-5 border-b border-black/10">
+                <div>
+                    <span class="block text-[12px] font-semibold tracking-wide text-black/60">Spotlight module</span>
+                    <h2 class="font-display text-xl font-bold text-black">@(spotlight is not null ? spotlight.Name : "No spotlight yet")</h2>
+                    <p class="text-[13px] text-black/60">@(spotlight?.Description ?? "Add your first page to light up the library analytics.")</p>
+                </div>
+            </header>
+            <div class="p-5">
+                @if (spotlight is not null)
+                {
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-xl border border-black/10 bg-white p-3">
+                            <span class="text-[12px] font-semibold tracking-wide text-black/60">@spotlight.MetricLabel</span>
+                            <strong class="block mt-1 text-xl text-black">@spotlight.MetricValue</strong>
+                            <p class="text-[12px] text-black/60">Revised @(spotlight.UpdatedAtUtc.ToLocalTime().ToString("MMM dd 'at' HH:mm"))</p>
+                        </div>
+                        <div class="rounded-xl border border-black/10 bg-white p-3">
+                            <span class="text-[12px] font-semibold tracking-wide text-black/60">Status</span>
+                            <strong class="block mt-1 text-xl @(spotlight.IsFresh ? "text-orange-700" : "text-black")">
+                                @(spotlight.IsFresh ? "Fresh update" : "Stable orbit")
+                            </strong>
+                            <p class="text-[12px] text-black/60">@(spotlight.IsFresh ? "Touched within the last 48 hours" : "Ready for the next orchestration")</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <a href="@Url.Content($"/content/canvas/{spotlight.PageId}")" target="_blank" rel="noopener"
+                           class="inline-flex items-center gap-2 rounded-full bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-700">
+                            <span class="fa-solid fa-pen-to-square"></span>
+                            Edit in canvas
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="flex items-start gap-3 rounded-xl border border-black/10 bg-black/[.02] p-4">
+                        <span class="fa-solid fa-seedling mt-0.5"></span>
+                        <div>
+                            <p class="font-semibold text-black">Nothing highlighted yet</p>
+                            <span class="text-[13px] text-black/60">Publish a page update to feature it here automatically.</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+
+    <!-- Catalog + Sidebar -->
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1.9fr),320px]">
+        <!-- Pages Panel -->
+        <article class="bg-white rounded-2xl border border-black/10 shadow-sm">
+            <header class="flex items-start justify-between gap-4 p-5 border-b border-black/10">
+                <div>
+                    <span class="block text-[12px] font-semibold tracking-wide text-black/60">Mission catalog</span>
+                    <h2 class="font-display text-xl font-bold text-black">Every surface in a single control room.</h2>
+                    <p class="text-[13px] text-black/60">Jump into editing, review inventories, or stage the live preview without leaving mission control.</p>
+                </div>
+                <div class="text-right">
+                    <span class="block text-[12px] text-black/60">Total pages</span>
+                    <strong class="text-2xl font-black text-black" data-library-count>@pulse.TotalPages</strong>
+                </div>
+            </header>
+
+            <!-- Sort / Filter Controls -->
+            <div class="flex flex-col gap-3 p-5 lg:flex-row lg:items-center lg:justify-between" data-library-controls>
+                <div class="flex items-center gap-3">
+                    <span class="text-[12px] text-black/60">Sort by</span>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" data-library-sort="recent" data-state="active" class="px-3 py-1.5 rounded-full border border-black/10 text-sm hover:bg-black/[.03] text-black">
+                            <span class="fa-solid fa-bolt mr-1"></span>
+                            Recent activity
+                        </button>
+                        <button type="button" data-library-sort="sections" class="px-3 py-1.5 rounded-full border border-black/10 text-sm hover:bg-black/[.03] text-black">
+                            <span class="fa-solid fa-layer-group mr-1"></span>
+                            Section volume
+                        </button>
+                        <button type="button" data-library-sort="alphabetical" class="px-3 py-1.5 rounded-full border border-black/10 text-sm hover:bg-black/[.03] text-black">
+                            <span class="fa-solid fa-font mr-1"></span>
+                            A → Z
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-[12px] text-black/60">Focus</span>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" data-library-filter="all" data-state="active" class="px-3 py-1.5 rounded-full border border-black/10 text-sm hover:bg-black/[.03] text-black">
+                            <span class="fa-solid fa-asterisk mr-1"></span>
+                            All
+                        </button>
+                        <button type="button" data-library-filter="fresh" class="px-3 py-1.5 rounded-full border border-black/10 text-sm hover:bg-black/[.03] text-black">
+                            <span class="fa-solid fa-sparkles mr-1"></span>
+                            Fresh
+                        </button>
+                        <button type="button" data-library-filter="stale" class="px-3 py-1.5 rounded-full border border-black/10 text-sm hover:bg-black/[.03] text-black">
+                            <span class="fa-regular fa-moon mr-1"></span>
+                            Needs touch
+                        </button>
+                        <button type="button" data-library-filter="unpublished" class="px-3 py-1.5 rounded-full border border-black/10 text-sm hover:bg-black/[.03] text-black">
+                            <span class="fa-regular fa-circle-dot mr-1"></span>
+                            Draft only
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pages Grid -->
+            <div class="grid gap-5 p-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3" data-library-page-list @(hasPages ? "" : "hidden")>
+                @foreach (var entry in Model.Pages)
+                {
+                    var publishedLabel = entry.LastPublishedAtUtc?.ToLocalTime().ToString("MMM dd, yyyy") ?? "Draft only";
+                     <article class="rounded-2xl border border-black/10 bg-white p-5 shadow-xs hover:border-black/20 transition"
+                             data-page-id="@entry.Id"
+                             data-page-name="@entry.Name"
+                             data-page-slug="@entry.Slug"
+                             data-page-description="@entry.Description"
+                             data-page-updated="@entry.UpdatedAtUtc.ToUniversalTime().ToString("O")"
+                             data-page-published="@entry.LastPublishedAtUtc?.ToUniversalTime().ToString("O")"
+                             data-page-sections="@entry.SectionCount"
+                             data-page-text="@entry.TextSections"
+                             data-page-images="@entry.ImageSections">
+                        <header class="mb-3">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-black/5 px-2.5 py-1 text-[11px] text-black">@entry.Slug</span>
+                            <h3 class="mt-2 font-semibold text-black">@entry.Name</h3>
+                            <p class="text-[13px] text-black/70">@entry.Description</p>
+                        </header>
+                        <dl class="grid grid-cols-3 gap-3 text-center">
+                            <div class="rounded-lg border border-black/10 bg-black/[.02] p-2">
+                                <dt class="text-[11px] text-black/60">Sections</dt>
+                                <dd class="font-semibold text-black">@entry.SectionCount</dd>
+                            </div>
+                            <div class="rounded-lg border border-black/10 bg-black/[.02] p-2">
+                                <dt class="text-[11px] text-black/60">Text frames</dt>
+                                <dd class="font-semibold text-black">@entry.TextSections</dd>
+                            </div>
+                            <div class="rounded-lg border border-black/10 bg-black/[.02] p-2">
+                                <dt class="text-[11px] text-black/60">Imagery slots</dt>
+                                <dd class="font-semibold text-black">@entry.ImageSections</dd>
+                            </div>
+                        </dl>
+                        <footer class="mt-3 flex items-end justify-between gap-3">
+                            <div class="text-[12px] text-black/70">
+                                <span class="block">Updated <time>@entry.UpdatedAtUtc.ToLocalTime().ToString("MMM dd, yyyy")</time></span>
+                                <span class="block">@entry.UpdatedAtUtc.ToLocalTime().ToString("HH:mm 'local'")</span>
+                                <span class="block">Last publish: @publishedLabel</span>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <a href="@Url.Content($"/content/canvas/{entry.Id}")" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-full bg-orange-600 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-700">
+                                    <span class="fa-solid fa-pen-to-square"></span>
+                                    Edit
+                                </a>
+                                <!-- 3rd button (Details) with BLACK text for visibility -->
+                                <button type="button" class="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-black hover:border-black/20" data-library-inspect="@entry.Id" aria-label="Open details for @entry.Name">
+                                    <span class="fa-solid fa-circle-info"></span>
+                                    Details
+                                </button>
+                            </div>
+                        </footer>
+                    </article>
+                }
+            </div>
+
+            <div class="p-6" data-library-empty @(hasPages ? "hidden" : "")>
+                <div class="flex items-start gap-3 rounded-xl border border-black/10 bg-black/[.02] p-5">
+                    <span class="fa-solid fa-rocket mt-0.5"></span>
+                    <div>
+                        <p class="font-semibold text-black">No modules yet</p>
+                        <span class="text-[13px] text-black/60">Publish your first page blueprint to activate the content library.</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Sidebar (right rail) -->
+        <aside class="space-y-6">
+            <!-- Status panel -->
+            <section class="bg-white rounded-2xl border border-black/10 shadow-sm">
+                <header class="flex items-start justify-between gap-4 p-5 border-b border-black/10">
+                    <div>
+                        <span class="block text-[12px] font-semibold tracking-wide text-black/60">Operational status</span>
+                        <h3 class="font-display text-lg font-bold text-black">Bugence signals</h3>
+                    </div>
+                    <span class="text-[13px] text-black/60">Heatmap of module readiness across the universe.</span>
+                </header>
+                <div class="p-5 space-y-3">
+                    @foreach (var signal in Model.StatusMetrics)
+                    {
+                        var description = signal.Label switch
+                        {
+                            "Launch ready" => "Polished modules primed for publishing.",
+                            "In review" => "Pages touched within the last 48 hours.",
+                            "Experimenting" => "Concepts flagged for rapid testing.",
+                            _ => "Operational insight from the Bugence concierge."
+                        };
+                        var ratio = pulse.TotalPages > 0 ? Math.Clamp((double)signal.Value / pulse.TotalPages, 0d, 1d) : 0d;
+                        <article class="flex items-start gap-3 rounded-xl border border-black/10 bg-white p-3" data-library-status data-status-kind="@signal.Label">
+                            <span class="@signal.Icon text-black/70 mt-1"></span>
+                            <div class="flex-1">
+                                <p class="font-semibold text-black">@signal.Label</p>
+                                <strong class="text-xl text-black">@signal.Value</strong>
+                                <span class="block text-[13px] text-black/60">@description</span>
+                                <div class="mt-2 h-2 rounded-full bg-black/[.06] overflow-hidden" aria-hidden="true">
+                                    <span class="block h-full rounded-full" style="width:@((ratio * 100d).ToString("0"))%; background:linear-gradient(90deg, rgba(249,115,22,.9), rgba(234,88,12,.9));"></span>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </section>
+
+            <!-- Recent edits panel -->
+            <section class="bg-white rounded-2xl border border-black/10 shadow-sm">
+                <header class="flex items-start justify-between gap-4 p-5 border-b border-black/10">
+                    <div>
+                        <span class="block text-[12px] font-semibold tracking-wide text-black/60">Recent transmission</span>
+                        <h3 class="font-display text-lg font-bold text-black">Latest edits</h3>
+                    </div>
+                    <span class="text-[13px] text-black/60">Stay aligned on who published what before the next drop.</span>
+                </header>
+                <div class="p-5 space-y-3">
+                    @if (Model.RecentChanges.Any())
+                    {
+                        foreach (var change in Model.RecentChanges)
+                        {
+                            <article class="rounded-xl border border-black/10 bg-black/[.02] p-3">
+                                <time class="text-[12px] text-black/60">@change.OccurredAtUtc.ToLocalTime().ToString("MMM dd | HH:mm")</time>
+                                <h4 class="font-semibold text-black">@change.PageName</h4>
+                                <p class="text-[13px] text-black/70">@change.Summary</p>
+                            </article>
+                        }
+                    }
+                    else
+                    {
+                        <div class="flex items-start gap-3 rounded-xl border border-black/10 bg-black/[.02] p-4">
+                            <span class="fa-solid fa-bell-slash mt-0.5"></span>
+                            <div>
+                                <p class="font-semibold text-black">No activity logged yet.</p>
+                                <span class="text-[13px] text-black/60">Ship an edit to populate the mission feed.</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+
+            @if (Model.Clusters.Any())
+            {
+                <!-- Clusters panel -->
+                <section class="bg-white rounded-2xl border border-black/10 shadow-sm">
+                    <header class="flex items-start justify-between gap-4 p-5 border-b border-black/10">
+                        <div>
+                            <span class="block text-[12px] font-semibold tracking-wide text-black/60">Mission clusters</span>
+                            <h3 class="font-display text-lg font-bold text-black">Segments to monitor</h3>
+                        </div>
+                        <span class="text-[13px] text-black/60">Curated groups of modules that share the same objectives.</span>
+                    </header>
+                    <div class="p-5 space-y-3">
+                        @foreach (var cluster in Model.Clusters)
+                        {
+                            <article class="rounded-2xl border border-black/10 bg-white p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <h4 class="font-semibold text-black">@cluster.Title</h4>
+                                        <span class="text-[13px] text-black/60">@cluster.Subtitle</span>
+                                    </div>
+                                </div>
+                                <ul class="mt-3 space-y-2">
+                                    @foreach (var clusterItem in cluster.Items)
+                                    {
+                                        <li class="flex items-center gap-3 rounded-xl border border-black/10 bg-black/[.02] p-3">
+                                            <span class="h-2 w-2 rounded-full bg-black/40" aria-hidden="true"></span>
+                                            <div class="flex-1">
+                                                <p class="font-medium text-black">@clusterItem.Name</p>
+                                                <span class="text-[12px] text-black/60">@clusterItem.UpdatedAtUtc.ToLocalTime().ToString("MMM dd | HH:mm")</span>
+                                            </div>
+                                            <a href="@Url.Content($"/content/canvas/{clusterItem.Id}")" target="_blank" rel="noopener" aria-label="Edit @clusterItem.Name" class="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-2 text-sm font-semibold hover:border-black/20">
+                                                <span class="fa-solid fa-arrow-up-right-from-square"></span>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </article>
+                        }
+                    </div>
+                </section>
+            }
+        </aside>
+    </div>
+</section>
+
+<!-- Inspector Drawer (Enhanced Sunset Edition) -->
+<!-- === INSPECTOR (unchanged HTML) ======================================== -->
+<!-- ============ INSPECTOR SIDEBAR ============ -->
+<div class="fixed inset-0 z-50 hidden" data-library-inspector data-state="closed">
+    <!-- Scrim -->
+    <div class="absolute inset-0 bg-gradient-to-b from-orange-900/60 via-black/70 to-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-500"
+         data-library-scrim data-library-close></div>
+
+    <!-- Drawer -->
+    <div class="absolute right-0 top-0 h-full w-full max-w-xl bg-white shadow-2xl border-l border-black/10 flex flex-col translate-x-full transition-transform duration-300"
+         role="dialog" aria-modal="true" aria-labelledby="library-inspector-title">
+
+        <!-- Header -->
+        <header class="sticky top-0 z-10 flex items-start justify-between gap-4 p-5 border-b border-black/10
+                   bg-[radial-gradient(80rem_50rem_at_120%_-10%,rgba(253,186,116,0.25),transparent_60%)]">
+            <div class="space-y-2 min-w-0">
+                <!-- Slug pill -->
+                <span class="inline-flex items-center gap-2 rounded-full bg-orange-100 text-orange-800 px-3 py-1 text-[11px] font-semibold"
+                      data-library-inspector-slug></span>
+
+                <!-- Title -->
+                <h2 id="library-inspector-title"
+                    class="font-display text-2xl font-black tracking-tight text-black truncate"
+                    data-library-inspector-title></h2>
+
+                <!-- Tags -->
+                <div class="flex flex-wrap gap-2 pt-1" data-inspector-tags></div>
+            </div>
+
+            <!-- Quick actions -->
+            <div class="flex items-center gap-2 shrink-0">
+                <a class="rounded-full border border-black/10 px-3 py-2 text-sm text-black hover:bg-black/5"
+                   data-inspector-preview target="_blank" rel="noopener" title="Open live preview">
+                    <span class="fa-solid fa-eye"></span>
+                </a>
+                <a class="rounded-full border border-black/10 px-3 py-2 text-sm text-black hover:bg-black/5"
+                   data-inspector-edit target="_blank" rel="noopener" title="Edit in canvas">
+                    <span class="fa-solid fa-pen-to-square"></span>
+                </a>
+                <button type="button" class="rounded-full border border-black/10 px-3 py-2 hover:bg-black/5"
+                        data-library-close title="Close">
+                    <span class="fa-solid fa-xmark text-black" aria-hidden="true"></span>
+                    <span class="sr-only">Close</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Body -->
+        <div class="flex-1 overflow-auto p-5 space-y-6">
+            <!-- Overview -->
+            <section class="space-y-3">
+                <p class="text-black/80 leading-relaxed" data-library-inspector-description></p>
+
+                <!-- KPI grid -->
+                <dl class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="rounded-xl border border-black/10 bg-white p-3 text-center">
+                        <dt class="text-[11px] text-black/60">Sections</dt>
+                        <dd class="text-2xl font-black text-black" data-library-inspector-sections>—</dd>
+                    </div>
+                    <div class="rounded-xl border border-black/10 bg-white p-3 text-center">
+                        <dt class="text-[11px] text-black/60">Text</dt>
+                        <dd class="text-2xl font-black text-black" data-library-inspector-text>—</dd>
+                    </div>
+                    <div class="rounded-xl border border-black/10 bg-white p-3 text-center">
+                        <dt class="text-[11px] text-black/60">Images</dt>
+                        <dd class="text-2xl font-black text-black" data-library-inspector-images>—</dd>
+                    </div>
+                    <div class="rounded-xl border border-black/10 bg-white p-3 text-center">
+                        <dt class="text-[11px] text-black/60">Est. Read</dt>
+                        <dd class="text-2xl font-black text-black" data-inspector-readtime>—</dd>
+                    </div>
+                </dl>
+
+                <!-- Meta rows -->
+                <div class="grid gap-2 text-[13px]">
+                    <div class="flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-white p-3">
+                        <span class="text-black/60">Last updated</span>
+                        <span class="font-medium text-black" data-inspector-updated>—</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-white p-3">
+                        <span class="text-black/60">Last published</span>
+                        <span class="font-medium text-black" data-inspector-published>Not yet</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-white p-3">
+                        <span class="text-black/60">Owner</span>
+                        <span class="font-medium text-black" data-inspector-owner>Unassigned</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-white p-3">
+                        <span class="text-black/60">Slug</span>
+                        <code class="rounded bg-black/5 px-2 py-1 text-black text-[12px]" data-inspector-slug-code>—</code>
+                    </div>
+                </div>
+            </section>
+
+            <hr class="border-black/10">
+
+            <!-- Tabs -->
+            <section>
+                <div class="inline-flex rounded-full border border-black/10 bg-black/5 p-1" role="tablist" aria-label="Inspector tabs">
+                    <button type="button" class="px-3 py-1.5 rounded-full text-sm bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm"
+                            data-tab="summary" data-state="active" role="tab" aria-selected="true">
+                        Summary
+                    </button>
+                    <button type="button" class="px-3 py-1.5 rounded-full text-sm text-black" data-tab="sections" role="tab" aria-selected="false">Sections</button>
+                    <button type="button" class="px-3 py-1.5 rounded-full text-sm text-black" data-tab="activity" role="tab" aria-selected="false">Activity</button>
+                    <button type="button" class="px-3 py-1.5 rounded-full text-sm text-black" data-tab="health" role="tab" aria-selected="false">Health</button>
+                </div>
+
+                <div class="mt-4 space-y-4">
+                    <!-- Summary -->
+                    <section data-panel="summary" data-state="active" role="tabpanel">
+                        <ul class="space-y-2 text-black" data-library-inspector-signals></ul>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <a class="inline-flex items-center gap-2 rounded-full bg-orange-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-orange-700"
+                               data-inspector-edit>Open editor</a>
+                            <a class="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-sm font-semibold text-black hover:border-black/20"
+                               data-inspector-preview>Open preview</a>
+                        </div>
+                    </section>
+
+                    <!-- Sections -->
+                    <section data-panel="sections" data-state="idle" role="tabpanel" hidden>
+                        <p class="text-[13px] text-black/60">Breakdown from the latest publish.</p>
+                        <ul class="space-y-2 text-black" data-library-inspector-section-list></ul>
+                    </section>
+
+                    <!-- Activity -->
+                    <section data-panel="activity" data-state="idle" role="tabpanel" hidden>
+                        <p class="text-[13px] text-black/60">Recent edits to this page.</p>
+                        <ul class="space-y-2 text-black" data-library-inspector-activity></ul>
+                    </section>
+
+                    <!-- Health -->
+                    <section data-panel="health" data-state="idle" role="tabpanel" hidden>
+                        <div class="grid gap-2">
+                            <div class="flex items-center justify-between rounded-xl border border-black/10 bg-white p-3">
+                                <span class="text-black/60">Indexability</span>
+                                <span class="inline-flex items-center gap-2 rounded-full bg-black/5 px-2.5 py-1 text-[12px] text-black"
+                                      data-health-index>—</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl border border-black/10 bg-white p-3">
+                                <span class="text-black/60">Links OK</span>
+                                <span class="inline-flex items-center gap-2 rounded-full bg-black/5 px-2.5 py-1 text-[12px] text-black"
+                                      data-health-links>—</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl border border-black/10 bg-white p-3">
+                                <span class="text-black/60">Images Alt %</span>
+                                <span class="inline-flex items-center gap-2 rounded-full bg-black/5 px-2.5 py-1 text-[12px] text-black"
+                                      data-health-alt>—</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="sticky bottom-0 p-4 border-t border-black/10 bg-white flex items-center justify-between">
+            <div class="text-[12px] text-black/60">Press <kbd class="rounded border border-black/20 bg-white px-1">Esc</kbd> to close</div>
+            <div class="flex items-center gap-2">
+                <button type="button"
+                        class="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-black hover:border-black/20"
+                        data-export-metadata>
+                    <span class="fa-solid fa-file-export"></span>
+                    Export metadata
+                </button>
+                <button type="button"
+                        class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-2 text-sm font-semibold text-white hover:from-orange-600 hover:to-amber-600"
+                        data-library-close>
+                    Close
+                </button>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script>
+    /* ===========================================================
+       Bugence Library Inspector
+       - Zero external deps, no invalid selectors
+       - Reads KPI numbers from visible card text
+       - Populates Summary / Sections / Activity / Health tabs
+       - A11y: roles/aria + Esc to close
+       =========================================================== */
+    (function(){
+      'use strict';
+
+      // Root containers (grid and inspector)
+      const root = document.querySelector('[data-library-console]');
+      const inspector = document.querySelector('[data-library-inspector]');
+      if(!root || !inspector) return;
+
+      const dialog = inspector.querySelector('[role="dialog"]');
+      const scrim  = inspector.querySelector('[data-library-scrim]');
+      const closeEls = inspector.querySelectorAll('[data-library-close]');
+
+      // ---------- tiny utils ----------
+      const $ = (sel,scope=document)=> scope.querySelector(sel);
+      const txt = el => (el?.innerText || el?.textContent || '').replace(/\u00A0/g,' ').replace(/\s+/g,' ').trim();
+      const match1 = (re, s) => {
+        const m = (s||'').match(re); return m ? (m[1] || m[0]) : '';
+      };
+      const toInt = v => { const n = parseInt(v,10); return Number.isFinite(n) ? n : 0; };
+      const fmtTime = iso => {
+        if(!iso) return 'Not yet';
+        const d = new Date(iso);
+        return isNaN(+d) ? 'Not yet' : d.toLocaleString(undefined,{month:'short',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      };
+      const estRead = textBlocks => Math.max(1, Math.round((Number(textBlocks||0)*65)/200)) + ' min';
+      const hoursAgo = iso => {
+        if(!iso) return null;
+        const t = Date.parse(iso); if(isNaN(t)) return null;
+        return Math.max(0, Math.round((Date.now()-t)/3600000));
+      };
+
+      // ---------- card resolution (never pick the drawer) ----------
+      const inInspector = el => inspector.contains(el);
+      function resolveCard(trigger){
+        const id = trigger.getAttribute?.('data-library-inspect');
+        if(id){
+          const byId = root.querySelector(`[data-page-id="${CSS.escape(id)}"]`);
+          if(byId && !inInspector(byId)) return byId;
+        }
+        let el = trigger;
+        for(let i=0;i<8 && el;i++){
+          if(inInspector(el)) break;
+          if(el.hasAttribute?.('data-page-id')) return el;
+          if(el.matches?.('article,.card,.page-card,.content-card')) return el;
+          const hasTitle = el.querySelector?.('h3,h2,.card-title,[data-name]');
+          const hasKpiWords = /sections|text\s*frames?|images|imagery\s*slots/i.test(txt(el));
+          if(hasTitle && hasKpiWords) return el;
+          el = el.parentElement;
+        }
+        return null;
+      }
+
+      // ---------- data extraction from a card ----------
+      function readFromCard(card){
+        const title = (card.getAttribute('data-page-name') ||
+                       card.querySelector('h3,h2,.card-title,[data-name]')?.textContent || '').trim() || '(Untitled)';
+
+        const slug  = (card.getAttribute('data-page-slug') ||
+                       card.getAttribute('data-page-id') ||
+                       match1(/[a-z0-9][a-z0-9\-_\/]+/i, txt(card))) || '';
+
+        const desc  = (card.getAttribute('data-page-description') ||
+                       card.querySelector('p,[data-desc],[data-description]')?.textContent || '').trim() || '—';
+
+        const raw   = txt(card);
+
+        // Prefer explicit attributes, then visible text
+        const sections = toInt(card.getAttribute('data-page-sections')) || toInt(match1(/sections\s*(\d+)/i, raw));
+        const textCnt  = toInt(card.getAttribute('data-page-text'))     || toInt(match1(/text\s*frames?\s*(\d+)/i, raw));
+        const images   = toInt(card.getAttribute('data-page-images'))   || toInt(match1(/(?:images|imagery\s*slots?)\s*(\d+)/i, raw));
+
+        const updated   = card.getAttribute('data-page-updated')   || match1(/updated\s+([^|]+)$/i, raw) || '';
+        const published = card.getAttribute('data-page-published') || '';
+        const owner     = card.getAttribute('data-owner') || 'Unassigned';
+
+        return { title, slug, desc, sections, textCnt, images, updated, published, owner };
+      }
+
+      // ---------- tabs ----------
+      const tabBtns   = inspector.querySelectorAll('[data-tab]');
+      const tabPanels = inspector.querySelectorAll('[data-panel]');
+      function setTab(name){
+        tabBtns.forEach(b=>{
+          const active = b.getAttribute('data-tab')===name;
+          b.setAttribute('aria-selected', String(active));
+          b.setAttribute('data-state', active ? 'active' : 'idle');
+          b.classList.toggle('bg-gradient-to-r', active);
+          b.classList.toggle('from-orange-500', active);
+          b.classList.toggle('to-amber-500', active);
+          b.classList.toggle('text-white', active);
+          b.classList.toggle('text-black', !active);
+        });
+        tabPanels.forEach(p=>{
+          const show = p.getAttribute('data-panel')===name;
+          p.setAttribute('data-state', show ? 'active' : 'idle');
+          p.hidden = !show;
+          p.setAttribute('aria-hidden', show ? 'false' : 'true');
+        });
+      }
+      tabBtns.forEach(b=> b.addEventListener('click',()=> setTab(b.getAttribute('data-tab'))));
+
+      // ---------- render helper chips ----------
+      const pill = (label,cls)=>`<span class="inline-flex items-center gap-1 rounded-full ${cls} px-2 py-0.5 text-[11px]"><span class="fa-solid fa-circle text-[9px]"></span>${label}</span>`;
+
+      // ---------- open / close ----------
+      let lastFocus=null;
+      function openInspector(card){
+        if(!card) return;
+        const data = readFromCard(card);
+
+        // Header/meta
+        $('[data-library-inspector-title]', inspector).textContent = data.title;
+        $('[data-library-inspector-slug]', inspector).textContent  = data.slug || '—';
+        $('[data-library-inspector-description]', inspector).textContent = data.desc || '—';
+
+        // KPIs
+        $('[data-library-inspector-sections]', inspector).textContent = data.sections;
+        $('[data-library-inspector-text]', inspector).textContent     = data.textCnt;
+        $('[data-library-inspector-images]', inspector).textContent   = data.images;
+        $('[data-inspector-readtime]', inspector).textContent         = estRead(data.textCnt);
+
+        // Meta
+        $('[data-inspector-updated]', inspector).textContent   = fmtTime(data.updated);
+        $('[data-inspector-published]', inspector).textContent = fmtTime(data.published);
+        $('[data-inspector-owner]', inspector).textContent     = data.owner;
+        $('[data-inspector-slug-code]', inspector).textContent = data.slug || '—';
+
+        // Tags (Fresh/Draft/Audited demo)
+        const tags = $('[data-inspector-tags]', inspector);
+        if(tags){
+          const hrs = hoursAgo(data.updated);
+          const fresh = hrs!=null && hrs <= 48;
+          const isDraft = !data.published;
+          tags.innerHTML = '';
+          tags.insertAdjacentHTML('beforeend', pill(fresh ? 'Fresh' : 'Stale', fresh ? 'bg-green-100 text-green-800' : 'bg-black/10 text-black'));
+          if(isDraft) tags.insertAdjacentHTML('beforeend', pill('Draft','bg-amber-100 text-amber-800'));
+          tags.insertAdjacentHTML('beforeend', pill('Audited','bg-black/10 text-black'));
+        }
+
+        // Links
+        const id = card.getAttribute('data-page-id') || data.slug || data.title;
+        const preview = $('[data-inspector-preview]', inspector);
+        const edit    = $('[data-inspector-edit]', inspector);
+        if(edit)    edit.href    = '/content/canvas/' + encodeURIComponent(id);
+
+        // ---------- Panels content ----------
+        // Summary signals
+        const summary = $('[data-library-inspector-signals]', inspector);
+        if(summary){
+          summary.innerHTML = '';
+          const add = (icon, label, value)=>{
+            const li = document.createElement('li');
+            li.className = 'rounded-lg border border-black/10 bg-black/[.02] px-3 py-2 flex items-center gap-2';
+            li.innerHTML = `<span class="fa-solid ${icon}"></span><strong class="text-sm">${label}:</strong><span>${value}</span>`;
+            summary.appendChild(li);
+          };
+          add('fa-gauge-high','Health', (data.sections + data.textCnt) > 0 ? 'Good' : 'Unknown');
+          add('fa-sparkles','Freshness', hoursAgo(data.updated)!=null ? `${hoursAgo(data.updated)}h ago` : '—');
+          add('fa-stopwatch','Est. read', estRead(data.textCnt));
+          add('fa-diagram-project','Inventory', `${data.sections} sec · ${data.textCnt} text · ${data.images} img`);
+        }
+
+        // Sections panel (simple heuristic rows)
+        const secList = $('[data-library-inspector-section-list]', inspector);
+        if(secList){
+          secList.innerHTML = '';
+          const add = (label, badge)=>{
+            const li = document.createElement('li');
+            li.className = 'rounded-lg border border-black/10 bg-white p-3 flex items-center justify-between';
+            li.innerHTML = `<span>${label}</span><span class="text-[12px] rounded-full bg-black/5 px-2 py-0.5">${badge}</span>`;
+            secList.appendChild(li);
+          };
+          if(data.sections>0) add('Hero • RichText','present');
+          if(data.textCnt>0)  add('Body • Text blocks', data.textCnt);
+          if(data.images>0)   add('Gallery • Images', data.images);
+          if(!secList.children.length) add('No section telemetry yet','—');
+        }
+
+        // Activity panel (derived)
+        const activity = $('[data-library-inspector-activity]', inspector);
+        if(activity){
+          activity.innerHTML = '';
+          const add = (label, val)=>{
+            const li = document.createElement('li');
+            li.className = 'rounded-lg border border-black/10 bg-white p-3 flex items-center justify-between';
+            li.innerHTML = `<span>${label}</span><span class="text-[12px] rounded-full bg-black/5 px-2 py-0.5">${val}</span>`;
+            activity.appendChild(li);
+          };
+          add('Last edited', fmtTime(data.updated));
+          add('Last published', fmtTime(data.published));
+        }
+
+        // Health panel (toy metrics)
+        const healthIndex = $('[data-health-index]', inspector);
+        const healthLinks = $('[data-health-links]', inspector);
+        const healthAlt   = $('[data-health-alt]', inspector);
+        if(healthIndex) healthIndex.textContent = (data.sections + data.textCnt) > 0 ? 'Indexable' : 'Needs content';
+        if(healthLinks) healthLinks.textContent = 'No broken links';
+        if(healthAlt)   healthAlt.textContent   = data.images > 0 ? '100%' : '—';
+
+        // Open UI
+        setTab('summary');
+        inspector.classList.remove('hidden');
+        inspector.setAttribute('data-state','open');
+        requestAnimationFrame(()=>{ dialog.classList.remove('translate-x-full'); scrim.style.opacity='1'; });
+        lastFocus = document.activeElement;
+      }
+
+      function closeInspector(){
+        inspector.setAttribute('data-state','closed');
+        dialog.classList.add('translate-x-full');
+        scrim.style.opacity='0';
+        dialog.addEventListener('transitionend', ()=> inspector.classList.add('hidden'), {once:true});
+        lastFocus?.focus?.();
+      }
+
+      // ---------- delegated open from grid ----------
+      root.addEventListener('click', (e)=>{
+        const t = e.target.closest('[data-library-inspect],[data-action="details"],.btn,button,a');
+        if(!t || inInspector(t)) return;
+
+        const label = (t.getAttribute('data-action') || t.textContent || '').toLowerCase();
+        if(!(label.includes('details') || label.includes('preview') || label.includes('edit') || t.hasAttribute('data-library-inspect'))) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const card = resolveCard(t);
+        openInspector(card);
+      }, true);
+
+      // ---------- close bindings ----------
+      closeEls.forEach(el=> el.addEventListener('click', closeInspector));
+      scrim?.addEventListener('click', closeInspector);
+      document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeInspector(); });
+
+      // ---------- explicit click handlers for action buttons ----------
+      const editBtn = $('[data-inspector-edit]', inspector);
+      const previewBtn = $('[data-inspector-preview]', inspector);
+      const bindAction = (el) => {
+        if(!el) return;
+        el.addEventListener('click', (evt) => {
+          const href = el.getAttribute('href');
+          if(!href) return;
+          evt.preventDefault();
+          window.open(href, '_blank');
+          closeInspector();
+        });
+      };
+      bindAction(editBtn);
+      bindAction(previewBtn);
+
+      console.log('✅ Library Inspector: enhanced UI, tabs restored, values synced.');
+    })();
+</script>

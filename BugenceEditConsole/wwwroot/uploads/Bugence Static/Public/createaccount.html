@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUGENCE — Create Account</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bug: { 50:'#f5f7ff',100:'#e9edff',200:'#cdd7ff',300:'#a7b5ff',400:'#7b89ff',500:'#5663ff',600:'#3f49e6',700:'#3239b3',800:'#2a2f8c',900:'#23276f' }
+          },
+          boxShadow: { glow: '0 10px 30px -10px rgba(86,99,255,0.55), 0 2px 10px rgba(0,0,0,.35)'}
+        }
+      }
+    }
+  </script>
+
+  <!-- Optional Bootstrap (for tooltips/modals if needed) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; }
+    .glow:focus { box-shadow: 0 0 0 4px rgba(86,99,255,.25); }
+    .float-shape { animation: floaty 8s ease-in-out infinite; }
+    @keyframes floaty { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-white relative overflow-hidden">
+  <!-- Subtle background -->
+  <div class="pointer-events-none absolute inset-0">
+    <div class="absolute inset-0 opacity-80" style="background: radial-gradient(1200px 600px at 80% 10%, rgba(86,99,255,.20), transparent 60%), radial-gradient(900px 500px at 10% 80%, rgba(255,171,0,.14), transparent 55%), radial-gradient(900px 900px at 50% -10%, rgba(255,255,255,.04), transparent 60%);"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(transparent,transparent),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px)] bg-[length:100%_100%,40px_40px,40px_40px]"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="relative z-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-black shadow-glow">
+          <img src="/img/blackbug.svg" alt="BUGENCE" class="h-6 w-6"/>
+        </span>
+        <span class="text-2xl font-extrabold">BUGENCE</span>
+      </a>
+      <a href="/login.html" class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold backdrop-blur hover:bg-white/10">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        Back to Login
+      </a>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="relative z-10">
+    <section class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+      <div class="relative overflow-hidden rounded-3xl bg-white text-black p-8 sm:p-10 shadow-glow">
+        <div class="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-bug-500/20 blur-2xl float-shape"></div>
+        <div class="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-amber-400/20 blur-2xl float-shape" style="animation-delay:-2s"></div>
+
+        <!-- Progress -->
+        <ol id="progress" class="flex items-center justify-center gap-6 text-xs font-semibold text-black/60">
+          <li data-step="1" class="flex items-center gap-2"><span class="badge flex h-7 w-7 items-center justify-center rounded-full bg-black text-white">1</span>Account</li>
+          <li data-step="2" class="flex items-center gap-2 opacity-60"><span class="badge flex h-7 w-7 items-center justify-center rounded-full bg-black/10 text-black">2</span>Verify</li>
+          <li data-step="3" class="flex items-center gap-2 opacity-60"><span class="badge flex h-7 w-7 items-center justify-center rounded-full bg-black/10 text-black">3</span>Company</li>
+          <li data-step="4" class="flex items-center gap-2 opacity-60"><span class="badge flex h-7 w-7 items-center justify-center rounded-full bg-black/10 text-black">4</span>Security</li>
+        </ol>
+
+        <h1 class="mt-6 text-center text-2xl sm:text-3xl font-extrabold tracking-tight">Create your account</h1>
+        <p class="mt-2 text-center text-black/70 max-w-2xl mx-auto">Join BUGENCE to access your dashboard, manage projects, and collaborate with your team.</p>
+
+        <!-- Global banner -->
+        <div id="banner" class="hidden mt-6 mb-2 rounded-2xl border px-4 py-3 text-sm"></div>
+
+        <div id="steps" class="mt-4">
+          <!-- Step 1: Account details -->
+          <form id="step1" class="space-y-6">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="mb-2 block text-sm font-semibold">First name</label>
+                <input id="firstName" class="glow w-full rounded-2xl border border-black/15 bg-white px-4 py-3 text-sm outline-none placeholder:text-black/40" placeholder="Jane"/>
+                <p id="errFirst" class="mt-2 hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"></p>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-semibold">Last name</label>
+                <input id="lastName" class="glow w-full rounded-2xl border border-black/15 bg-white px-4 py-3 text-sm outline-none placeholder:text-black/40" placeholder="Doe"/>
+                <p id="errLast" class="mt-2 hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"></p>
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold">Work email</label>
+              <div class="relative">
+                <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-black/40"></i>
+                <input id="email" type="email" class="glow w-full rounded-2xl border border-black/15 bg-white px-10 py-3 text-sm outline-none placeholder:text-black/40" placeholder="you@company.com"/>
+              </div>
+              <p id="errEmail" class="mt-2 hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"></p>
+            </div>
+
+            <!-- Phone with country code + flag -->
+            <div>
+              <label class="mb-2 block text-sm font-semibold">Mobile number</label>
+              <div class="flex gap-2">
+                <div class="relative">
+                  <button id="countryBtn" type="button" class="flex items-center gap-2 rounded-2xl border border-black/15 bg-white px-3 py-3 text-sm min-w-[120px]">
+                    <img id="flagImg" alt="flag" class="h-4 w-6 rounded-sm" src="https://flagcdn.com/24x18/us.png"/>
+                    <span id="dialCode">+1</span>
+                    <i class="fa-solid fa-chevron-down text-black/50 ms-1"></i>
+                  </button>
+                  <!-- dropdown -->
+                  <div id="countryMenu" class="hidden absolute z-20 mt-2 w-72 rounded-2xl border border-black/10 bg-white p-2 shadow-xl">
+                    <div class="relative">
+                      <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-black/40"></i>
+                      <input id="countrySearch" placeholder="Search country" class="w-full rounded-xl border border-black/10 bg-white pl-9 pr-3 py-2 text-sm outline-none"/>
+                    </div>
+                    <ul id="countryList" class="max-h-56 overflow-auto mt-2 divide-y divide-black/5"></ul>
+                  </div>
+                </div>
+                <input id="phone" inputmode="tel" class="glow w-full rounded-2xl border border-black/15 bg-white px-4 py-3 text-sm outline-none placeholder:text-black/40" placeholder="555 123 4567"/>
+              </div>
+              <input id="countryIso" type="hidden" value="us"/>
+              <p id="errPhone" class="mt-2 hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"></p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input id="agree" type="checkbox" class="h-4 w-4 rounded border-black/20 text-bug-600 focus:ring-bug-500"/>
+              <label for="agree" class="text-sm">I agree to the <a class="text-bug-700 hover:text-bug-600 font-semibold" href="#">Terms</a> and <a class="text-bug-700 hover:text-bug-600 font-semibold" href="#">Privacy Policy</a>.</label>
+            </div>
+            <p id="errAgree" class="hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"></p>
+
+            <button type="submit" class="w-full rounded-2xl bg-black px-6 py-3 text-white font-semibold">Continue</button>
+          </form>
+
+          <!-- Step 2: Verification -->
+          <form id="step2" class="space-y-6 hidden">
+            <p class="text-black/70">We sent a 6‑digit code to <span id="verifyTarget" class="font-semibold">your email</span>. Enter it below.</p>
+            <div>
+              <label class="mb-2 block text-sm font-semibold">Verification code</label>
+              <div class="grid grid-cols-6 gap-2" id="otpGrid">
+                <input maxlength="1" inputmode="numeric" class="otp glow text-center rounded-xl border border-black/15 px-0 py-3"/>
+                <input maxlength="1" inputmode="numeric" class="otp glow text-center rounded-xl border border-black/15 px-0 py-3"/>
+                <input maxlength="1" inputmode="numeric" class="otp glow text-center rounded-xl border border-black/15 px-0 py-3"/>
+                <input maxlength="1" inputmode="numeric" class="otp glow text-center rounded-xl border border-black/15 px-0 py-3"/>
+                <input maxlength="1" inputmode="numeric" class="otp glow text-center rounded-xl border border-black/15 px-0 py-3"/>
+                <input maxlength="1" inputmode="numeric" class="otp glow text-center rounded-xl border border-black/15 px-0 py-3"/>
+              </div>
+              <p id="errCode" class="mt-2 hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">Enter the 6‑digit code.</p>
+              <div class="mt-3 text-sm text-black/70">Didn’t get it? <button type="button" id="resend" class="font-semibold text-bug-700 hover:text-bug-600">Resend</button></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <button type="button" id="backTo1" class="rounded-full border border-black/15 px-5 py-2 text-sm font-semibold hover:bg-black/5">Back</button>
+              <button type="submit" class="rounded-full bg-black px-6 py-2 text-white font-semibold">Verify</button>
+            </div>
+          </form>
+
+          <!-- Step 3: Company & role -->
+          <form id="step3" class="space-y-6 hidden">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="mb-2 block text-sm font-semibold">Company name</label>
+                <input id="company" class="glow w-full rounded-2xl border border-black/15 bg-white px-4 py-3 text-sm outline-none placeholder:text-black/40" placeholder="Acme Inc."/>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-semibold">Role</label>
+                <select id="role" class="glow w-full rounded-2xl border border-black/15 bg-white px-4 py-3 text-sm outline-none">
+                  <option value="">Select role</option>
+                  <option>Founder / Exec</option>
+                  <option>Engineering</option>
+                  <option>Product</option>
+                  <option>Design</option>
+                  <option>Operations</option>
+                  <option>Sales / Marketing</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-semibold">Team size</label>
+              <select id="team" class="glow w-full rounded-2xl border border-black/15 bg-white px-4 py-3 text-sm outline-none">
+                <option value="">Select team size</option>
+                <option>1–10</option>
+                <option>11–50</option>
+                <option>51–200</option>
+                <option>200+</option>
+              </select>
+            </div>
+            <div class="flex items-center justify-between">
+              <button type="button" id="backTo2" class="rounded-full border border-black/15 px-5 py-2 text-sm font-semibold hover:bg-black/5">Back</button>
+              <button type="submit" class="rounded-full bg-black px-6 py-2 text-white font-semibold">Continue</button>
+            </div>
+          </form>
+
+          <!-- Step 4: Security (password) -->
+          <form id="step4" class="space-y-6 hidden">
+            <div>
+              <label class="mb-2 block text-sm font-semibold">Create password</label>
+              <input id="password" type="password" class="glow w-full rounded-2xl border border-black/15 bg-white px-4 py-3 text-sm outline-none placeholder:text-black/40" placeholder="••••••••"/>
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-semibold">Confirm password</label>
+              <input id="password2" type="password" class="glow w-full rounded-2xl border border-black/15 bg-white px-4 py-3 text-sm outline-none placeholder:text-black/40" placeholder="••••••••"/>
+            </div>
+            <ul class="text-xs text-black/60 space-y-1">
+              <li>• At least 8 characters</li>
+              <li>• Upper + lower case, a number, and a symbol</li>
+            </ul>
+            <p id="errPw" class="hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"></p>
+            <button type="submit" class="w-full rounded-2xl bg-black px-6 py-3 text-white font-semibold">Create Account</button>
+          </form>
+
+          <!-- Success -->
+          <div id="stepSuccess" class="hidden text-center space-y-4">
+            <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-bug-500 text-white shadow-glow">
+              <i class="fa-solid fa-check text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-extrabold">Welcome to BUGENCE</h3>
+            <p class="text-black/70">Your account is ready. Let's get you to your dashboard.</p>
+            <a href="/login.html" class="inline-flex items-center justify-center rounded-full bg-black px-6 py-3 text-white font-semibold">Go to Login</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ---- Utilities ----
+    const banner = document.getElementById('banner');
+    const showBanner = (type, msg) => {
+      const styles = { error:'border-red-200 bg-red-50 text-red-800', success:'border-green-200 bg-green-50 text-green-800', info:'border-blue-200 bg-blue-50 text-blue-800' };
+      banner.className = `mt-6 mb-2 rounded-2xl border px-4 py-3 text-sm ${styles[type]}`;
+      banner.textContent = msg; banner.classList.remove('hidden');
+    };
+    const hideBanner = () => banner.classList.add('hidden');
+    const err = (el, msg) => { el.textContent = msg; el.classList.remove('hidden'); };
+    const clear = (el) => el.classList.add('hidden');
+
+    const progress = document.getElementById('progress');
+    const setStepUI = (n) => {
+      ['step1','step2','step3','step4','stepSuccess'].forEach((id,i)=>{
+        const el = document.getElementById(id);
+        el?.classList.toggle('hidden', (i+1)!==n && !(n===5 && i===4));
+      });
+      progress.querySelectorAll('li').forEach(li => {
+        const s = Number(li.getAttribute('data-step'));
+        const badge = li.querySelector('.badge');
+        li.classList.remove('opacity-60');
+        if (s < n) { badge.className = 'badge flex h-7 w-7 items-center justify-center rounded-full bg-bug-500 text-white'; li.style.opacity = '1'; }
+        else if (s === n) { badge.className = 'badge flex h-7 w-7 items-center justify-center rounded-full bg-black text-white'; li.style.opacity = '1'; }
+        else { badge.className = 'badge flex h-7 w-7 items-center justify-center rounded-full bg-black/10 text-black'; li.style.opacity = '0.6'; }
+      });
+    };
+
+    // ---- Country dropdown ----
+    const countries = [
+      {name:'United States', iso:'us', dial:'+1'},
+      {name:'United Kingdom', iso:'gb', dial:'+44'},
+      {name:'United Arab Emirates', iso:'ae', dial:'+971'},
+      {name:'Pakistan', iso:'pk', dial:'+92'},
+      {name:'India', iso:'in', dial:'+91'},
+      {name:'Canada', iso:'ca', dial:'+1'},
+      {name:'Germany', iso:'de', dial:'+49'},
+      {name:'France', iso:'fr', dial:'+33'},
+      {name:'Australia', iso:'au', dial:'+61'}
+    ];
+
+    const countryBtn = document.getElementById('countryBtn');
+    const countryMenu = document.getElementById('countryMenu');
+    const countryList = document.getElementById('countryList');
+    const countrySearch = document.getElementById('countrySearch');
+    const flagImg = document.getElementById('flagImg');
+    const dialCode = document.getElementById('dialCode');
+    const countryIso = document.getElementById('countryIso');
+
+    const renderCountries = (filter='') => {
+      countryList.innerHTML = '';
+      countries.filter(c => c.name.toLowerCase().includes(filter.toLowerCase())).forEach(c => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center gap-3 p-2 hover:bg-black/5 rounded-xl cursor-pointer';
+        li.innerHTML = `<img class="h-4 w-6 rounded-sm" src="https://flagcdn.com/24x18/${c.iso}.png" alt="${c.name}"> <span class="flex-1 text-sm">${c.name}</span> <span class="text-xs text-black/60">${c.dial}</span>`;
+        li.addEventListener('click', () => {
+          flagImg.src = `https://flagcdn.com/24x18/${c.iso}.png`;
+          dialCode.textContent = c.dial;
+          countryIso.value = c.iso;
+          countryMenu.classList.add('hidden');
+        });
+        countryList.appendChild(li);
+      });
+    };
+    renderCountries();
+    countryBtn.addEventListener('click', () => countryMenu.classList.toggle('hidden'));
+    countrySearch.addEventListener('input', (e)=> renderCountries(e.target.value));
+    document.addEventListener('click', (e)=>{ if(!countryMenu.contains(e.target) && !countryBtn.contains(e.target)) countryMenu.classList.add('hidden'); });
+
+    // ---- Step 1 validation & continue ----
+    const first = document.getElementById('firstName');
+    const last = document.getElementById('lastName');
+    const email = document.getElementById('email');
+    const phone = document.getElementById('phone');
+    const agree = document.getElementById('agree');
+
+    const errFirst = document.getElementById('errFirst');
+    const errLast  = document.getElementById('errLast');
+    const errEmail = document.getElementById('errEmail');
+    const errPhone = document.getElementById('errPhone');
+    const errAgree = document.getElementById('errAgree');
+
+    document.getElementById('step1').addEventListener('submit', (e)=>{
+      e.preventDefault(); hideBanner(); [errFirst,errLast,errEmail,errPhone,errAgree].forEach(clear);
+      let ok = true;
+      if(!first.value.trim()){ err(errFirst, 'First name is required.'); ok=false; }
+      if(!last.value.trim()){ err(errLast, 'Last name is required.'); ok=false; }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())){ err(errEmail,'Enter a valid email.'); ok=false; }
+      if(!/^[0-9\s\-]{6,}$/.test(phone.value.trim())){ err(errPhone,'Enter a valid phone number.'); ok=false; }
+      if(!agree.checked){ err(errAgree,'You must accept the Terms to continue.'); ok=false; }
+      if(!ok) { showBanner('error','Please fix the highlighted fields.'); return; }
+      // Example: call backend to send code
+      // await fetch('/api/auth/signup/start', {method:'POST', body: JSON.stringify({first:first.value,...})})
+      document.getElementById('verifyTarget').textContent = email.value.trim();
+      setStepUI(2);
+      showBanner('success','We sent a verification code to your email.');
+      // autofocus first OTP box
+      setTimeout(()=> document.querySelector('#otpGrid .otp')?.focus(), 0);
+    });
+
+    // ---- Step 2 verify ----
+    const otpInputs = Array.from(document.querySelectorAll('#otpGrid .otp'));
+    const errCode = document.getElementById('errCode');
+    otpInputs.forEach((inp, idx)=>{
+      inp.addEventListener('input', ()=>{ if(inp.value) otpInputs[idx+1]?.focus(); errCode.classList.add('hidden'); });
+      inp.addEventListener('keydown', (ev)=>{ if(ev.key==='Backspace' && !inp.value) otpInputs[idx-1]?.focus(); });
+    });
+    document.getElementById('backTo1').addEventListener('click', ()=>{ setStepUI(1); hideBanner(); });
+    document.getElementById('step2').addEventListener('submit', (e)=>{
+      e.preventDefault(); hideBanner(); errCode.classList.add('hidden');
+      const code = otpInputs.map(i=>i.value).join('');
+      if(!/^\d{6}$/.test(code)) { errCode.classList.remove('hidden'); return; }
+      // await fetch('/api/auth/signup/verify', {method:'POST', body: JSON.stringify({ code })})
+      setStepUI(3);
+      showBanner('success','Code verified. Tell us about your company.');
+      setTimeout(()=> document.getElementById('company')?.focus(), 0);
+    });
+
+    // ---- Step 3 company ----
+    document.getElementById('step3').addEventListener('submit', (e)=>{
+      e.preventDefault(); hideBanner();
+      const company = document.getElementById('company');
+      const role = document.getElementById('role');
+      const team = document.getElementById('team');
+      if(!company.value.trim() || !role.value || !team.value){
+        showBanner('error','Please complete company, role, and team size.');
+        return;
+      }
+      setStepUI(4);
+      setTimeout(()=> document.getElementById('password')?.focus(), 0);
+    });
+
+    // ---- Step 4 password ----
+    document.getElementById('step4').addEventListener('submit', (e)=>{
+      e.preventDefault(); hideBanner();
+      const p1 = document.getElementById('password').value;
+      const p2 = document.getElementById('password2').value;
+      const errPw = document.getElementById('errPw'); errPw.classList.add('hidden');
+      const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+      if(!strong.test(p1)) { err(errPw, 'Use 8+ chars with upper, lower, number, and symbol.'); return; }
+      if(p1 !== p2) { err(errPw, 'Passwords do not match.'); return; }
+      // await fetch('/api/auth/signup/finish', {method:'POST', body: JSON.stringify({...})})
+      setStepUI(5);
+      hideBanner();
+    });
+
+    // Init
+    setStepUI(1);
+  </script>
+</body>
+</html>

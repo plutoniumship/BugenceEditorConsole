@@ -1,0 +1,12 @@
+node_modules
+dist
+BugenceEditConsole/wwwroot
+BugenceEditConsole/bin
+BugenceEditConsole/obj
+_framework
+temp_zip_extract
+packages/**/dist
+Docs/**
+**/obj/**
+**/scopedcss/**
+**/*.min.css

@@ -1,0 +1,37 @@
+.bugence-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: filter var(--bugence-transition-base);
+}
+
+.bugence-badge--neutral {
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--bugence-color-ink);
+}
+
+.bugence-badge--positive {
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--bugence-color-emerald-strong);
+}
+
+.bugence-badge--warning {
+  background: rgba(251, 191, 36, 0.18);
+  color: var(--bugence-color-amber);
+}
+
+.bugence-badge--info {
+  background: rgba(99, 255, 217, 0.15);
+  color: var(--bugence-color-emerald);
+}
+
+.bugence-badge--soft {
+  filter: saturate(0.65);
+}

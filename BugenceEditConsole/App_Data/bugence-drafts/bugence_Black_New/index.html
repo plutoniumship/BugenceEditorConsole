@@ -1,0 +1,1858 @@
+<html lang="en" style="--text-primary: #ffffff; --text-secondary: #a1a1aa; --bg-black: #020202; --accent-cyan: #06b6d4; --accent-blue: #2563eb; --accent-glow: rgba(6, 182, 212, 0.5); --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 32px; --radius-sm: 6px; --radius-md: 12px; --radius-lg: 20px; --radius-xl: 28px; --font-base: 16px; --font-scale: 1.12; font-size: 16px;"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="/Css/Navbar.css" rel="stylesheet">
+  <link href="/Css/style.css" rel="stylesheet">
+  <link href="/Css/HeroSection.css" rel="stylesheet">
+  <link href="/Css/HomeAbout.css" rel="stylesheet">
+  <link href="/Css/BookModeling.css" rel="stylesheet">
+  <link href="/Css/Author.css" rel="stylesheet">
+  <link href="/Css/HomeImpact.css" rel="stylesheet">
+  <link href="/Css/NewsLetter.css" rel="stylesheet">
+  <link href="/Css/Footer.css" rel="stylesheet">
+  <link href="/Css/HomeFAQs.css" rel="stylesheet">
+  <link rel="preload" href="/fonts/norwester.woff" as="font" type="font/woff2" crossorigin="">
+<!-- Tailwind CDN -->
+
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Flip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.0.2/TweenMax.min.js"></script>
+  <script src="/Script/HeroNavbar.js"></script>
+
+  <title>High-Tech Heroes</title>
+
+<style id="bugence-section-add-style">
+                    #bugence-section-add {
+                        position: fixed;
+                        left: 0;
+                        top: 0;
+                        height: 0;
+                        pointer-events: none;
+                        z-index: 2147483646;
+                        display: none;
+                    }
+                    #bugence-section-add .line {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        height: 2px;
+                        background: rgba(6,182,212,0.7);
+                        box-shadow: 0 8px 18px rgba(6,182,212,0.2);
+                        border-radius: 999px;
+                    }
+                    #bugence-section-add button {
+                        position: absolute;
+                        top: -14px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 38px;
+                        height: 38px;
+                        border-radius: 999px;
+                        border: 1px solid rgba(6,182,212,0.85);
+                        background: linear-gradient(135deg, rgba(6,182,212,0.45), rgba(59,130,246,0.35));
+                        color: #f8fbff;
+                        font-weight: 800;
+                        font-size: 20px;
+                        line-height: 1;
+                        cursor: pointer;
+                        pointer-events: auto;
+                        box-shadow: 0 12px 26px rgba(6,182,212,0.35);
+                    }
+                </style><style id="bugence-multi-select-style">
+                .bugence-editor-multi {
+                    outline: 2px dashed rgba(6,182,212,0.6);
+                    outline-offset: 2px;
+                }
+            </style><style id="bugence-selection-overlay-style">
+                    #bugence-selection-overlay {
+                        position: fixed;
+                        display: none;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 6px 8px;
+                        border-radius: 12px;
+                        border: 1px solid rgba(255,255,255,0.16);
+                        background: rgba(10,12,16,0.9);
+                        color: var(--text);
+                        font-size: 12px;
+                        z-index: 2147483647;
+                        pointer-events: auto;
+                        box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+                    }
+                    #bugence-selection-overlay .label {
+                        font-weight: 600;
+                        color: #c7f9ff;
+                    }
+                    #bugence-selection-overlay .sel-btn {
+                        all: unset;
+                        cursor: pointer;
+                        padding: 5px 7px;
+                        border-radius: 8px;
+                        border: 1px solid rgba(255,255,255,0.12);
+                        background: rgba(255,255,255,0.06);
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 4px;
+                        min-width: 24px;
+                    }
+                    #bugence-selection-overlay .sel-btn:hover {
+                        background: rgba(6,182,212,0.18);
+                        border-color: rgba(6,182,212,0.5);
+                    }
+                    #bugence-selection-overlay .sel-btn svg {
+                        width: 12px;
+                        height: 12px;
+                        stroke: currentColor;
+                        fill: none;
+                        stroke-width: 2;
+                    }
+                </style><style id="bugence-drop-style">
+                        #bugence-drop-marker{
+                            position: fixed;
+                            height: 2px;
+                            background: rgba(6,182,212,0.95);
+                            box-shadow: 0 0 0 1px rgba(6,182,212,0.35), 0 6px 18px rgba(6,182,212,0.35);
+                            border-radius: 999px;
+                            pointer-events: none;
+                            z-index: 2147483646;
+                            display: none;
+                        }
+                        #bugence-drop-ghost{
+                            position: fixed;
+                            border: 2px dashed rgba(6,182,212,0.65);
+                            background: rgba(6,182,212,0.08);
+                            border-radius: 10px;
+                            pointer-events: none;
+                            z-index: 2147483645;
+                            display: none;
+                            transition: width 0.08s ease, height 0.08s ease;
+                        }
+                    </style><style id="bugence-multi-select-style">
+                .bugence-editor-multi {
+                    outline: 2px dashed rgba(6,182,212,0.6);
+                    outline-offset: 2px;
+                }
+            </style></head>
+<!-- =================== NAV (black-neon · pro · animated) =================== -->
+<body data-bugence-id="bugence-1767055171664-chgrmb" style=""><a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[999] bg-black text-white px-3 py-2 rounded">
+  Skip to content
+</a>
+
+<!-- Scroll progress (fills as you scroll) -->
+<div id="nx-progress" class="fixed inset-x-0 top-0 z-[60] h-[3px] w-0 bg-gradient-to-r from-emerald-400 via-cyan-400 to-fuchsia-500 origin-left" style="transform: scaleX(0);"></div>
+
+<nav id="site-nav" class="nx fixed inset-x-0 top-0 z-50 will-change-transform transition-all duration-300 border-b border-transparent bg-transparent" data-bugence-id="bugence-1767048209448-ygrdbz">
+  <!-- animated scanline -->
+  <div aria-hidden="true" class="nx-scan pointer-events-none absolute inset-x-0 top-0 h-[1px]" data-bugence-id="bugence-1767048209449-w8adh1"></div>
+
+  <div class="mx-auto w-[92%] max-w-7xl flex items-center justify-between py-3" data-bugence-id="bugence-1767048209449-irjtdy">
+    <!-- Brand -->
+    <a href="/" class="flex items-center gap-3 group" data-bugence-id="bugence-1767048209449-esb43j">
+      <span class="relative inline-block" data-bugence-id="bugence-1767048209449-unz3r5">
+        <img src="/Img/HighResbugenceSiteLogo.png" alt="High-Tech Heroes" class="h-8 w-8 object-contain transition-transform duration-200 group-hover:scale-[1.06]" data-bugence-id="bugence-1767048209449-bpeorb">
+        <!-- faint halo -->
+        <span aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 blur-md opacity-0 group-hover:opacity-70 transition
+                                       bg-[radial-gradient(circle_at_center,rgba(6,182,212,.45),transparent_60%)]" data-bugence-id="bugence-1767048209449-3by520"></span>
+      </span>
+      <span class="font-extrabold tracking-wide text-white/90 group-hover:text-white" data-bugence-id="bugence-1767048209449-bhiya2">HIGH-TECH HEROES</span>
+    </a>
+
+    <!-- Desktop menu -->
+    <div class="relative hidden lg:block" data-bugence-id="bugence-1767048209449-65bal3">
+      <ul id="nx-links" class="relative flex items-center gap-7 text-[15px]" data-bugence-id="bugence-1767048209449-plux2e">
+        <li data-bugence-id="bugence-1767048209449-a5gtdp" class=""><a class="nx-link" href="/about.html" data-section="#about" data-bugence-id="bugence-1767048209449-j6eivh">About Pete D</a></li>
+        <li data-bugence-id="bugence-1767048209449-7qlrmy" class=""><a class="nx-link" href="/MeetPeteD.html" data-section="#pete" data-bugence-id="bugence-1767048209449-3wgsga">Meet Pete D</a></li>
+        <li data-bugence-id="bugence-1767048209450-rngyhm" class=""><a class="nx-link" href="/BookPeteD.html" data-section="#booking" data-bugence-id="bugence-1767048209450-xwmtgy">Book Pete D to Speak</a></li>
+        <li data-bugence-id="bugence-1767048209450-0jpe8v" class=""><a class="nx-link" href="/JoinTheCommunity.html" data-section="#community" data-bugence-id="bugence-1767048209450-jcvrqz">Join the Community</a></li>
+
+        <!-- slider underline -->
+        <span id="nx-slider" class="absolute -bottom-2 h-[2px] rounded bg-gradient-to-r from-emerald-400 via-cyan-400 to-fuchsia-500
+                     transition-all duration-300 ease-out pointer-events-none" style="transform: translateX(40px); width: 96.7969px;" data-bugence-id="bugence-1767048209450-0lfnn5"></span>
+        <!-- subtle circuit glow -->
+        <span aria-hidden="true" class="nx-circuit pointer-events-none absolute inset-x-0 -bottom-3 h-[10px] rounded-full" data-bugence-id="bugence-1767048209450-m7ugdb"></span>
+      </ul>
+    </div>
+
+    <!-- Actions -->
+    <div class="hidden lg:flex items-center gap-2" data-bugence-id="bugence-1767048209450-42t2ao">
+      <!-- Command palette button (also Cmd/Ctrl+K) -->
+      <button id="nx-cmd-btn" class="hidden xl:inline-flex items-center gap-2 text-white/80 hover:text-white px-3 py-1.5 rounded-md border border-white/10 bg-white/5" data-bugence-id="bugence-1767048209450-uqdzb6">
+        ⌘K <span class="text-xs" data-bugence-id="bugence-1767048209450-mep11e">Quick Find</span>
+      </button>
+      <a href="https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785/" class="nx-cta group inline-flex items-center gap-2 rounded-full px-4 py-2 font-semibold text-black
+                bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-[0_10px_30px_-12px_rgba(234,88,12,.6)]" data-bugence-id="bugence-1767048209450-vyavcx">
+        <span class="relative overflow-hidden" data-bugence-id="bugence-1767048209450-2hy7d9">
+          <span class="relative z-10" data-bugence-id="bugence-1767048209450-618obd">Get the Book</span>
+          <span class="absolute inset-0 -translate-x-full group-hover:translate-x-0 transition-transform bg-white/30" data-bugence-id="bugence-1767048209450-5gxevm"></span>
+        </span>
+        <span class="nx-cta-shine" aria-hidden="true" data-bugence-id="bugence-1767048209450-bdxrov"></span>
+      </a>
+    </div>
+
+    <!-- Hamburger -->
+    <button id="nx-burger" class="lg:hidden relative h-10 w-10 grid place-items-center rounded-md bg-white/5 text-white
+                                  border border-white/10 backdrop-blur-sm" aria-expanded="false" aria-controls="nx-mobile" aria-label="Open menu" data-bugence-id="bugence-1767048209450-88zy6v">
+      <span class="nx-bar before:content-[''] after:content-['']" data-bugence-id="bugence-1767048209450-jh16w8"></span>
+    </button>
+  </div>
+
+  <!-- Mobile overlay menu -->
+  <div id="nx-mobile" class="fixed inset-0 z-40 hidden" data-bugence-id="bugence-1767048209450-raup5j">
+    <button id="nx-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-label="Close menu" data-bugence-id="bugence-1767048209450-ysxel8"></button>
+    <div class="nx-panel absolute right-0 top-0 h-full w-[88%] max-w-sm bg-neutral-950 border-l border-white/10 p-6 translate-x-full scale-[.98] transition-transform will-change-transform origin-right" data-bugence-id="bugence-1767048209450-rh4wua">
+      <div class="flex items-center justify-between" data-bugence-id="bugence-1767048209450-a28gdn">
+        <span class="text-white/80 font-semibold" data-bugence-id="bugence-1767048209450-j45c36">Menu</span>
+        <button id="nx-close" class="h-9 w-9 grid place-items-center rounded bg-white/10 text-white" aria-label="Close" data-bugence-id="bugence-1767048209450-dq1zwg">✕</button>
+      </div>
+      <ul class="mt-6 space-y-2" data-bugence-id="bugence-1767048209450-1zkhlg">
+        <li style="--i:0" data-bugence-id="bugence-1767048209450-1n8p2m"><a class="nx-m-link" href="/about.html" data-bugence-id="bugence-1767048209450-82opya">About Pete D</a></li>
+        <li style="--i:1" data-bugence-id="bugence-1767048209450-2d0r3q"><a class="nx-m-link" href="/MeetPeteD.html" data-bugence-id="bugence-1767048209450-85brkr">Meet Pete D</a></li>
+        <li style="--i:2" data-bugence-id="bugence-1767048209450-upkv1p"><a class="nx-m-link" href="/BookPeteD.html" data-bugence-id="bugence-1767048209450-gyze7n">Book Pete D to Speak</a></li>
+        <li style="--i:3" data-bugence-id="bugence-1767048209450-qi3yo9"><a class="nx-m-link" href="/JoinTheCommunity.html" data-bugence-id="bugence-1767048209450-d5f0q6">Join the Community</a></li>
+        <li style="--i:4" data-bugence-id="bugence-1767048209451-segg6o"><a class="nx-m-link nx-m-cta" href="https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785/" data-bugence-id="bugence-1767048209451-m9zfag">Get the Book</a></li>
+      </ul>
+      <!-- Quick find on mobile -->
+      <div class="mt-6" data-bugence-id="bugence-1767048209451-4vwg7m">
+        <button id="nx-cmd-btn-m" class="w-full inline-flex items-center justify-center gap-2 text-white/90 px-3 py-2 rounded-md border border-white/10 bg-white/5" data-bugence-id="bugence-1767048209451-3qb11r">
+          🔎 Quick Find
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Command Palette -->
+<div id="nx-cmd" class="fixed inset-0 z-[70] hidden">
+  <button id="nx-cmd-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-label="Close search"></button>
+  <div class="absolute left-1/2 top-16 -translate-x-1/2 w-[92%] max-w-lg rounded-2xl border border-white/10 bg-neutral-950/95 p-3 shadow-[0_30px_100px_-30px_rgba(0,0,0,.9)]">
+    <div class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+      <svg class="h-5 w-5 text-white/60 bugence-editor-grab" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
+      <input id="nx-cmd-input" class="w-full bg-transparent outline-none text-white placeholder-white/40 text-sm" placeholder="Search pages (e.g., book, about, community…)">
+      <kbd class="hidden sm:inline text-[10px] px-1.5 py-0.5 rounded border border-white/15 text-white/70">Esc</kbd>
+    </div>
+    <ul id="nx-cmd-list" class="mt-2 max-h-[46vh] overflow-auto divide-y divide-white/5">
+      <!-- results injected -->
+    </ul>
+  </div>
+</div>
+
+<style>
+/* ---------- Navbar morph, hide/show ---------- */
+.nx { transform: translateY(0); }
+.nx.scrolled{
+  background: rgba(0,0,0,.55);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom-color: rgba(255,255,255,.08);
+  box-shadow: 0 20px 60px -20px rgba(0,0,0,.55);
+}
+.nx.hide { transform: translateY(-110%); }
+
+/* ---------- Animated scanline & circuit glow ---------- */
+.nx-scan{ background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+          animation: nx-scan 6s linear infinite; opacity:.35 }
+@keyframes nx-scan { 0%{ background-position:-200% 0 } 100%{ background-position:200% 0 } }
+#nx-links .nx-circuit{ background: radial-gradient(50% 60% at 50% 30%, rgba(6,182,212,.22), transparent 60%); filter: blur(6px) }
+
+/* ---------- Desktop links + slider ---------- */
+.nx-link{
+  position: relative; display:inline-block; padding:.5rem .25rem; color:rgba(255,255,255,.82);
+  transition: color .18s ease, transform .18s ease;
+}
+.nx-link:hover{ color:#fff; transform: translateY(-1px); }
+.nx-link::after{ /* subtle per-link shine */
+  content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; border-radius:2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+  transform: translateX(-40%); opacity:0; transition: transform .3s ease, opacity .3s ease;
+}
+.nx-link:hover::after{ transform: translateX(40%); opacity:1 }
+#nx-slider{ left:0; width:0; opacity:.95 }
+
+/* ---------- CTA shine ---------- */
+.nx-cta{ position:relative; overflow:hidden }
+.nx-cta-shine{
+  position:absolute; inset:-2px; border-radius:999px; pointer-events:none; opacity:0; transition:opacity .25s ease;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,.45), transparent 30%, rgba(255,255,255,.25) 60%, transparent 90%);
+  filter: blur(6px);
+}
+.nx-cta:hover .nx-cta-shine{ opacity:.9 }
+
+/* ---------- Hamburger (morph to X) ---------- */
+#nx-burger .nx-bar,
+#nx-burger .nx-bar::before,
+#nx-burger .nx-bar::after{
+  position:absolute; width:20px; height:2px; background:#fff; border-radius:2px; transition: transform .2s ease, opacity .2s ease; content:"";
+}
+#nx-burger .nx-bar::before{ transform: translateY(-6px) }
+#nx-burger .nx-bar::after{ transform: translateY(6px) }
+#nx-burger[aria-expanded="true"] .nx-bar{ transform: rotate(45deg) }
+#nx-burger[aria-expanded="true"] .nx-bar::before{ transform: rotate(-90deg) }
+#nx-burger[aria-expanded="true"] .nx-bar::after{ opacity:0 }
+
+/* ---------- Mobile drawer ---------- */
+#nx-mobile .nx-panel{ box-shadow: 0 40px 120px -30px rgba(0,0,0,.8) }
+#nx-mobile .nx-m-link{
+  display:block; color:#e5e7eb; padding:.9rem 1rem; border-radius:12px; border:1px solid transparent;
+  background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  transform: translateY(6px); opacity:0;
+  transition: transform .28s ease, opacity .28s ease, background .2s ease, border-color .2s ease;
+}
+#nx-mobile .nx-m-link:hover{ border-color: rgba(255,255,255,.14); background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(255,255,255,.02)); }
+#nx-mobile .nx-m-cta{ background: linear-gradient(90deg, #34d399, #06b6d4); color:#0b0b0b; font-weight:700; }
+#nx-mobile[data-open="true"] .nx-m-link{ opacity:1; transform: none; transition-delay: calc(var(--i) * 60ms + 100ms); }
+
+/* ---------- Command palette ---------- */
+#nx-cmd-list li a{
+  display:flex; align-items:center; gap:10px; padding:.7rem .75rem; color:#e6f8ff;
+}
+#nx-cmd-list li a:hover{ background: rgba(255,255,255,.05) }
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .nx-scan{ animation: none }
+  #nx-slider, .nx-link::after{ transition: none }
+}
+</style>
+
+<script>
+(() => {
+  const nav = document.getElementById('site-nav');
+  const linksWrap = document.getElementById('nx-links');
+  const slider = document.getElementById('nx-slider');
+  const burger = document.getElementById('nx-burger');
+  const mobile = document.getElementById('nx-mobile');
+  const panel = mobile?.querySelector('.nx-panel');
+  const closeBtn = document.getElementById('nx-close');
+  const backdrop = document.getElementById('nx-backdrop');
+  const progress = document.getElementById('nx-progress');
+
+  /* ----- Scroll morph + progress + smart hide ----- */
+  let lastY = window.scrollY;
+  const onScroll = () => {
+    const y = window.scrollY;
+    nav.classList.toggle('scrolled', y > 8);
+    // progress
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = Math.max(0, Math.min(1, y / (h || 1)));
+    progress.style.transform = `scaleX(${pct})`;
+    // smart hide
+    if (y > 120 && y > lastY + 4) nav.classList.add('hide');
+    else nav.classList.remove('hide');
+    lastY = y;
+  };
+  onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* ----- Slider positioning ----- */
+  function placeSlider(el){
+    if(!el || !slider || !linksWrap) return;
+    const r = el.getBoundingClientRect();
+    const pr = linksWrap.getBoundingClientRect();
+    slider.style.transform = `translateX(${r.left - pr.left}px)`;
+    slider.style.width = `${r.width}px`;
+  }
+  let active = null;
+  if(linksWrap){
+    const all = [...linksWrap.querySelectorAll('.nx-link')];
+    // active by URL (fallback to first)
+    const here = all.find(a => {
+      const href = a.getAttribute('href') || '';
+      const tail = href.split('/').pop()?.toLowerCase();
+      return tail && location.pathname.toLowerCase().includes(tail);
+    });
+    active = here || all[0];
+    requestAnimationFrame(()=> placeSlider(active));
+    all.forEach(a=>{
+      a.addEventListener('mouseenter', () => placeSlider(a));
+      a.addEventListener('mouseleave', () => placeSlider(active));
+      a.addEventListener('focus', () => placeSlider(a));
+    });
+    new ResizeObserver(()=> placeSlider(active)).observe(linksWrap);
+  }
+
+  /* ----- Section-aware active (if same-page anchors exist) ----- */
+  const anchorMap = {};
+  linksWrap?.querySelectorAll('.nx-link').forEach(a=>{
+    const sel = a.dataset.section;
+    if(sel && document.querySelector(sel)) anchorMap[sel] = a;
+  });
+  if(Object.keys(anchorMap).length){
+    const io = new IntersectionObserver((entries)=>{
+      const vis = entries.filter(e => e.isIntersecting).sort((a,b)=> b.intersectionRatio - a.intersectionRatio)[0];
+      if(!vis) return;
+      const btn = anchorMap['#'+vis.target.id] || anchorMap['.'+vis.target.className] || null;
+      if(btn){ active = btn; placeSlider(btn); }
+    }, { rootMargin: "-30% 0px -60% 0px", threshold: [0.2, 0.4, 0.6] });
+    Object.keys(anchorMap).forEach(sel => {
+      const el = document.querySelector(sel);
+      if(el) io.observe(el);
+    });
+  }
+
+  /* ----- Mobile menu ----- */
+  function openMobile(){
+    mobile.classList.remove('hidden');
+    requestAnimationFrame(()=> {
+      panel.style.transform = 'translateX(0) scale(1)';
+      mobile.setAttribute('data-open','true');
+      burger.setAttribute('aria-expanded','true');
+      document.documentElement.style.overflow = 'hidden';
+    });
+  }
+  function closeMobile(){
+    panel.style.transform = '';
+    mobile.removeAttribute('data-open');
+    burger.setAttribute('aria-expanded','false');
+    setTimeout(()=> { mobile.classList.add('hidden'); document.documentElement.style.overflow = ''; }, 200);
+  }
+  burger?.addEventListener('click', openMobile);
+  closeBtn?.addEventListener('click', closeMobile);
+  backdrop?.addEventListener('click', closeMobile);
+  window.addEventListener('keydown', e => { if(e.key==='Escape' && mobile && !mobile.classList.contains('hidden')) closeMobile(); });
+
+  /* ----- Command palette (⌘K / Ctrl+K) ----- */
+  const cmd = document.getElementById('nx-cmd');
+  const cmdBtn = document.getElementById('nx-cmd-btn');
+  const cmdBtnM = document.getElementById('nx-cmd-btn-m');
+  const cmdBackdrop = document.getElementById('nx-cmd-backdrop');
+  const cmdInput = document.getElementById('nx-cmd-input');
+  const cmdList = document.getElementById('nx-cmd-list');
+
+  const pages = [
+    { t:'About Pete D', u:'/about.html' },
+    { t:'Meet Pete D', u:'/MeetPeteD.html' },
+    { t:'Book Pete D to Speak', u:'/BookPeteD.html' },
+    { t:'Join the Community', u:'/JoinTheCommunity.html' },
+    { t:'Get the Book', u:'https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785/' },
+  ];
+
+  function renderList(q=''){
+    const s = q.trim().toLowerCase();
+    const arr = pages.filter(p => !s || p.t.toLowerCase().includes(s));
+    cmdList.innerHTML = arr.map(p =>
+      `<li><a href="${p.u}"><span>↪</span><span>${p.t}</span></a></li>`
+    ).join('') || `<li><a href="#"><span>😕</span><span>No matches</span></a></li>`;
+  }
+
+  function openCmd(){
+    cmd.classList.remove('hidden');
+    renderList();
+    cmdInput.value = ''; cmdInput.focus();
+  }
+  function closeCmd(){ cmd.classList.add('hidden'); }
+
+  cmdBtn?.addEventListener('click', openCmd);
+  cmdBtnM?.addEventListener('click', openCmd);
+  cmdBackdrop?.addEventListener('click', closeCmd);
+  window.addEventListener('keydown', (e)=>{
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); openCmd(); }
+    if(e.key === 'Escape' && !cmd.classList.contains('hidden')) closeCmd();
+  });
+  cmdInput?.addEventListener('input', ()=> renderList(cmdInput.value));
+
+})();
+</script>
+
+ 
+  <!-- HERO -->
+  <header class="hero" aria-label="High-Tech Heroes" data-bugence-id="bugence-1767048209451-9zbb49">
+    <div id="heroVideoWrap" class="hero-media" data-bugence-id="bugence-1767048209451-01kfd2">
+      <video id="heroVideo" src="/Assets/PeteVideo-desktop.mp4" autoplay="" muted="" playsinline="" loop="" data-bugence-id="bugence-1767048209451-0prh40"></video>
+      <div class="overlay" data-bugence-id="bugence-1767048209451-xmo0ul"></div>
+    </div>
+
+    <!-- Content sits ABOVE the video -->
+    <div class="container hero-content" data-bugence-id="bugence-1767048209451-x6fic2">
+      <div class="kicker animate-fadeup onebooktxt" data-bugence-id="bugence-1767048209451-erg7ao">One Book • Billions</div>
+      <h1 class="animate-fadeup-delay heroanimatetitle" data-bugence-id="bugence-1767048209451-3c90ft">High-Tech Heroes</h1>
+
+      
+
+      <div class="cta-row animate-fadeup-delay3" data-bugence-id="bugence-1767048209451-h7lohs">
+        <a class="Herogold" href="https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785" data-bugence-id="bugence-1767048209451-ntbs4t">Get the
+          Book</a>
+        <a class="ghostbtn" href="#mission" data-bugence-id="bugence-1767048209451-qdp8vx">Join the Community</a>
+      </div>
+      <button id="skipVideoBtn" style="margin: 5rem 1rem; cursor: pointer; display: block;" class="skip-video" data-bugence-id="bugence-1767048209451-62ga5v">Skip Video</button>
+      <button id="muteToggleBtn" class="skip-video mute-btn" style="display: block;" data-bugence-id="bugence-1767048209451-jq9w1u">Unmute </button>
+
+    </div>
+  </header>
+  
+<!-- IMPACT (full-height, animated, polished) -->
+<!-- IMPACT · Dark / Animated / Interactive -->
+<section id="impact" class="ix-impact relative isolate min-h-[100svh] flex items-center justify-center py-16 sm:py-24 bg-black text-white overflow-hidden" data-bugence-id="bugence-1767048209451-5e418n">
+  
+
+  <!-- Animated aurora blobs -->
+  <div aria-hidden="true" class="ix-aurora pointer-events-none absolute inset-0 -z-10" data-bugence-id="bugence-1767048209451-59aa72"></div>
+
+  <!-- Subtle grid overlay -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(transparent_1px,rgba(255,255,255,0.05)_1px)] [background-size:14px_14px] mix-blend-soft-light" data-bugence-id="bugence-1767048209451-p0oevw"></div>
+
+  <div class="relative z-10 mx-auto w-[92%] max-w-6xl text-center space-y-8" data-bugence-id="bugence-1767048209451-9zaj5h">
+    <!-- Title chip -->
+    <h2 data-ix-reveal="" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 px-6 py-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-black shadow-[0_10px_30px_-10px_rgba(34,197,94,.5)] in" data-bugence-id="bugence-1767048209451-a6dgos">
+      <span data-bugence-id="bugence-1767048209452-cbnw6o">📖</span> Read a Sample Chapter of High-Tech Heroes
+    </h2>
+
+    <!-- Hero Card -->
+    <div data-ix-reveal="" class="ix-tilt mx-auto max-w-3xl rounded-3xl border border-white/10 bg-neutral-950/70 backdrop-blur-md p-6 sm:p-8 shadow-[0_30px_80px_-30px_rgba(0,0,0,.8)] relative overflow-hidden in" data-bugence-id="bugence-1767048209452-70yfl8" style="">
+      <!-- animated mesh -->
+      <div aria-hidden="true" class="absolute inset-0 -z-10 opacity-40 mix-blend-screen ix-mesh" data-bugence-id="bugence-1767048209452-ilowom"></div>
+
+      <p class="text-white/80 text-base sm:text-lg leading-relaxed" data-bugence-id="bugence-1767048209452-h6ucxy">
+        Get a taste of the story—download a <span class="font-semibold text-emerald-300" data-bugence-id="bugence-1767048209452-e3oet3">free sample chapter</span>
+        and join our early-reader list for releases and behind-the-scenes drops.
+      </p>
+
+      <!-- CTA -->
+      <div class="mt-6 sm:mt-8" data-bugence-id="bugence-1767048209452-wk4cim">
+        <button id="impact-open" class="ix-magnetic group inline-flex items-center gap-3 rounded-full px-6 py-3 text-base sm:text-lg font-semibold
+                 text-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500
+                 shadow-[0_10px_30px_-10px_rgba(234,88,12,.6)]
+                 transition-transform will-change-transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none ix-shine" data-bugence-id="bugence-1767048209452-up9hny">
+          <span class="relative overflow-hidden" data-bugence-id="bugence-1767048209452-b8mwcv">
+            <span class="relative z-10" data-bugence-id="bugence-1767048209452-cl9q48">⬇️ Download Sample Chapter</span>
+            <span class="absolute inset-0 -translate-x-full group-hover:translate-x-0 transition-transform bg-white/20" data-bugence-id="bugence-1767048209452-nekz5x"></span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Mini highlights -->
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3" data-bugence-id="bugence-1767048209452-1gguvw">
+        <div class="ix-card rounded-xl border border-white/10 bg-white/5 p-4" data-bugence-id="bugence-1767048209452-bdv13r">
+          <p class="text-sm font-semibold text-white" data-bugence-id="bugence-1767048209452-s83cys">Instant Access</p>
+          <p class="text-xs text-white/60" data-bugence-id="bugence-1767048209452-tot7dc">No waiting—get it now</p>
+        </div>
+        <div class="ix-card rounded-xl border border-white/10 bg-white/5 p-4" data-bugence-id="bugence-1767048209452-wlp0mc">
+          <p class="text-sm font-semibold text-white" data-bugence-id="bugence-1767048209452-otiwe7">MP3 + PDF</p>
+          <p class="text-xs text-white/60" data-bugence-id="bugence-1767048209452-u84c1c">Choose your format</p>
+        </div>
+        <div class="ix-card rounded-xl border border-white/10 bg-white/5 p-4" data-bugence-id="bugence-1767048209452-gz87h0">
+          <p class="text-sm font-semibold text-white" data-bugence-id="bugence-1767048209452-e6ivem">Free</p>
+          <p class="text-xs text-white/60" data-bugence-id="bugence-1767048209452-shwfct">Yours to keep</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="impact-modal" class="fixed inset-0 z-[80] hidden items-center justify-center p-3 sm:p-4" data-bugence-id="bugence-1767048209452-6ev5rk">
+    <!-- Backdrop -->
+    <button id="impact-backdrop" aria-label="Close" class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-bugence-id="bugence-1767048209452-lf1qd1"></button>
+
+    <!-- Card -->
+    <div role="dialog" aria-modal="true" aria-labelledby="impact-modal-title" class="relative z-[81] w-full max-w-md sm:max-w-xl origin-center rounded-2xl border border-white/10 bg-neutral-950/95 text-white shadow-[0_20px_80px_-20px_rgba(0,0,0,.9)] opacity-0 scale-95 transition will-change-transform max-h-[85vh] overflow-y-auto" data-bugence-id="bugence-1767048209452-z4nygg">
+
+      <!-- animated accent -->
+      <div class="h-1.5 w-full bg-white/5 overflow-hidden rounded-t-2xl" data-bugence-id="bugence-1767048209452-pnl1sr">
+        <div id="impact-progress" class="h-full w-[18%] bg-[conic-gradient(from_0deg,theme(colors.emerald.400),theme(colors.cyan.400),theme(colors.fuchsia.500),theme(colors.emerald.400))] animate-[spin_6s_linear_infinite] [mask-image:linear-gradient(to_right,black,black)]" data-bugence-id="bugence-1767048209452-zljglq"></div>
+      </div>
+
+      <!-- Close -->
+      <button id="impact-close" class="sticky top-0 ml-auto m-3 inline-grid h-10 w-10 place-items-center rounded-full
+               bg-white/10 hover:bg-white/20 backdrop-blur z-10 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Close" data-bugence-id="bugence-1767048209452-qs2de6">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209452-fczh5f"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" data-bugence-id="bugence-1767048209452-s1azjn"></path></svg>
+      </button>
+
+      <!-- Body -->
+      <div class="px-5 pb-6 sm:px-7 sm:pb-8 -mt-2" data-bugence-id="bugence-1767048209452-hapv0b">
+        <div class="text-center sm:text-left space-y-1" data-bugence-id="bugence-1767048209452-mejysh">
+          <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80" data-bugence-id="bugence-1767048209452-ic7pj7">
+            <span class="h-2 w-2 rounded-full bg-emerald-400" data-bugence-id="bugence-1767048209452-zyfcvk"></span> Free download
+          </span>
+          <h3 id="impact-modal-title" class="text-xl sm:text-2xl font-extrabold" data-bugence-id="bugence-1767048209452-a673it">Get Your Sample Chapter</h3>
+          <p class="text-white/70 text-sm sm:text-base" data-bugence-id="bugence-1767048209452-aieliv">Fill the fields below to unlock your download.</p>
+        </div>
+
+        <!-- Form -->
+        <form id="impact-form" class="mt-5 space-y-5" novalidate="" data-bugence-id="bugence-1767048209452-1khysk">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" data-bugence-id="bugence-1767048209452-rzvtyh">
+            <div data-bugence-id="bugence-1767048209452-cam2au">
+              <label for="impact-first" class="block text-xs mb-1 text-white/80" data-bugence-id="bugence-1767048209453-v3h919">First Name</label>
+              <input id="impact-first" type="text" autocomplete="given-name" placeholder="First Name" class="ix-input w-full rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-white
+                            placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400" data-bugence-id="bugence-1767048209453-flis65">
+              <p class="ix-err" id="err-first" hidden="" data-bugence-id="bugence-1767048209453-8r0frt">First name is required.</p>
+            </div>
+            <div data-bugence-id="bugence-1767048209453-x6bx4t" class="">
+              <label for="impact-last" class="block text-xs mb-1 text-white/80" data-bugence-id="bugence-1767048209453-h3pij7">Last Name</label>
+              <input id="impact-last" type="text" autocomplete="family-name" placeholder="Last Name" class="ix-input w-full rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-white
+                            placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400" data-bugence-id="bugence-1767048209453-uixs7i">
+              <p class="ix-err" id="err-last" hidden="" data-bugence-id="bugence-1767048209453-obwwrb">Last name is required.</p>
+            </div>
+            <div class="sm:col-span-2" data-bugence-id="bugence-1767048209453-sx2cwe">
+              <label for="impact-email" class="block text-xs mb-1 text-white/80" data-bugence-id="bugence-1767048209453-cslhig">Email</label>
+              <input id="impact-email" type="email" autocomplete="email" placeholder="you@example.com" class="ix-input w-full rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-white
+                            placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400" data-bugence-id="bugence-1767048209453-wksrsv">
+              <p class="ix-err" id="err-email" hidden="" data-bugence-id="bugence-1767048209453-hd3b2h">Enter a valid email.</p>
+            </div>
+            <div class="sm:col-span-2" data-bugence-id="bugence-1767048209453-sp9tfd">
+              <label for="impact-country" class="block text-xs mb-1 text-white/80" data-bugence-id="bugence-1767048209453-y0fznr">Country</label>
+              <input id="impact-country" list="impact-country-list" type="text" placeholder="Country" class="ix-input w-full rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400" data-bugence-id="bugence-1767048209453-sv25t8">
+              <datalist id="impact-country-list" data-bugence-id="bugence-1767048209453-qg9nnp">
+                <option data-bugence-id="bugence-1767048209453-6ancrb">United States</option><option data-bugence-id="bugence-1767048209453-zmphaw">United Kingdom</option><option data-bugence-id="bugence-1767048209453-d5ka4p">Canada</option>
+                <option data-bugence-id="bugence-1767048209453-nki4ac">Australia</option><option data-bugence-id="bugence-1767048209453-i4b977">Pakistan</option><option data-bugence-id="bugence-1767048209453-vgeoo0">India</option>
+                <option data-bugence-id="bugence-1767048209453-r3lksa">Germany</option><option data-bugence-id="bugence-1767048209453-bjooog">France</option><option data-bugence-id="bugence-1767048209453-we8a03">United Arab Emirates</option>
+              </datalist>
+              <p class="ix-err" id="err-country" hidden="" data-bugence-id="bugence-1767048209453-xovprv">Country is required.</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" data-bugence-id="bugence-1767048209453-k5kehi">
+            <label class="inline-flex items-start gap-2 text-xs text-white/80" data-bugence-id="bugence-1767048209453-9lbizr">
+              <input id="impact-consent" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/10 text-emerald-400 focus:ring-0" data-bugence-id="bugence-1767048209453-q1hwge">
+              <span data-bugence-id="bugence-1767048209453-lj2lmf">I agree to receive updates and special releases.</span>
+            </label>
+
+            <div class="flex gap-2" data-bugence-id="bugence-1767048209453-2ykwmt">
+              <button type="button" class="impact-download inline-flex items-center gap-2 rounded-xl bg-white text-black px-4 py-2 font-semibold hover:-translate-y-[1px] active:translate-y-0 transition ix-dl" data-file="/Assets/sample.mp3" data-bugence-id="bugence-1767048209453-5a8def">
+                <span class="ix-spin" aria-hidden="true" data-bugence-id="bugence-1767048209453-82ioo1"></span> MP3
+              </button>
+              <button type="button" class="impact-download inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-black px-4 py-2 font-semibold
+                             hover:-translate-y-[1px] active:translate-y-0 transition ix-dl" data-file="/Assets/petepdf.pdf" data-bugence-id="bugence-1767048209453-24a5io">
+                <span class="ix-spin" aria-hidden="true" data-bugence-id="bugence-1767048209453-jg2h99"></span> PDF
+              </button>
+            </div>
+          </div>
+        </form>
+        <p class="mt-3 text-[11px] text-white/45" data-bugence-id="bugence-1767048209453-t7m6mw">We never share your data. One-click unsubscribe anytime.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="impact-toast" class="fixed bottom-4 left-4 z-[90] hidden min-w-[240px] max-w-xs rounded-xl border border-white/10
+              bg-neutral-900/95 px-3 py-2 text-white shadow-[0_20px_60px_-20px_rgba(0,0,0,.9)]" data-bugence-id="bugence-1767048209453-vg3axj">
+    <p data-text="" class="text-sm" data-bugence-id="bugence-1767048209453-xchbz4"></p>
+  </div>
+</section>
+
+<style>
+/* ==== Background aurora & mesh (dark) ==== */
+.ix-aurora{
+  background:
+    radial-gradient(30% 40% at 18% 28%, rgba(34,197,94,.25), transparent 60%),
+    radial-gradient(30% 40% at 82% 24%, rgba(6,182,212,.22), transparent 60%),
+    radial-gradient(30% 40% at 64% 78%, rgba(236,72,153,.22), transparent 60%);
+  filter: blur(40px) saturate(1.05);
+  animation: ix-pan 24s ease-in-out infinite alternate;
+}
+.ix-mesh{
+  background:
+    radial-gradient(50% 60% at 20% 30%, rgba(34,197,94,.18), transparent 60%),
+    radial-gradient(40% 50% at 80% 20%, rgba(6,182,212,.16), transparent 60%),
+    radial-gradient(50% 50% at 65% 80%, rgba(236,72,153,.16), transparent 60%);
+  animation: ix-pan 28s ease-in-out infinite alternate;
+}
+@keyframes ix-pan { 0%{ transform: translate(-6%,-4%) } 100%{ transform: translate(6%,4%) } }
+
+/* ==== Scroll reveal ==== */
+@media (prefers-reduced-motion:no-preference){
+  [data-ix-reveal]{ opacity:0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+  [data-ix-reveal].in{ opacity:1; transform: none; }
+}
+
+/* ==== Tilt & glow cards ==== */
+.ix-tilt{ transform-style: preserve-3d; transition: box-shadow .25s ease, border-color .25s ease; }
+.ix-tilt:hover{ box-shadow: 0 40px 120px -30px rgba(6,182,212,.25); border-color: rgba(34,197,94,.25); }
+.ix-card{ transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; }
+.ix-card:hover{ transform: translateY(-4px); box-shadow: 0 16px 40px -20px rgba(34,197,94,.35); border-color: rgba(34,197,94,.3); background: linear-gradient(180deg, rgba(34,197,94,.12), rgba(255,255,255,.04)); }
+
+/* ==== CTA shine + magnetic ==== */
+.ix-shine{ position:relative; }
+.ix-shine::after{
+  content:""; position:absolute; inset:-2px; border-radius:999px; pointer-events:none;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,.35), transparent 30%, rgba(255,255,255,.25) 60%, transparent 90%);
+  filter: blur(6px); opacity:0; transition: opacity .25s ease;
+}
+.ix-shine:hover::after{ opacity:.9; }
+
+/* ==== Inputs & errors ==== */
+.ix-input.ix-invalid{ border-color: rgba(244,63,94,.65)!important; animation: ix-shake .18s 2; }
+.ix-err{ color:#fecaca; font-size:11px; margin-top:.4rem }
+@keyframes ix-shake{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(-3px) } }
+
+/* ==== Download spinner ==== */
+.ix-spin{ width:0;height:0;border:0 solid transparent;border-top-color:transparent;border-radius:999px;display:inline-block;opacity:0;margin-right:0;transition:opacity .2s ease, margin-right .2s ease; }
+.ix-dl.is-loading .ix-spin{ width:14px;height:14px;border-width:2px;border-top-color:#000;border-left-color:#000;animation: ix-rotate .7s linear infinite;opacity:1;margin-right:4px; }
+@keyframes ix-rotate{ to{ transform: rotate(360deg) } }
+</style>
+
+<script>
+/* ===== Scroll reveal ===== */
+(() => {
+  const els = document.querySelectorAll('#impact [data-ix-reveal]');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.15 });
+  els.forEach(el => io.observe(el));
+})();
+
+/* ===== Magnetic hover on primary CTA ===== */
+(() => {
+  const btn = document.getElementById('impact-open');
+  if(!btn) return;
+  const strength = 12; // px
+  function move(e){
+    const r = btn.getBoundingClientRect();
+    const dx = (e.clientX - (r.left + r.width/2)) / (r.width/2);
+    const dy = (e.clientY - (r.top + r.height/2)) / (r.height/2);
+    btn.style.transform = `translate(${dx*strength}px, ${dy*strength}px)`;
+  }
+  function reset(){ btn.style.transform = ''; }
+  btn.addEventListener('mousemove', move);
+  btn.addEventListener('mouseleave', reset);
+})();
+
+/* ===== Subtle tilt on card ===== */
+(() => {
+  const card = document.querySelector('#impact .ix-tilt');
+  if(!card) return;
+  const max = 6; // degrees
+  function onMove(e){
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    const rx = (+py * max).toFixed(2);
+    const ry = (-px * max).toFixed(2);
+    card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+  function reset(){ card.style.transform = ''; }
+  card.addEventListener('mousemove', onMove);
+  card.addEventListener('mouseleave', reset);
+})();
+
+/* ===== Starfield (lightweight, respects reduced motion) ===== */
+(() => {
+  const canvas = document.getElementById('ix-stars');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const prm = matchMedia('(prefers-reduced-motion: reduce)');
+  let stars = [], w=0, h=0, raf;
+
+  function resize(){
+    w = canvas.width = canvas.offsetWidth * devicePixelRatio;
+    h = canvas.height = canvas.offsetHeight * devicePixelRatio;
+    const count = Math.min(200, Math.floor((w*h)/(1400*1400))*120 + 120);
+    stars = new Array(count).fill(0).map(()=>({
+      x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.6 + .2, p: Math.random()*Math.PI*2, s: Math.random()*0.8+0.2
+    }));
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#fff';
+    stars.forEach(st=>{
+      const tw = .6 + Math.sin(st.p)*.4;
+      ctx.globalAlpha = .15 + tw*.85;
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, st.r, 0, Math.PI*2);
+      ctx.fill();
+      st.p += 0.015*st.s;
+      st.y += 0.02*st.s; // slow drift
+      if(st.y > h) st.y = 0;
+    });
+    ctx.globalAlpha = 1;
+    raf = requestAnimationFrame(draw);
+  }
+
+  function start(){ cancelAnimationFrame(raf); resize(); if(!prm.matches){ draw(); } }
+  function stop(){ cancelAnimationFrame(raf); }
+
+  const ro = new ResizeObserver(start); ro.observe(canvas);
+  prm.addEventListener?.('change', start);
+  start();
+})();
+
+/* ===== Modal + basic validation + toast ===== */
+(() => {
+  const openBtn = document.getElementById('impact-open');
+  const modal = document.getElementById('impact-modal');
+  const closeBtn = document.getElementById('impact-close');
+  const backdrop = document.getElementById('impact-backdrop');
+  const toast = document.getElementById('impact-toast');
+  const msgEl = toast?.querySelector('[data-text]');
+  const form = document.getElementById('impact-form');
+  const fields = {
+    first: document.getElementById('impact-first'),
+    last: document.getElementById('impact-last'),
+    email: document.getElementById('impact-email'),
+    country: document.getElementById('impact-country'),
+    consent: document.getElementById('impact-consent'),
+  };
+
+  function lockScroll(lock){ document.documentElement.style.overflow = lock?'hidden':''; document.body.style.overflow = lock?'hidden':''; }
+  function show(){ modal.classList.remove('hidden'); requestAnimationFrame(()=>{ const card=modal.querySelector('[role="dialog"]'); card.style.opacity='1'; card.style.transform='scale(1)'; lockScroll(true); }); }
+  function hide(){ const card=modal.querySelector('[role="dialog"]'); card.style.opacity='0'; card.style.transform='scale(.95)'; setTimeout(()=>{ modal.classList.add('hidden'); lockScroll(false); },160); }
+
+  openBtn?.addEventListener('click', show);
+  closeBtn?.addEventListener('click', hide);
+  backdrop?.addEventListener('click', hide);
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !modal.classList.contains('hidden')) hide(); });
+
+  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function err(el, show, id){
+    const p = document.getElementById(id);
+    el.classList.toggle('ix-invalid', show);
+    if(p) p.hidden = !show;
+  }
+  function validate(){
+    const v1 = !fields.first.value.trim(); err(fields.first, v1, 'err-first');
+    const v2 = !fields.last.value.trim(); err(fields.last, v2, 'err-last');
+    const v3 = !isEmail(fields.email.value.trim()); err(fields.email, v3, 'err-email');
+    const v4 = !fields.country.value.trim(); err(fields.country, v4, 'err-country');
+    return !(v1||v2||v3||v4) && fields.consent.checked;
+  }
+  function toastMsg(t){ if(!(toast&&msgEl)) return; msgEl.textContent=t; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2000); }
+
+  document.querySelectorAll('.impact-download').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(!validate()){ toastMsg('Please complete the form and consent to proceed.'); return; }
+      btn.classList.add('is-loading');
+      const file = btn.getAttribute('data-file');
+      const a = document.createElement('a'); a.href = file; a.download=''; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove();
+      toastMsg(`Downloading ${file.split('/').pop()}`);
+      setTimeout(()=> btn.classList.remove('is-loading'), 900);
+    });
+  });
+})();
+</script>
+
+
+ <!-- ===================== FAQ (compact, creative, accessible) ===================== -->
+<!-- ===================== FAQ · FX Style ===================== -->
+<section id="faq" class="fx-faq relative bg-black py-16 sm:py-20 overflow-hidden" data-bugence-id="bugence-1767048209454-q2cewx">
+  <!-- left gradient rail -->
+  <span class="fx-rail" aria-hidden="true" data-bugence-id="bugence-1767048209454-kx8os9"></span>
+
+  <div class="mx-auto w-[92%] max-w-5xl" data-bugence-id="bugence-1767048209454-w4m60k">
+    <h2 class="text-center text-2xl sm:text-3xl font-extrabold text-white" data-bugence-id="bugence-1767048209454-jh32sj">
+      Frequently Asked Questions
+    </h2>
+
+    <div class="mt-6 rounded-2xl border border-white/10 bg-neutral-950/60 p-2" data-bugence-id="bugence-1767048209454-diz2mv">
+      <!-- Item 1 -->
+      <article class="fx-faq-item" id="faq-who" data-bugence-id="bugence-1767048209454-9ke8cj">
+        <button class="fx-faq-q" aria-expanded="false" aria-controls="faq-a-1" id="faq-q-1" data-bugence-id="bugence-1767048209454-4xuzl8">
+          <span class="fx-faq-text" data-bugence-id="bugence-1767048209454-qk4kki">Who is Pete Dulcamara?</span>
+          <span class="fx-faq-icon" aria-hidden="true" data-bugence-id="bugence-1767048209454-r6m0ql">
+            <!-- plus icon (rotates into × on open) -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209454-bgno0z">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-bugence-id="bugence-1767048209454-38nhtj"></path>
+            </svg>
+          </span>
+        </button>
+        <span class="fx-ripple" aria-hidden="true" data-bugence-id="bugence-1767048209454-l6iyrp"></span>
+        <div class="fx-faq-a" id="faq-a-1" role="region" aria-labelledby="faq-q-1" hidden="" data-bugence-id="bugence-1767048209454-or8t72">
+          <div class="fx-faq-body" data-bugence-id="bugence-1767048209454-f5yk3s">
+            <p data-bugence-id="bugence-1767048209454-p7hq6t">Former Kimberly-Clark Chief Scientist and Dow Chemical R&amp;D Executive with over 25 years of materials
+              science expertise, Pete Dulcamara combines deep technical knowledge with real-world implementation
+              experience.</p>
+            <p data-bugence-id="bugence-1767048209454-iuqisw">As a Gen Z father and TEDX Keynote speaker, Pete uniquely understands both the technical challenges and
+              generational dynamics driving sustainable transformation.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Item 2 -->
+      <article class="fx-faq-item" id="faq-mission" data-bugence-id="bugence-1767048209454-ruhe5c">
+        <button class="fx-faq-q" aria-expanded="false" aria-controls="faq-a-2" id="faq-q-2" data-bugence-id="bugence-1767048209454-g1szmt">
+          <span class="fx-faq-text" data-bugence-id="bugence-1767048209454-nydvea">What is Pete's Mission?</span>
+          <span class="fx-faq-icon" aria-hidden="true" data-bugence-id="bugence-1767048209454-385zkc">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209454-u9kmxz">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-bugence-id="bugence-1767048209454-tddu7z"></path>
+            </svg>
+          </span>
+        </button>
+        <span class="fx-ripple" aria-hidden="true" data-bugence-id="bugence-1767048209454-uk9yh9"></span>
+        <div class="fx-faq-a" id="faq-a-2" role="region" aria-labelledby="faq-q-2" hidden="" data-bugence-id="bugence-1767048209454-fdijd8">
+          <div class="fx-faq-body" data-bugence-id="bugence-1767048209454-0s5sav">
+            <p data-bugence-id="bugence-1767048209454-7ajpfz">Pete Dulcamara’s mission is to “redefine success”. Traditional billionaires accumulate wealth. New
+              billionaires can impact a billion lives through sustainable technology, equitable systems, and environmental
+              restoration. <em data-bugence-id="bugence-1767048209454-i8xx0i">High-Tech Heroes (bugence)</em> provides the roadmap for this paradigm shift.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Item 3 -->
+      <article class="fx-faq-item" id="faq-genz-lead" data-bugence-id="bugence-1767048209454-vxbto3">
+        <button class="fx-faq-q" aria-expanded="false" aria-controls="faq-a-3" id="faq-q-3" data-bugence-id="bugence-1767048209454-b435us">
+          <span class="fx-faq-text" data-bugence-id="bugence-1767048209454-fvh7bg">Why is Gen Z Uniquely Positioned to Lead Climate Solutions?</span>
+          <span class="fx-faq-icon" aria-hidden="true" data-bugence-id="bugence-1767048209454-lybtz2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209454-bv4rp1">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-bugence-id="bugence-1767048209454-ruckkm"></path>
+            </svg>
+          </span>
+        </button>
+        <span class="fx-ripple" aria-hidden="true" data-bugence-id="bugence-1767048209454-wg3h4s"></span>
+        <div class="fx-faq-a" id="faq-a-3" role="region" aria-labelledby="faq-q-3" hidden="" data-bugence-id="bugence-1767048209454-kiaaig">
+          <div class="fx-faq-body" data-bugence-id="bugence-1767048209454-oq7et3">
+            <p data-bugence-id="bugence-1767048209454-q5xequ">Gen Z represents the first generation to grow up with climate awareness and advanced technology.
+              <em data-bugence-id="bugence-1767048209454-rencdo">High-Tech Heroes (bugence)</em> demonstrates how their digital-native mindset, combined with a passion for
+              social justice, creates unprecedented potential for environmental innovation. Unlike previous generations,
+              Gen Z views sustainability not as a constraint, but as an opportunity for technological advancement and
+              economic transformation.</p>
+            <ul data-bugence-id="bugence-1767048209454-54kb1z">
+              <li data-bugence-id="bugence-1767048209454-l3ezy5">73% of Gen Z consumers will pay more for sustainable products*</li>
+              <li data-bugence-id="bugence-1767048209454-21uioy">Gen Z will drive 30% of global consumer spending by 2030*</li>
+              <li data-bugence-id="bugence-1767048209454-65mrwn">83% prioritize companies with strong environmental commitments*</li>
+            </ul>
+            <a href="https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785/" class="herogold" target="_blank" rel="noopener" data-bugence-id="bugence-1767048209454-gpbxbo">Download the stats here</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Item 4 -->
+      <article class="fx-faq-item" id="faq-tech-climate" data-bugence-id="bugence-1767048209454-yvtd4y">
+        <button class="fx-faq-q" aria-expanded="false" aria-controls="faq-a-4" id="faq-q-4" data-bugence-id="bugence-1767048209454-bpuuta">
+          <span class="fx-faq-text" data-bugence-id="bugence-1767048209454-irgcke">How Can Technology Solve Climate Change?</span>
+          <span class="fx-faq-icon" aria-hidden="true" data-bugence-id="bugence-1767048209454-tc2mhw">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209455-oipmvr">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-bugence-id="bugence-1767048209455-xbl2zd"></path>
+            </svg>
+          </span>
+        </button>
+        <span class="fx-ripple" aria-hidden="true" data-bugence-id="bugence-1767048209455-2whhsp"></span>
+        <div class="fx-faq-a" id="faq-a-4" role="region" aria-labelledby="faq-q-4" hidden="" data-bugence-id="bugence-1767048209455-lzmpml">
+          <div class="fx-faq-body" data-bugence-id="bugence-1767048209455-s4yc43">
+            <h4 data-bugence-id="bugence-1767048209455-dalx7d">Revolutionary Science Breakthroughs</h4>
+            <p data-bugence-id="bugence-1767048209455-qdveov"><strong data-bugence-id="bugence-1767048209455-0qhhhn">Plastic Without Petroleum:</strong> Discover biodegradable polymers derived from plant materials
+              that decompose in ocean environments within 6 months, eliminating microplastic pollution while maintaining
+              product durability.</p>
+            <p data-bugence-id="bugence-1767048209455-h927kq"><strong data-bugence-id="bugence-1767048209455-f0dbag">Paper Without Trees:</strong> Transform agricultural waste into high-quality paper alternatives,
+              significantly reducing deforestation, while creating new revenue streams for farmers globally.</p>
+
+            <h4 data-bugence-id="bugence-1767048209455-9tamhl">Circular Economy Manufacturing</h4>
+            <p data-bugence-id="bugence-1767048209455-ypka3b"><strong data-bugence-id="bugence-1767048209455-lt4qha">Manufacturing Without Waste:</strong> Learn zero-waste production systems where 100% of materials
+              cycle through reuse, reducing industrial environmental impact and creating new "circular billionaire"
+              opportunities.</p>
+            <p data-bugence-id="bugence-1767048209455-dp2sye"><strong data-bugence-id="bugence-1767048209455-2maies">Sustainable Agriculture Technologies:</strong> Implement AI-driven soil restoration techniques that
+              rebuild organic topsoil 5x faster than natural processes, ensuring food security for growing populations.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Item 5 -->
+      <article class="fx-faq-item" id="faq-data-sovereignty" data-bugence-id="bugence-1767048209455-6a875o">
+        <button class="fx-faq-q" aria-expanded="false" aria-controls="faq-a-5" id="faq-q-5" data-bugence-id="bugence-1767048209455-nbf34h">
+          <span class="fx-faq-text" data-bugence-id="bugence-1767048209455-guox0n">What is Data Sovereignty and How Does it Create Social Equity?</span>
+          <span class="fx-faq-icon" aria-hidden="true" data-bugence-id="bugence-1767048209455-tix5ay">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209455-ebyx5s">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-bugence-id="bugence-1767048209455-n3j1vr"></path>
+            </svg>
+          </span>
+        </button>
+        <span class="fx-ripple" aria-hidden="true" data-bugence-id="bugence-1767048209455-f4sjo7"></span>
+        <div class="fx-faq-a" id="faq-a-5" role="region" aria-labelledby="faq-q-5" hidden="" data-bugence-id="bugence-1767048209455-v56i2q">
+          <div class="fx-faq-body" data-bugence-id="bugence-1767048209455-m5y0eu">
+            <p data-bugence-id="bugence-1767048209455-gomjle">Data sovereignty: individual and community control over personal, environmental, and economic data
+              represents the foundation of Gen Z's approach to ethical technology. In his book, <em data-bugence-id="bugence-1767048209455-yzvies">High-Tech Heroes
+                (bugence)</em>, Pete Dulcamara explains how young leaders can:</p>
+            <ul data-bugence-id="bugence-1767048209455-z8i9i5">
+              <li data-bugence-id="bugence-1767048209455-5dvuu2">Trade environmental data ethically to fund sustainability projects</li>
+              <li data-bugence-id="bugence-1767048209455-tpq324">Maintain privacy while contributing to collective climate solutions</li>
+              <li data-bugence-id="bugence-1767048209455-vo894d">Create decentralized systems that prevent corporate data exploitation</li>
+              <li data-bugence-id="bugence-1767048209455-614csh">Build new economic models where data ownership generates sustainable wealth</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- Item 6 -->
+      <article class="fx-faq-item" id="faq-why-different" data-bugence-id="bugence-1767048209455-k4j4pz">
+        <button class="fx-faq-q" aria-expanded="false" aria-controls="faq-a-6" id="faq-q-6" data-bugence-id="bugence-1767048209455-lo52lq">
+          <span class="fx-faq-text" data-bugence-id="bugence-1767048209455-pdgh5i">What makes High-Tech Heroes (bugence) different from other climate books?</span>
+          <span class="fx-faq-icon" aria-hidden="true" data-bugence-id="bugence-1767048209455-taudoz">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209455-wv3vox">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-bugence-id="bugence-1767048209455-7al3u5"></path>
+            </svg>
+          </span>
+        </button>
+        <span class="fx-ripple" aria-hidden="true" data-bugence-id="bugence-1767048209455-qouxso"></span>
+        <div class="fx-faq-a" id="faq-a-6" role="region" aria-labelledby="faq-q-6" hidden="" data-bugence-id="bugence-1767048209455-zm3kkj">
+          <div class="fx-faq-body" data-bugence-id="bugence-1767048209455-ln5i2v">
+            <p data-bugence-id="bugence-1767048209455-moql05">Pete Dulmara’s <em data-bugence-id="bugence-1767048209455-ni1s0o">High-Tech Heroes (bugence)</em> focuses specifically on actionable technology solutions
+              happening now that Gen Z can implement, rather than general environmental awareness. Pete Dulmara's science
+              background provides technical depth while maintaining accessibility for young readers.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Item 7 -->
+      <article class="fx-faq-item" id="faq-parents-policy" data-bugence-id="bugence-1767048209455-6apvmu">
+        <button class="fx-faq-q" aria-expanded="false" aria-controls="faq-a-7" id="faq-q-7" data-bugence-id="bugence-1767048209455-x2l56v">
+          <span class="fx-faq-text" data-bugence-id="bugence-1767048209455-577qfn">How can Parents and Policy-makers support Gen Z climate leadership?</span>
+          <span class="fx-faq-icon" aria-hidden="true" data-bugence-id="bugence-1767048209455-lmdl1k">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209455-i5wq31">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-bugence-id="bugence-1767048209456-ec9v5e"></path>
+            </svg>
+          </span>
+        </button>
+        <span class="fx-ripple" aria-hidden="true" data-bugence-id="bugence-1767048209456-bh54ud"></span>
+        <div class="fx-faq-a" id="faq-a-7" role="region" aria-labelledby="faq-q-7" hidden="" data-bugence-id="bugence-1767048209456-i1ckwv">
+          <div class="fx-faq-body" data-bugence-id="bugence-1767048209456-e1zdjq">
+            <p data-bugence-id="bugence-1767048209456-ynlp2m">They can start by buying, reading the book. Pete Dulcamara’s <em data-bugence-id="bugence-1767048209456-emnx8l">High-Tech Heroes (bugence)</em> book includes
+              dedicated sections for parents, investors, and policy-makers outlining how to encourage innovation, provide
+              resources, and create supportive environments for young climate entrepreneurs.</p>
+            <p data-bugence-id="bugence-1767048209456-ycm6vo">We also have a dedicated bugence Facebook Community for parents of Gen Zs.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Item 8 -->
+      <article class="fx-faq-item" id="faq-ai-apps" data-bugence-id="bugence-1767048209456-4q9mfl">
+        <button class="fx-faq-q" aria-expanded="false" aria-controls="faq-a-8" id="faq-q-8" data-bugence-id="bugence-1767048209456-6uvd1c">
+          <span class="fx-faq-text" data-bugence-id="bugence-1767048209456-sm2qnt">What specific AI applications address climate change?</span>
+          <span class="fx-faq-icon" aria-hidden="true" data-bugence-id="bugence-1767048209456-3e6jrv">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209456-gvzpup">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-bugence-id="bugence-1767048209456-s0rdlf"></path>
+            </svg>
+          </span>
+        </button>
+        <span class="fx-ripple" aria-hidden="true" data-bugence-id="bugence-1767048209456-2h9n7z"></span>
+        <div class="fx-faq-a" id="faq-a-8" role="region" aria-labelledby="faq-q-8" hidden="" data-bugence-id="bugence-1767048209456-89qlzx">
+          <div class="fx-faq-body" data-bugence-id="bugence-1767048209456-p1tcj1">
+            <p data-bugence-id="bugence-1767048209456-xyizhx"><em data-bugence-id="bugence-1767048209456-cktxxq">High-Tech Heroes (bugence)</em> covers AI applications in carbon capture optimization, renewable energy
+              grid management, sustainable materials discovery, and climate modeling acceleration.</p>
+            <p class="faq-highlight" data-bugence-id="bugence-1767048209456-2zk2d8">The Future has arrived. Join the High-Tech Heroes (bugence) Movement NOW.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+<style>
+/* ===== FX FAQ base ===== */
+.fx-faq { position: relative; }
+.fx-rail{
+  position:absolute; left:0; top:0; bottom:0; width:4px;
+  background: linear-gradient(180deg, #22c55e, #06b6d4, #f59e0b, #f472b6);
+  opacity:.65;
+}
+.fx-faq-item{
+  position:relative; /* needed for ripple */
+}
+.fx-faq-item + .fx-faq-item{ border-top: 1px solid rgba(255,255,255,.08); }
+
+.fx-faq-q{
+  position:relative; width:100%;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:.95rem 1rem .95rem 1.25rem; color:#fff; text-align:left; cursor:pointer;
+  transition: background .16s ease, color .16s ease;
+}
+.fx-faq-q:hover{ background: rgba(255,255,255,.05); }
+.fx-faq-text{ padding-right:.5rem; font:800 15px/1.3 "Inter",system-ui,sans-serif; }
+.fx-faq-icon{
+  display:inline-grid; place-items:center;
+  width:28px; height:28px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.18); color:#cbd5e1;
+  transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+.fx-faq-q[aria-expanded="true"] .fx-faq-icon{
+  transform: rotate(45deg) scale(1.05);
+  background: linear-gradient(135deg, #22c55e, #06b6d4);
+  color:#0b0b0b; border-color: transparent;
+  box-shadow: 0 10px 24px rgba(6,182,212,.25);
+}
+
+/* panel */
+.fx-faq-a{
+  overflow:hidden; height:0; transition: height .22s ease;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+}
+.fx-faq-body{
+  padding:0 1rem 1rem 1.25rem; color: rgba(255,255,255,.78);
+}
+.fx-faq-body h4{ color:#fff; margin:.5rem 0 .25rem; font:800 14px/1.2 "Inter"; }
+.fx-faq-body ul{ margin:.4rem 0 0 1rem; list-style:disc; }
+
+/* ripple */
+.fx-ripple{
+  position:absolute; inset:0; pointer-events:none; border-radius:12px;
+  --x:50%; --y:50%;
+  background: radial-gradient(180px circle at var(--x) var(--y),
+    rgba(255,255,255,.08), transparent 60%);
+  opacity:0; transition: opacity .25s ease;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .fx-faq-a{ transition:none; }
+}
+</style>
+<script>
+(() => {
+  const items = document.querySelectorAll('#faq .fx-faq-item');
+
+  function setHeight(panel, open){
+    if(open){
+      panel.hidden = false;
+      panel.style.height = 'auto';
+      const h = panel.scrollHeight + 'px';
+      panel.style.height = '0px';
+      requestAnimationFrame(()=> panel.style.height = h);
+      panel.addEventListener('transitionend', function end(){
+        panel.style.height='auto'; panel.removeEventListener('transitionend', end);
+      });
+    }else{
+      const h = panel.scrollHeight + 'px';
+      panel.style.height = h;
+      requestAnimationFrame(()=> panel.style.height = '0px');
+      panel.addEventListener('transitionend', function end(){
+        panel.hidden = true; panel.removeEventListener('transitionend', end);
+      });
+    }
+  }
+
+  items.forEach(wrap=>{
+    const btn = wrap.querySelector('.fx-faq-q');
+    const panel = wrap.querySelector('.fx-faq-a');
+    const ripple = wrap.querySelector('.fx-ripple');
+
+    btn.addEventListener('click', (e)=>{
+      // ripple origin
+      if(ripple){
+        const r = btn.getBoundingClientRect();
+        ripple.style.setProperty('--x', (e.clientX - r.left) + 'px');
+        ripple.style.setProperty('--y', (e.clientY - r.top) + 'px');
+        ripple.style.opacity = .9; setTimeout(()=> ripple.style.opacity = 0, 220);
+      }
+
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      // single-open: close others
+      items.forEach(other=>{
+        if(other===wrap) return;
+        const b = other.querySelector('.fx-faq-q');
+        const p = other.querySelector('.fx-faq-a');
+        if(b.getAttribute('aria-expanded') === 'true'){ b.setAttribute('aria-expanded','false'); setHeight(p,false); }
+      });
+
+      btn.setAttribute('aria-expanded', String(!open));
+      setHeight(panel, !open);
+
+      if(!open) history.replaceState(null,'','#'+panel.id); // deep link
+    });
+
+    btn.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); btn.click(); }
+    });
+
+    // open if hash matches on load
+    if(location.hash && location.hash === '#'+panel.id){
+      btn.setAttribute('aria-expanded','true'); panel.hidden=false; panel.style.height='auto';
+      setTimeout(()=> btn.scrollIntoView({behavior:'smooth', block:'center'}), 40);
+    }
+  });
+})();
+</script>
+
+
+ <!-- ===================== ABOUT (dark, animated) ===================== -->
+<section id="about" class="ax-about relative bg-black text-white py-16 sm:py-20 overflow-hidden" data-bugence-id="bugence-1767048209456-j2ggdf">
+  <!-- Ambient aurora -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 ax-aurora" data-bugence-id="bugence-1767048209456-1gz4cs"></div>
+
+  <div class="mx-auto w-[92%] max-w-6xl grid gap-10 lg:grid-cols-2 items-center" data-bugence-id="bugence-1767048209456-6c7qba">
+    <!-- LEFT: TEXT -->
+    <div class="space-y-5 in" data-ax-reveal="" data-bugence-id="bugence-1767048209456-50ty4p">
+      <h1 class="text-2xl sm:text-4xl font-extrabold leading-tight" data-bugence-id="bugence-1767048209456-3mzvhz">
+        THIS BOOK IS NOT JUST A READ; <br data-bugence-id="bugence-1767048209456-fp6kt6">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-fuchsia-400" data-bugence-id="bugence-1767048209456-d488wj">
+          IT IS AN INVESTMENT IN YOUR FUTURE.
+        </span>
+      </h1>
+
+      
+
+      <!-- Features (accordion chips) -->
+      <ul class="ax-features divide-y divide-white/10 rounded-2xl border border-white/10 bg-neutral-950/60" data-bugence-id="bugence-1767048209456-obsth5">
+        <!-- Item -->
+        <li class="ax-feat" data-bugence-id="bugence-1767048209456-pwk1ue">
+          <button class="ax-feat-btn" type="button" aria-expanded="false" data-bugence-id="bugence-1767048209456-oq9ta6">
+            <span class="ax-badge" data-bugence-id="bugence-1767048209456-wvive0">🌍</span>
+            <span class="ax-feat-text" data-bugence-id="bugence-1767048209456-qvghye">Why and how Gen Z will save the Planet</span>
+            <span class="ax-feat-icon" aria-hidden="true" data-bugence-id="bugence-1767048209456-ar5nxt"></span>
+          </button>
+          <div class="ax-feat-panel" hidden="" data-bugence-id="bugence-1767048209457-654z0h">
+            <div class="ax-chips" data-bugence-id="bugence-1767048209457-dn4gw8">
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-c8w6w2">Climate action</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-bocaax">Energy</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-7e8klt">Waste ↓</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="ax-feat" data-bugence-id="bugence-1767048209457-1zahag">
+          <button class="ax-feat-btn" type="button" aria-expanded="false" data-bugence-id="bugence-1767048209457-wljm6d">
+            <span class="ax-badge" data-bugence-id="bugence-1767048209457-cdbzpd">📄</span>
+            <span class="ax-feat-text" data-bugence-id="bugence-1767048209457-ikno1b">Paper without trees; manufacture without waste</span>
+            <span class="ax-feat-icon" aria-hidden="true" data-bugence-id="bugence-1767048209457-p7bfbs"></span>
+          </button>
+          <div class="ax-feat-panel" hidden="" data-bugence-id="bugence-1767048209457-qoc2gh">
+            <div class="ax-chips" data-bugence-id="bugence-1767048209457-oehi1a">
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-p7dc98">Bamboo/Hemp</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-nxwr0p">Bioplastics</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-ot0425">Circular</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="ax-feat" data-bugence-id="bugence-1767048209457-gkzw4u">
+          <button class="ax-feat-btn" type="button" aria-expanded="false" data-bugence-id="bugence-1767048209457-uzel1f">
+            <span class="ax-badge" data-bugence-id="bugence-1767048209457-91bewo">🤖</span>
+            <span class="ax-feat-text" data-bugence-id="bugence-1767048209457-pyaux9">AI at work — the “new billionaires”</span>
+            <span class="ax-feat-icon" aria-hidden="true" data-bugence-id="bugence-1767048209457-jzacp1"></span>
+          </button>
+          <div class="ax-feat-panel" hidden="" data-bugence-id="bugence-1767048209457-6foc2h">
+            <div class="ax-chips" data-bugence-id="bugence-1767048209457-t7zkt0">
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-8go144">Co-pilots</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-e6t96q">Re-skilling</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-piwtzg">ROI</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="ax-feat" data-bugence-id="bugence-1767048209457-zhlujs">
+          <button class="ax-feat-btn" type="button" aria-expanded="false" data-bugence-id="bugence-1767048209457-2plqjh">
+            <span class="ax-badge" data-bugence-id="bugence-1767048209457-k8pjg8">🔐</span>
+            <span class="ax-feat-text" data-bugence-id="bugence-1767048209457-v3dyw4">Data sovereignty, trading &amp; social equity</span>
+            <span class="ax-feat-icon" aria-hidden="true" data-bugence-id="bugence-1767048209457-k99v5i"></span>
+          </button>
+          <div class="ax-feat-panel" hidden="" data-bugence-id="bugence-1767048209457-gwr9h9">
+            <div class="ax-chips" data-bugence-id="bugence-1767048209457-wojysx">
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-9lydno">Own your data</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-7d2h6e">Transparent</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-f9omie">Fair</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="ax-feat" data-bugence-id="bugence-1767048209457-qkgto9">
+          <button class="ax-feat-btn" type="button" aria-expanded="false" data-bugence-id="bugence-1767048209457-yd3jxi">
+            <span class="ax-badge" data-bugence-id="bugence-1767048209457-f2ee2h">🌊</span>
+            <span class="ax-feat-text" data-bugence-id="bugence-1767048209457-6emdg1">Sustainable agriculture &amp; ocean management</span>
+            <span class="ax-feat-icon" aria-hidden="true" data-bugence-id="bugence-1767048209457-xp67uz"></span>
+          </button>
+          <div class="ax-feat-panel" hidden="" data-bugence-id="bugence-1767048209457-aaur80">
+            <div class="ax-chips" data-bugence-id="bugence-1767048209457-7oejsf">
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-s350jz">Soil health</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209457-hf0r1j">Seaweed</span>
+              <span class="ax-chip" data-bugence-id="bugence-1767048209458-gkjtco">Microplastics</span>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <!-- CTA -->
+      <a href="https://www.amazon.com/High-Tech-Heroes-Last-Chance-Planet/dp/1963271785/" target="_blank" rel="noopener" class="ax-cta group inline-flex w-full sm:w-auto items-center justify-center gap-3 rounded-full
+                bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-6 py-3 font-semibold text-black
+                shadow-[0_10px_30px_-10px_rgba(234,88,12,.7)]" data-bugence-id="bugence-1767048209458-yalc8j">
+        <span class="relative overflow-hidden" data-bugence-id="bugence-1767048209458-ru0zce">
+          <span class="relative z-10" data-bugence-id="bugence-1767048209458-rqse5b">Buy the Book</span>
+          <span class="absolute inset-0 -translate-x-full group-hover:translate-x-0 transition-transform bg-white/20" data-bugence-id="bugence-1767048209458-o8cyos"></span>
+        </span>
+        <span class="ax-cta-shine" aria-hidden="true" data-bugence-id="bugence-1767048209458-3ql10k"></span>
+      </a>
+    </div>
+
+    <!-- RIGHT: BOOK VISUAL -->
+    <div class="rightaboutcontainer in" data-ax-reveal="" data-bugence-id="bugence-1767048209458-w3jxki">
+      <div class="ax-book group relative mx-auto w-64 sm:w-72 md:w-80 aspect-[3/4]" data-bugence-id="bugence-1767048209458-vdlwlv">
+        <!-- fallback “3D” cover (tilt) -->
+        <div class="absolute inset-0 rounded-2xl bg-[url('/Editor?handler=Asset&amp;projectId=4&amp;path=Img%2FBookCover.webp')] bg-cover bg-center
+                    border border-white/10 shadow-[0_40px_120px_-30px_rgba(6,182,212,.25)]
+                    transition-transform will-change-transform" data-bugence-id="bugence-1767048209458-v7jaon" style=""></div>
+        <!-- optional canvas if you wire three.js later -->
+        <canvas id="three-book" class="absolute inset-0 rounded-2xl pointer-events-none" data-engine="three.js r152" width="320" height="560" data-bugence-id="bugence-1767048209458-x9lcji"></canvas>
+        <!-- glow -->
+        <span class="pointer-events-none absolute -inset-2 rounded-3xl opacity-0 group-hover:opacity-100 transition
+                     bg-[conic-gradient(from_180deg,rgba(34,197,94,.25),rgba(6,182,212,.25),rgba(236,72,153,.25),rgba(34,197,94,.25))] blur-xl" data-bugence-id="bugence-1767048209458-tellk7"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== AUTHOR (rings + reveal) ===================== -->
+<section id="author" class="ax-author relative bg-black text-white py-16 sm:py-20 overflow-hidden" data-bugence-id="bugence-1767048209458-yl2z4n">
+  <div class="mx-auto w-[92%] max-w-6xl grid gap-10 lg:grid-cols-[10.1fr_0fr] items-center" data-bugence-id="bugence-1767048209458-au690d">
+    <!-- LEFT: photo + rings -->
+    <div class="relative flex items-center justify-center in" data-ax-reveal="" data-bugence-id="bugence-1767048209458-w6dw48">
+      
+    <img class="relative z-10 w-[37rem] max-w-full drop-shadow-[0_30px_80px_rgba(6,182,212,.25)]" src="/Img/author4.svg" alt="Pete Dulcamara — Author" data-bugence-id="bugence-1767048209458-c5jhej">
+
+
+    <!-- RIGHT: text -->
+    <div class="space-y-4 in" data-ax-reveal="" data-bugence-id="bugence-1767048209458-gt4nzn">
+      <span class="uppercase tracking-widest text-xs text-white/70" data-bugence-id="bugence-1767048209458-q2lpwh">Meet the Author</span>
+      <h2 class="text-2xl sm:text-3xl font-extrabold" data-bugence-id="bugence-1767048209458-ynepez">
+        PETE DULCAMARA <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400" data-bugence-id="bugence-1767048209458-3958i4">(Former Kimberly-Clark Chief Scientist)</span>
+      </h2>
+      <p class="text-white/80" data-bugence-id="bugence-1767048209458-oup8h2">
+        Pete is known for a transformative approach to innovation, sustainability, and human-centered leadership.
+      </p>
+      <p class="text-white/80" data-bugence-id="bugence-1767048209458-1bocfc">
+        He blends business acumen with inclusive culture building—empowering teams to solve meaningful problems and create high-performing environments.
+      </p>
+      <a class="inline-flex items-center gap-2 text-cyan-300 hover:text-cyan-200 underline decoration-cyan-400/40" href="#bio" data-bugence-id="bugence-1767048209458-muh9v3">Read More <span aria-hidden="true" data-bugence-id="bugence-1767048209458-turqpz">→</span></a>
+    </div>
+  </div>
+</div></section>
+
+<!-- ===================== PROGRAMS (cards w/ hover) ===================== -->
+<section id="programs" class="ax-programs relative bg-black text-white py-16 sm:py-20 overflow-hidden" data-bugence-id="bugence-1767048209458-dvpa1m">
+  <div class="mx-auto w-[92%] max-w-6xl text-center" data-bugence-id="bugence-1767048209458-ps1ryg">
+    <h2 class="text-2xl sm:text-3xl font-extrabold in" data-ax-reveal="" data-bugence-id="bugence-1767048209458-2byeoa">Programs &amp; Initiatives</h2>
+
+    <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-bugence-id="bugence-1767048209458-guz9sv">
+      <!-- Card -->
+      <article class="ax-pcard in" data-ax-reveal="" data-bugence-id="bugence-1767048209458-0z8nzl">
+        <div class="ax-pcard-glow" aria-hidden="true" data-bugence-id="bugence-1767048209458-fodpsm"></div>
+        <div class="ax-picon bg-gradient-to-br from-emerald-400/30 to-cyan-400/30" data-bugence-id="bugence-1767048209458-f7k06k">🧪</div>
+        <h3 class="ax-ptitle" data-bugence-id="bugence-1767048209458-ht6zy7" style="text-align: center;">Youth Innovation Labs</h3>
+        <p class="ax-pcopy" data-bugence-id="bugence-1767048209458-tzsdih">Pop-up labs connecting students with mentors to prototype solutions for local challenges.</p>
+      </article>
+
+      <article class="ax-pcard in" data-ax-reveal="" data-bugence-id="bugence-1767048209458-bpcvay">
+        <div class="ax-pcard-glow" aria-hidden="true" data-bugence-id="bugence-1767048209458-9cxa1n"></div>
+        <div class="ax-picon bg-gradient-to-br from-cyan-400/30 to-fuchsia-500/30" data-bugence-id="bugence-1767048209458-1eyqin">🌊</div>
+        <h3 class="ax-ptitle" data-bugence-id="bugence-1767048209458-tm6le2">Blue Planet Projects</h3>
+        <p class="ax-pcopy" data-bugence-id="bugence-1767048209459-bc89mk">Ocean-focused challenges: microplastics mapping, coastal restoration, and sensor-based stewardship.</p>
+      </article>
+
+      
+    </div>
+
+    <div class="mt-7 in" data-ax-reveal="" data-bugence-id="bugence-1767048209459-ze02u9">
+      <a class="ax-cta group inline-flex items-center justify-center gap-2 rounded-full
+                bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 font-semibold text-black" data-bugence-id="bugence-1767048209459-gyscxa">
+        Explore All Programs
+        <span class="ax-cta-shine" aria-hidden="true" data-bugence-id="bugence-1767048209459-zat8oc"></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Styles (scoped to ax-*) ===================== -->
+<style>
+/* Aurora background */
+.ax-aurora{
+  background:
+    radial-gradient(30% 45% at 18% 28%, rgba(34,197,94,.22), transparent 60%),
+    radial-gradient(30% 45% at 82% 24%, rgba(6,182,212,.20), transparent 60%),
+    radial-gradient(30% 45% at 64% 78%, rgba(236,72,153,.18), transparent 60%);
+  filter: blur(42px) saturate(1.05);
+  animation: ax-pan 26s ease-in-out infinite alternate;
+}
+@keyframes ax-pan { 0%{ transform: translate(-6%,-4%) } 100%{ transform: translate(6%,4%) } }
+
+/* Reveal on scroll */
+@media (prefers-reduced-motion:no-preference){
+  [data-ax-reveal]{ opacity:0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+  [data-ax-reveal].in{ opacity:1; transform: none; }
+}
+
+/* CTA shine */
+.ax-cta{ position:relative; overflow:hidden; }
+.ax-cta-shine{
+  position:absolute; inset:-2px; border-radius:999px; pointer-events:none;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,.35), transparent 30%, rgba(255,255,255,.25) 60%, transparent 90%);
+  filter: blur(6px); opacity:0; transition: opacity .25s ease;
+}
+.ax-cta:hover .ax-cta-shine{ opacity:.9 }
+
+/* Features accordion */
+.ax-features{ overflow:hidden }
+.ax-feat-btn{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding: .9rem 1rem; text-align:left; color:#fff; transition: background .18s ease;
+}
+.ax-feat-btn:hover{ background: rgba(255,255,255,.05); }
+.ax-badge{ width:28px; height:28px; display:grid; place-items:center; border-radius:999px;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18) }
+.ax-feat-text{ flex:1; font:800 14px/1.3 "Inter",system-ui,sans-serif }
+.ax-feat-icon{
+  width:26px;height:26px;display:grid;place-items:center;border-radius:999px;border:1px solid rgba(255,255,255,.18);
+  color:#cbd5e1; position:relative; transition: transform .24s ease, background .24s ease, color .24s ease, border-color .24s ease;
+}
+.ax-feat-icon::before,.ax-feat-icon::after{ content:""; position:absolute; background:currentColor; border-radius:2px }
+.ax-feat-icon::before{ width:12px;height:2px }
+.ax-feat-icon::after{ width:2px;height:12px }
+.ax-feat-btn[aria-expanded="true"] .ax-feat-icon{
+  transform: rotate(45deg) scale(1.05);
+  background: linear-gradient(135deg, #22c55e, #06b6d4);
+  color:#0b0b0b; border-color: transparent; box-shadow: 0 10px 24px rgba(6,182,212,.25);
+}
+.ax-feat-panel{ height:0; overflow:hidden; transition: height .22s ease; background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)) }
+.ax-chips{ display:flex; flex-wrap:wrap; gap:.5rem; padding: 0 1rem 1rem 3.25rem }
+.ax-chip{
+  display:inline-flex; align-items:center; gap:.4rem; padding:.34rem .6rem; border-radius:999px;
+  background: linear-gradient(180deg, rgba(34,197,94,.12), rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.14); font-size:12px; color:#e6f8ff;
+}
+
+/* Book tilt */
+.ax-book{ perspective: 1000px; }
+.ax-book > div{ transform: rotateX(0) rotateY(0); transition: transform .12s ease; }
+
+/* Rings */
+.ax-rings{ position:absolute; width:min(72vmin,520px); height:min(72vmin,520px); opacity:.6 }
+.ax-ring{
+  position:absolute; inset:0; border-radius:999px; border:1px solid rgba(255,255,255,.12);
+  mask: conic-gradient(from 0deg, transparent 0 25%, #000 25% 75%, transparent 75% 100%);
+}
+.ax-ring-1{ animation: ax-spin 16s linear infinite; }
+.ax-ring-2{ transform: scale(.8); animation: ax-spin 22s linear infinite reverse; }
+.ax-ring-3{ transform: scale(.6); animation: ax-spin 28s linear infinite; }
+@keyframes ax-spin{ to{ transform: rotate(360deg) } }
+
+/* Program cards */
+.ax-pcard{
+  position:relative; overflow:hidden; border-radius:20px; padding:16px;
+  border:1px solid rgba(255,255,255,.12); background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+.ax-pcard:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 30px 80px -30px rgba(6,182,212,.28);
+  border-color: rgba(34,197,94,.28);
+  background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(255,255,255,.02));
+}
+.ax-pcard-glow{
+  position:absolute; inset:-2px; border-radius:22px; pointer-events:none; opacity:0; transition: opacity .25s ease;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(34,197,94,.28), rgba(6,182,212,.26), rgba(236,72,153,.26), rgba(34,197,94,.28));
+  filter: blur(10px);
+}
+.ax-pcard:hover .ax-pcard-glow{ opacity:1 }
+.ax-picon{
+  width:44px; height:44px; display:grid; place-items:center; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+  margin-bottom:.5rem;
+}
+.ax-ptitle{ font:800 18px/1.2 "Inter",system-ui,sans-serif }
+.ax-pcopy{ color:#d7e2f4; font-size:14px; margin-top:.25rem }
+</style>
+
+<!-- ===================== Scripts ===================== -->
+<script>
+/* Reveal on scroll */
+(() => {
+  const els = document.querySelectorAll('[data-ax-reveal]');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.14 });
+  els.forEach(el => io.observe(el));
+})();
+
+/* Features accordion (smooth height + single-open) */
+(() => {
+  const items = document.querySelectorAll('.ax-feat');
+  function setHeight(panel, open){
+    if(open){
+      panel.hidden = false;
+      panel.style.height = 'auto';
+      const h = panel.scrollHeight + 'px';
+      panel.style.height = '0px';
+      requestAnimationFrame(()=> panel.style.height = h);
+      panel.addEventListener('transitionend', function end(){
+        panel.style.height = 'auto'; panel.removeEventListener('transitionend', end);
+      });
+    }else{
+      const h = panel.scrollHeight + 'px';
+      panel.style.height = h;
+      requestAnimationFrame(()=> panel.style.height = '0px');
+      panel.addEventListener('transitionend', function end(){
+        panel.hidden = true; panel.removeEventListener('transitionend', end);
+      });
+    }
+  }
+  items.forEach(item=>{
+    const btn = item.querySelector('.ax-feat-btn');
+    const panel = item.querySelector('.ax-feat-panel');
+    btn.addEventListener('click', ()=>{
+      const isOpen = btn.getAttribute('aria-expanded') === 'true';
+      // single-open
+      items.forEach(it=>{
+        if(it===item) return;
+        const b = it.querySelector('.ax-feat-btn');
+        const p = it.querySelector('.ax-feat-panel');
+        if(b.getAttribute('aria-expanded')==='true'){ b.setAttribute('aria-expanded','false'); setHeight(p,false); }
+      });
+      btn.setAttribute('aria-expanded', String(!isOpen));
+      setHeight(panel, !isOpen);
+    });
+  });
+})();
+
+/* Book tilt (CSS-only tilt following cursor) */
+(() => {
+  const wrap = document.querySelector('.ax-book');
+  if(!wrap) return;
+  const card = wrap.querySelector('.ax-book > div');
+  const max = 7; // degrees
+  function onMove(e){
+    const r = wrap.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    const rx = (+py * max).toFixed(2);
+    const ry = (-px * max).toFixed(2);
+    card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+  function reset(){ card.style.transform = ''; }
+  wrap.addEventListener('mousemove', onMove);
+  wrap.addEventListener('mouseleave', reset);
+})();
+</script>
+
+  <!-- NEWSLETTER STRIP -->
+
+<section id="contact" class="nl-section" data-bugence-id="bugence-1767048209459-upx1md">
+  <!-- animated background -->
+  <div class="nl-bg" aria-hidden="true" data-bugence-id="bugence-1767048209459-1f3g4e">
+    <div class="nl-orb nl-orb--lt" data-bugence-id="bugence-1767048209459-w4aitq"></div>
+    <div class="nl-orb nl-orb--rb" data-bugence-id="bugence-1767048209459-xzvxtc"></div>
+    <div class="nl-sheen" data-bugence-id="bugence-1767048209459-2uanbv"></div>
+  </div>
+
+  <div class="nl-wrap" data-bugence-id="bugence-1767048209459-24a838">
+    <!-- Left -->
+    <div class="nl-left" data-bugence-id="bugence-1767048209459-935oor">
+      <h2 class="nl-title" data-bugence-id="bugence-1767048209459-dd19cs">Be the First to Know</h2>
+      <p class="nl-sub" data-bugence-id="bugence-1767048209459-wp3f6p">
+        Subscribe for updates on <strong data-bugence-id="bugence-1767048209459-xwswqj">High-Tech Heroes</strong> and Gen-Z innovation.
+      </p>
+    </div>
+
+    <!-- Right -->
+    <form class="nl-form" id="nl-form" data-bugence-id="bugence-1767048209459-gx68is">
+      <label class="nl-input" data-bugence-id="bugence-1767048209459-nrc3zc">
+        <span class="nl-icon" aria-hidden="true" data-bugence-id="bugence-1767048209459-vtz275">
+          <svg viewBox="0 0 24 24" fill="none" data-bugence-id="bugence-1767048209459-s0w2mv"><path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="1.2" opacity=".25" data-bugence-id="bugence-1767048209459-1i9fcp"></path><path d="M4 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" data-bugence-id="bugence-1767048209459-ygm8ag"></path></svg>
+        </span>
+        <input type="email" id="nl-email" placeholder="Enter your email" required="" data-bugence-id="bugence-1767048209459-arxg6q">
+      </label>
+      <button class="nl-btn" type="submit" data-bugence-id="bugence-1767048209459-poa4uz">
+        <span data-bugence-id="bugence-1767048209459-c4rbcv">Subscribe</span>
+        <svg viewBox="0 0 24 24" class="nl-arrow" fill="none" data-bugence-id="bugence-1767048209459-kjo8ag"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" data-bugence-id="bugence-1767048209459-saia6x"></path></svg>
+      </button>
+    </form>
+  </div>
+
+  <!-- toast -->
+  <div id="nl-toast" class="nl-toast" role="status" aria-live="polite" data-bugence-id="bugence-1767048209459-sj65cw"></div>
+</section>
+
+<!-- FOOTER -->
+<footer id="site-footer" class="ft" data-bugence-id="bugence-1767048209459-pfx666">
+  <!-- top wave accent -->
+  <svg class="ft-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" data-bugence-id="bugence-1767048209459-5m4ebg">
+    <path d="M0,40 C180,80 320,0 540,40 C760,80 980,0 1200,40 C1300,60 1400,60 1440,55 L1440,0 L0,0 Z" fill="url(#g)" data-bugence-id="bugence-1767048209459-deza58" class=""></path>
+    <defs data-bugence-id="bugence-1767048209459-g48tkg">
+      <linearGradient id="g" x1="0" x2="1" data-bugence-id="bugence-1767048209459-1nlucw">
+        <stop offset="0%" stop-color="#0ea5e9" data-bugence-id="bugence-1767048209459-s5mssm"></stop>
+        <stop offset="50%" stop-color="#22c55e" data-bugence-id="bugence-1767048209459-h3kqjt"></stop>
+        <stop offset="100%" stop-color="#f59e0b" data-bugence-id="bugence-1767048209459-xxl7vr"></stop>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="ft-wrap" data-bugence-id="bugence-1767048209460-oqm12a">
+    <!-- Row 1 -->
+    <div class="ft-row ft-row--top" data-bugence-id="bugence-1767048209460-s3shom">
+      <!-- Brand / intro -->
+      <div class="ft-brand" data-bugence-id="bugence-1767048209460-f93xg9">
+        <div class="ft-brand-row" data-bugence-id="bugence-1767048209460-dvt453">
+          <img class="ft-logo" src="/Img/HighResbugenceSiteLogo.png" alt="bugence Logo" data-bugence-id="bugence-1767048209460-j7ykk9">
+          <strong class="ft-name" data-bugence-id="bugence-1767048209460-2qwfym">High-Tech Heroes</strong>
+        </div>
+        <p class="ft-copy" data-bugence-id="bugence-1767048209460-hoa5uo">
+          Inspiring the next generation to rise with technology, courage, and innovation.
+        </p>
+      </div>
+
+      <!-- Follow Us -->
+      <div class="ft-col" data-bugence-id="bugence-1767048209460-kvgfmc">
+        <h4 class="ft-h" data-bugence-id="bugence-1767048209460-0h784j">Follow Us</h4>
+        <div class="ft-social" data-bugence-id="bugence-1767048209460-xkj61h">
+          <a href="https://www.youtube.com/@High-Tech-Heroes" aria-label="YouTube" class="ft-soc" data-bugence-id="bugence-1767048209460-dllfys"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767048209460-zqmt72"><path d="M23 7.5a4 4 0 0 0-2.8-2.8C18 4 12 4 12 4s-6 0-8.2.7A4 4 0 0 0 1 7.5 41 41 0 0 0 1 12a41 41 0 0 0 0 4.5 4 4 0 0 0 2.8 2.8C6 20 12 20 12 20s6 0 8.2-.7A4 4 0 0 0 23 16.5 41 41 0 0 0 23 12a41 41 0 0 0 0-4.5zM10 15.5v-7l6 3.5-6 3.5z" fill="currentColor" data-bugence-id="bugence-1767048209460-ydm9y2"></path></svg></a>
+          <a href="https://www.facebook.com/share/1Ax87u9vR4/?mibextid=wwXIfr" aria-label="Facebook" class="ft-soc" data-bugence-id="bugence-1767048209460-82kdro"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767048209460-xj1ut4"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2v-2.3c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2V12h2.3l-.4 3h-1.9v7A10 10 0 0 0 22 12z" fill="currentColor" data-bugence-id="bugence-1767048209460-c2vz6v"></path></svg></a>
+          <a href="https://www.tiktok.com/@hightechheroes" aria-label="TikTok" class="ft-soc" data-bugence-id="bugence-1767048209460-xq517i"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767048209460-b2d9p4"><path d="M21 8.2c-1.9 0-3.6-.6-5-1.7v7.3a6.6 6.6 0 1 1-5.6-6.5v3.4a3.3 3.3 0 1 0 2.3 3.1V2h2.8c.3 1.8 1.7 3.2 3.5 3.6V8.2z" fill="currentColor" data-bugence-id="bugence-1767048209460-e3pzi7"></path></svg></a>
+          <a href="https://substack.com/@hightechheroes" aria-label="Substack" class="ft-soc" data-bugence-id="bugence-1767048209460-2sdkyv"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767048209460-04xdam"><path d="M3 5h18v2H3V5zm0 4h18v10l-9-5-9 5V9z" fill="currentColor" data-bugence-id="bugence-1767048209460-7nt7sg"></path></svg></a>
+          <a href="https://discord.com/channels/@hightechheroes" aria-label="Discord" class="ft-soc" data-bugence-id="bugence-1767048209460-gt8h52"><svg viewBox="0 0 24 24" data-bugence-id="bugence-1767048209460-a10ipk"><path d="M20 5.5A16.6 16.6 0 0 0 15.7 4l-.2.4A13 13 0 0 1 12 4c-1.2 0-2.3.1-3.4.4L8.4 4A16.7 16.7 0 0 0 4 5.6C1.5 9.3 1 12.8 1 16.3c1.4 1.7 4.3 2 4.3 2l.9-1.5s-.4-.2-.9-.5c1.8.4 3.1.4 4.7.2.3 0 .6 0 .9-.1.9.2 1.8.3 2.7.3 1.1 0 2.3-.1 3.6-.4-.5.3-.9.5-.9.5l.9 1.5s2.9-.3 4.3-2c0-3.5-.5-7-3-10.8zM9.5 14c-.8 0-1.5-.8-1.5-1.7 0-1 .7-1.7 1.5-1.7s1.5.8 1.5 1.7S10.3 14 9.5 14zm5 0c-.8 0-1.5-.8-1.5-1.7 0-1 .7-1.7 1.5-1.7s1.5.8 1.5 1.7S15.3 14 14.5 14z" fill="currentColor" data-bugence-id="bugence-1767048209460-xygj96"></path></svg></a>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="ft-col" data-bugence-id="bugence-1767048209460-bqb19y">
+        <h4 class="ft-h" data-bugence-id="bugence-1767048209460-zol66y">Contact</h4>
+        <ul class="ft-list" data-bugence-id="bugence-1767048209460-80weet">
+          <li data-bugence-id="bugence-1767048209460-f5vz2s">✉️ <a href="mailto:hello@hightechheroes.ai" data-bugence-id="bugence-1767048209460-jnlghd">hello@hightechheroes.ai</a></li>
+          <li data-bugence-id="bugence-1767048209460-2yuzlc" class="">🌐 <a href="https://hightechheros.ai" data-bugence-id="bugence-1767048209460-47drs6" class="">hightechheros.ai</a></li>
+          <li data-bugence-id="bugence-1767048209460-yvgj50">📍 Dubai • Silicon Oasis</li>
+        </ul>
+      </div>
+
+      <!-- Services -->
+      <div class="ft-col" data-bugence-id="bugence-1767048209460-a44v7a">
+        <h4 class="ft-h" data-bugence-id="bugence-1767048209460-9ydxno">Our Services</h4>
+        <ul class="ft-list" data-bugence-id="bugence-1767048209460-fof140">
+          <li data-bugence-id="bugence-1767048209460-mtyxt1" class="">Web &amp; App Solutions</li>
+          <li data-bugence-id="bugence-1767048209460-83wu35">AI/Agent Systems</li>
+          <li data-bugence-id="bugence-1767048209460-f8wcc0">UX/UI &amp; Prototyping</li>
+          <li data-bugence-id="bugence-1767048209460-to0319">Data &amp; Dashboards</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Row 2 (map on right) -->
+    <div class="ft-row ft-row--map" data-bugence-id="bugence-1767048209460-tcjlgt">
+      <div class="ft-cta" data-bugence-id="bugence-1767048209460-1yfxdo">
+        <h4 class="ft-h" data-bugence-id="bugence-1767048209460-qk9tor">Let’s build something bold.</h4>
+        <p class="ft-copy" data-bugence-id="bugence-1767048209460-bkj1mo">Tell us about your idea — we’ll reply within 24 hours.</p>
+        <a class="ft-btn" href="#contact" data-bugence-id="bugence-1767048209460-ovwx22">Start the conversation</a>
+      </div>
+
+      <div class="ft-map" data-bugence-id="bugence-1767048209460-f4grrs">
+        <iframe title="bugence Location" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Dubai%20Silicon%20Oasis&amp;output=embed" data-bugence-id="bugence-1767048209461-7n1bqm" class=""></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="ft-bottom" data-bugence-id="bugence-1767048209461-as2xvt">
+    <small data-bugence-id="bugence-1767048209461-98brtg" class="">© <span id="year" data-bugence-id="bugence-1767048209461-1h3beu">2025</span> High-Tech Heroes. All rights reserved.</small>
+  </div>
+</footer>
+
+<!-- STYLES -->
+<style>
+/* ====== Newsletter (mustard/orange on black) ====== */
+:root{
+  --nl-ink:#0a0a0a;
+  --nl-mustard:#ffb000;
+  --nl-amber:#f59e0b;
+  --nl-orange:#ff6c00;
+  --nl-cream:#fff5e6;
+  --nl-cyan:#22d3ee;
+}
+.nl-section{
+  position:relative; isolation:isolate;
+  padding: clamp(32px,6vw,56px) 1rem;
+  background: #000;              /* page black */
+  overflow: hidden;
+}
+.nl-bg{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(60% 80% at 20% 0%, rgba(255,176,0,.22), transparent 60%),
+    radial-gradient(70% 90% at 100% 100%, rgba(255,108,0,.18), transparent 60%);
+  pointer-events:none;
+}
+.nl-sheen{
+  position:absolute; inset:-100% -40%;
+  background: conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,.0), rgba(255,255,255,.06), rgba(255,255,255,.0) 25%);
+  animation: nl-rotate 14s linear infinite;
+  filter: blur(18px); opacity:.7;
+}
+@keyframes nl-rotate{ to { transform: rotate(360deg);} }
+.nl-orb{ position:absolute; filter: blur(30px); opacity:.4; pointer-events:none;}
+.nl-orb--lt{ width:240px; height:240px; top:-40px; left:-40px; background: radial-gradient(circle, var(--nl-mustard), transparent 60%);}
+.nl-orb--rb{ width:300px; height:300px; right:-60px; bottom:-60px; background: radial-gradient(circle, var(--nl-orange), transparent 60%);}
+
+.nl-wrap{
+  position:relative; z-index:1;
+  max-width: 1100px; margin: 0 auto;
+  display:grid; gap: 18px;
+  grid-template-columns: 1.1fr .9fr;
+  align-items:center;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius: 28px;
+  padding: clamp(18px, 3.5vw, 28px);
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+}
+@media (max-width: 860px){
+  .nl-wrap{ grid-template-columns: 1fr; text-align:center; }
+}
+.nl-left{}
+.nl-title{
+  margin:0 0 6px; color:#fff;
+  font: 800 clamp(22px,3.8vw,36px)/1.15 "Inter", system-ui, sans-serif;
+  letter-spacing:.2px;
+}
+.nl-sub{
+  margin:0; color:#fff; opacity:.85;
+  font: 400 clamp(14px,2.4vw,18px)/1.6 "Inter", system-ui, sans-serif;
+}
+
+/* input + button */
+.nl-form{
+  display:flex; gap:10px; justify-self:end;
+}
+@media (max-width: 860px){ .nl-form{ justify-self:center; width:100%; } }
+@media (max-width: 520px){ .nl-form{ flex-direction:column; } }
+
+.nl-input{
+  position:relative; display:flex; align-items:center;
+  background:#fff; border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.2);
+  padding: 10px 14px 10px 46px;
+  min-width: clamp(220px, 34vw, 380px);
+}
+.nl-input input{
+  border:0; outline:0; width:100%;
+  font: 600 14px/1 "Inter", system-ui, sans-serif; color:var(--nl-ink);
+}
+.nl-input input::placeholder{ color:#6b7280; font-weight:500; }
+.nl-icon{
+  position:absolute; left:12px; top:50%; translate:0 -50%;
+  width:22px; height:22px; color:#0a0a0a;
+}
+
+.nl-btn{
+  appearance:none; border:0; cursor:pointer;
+  display:inline-flex; align-items:center; gap:10px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  color:#111; font: 800 14px/1 "Inter", system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--nl-mustard), var(--nl-orange));
+  box-shadow: 0 14px 28px rgba(255,108,0,.35);
+  transition: transform .18s ease, box-shadow .18s ease, letter-spacing .18s ease;
+}
+.nl-btn:hover{ transform: translateY(-1px); letter-spacing:.2px; box-shadow: 0 18px 40px rgba(255,108,0,.4);}
+.nl-btn:active{ transform: translateY(0); }
+.nl-arrow{ width:18px; height:18px; }
+
+.nl-toast{
+  position: fixed; left: 20px; bottom: 20px; z-index: 60;
+  background: rgba(17,17,17,.95);
+  color:#fff; padding: 10px 14px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 18px 50px rgba(0,0,0,.3);
+  opacity:0; transform: translateY(6px);
+  transition: opacity .18s, transform .18s;
+  pointer-events:none;
+}
+
+/* ====== Footer ====== */
+.ft{ position:relative; background: radial-gradient(1000px 600px at 10% 0%, rgba(34,197,94,.08), transparent 60%), radial-gradient(900px 500px at 96% 100%, rgba(14,165,233,.09), transparent 60%), linear-gradient(180deg, #0b0f14 0%, #06080c 100%); color:#e5eefb; }
+.ft-wave{ width:100%; height: 70px; display:block; }
+.ft-wrap{ width:min(1200px,92%); margin: 0 auto; padding: 10px 0 28px; }
+
+.ft-row{ display:grid; gap: 24px; }
+.ft-row--top{ grid-template-columns: 1.4fr 1fr 1fr 1fr; align-items:start; padding: 10px 0 14px; }
+@media (max-width: 1000px){ .ft-row--top{ grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px){ .ft-row--top{ grid-template-columns: 1fr; } }
+
+.ft-brand-row{ display:flex; align-items:center; gap:10px; }
+.ft-logo{ width:44px; height:44px; border-radius:12px; object-fit:cover; }
+.ft-name{ font:800 18px/1 "Inter",system-ui,sans-serif; letter-spacing:.2px; }
+.ft-copy{ color:#b8c0cc; margin:8px 0 0; max-width: 46ch; }
+
+.ft-col{}
+.ft-h{ margin:0 0 8px; color:#fff; font:700 16px/1 "Inter",system-ui,sans-serif; letter-spacing:.2px; }
+.ft-list{ list-style:none; padding:0; margin:0; }
+.ft-list li{ color:#cdd6e5; margin:.35rem 0; }
+.ft-list a{ color:#9bd3ff; text-decoration:none; }
+.ft-list a:hover{ color:#d1f3ff; text-decoration:underline; }
+
+.ft-social{ display:flex; gap:10px; }
+.ft-soc{
+  display:inline-grid; place-items:center; width:38px; height:38px;
+  border-radius: 999px; color:#0b0f14; background:#eaf2ff;
+  box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.35);
+  transition: transform .16s ease, background .16s ease;
+}
+.ft-soc:hover{ transform: translateY(-2px); background: #fff; }
+.ft-soc svg{ width:20px; height:20px; }
+
+.ft-row--map{
+  grid-template-columns: 1.1fr 1fr; align-items:center;
+  margin: 8px 0 0; gap: 20px;
+}
+@media (max-width: 900px){ .ft-row--map{ grid-template-columns: 1fr; } }
+
+.ft-cta{}
+.ft-btn{
+  display:inline-flex; align-items:center; gap:10px; margin-top:10px;
+  padding:12px 18px; border-radius:14px; color:#0a0a0a; font-weight:800;
+  background: linear-gradient(135deg, #22c55e, #0ea5e9);
+  text-decoration:none; box-shadow: 0 14px 28px rgba(14,165,233,.28);
+}
+.ft-btn:hover{ transform: translateY(-1px); }
+
+.ft-map{ border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.12); box-shadow: 0 18px 50px rgba(0,0,0,.28); }
+.ft-map iframe{ display:block; width:100%; height: 280px; }
+
+.ft-bottom{
+  display:flex; justify-content:center; align-items:center;
+  padding: 14px 10px; border-top: 1px solid rgba(255,255,255,.06);
+  color:#9fb0c6;
+}
+</style>
+
+<!-- SCRIPTS -->
+<script>
+  // Year (fallback if your global script didn't already set it)
+  (function(){
+    var yEl = document.getElementById('year');
+    if(yEl) yEl.textContent = new Date().getFullYear();
+  })();
+
+  // Newsletter submit -> toast (no alert)
+  (function(){
+    const form = document.getElementById('nl-form');
+    const email = document.getElementById('nl-email');
+    const toast = document.getElementById('nl-toast');
+    if(!form || !email || !toast) return;
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(!email.value.trim()) return;
+      showToast("✅ Thanks! You’re on the list.");
+      form.reset();
+    });
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.style.opacity = 0; toast.style.transform = 'translateY(6px)';
+      requestAnimationFrame(()=>{
+        toast.style.opacity = 1; toast.style.transform = 'translateY(0)';
+      });
+      setTimeout(()=>{
+        toast.style.opacity = 0; toast.style.transform = 'translateY(6px)';
+      }, 2600);
+    }
+  })();
+</script>
+
+
+
+<script>
+document.querySelectorAll('.faq-q').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    btn.classList.toggle('open');
+    const a = btn.nextElementSibling;
+    a.style.maxHeight = btn.classList.contains('open') ? a.scrollHeight+'px' : 0;
+  });
+});
+</script>
+
+
+
+<!-- Visual Studio Browser Link -->
+
+<!-- End Browser Link -->
+
+
+
+<script src="/Script/BookModeling.js"></script><span data-bugence-type="icon" data-bugence-value="fa-solid fa-star" id="bugence-el-1767055171664-0" data-bugence-id="bugence-1767055171664-bxkcrp" data-bugence-generated="true"><i class="fa-solid fa-star" aria-hidden="true"></i></span><span data-bugence-type="icon" data-bugence-value="fa-solid fa-star" id="bugence-el-1767055174748-1" data-bugence-id="bugence-1767055174748-19n7xa" data-bugence-generated="true"><i class="fa-solid fa-star" aria-hidden="true"></i></span><span data-bugence-type="icon" data-bugence-value="fa-solid fa-star" id="bugence-el-1767055186770-2" data-bugence-id="bugence-1767055186770-c77gen" data-bugence-generated="true"><i class="fa-solid fa-star" aria-hidden="true"></i></span>
+
+<!-- Visual Studio Browser Link -->
+
+<!-- End Browser Link -->
+</body></html>

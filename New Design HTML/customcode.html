@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Code | Bugence</title>
+    
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* --- CORE SYSTEM --- */
+        :root {
+            --bg-black: #000000;
+            --bg-card: #0a0a0a;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-blue: #2563eb;
+            --accent-green: #10b981;
+            --accent-purple: #7c3aed;
+            --accent-orange: #f59e0b;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --sidebar-width: 260px;
+            
+            --font-head: 'Cabinet Grotesk', sans-serif;
+            --font-body: 'Satoshi', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        * { box-sizing: border-box; }
+        body { background-color: var(--bg-black); color: var(--text-primary); font-family: var(--font-body); height: 100vh; display: flex; overflow: hidden; margin: 0; }
+
+        /* --- LAYOUT --- */
+        .app-container { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; width: 100vw; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { background: #050505; border-right: 1px solid var(--border-color); padding: 24px; display: flex; flex-direction: column; }
+        .brand { font-family: var(--font-head); font-weight: 800; font-size: 1.2rem; color: white; text-decoration: none; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        
+        .back-dashboard { 
+            margin-bottom: 20px; color: var(--text-secondary); font-size: 0.9rem; 
+            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; 
+        }
+        .back-dashboard:hover { color: white; transform: translateX(-5px); }
+
+        .nav-section-title { font-size: 0.7rem; color: #555; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px; padding-left: 16px; }
+        
+        .nav-item { 
+            padding: 10px 16px; color: var(--text-secondary); border-radius: 12px; margin-bottom: 2px; 
+            cursor: pointer; display: flex; gap: 12px; align-items: center; font-weight: 500; transition: 0.2s; 
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.03); color: white; }
+        .nav-item.active { background: rgba(6, 182, 212, 0.08); color: var(--accent-cyan); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { 
+            flex: 1; display: flex; flex-direction: column; overflow: hidden;
+            background-image: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%);
+        }
+
+        .code-header {
+            padding: 20px 40px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+        }
+        .page-title h1 { font-family: var(--font-head); font-weight: 700; margin: 0; font-size: 1.5rem; }
+        .page-title p { color: var(--text-secondary); margin: 0; font-size: 0.85rem; }
+
+        .btn-save {
+            background: var(--accent-cyan); color: black; border: none; padding: 10px 24px;
+            border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+            transition: 0.2s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-save:hover { background: #0891b2; color: white; }
+
+        /* --- EDITOR AREA --- */
+        .editor-workspace {
+            flex: 1; display: flex; overflow: hidden;
+        }
+
+        /* Main Editor */
+        .code-panel {
+            flex: 1; display: flex; flex-direction: column; background: #0c0c0c;
+        }
+
+        /* Tabs */
+        .editor-tabs {
+            display: flex; background: #050505; border-bottom: 1px solid var(--border-color);
+        }
+        .code-tab {
+            padding: 12px 24px; color: var(--text-secondary); cursor: pointer; font-size: 0.9rem;
+            border-right: 1px solid var(--border-color); border-top: 2px solid transparent;
+            display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .code-tab:hover { background: #111; color: white; }
+        .code-tab.active { background: #0c0c0c; color: white; border-top-color: var(--accent-cyan); }
+        .code-tab i { font-size: 0.8rem; }
+
+        /* The Code Area */
+        .editor-container {
+            flex: 1; display: flex; overflow: auto; position: relative;
+            font-family: var(--font-mono); font-size: 14px; line-height: 1.6;
+        }
+        .line-numbers {
+            width: 50px; background: #050505; border-right: 1px solid var(--border-color);
+            color: #444; text-align: right; padding: 20px 10px; user-select: none;
+        }
+        .code-content {
+            flex: 1; padding: 20px; color: #ccc; outline: none; white-space: pre;
+        }
+        
+        /* Syntax Highlighting Simulation */
+        .tok-tag { color: #2563eb; }
+        .tok-attr { color: #06b6d4; }
+        .tok-val { color: #10b981; }
+        .tok-comment { color: #555; font-style: italic; }
+        .tok-sel { color: #f59e0b; }
+        .tok-prop { color: #a1a1aa; }
+        
+        .cursor {
+            display: inline-block; width: 2px; height: 1.2em; background: var(--accent-cyan);
+            animation: blink 1s step-end infinite; vertical-align: text-bottom;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* --- SNIPPETS SIDEBAR --- */
+        .snippets-sidebar {
+            width: 280px; background: #080808; border-left: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+        }
+        .snippets-header {
+            padding: 15px 20px; border-bottom: 1px solid var(--border-color);
+            font-weight: 600; font-size: 0.9rem; color: white; display: flex; justify-content: space-between;
+        }
+        .snippets-list { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        .snippet-card {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer;
+            transition: 0.2s;
+        }
+        .snippet-card:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+        .snip-title { font-size: 0.85rem; font-weight: 600; color: white; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .snip-desc { font-size: 0.75rem; color: #666; }
+        .snip-icon { color: var(--accent-cyan); }
+
+        .search-snip {
+            margin: 20px 20px 0 20px;
+            background: #111; border: 1px solid var(--border-color); color: white;
+            padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; outline: none;
+        }
+        .search-snip:focus { border-color: var(--accent-cyan); }
+
+        /* Footer Status */
+        .editor-footer {
+            height: 30px; background: var(--accent-blue); color: white; font-size: 0.75rem;
+            display: flex; align-items: center; padding: 0 20px; gap: 20px; font-family: var(--font-body);
+            background: #050505; border-top: 1px solid var(--border-color); color: #666;
+        }
+        .footer-item { display: flex; align-items: center; gap: 6px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="sidebar">
+            <a href="#" class="brand"><i class="fa-solid fa-bug" style="color: var(--accent-cyan)"></i> BUGENCE</a>
+            
+            <div class="back-dashboard" onclick="window.location.href='Dashboard.html'">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </div>
+
+            <div class="nav-section-title">PROJECT MENU</div>
+            
+            <div class="nav-item" onclick="window.location.href='ProjectOverview.html'"><i class="fa-solid fa-layer-group"></i> Site Pages</div>
+            <div class="nav-item" onclick="window.location.href='MediaAssets.html'"><i class="fa-solid fa-images"></i> Media Assets</div>
+            <div class="nav-item" onclick="window.location.href='GlobalStyles.html'"><i class="fa-solid fa-palette"></i> Global Styles</div>
+            <div class="nav-item active"><i class="fa-solid fa-code"></i> Custom Code</div>
+            <div class="nav-item"><i class="fa-solid fa-gear"></i> Project Settings</div>
+        </div>
+
+        <div class="main-content">
+            
+            <div class="code-header">
+                <div class="page-title">
+                    <h1>Custom Code</h1>
+                    <p>Inject scripts and styles globally.</p>
+                </div>
+                <button class="btn-save" onclick="saveCode()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Save & Publish
+                </button>
+            </div>
+
+            <div class="editor-workspace">
+                
+                <div class="code-panel">
+                    <div class="editor-tabs">
+                        <div class="code-tab active" onclick="switchTab(this, 'head')">
+                            <i class="fa-brands fa-html5 text-orange"></i> &lt;Head&gt; Code
+                        </div>
+                        <div class="code-tab" onclick="switchTab(this, 'body')">
+                            <i class="fa-solid fa-code text-blue"></i> Body End
+                        </div>
+                        <div class="code-tab" onclick="switchTab(this, 'css')">
+                            <i class="fa-brands fa-css3 text-info"></i> Global CSS
+                        </div>
+                    </div>
+
+                    <div class="editor-container" id="editorContainer">
+                        <div class="line-numbers">
+                            1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12
+                        </div>
+                        <div class="code-content" contenteditable="true" spellcheck="false">
+<span class="tok-comment">&lt;!-- Google Analytics Tracking Code --&gt;</span>
+<span class="tok-tag">&lt;script</span> <span class="tok-attr">async src</span>=<span class="tok-val">"https://www.googletagmanager.com/gtag/js?id=UA-XXXXX-Y"</span><span class="tok-tag">&gt;&lt;/script&gt;</span>
+<span class="tok-tag">&lt;script&gt;</span>
+  window.dataLayer = window.dataLayer || [];
+  <span class="tok-tag">function</span> <span class="tok-attr">gtag</span>() { dataLayer.push(arguments); }
+  gtag(<span class="tok-val">'js'</span>, new Date());
+
+  gtag(<span class="tok-val">'config'</span>, <span class="tok-val">'UA-XXXXX-Y'</span>);
+<span class="tok-tag">&lt;/script&gt;</span>
+
+<span class="tok-comment">&lt;!-- Custom Meta Tags --&gt;</span>
+<span class="tok-tag">&lt;meta</span> <span class="tok-attr">name</span>=<span class="tok-val">"theme-color"</span> <span class="tok-attr">content</span>=<span class="tok-val">"#000000"</span> <span class="tok-tag">/&gt;</span>
+<span class="cursor"></span></div>
+                    </div>
+
+                    <div class="editor-footer">
+                        <div class="footer-item"><i class="fa-solid fa-check-circle text-success"></i> Ready</div>
+                        <div class="footer-item">Ln 12, Col 45</div>
+                        <div class="footer-item">UTF-8</div>
+                        <div class="footer-item" style="margin-left:auto;">HTML</div>
+                    </div>
+                </div>
+
+                <div class="snippets-sidebar">
+                    <div class="snippets-header">
+                        <span>Snippet Library</span>
+                        <i class="fa-solid fa-book-open text-secondary"></i>
+                    </div>
+                    <input type="text" class="search-snip" placeholder="Filter snippets...">
+                    
+                    <div class="snippets-list">
+                        
+                        <div class="snippet-card" onclick="insertSnippet('ga')">
+                            <div class="snip-title"><i class="fa-brands fa-google snip-icon"></i> Google Analytics</div>
+                            <div class="snip-desc">Standard GA4 tracking script.</div>
+                        </div>
+
+                        <div class="snippet-card" onclick="insertSnippet('fb')">
+                            <div class="snip-title"><i class="fa-brands fa-facebook snip-icon"></i> Meta Pixel</div>
+                            <div class="snip-desc">Facebook conversion tracking.</div>
+                        </div>
+
+                        <div class="snippet-card" onclick="insertSnippet('fonts')">
+                            <div class="snip-title"><i class="fa-solid fa-font snip-icon"></i> Google Fonts</div>
+                            <div class="snip-desc">Preconnect links for faster fonts.</div>
+                        </div>
+
+                        <div class="snippet-card" onclick="insertSnippet('canonical')">
+                            <div class="snip-title"><i class="fa-solid fa-link snip-icon"></i> Canonical Tag</div>
+                            <div class="snip-desc">SEO duplicate content protection.</div>
+                        </div>
+
+                        <div class="snippet-card" onclick="insertSnippet('reset')">
+                            <div class="snip-title"><i class="fa-brands fa-css3 snip-icon"></i> Modern CSS Reset</div>
+                            <div class="snip-desc">Box-sizing and margin resets.</div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function saveCode() {
+            const btn = document.querySelector('.btn-save');
+            const originalHTML = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            btn.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Published';
+                btn.style.backgroundColor = '#10b981'; // Green
+                btn.style.color = 'white';
+                btn.style.opacity = '1';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.backgroundColor = ''; // Reset
+                    btn.style.color = '';
+                }, 2000);
+            }, 1000);
+        }
+
+        function switchTab(el, type) {
+            // UI Toggle
+            document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+
+            // Content Swap Simulation
+            const content = document.querySelector('.code-content');
+            if(type === 'css') {
+                content.innerHTML = `<span class="tok-comment">/* Global CSS Overrides */</span>\n<span class="tok-sel">body</span> {\n  <span class="tok-prop">background-color</span>: <span class="tok-val">#000</span>;\n}\n<span class="cursor"></span>`;
+            } else if (type === 'head') {
+                content.innerHTML = `<span class="tok-comment">&lt;!-- Google Analytics --&gt;</span>\n<span class="tok-tag">&lt;script&gt;</span>...<span class="tok-tag">&lt;/script&gt;</span>\n<span class="cursor"></span>`;
+            } else {
+                content.innerHTML = `<span class="tok-comment">&lt;!-- Scripts before &lt;/body&gt; --&gt;</span>\n<span class="tok-tag">&lt;script</span> <span class="tok-attr">src</span>=<span class="tok-val">"app.js"</span><span class="tok-tag">&gt;&lt;/script&gt;</span>\n<span class="cursor"></span>`;
+            }
+        }
+
+        function insertSnippet(type) {
+            alert("Snippet inserted! (Simulation)");
+        }
+    </script>
+</body>
+</html>

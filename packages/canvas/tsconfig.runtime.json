@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": false,
+    "outDir": "../../BugenceEditConsole/wwwroot/editor",
+    "declaration": false,
+    "sourceMap": false,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@bugence/core": ["../core/dist/index.d.ts"],
+      "@bugence/core/*": ["../core/dist/*"]
+    }
+  },
+  "include": [
+    "src/bugence-editor.ts",
+    "src/global.d.ts"
+  ]
+}

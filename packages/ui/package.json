@@ -1,0 +1,35 @@
+{
+  "name": "@bugence/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "dependencies": {
+    "preact": "^10.24.1"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm exec eslint \"src/**/*.{ts,tsx}\" --no-error-on-unmatched-pattern --max-warnings 0",
+    "lint:fix": "pnpm exec eslint \"src/**/*.{ts,tsx}\" --no-error-on-unmatched-pattern --fix",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest --passWithNoTests --watch",
+    "stories": "storybook dev -p 6006",
+    "stories:build": "storybook build"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^8.1.0",
+    "@storybook/addon-interactions": "^8.1.0",
+    "@storybook/addon-links": "^8.1.0",
+    "@storybook/blocks": "^8.1.0",
+    "@storybook/html": "^8.1.0",
+    "@storybook/test": "^8.1.0",
+    "typescript": "^5.9.2"
+  }
+}

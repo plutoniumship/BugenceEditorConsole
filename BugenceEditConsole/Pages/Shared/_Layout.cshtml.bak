@@ -1,0 +1,267 @@
+@using Microsoft.AspNetCore.Mvc.RazorPages
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] · Bugence Web Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bugence: {
+                            emerald: "#63ffd9",
+                            midnight: "#050618",
+                            dusk: "#0f172a",
+                            slate: "#1b2538"
+                        },
+                        bugence: {
+                            amber: "#fbbf24",
+                            coral: "#fb7185"
+                        }
+                    },
+                    fontFamily: {
+                        display: ["Clash Display", "Inter", "sans-serif"],
+                        sans: ["Inter", "system-ui", "sans-serif"]
+                    },
+                    boxShadow: {
+                        glow: "0 30px 60px -25px rgba(99,255,217,0.45)",
+                        glass: "0 28px 70px -40px rgba(8,12,30,0.85)"
+                    }
+                }
+            },
+            darkMode: "class"
+        };
+    </script>
+    <script src="~/lib/tailwind/tailwind-forms-typography-3.4.1.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/fontawesome/css/all.min.css" asp-append-version="true" />
+    @RenderSection("Head", required: false)
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#f7f9fc] via-white to-[#f0f7ff] text-slate-800 font-sans antialiased">
+    @{
+        var currentPage = ViewContext.ActionDescriptor is PageActionDescriptor descriptor
+            ? descriptor.ViewEnginePath
+            : string.Empty;
+
+        bool Matches(string match) =>
+            !string.IsNullOrWhiteSpace(match) && (
+                string.Equals(currentPage, match, StringComparison.OrdinalIgnoreCase) ||
+                (match != "/" && currentPage.StartsWith(match + "/", StringComparison.OrdinalIgnoreCase)));
+
+        bool IsActive(params string[] pages) => pages.Any(Matches);
+        string NavClass(params string[] pages) => IsActive(pages) ? "nav-link nav-link-active" : "nav-link";
+        string MobileNavClass(params string[] pages) => IsActive(pages) ? "mobile-link mobile-link-active" : "mobile-link";
+    }
+    <div class="relative isolate flex min-h-screen flex-col overflow-hidden">
+        <div aria-hidden="true" class="site-backdrop">
+            <div class="site-backdrop__aurora"></div>
+            <div class="site-backdrop__grid"></div>
+            <div class="site-backdrop__orb site-backdrop__orb--cyan"></div>
+            <div class="site-backdrop__orb site-backdrop__orb--magenta"></div>
+        </div>
+        <header class="site-header">
+            <nav class="container-xl">
+                <div class="nav-shell">
+                    <a class="brand group" asp-area="" asp-page="/Index">
+                        <span class="brand-icon">
+                            <img src="~/images/bugence-logo.svg" alt="Bugence Logo" class="h-7 w-7 object-contain transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110" />
+                        </span>
+                        <div class="brand-lockup">
+                            <span class="brand-title">Bugence (BWMS)</span>
+                            <span class="brand-subtitle">Bugence Web Management System</span>
+                        </div>
+                    </a>
+                    <div class="hidden lg:flex items-center gap-8 xl:gap-10">
+                        <a asp-area="" asp-page="/Dashboard/Index" class="@NavClass("/Dashboard/Index")">Dashboard</a>
+                        <a asp-area="" asp-page="/Content/Library" class="@NavClass("/Content/Library", "/Content/Edit")">Page Library</a>
+                        <a asp-area="" asp-page="/Content/LivePreview" class="@NavClass("/Content/LivePreview")">Live Preview</a>
+                        <a asp-area="" asp-page="/Insights/Logs" class="@NavClass("/Insights/Logs")">Change Logs</a>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <a asp-area="" asp-page="/Settings/Profile" class="hidden md:inline-flex btn-outline items-center gap-2 px-5 py-2 text-sm">
+                            <span class="fa-solid fa-gear text-xs text-bugence-emerald"></span>
+                            Settings
+                        </a>
+                        <partial name="_LoginPartial" />
+                        <button class="nav-mobile-toggle lg:hidden" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav" aria-controls="mobileNav" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="fa-solid fa-bars-staggered text-lg"></span>
+                        </button>
+                    </div>
+                </div>
+                <div id="mobileNav" class="collapse lg:hidden">
+                    <div class="mobile-menu">
+                        <a asp-area="" asp-page="/Dashboard/Index" class="@MobileNavClass("/Dashboard/Index")">Dashboard</a>
+                        <a asp-area="" asp-page="/Content/Library" class="@MobileNavClass("/Content/Library", "/Content/Edit")">Page Library</a>
+                        <a asp-area="" asp-page="/Content/LivePreview" class="@MobileNavClass("/Content/LivePreview")">Live Preview</a>
+                        <a asp-area="" asp-page="/Insights/Logs" class="@MobileNavClass("/Insights/Logs")">Change Logs</a>
+                        <a asp-area="" asp-page="/Settings/Profile" class="@MobileNavClass("/Settings/Profile", "/Settings/Application")">Settings</a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <main role="main" class="relative z-10 flex-1 pb-16">
+            @RenderSection("Hero", required: false)
+            <div class="px-6 pt-12 pb-6 sm:px-8 lg:px-12">
+                <div class="mx-auto max-w-7xl space-y-6">
+                    @RenderBody()
+                </div>
+            </div>
+        </main>
+        <footer class="app-footer">
+            <div class="app-footer__inner mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+                <section class="app-footer__lead">
+                    <div class="app-footer__badge">
+                        <span class="fa-solid fa-satellite-dish"></span>
+                    </div>
+                    <div>
+                        <p class="app-footer__eyebrow">Mission Control</p>
+                        <h2>Ship hero narratives without leaving orbit.</h2>
+                        <p>
+                            Activate a concierge-grade release workflow with realtime previews, automated rollbacks, and operators who keep your brand''s brightest stories online.
+                        </p>
+                    </div>
+                    <div class="app-footer__actions">
+                        <a asp-area="" asp-page="/Support" class="app-footer__btn app-footer__btn--primary">
+                            <span class="fa-solid fa-rocket"></span>
+                            Book a lab session
+                        </a>
+                        <a asp-area="" asp-page="/Content/LivePreview" class="app-footer__btn app-footer__btn--secondary">
+                            <span class="fa-solid fa-eye"></span>
+                            Monitor live preview
+                        </a>
+                    </div>
+                </section>
+                <div class="app-footer__grid">
+                    <section class="app-footer__brand">
+                        <div class="app-footer__logo">
+                            <img src="~/images/bugence-logo.svg" alt="Bugence logo" />
+                            <div>
+                                <span class="app-footer__brand-name">Bugence Editor Console</span>
+                                <p class="app-footer__tagline">
+                                    Adaptive tooling for storytellers who orchestrate premium hero experiences without leaving mission control.
+                                </p>
+                            </div>
+                        </div>
+                        <ul class="app-footer__contact">
+                            <li>
+                                <span class="fa-solid fa-location-dot"></span>
+                                <span>Bugence Labs - Hudson Yard Ops Suite - NYC</span>
+                            </li>
+                            <li>
+                                <span class="fa-solid fa-phone"></span>
+                                <span>+1 (347) 555-1901</span>
+                            </li>
+                            <li>
+                                <span class="fa-solid fa-envelope"></span>
+                                <span>concierge@bugence.com</span>
+                            </li>
+                            <li>
+                                <span class="fa-solid fa-headset"></span>
+                                <span>Live concierge - Avg reply 12 min</span>
+                            </li>
+                        </ul>
+                        <div class="app-footer__metrics">
+                            <div>
+                                <p class="app-footer__metric-label">Realtime deployments</p>
+                                <p class="app-footer__metric-value">238 this quarter</p>
+                            </div>
+                            <div>
+                                <p class="app-footer__metric-label">Creator satisfaction</p>
+                                <p class="app-footer__metric-value">4.9 / 5.0</p>
+                            </div>
+                        </div>
+                        <div class="app-footer__social">
+                            <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Bugence on X">
+                                <span class="fa-brands fa-x-twitter"></span>
+                            </a>
+                            <a href="https://www.linkedin.com" target="_blank" rel="noopener" aria-label="Bugence on LinkedIn">
+                                <span class="fa-brands fa-linkedin-in"></span>
+                            </a>
+                            <a href="mailto:hello@bugence.com" aria-label="Email Bugence">
+                                <span class="fa-solid fa-envelope"></span>
+                            </a>
+                        </div>
+                    </section>
+                    <nav class="app-footer__col" aria-label="Console navigation">
+                        <h3 class="app-footer__title">Console</h3>
+                        <ul class="app-footer__links">
+                            <li><a asp-area="" asp-page="/Dashboard/Index">Mission Control</a></li>
+                            <li><a asp-area="" asp-page="/Content/Library">Content Library</a></li>
+                            <li><a asp-area="" asp-page="/Content/LivePreview">Live Preview</a></li>
+                        </ul>
+                    </nav>
+                    <nav class="app-footer__col" aria-label="Operations navigation">
+                        <h3 class="app-footer__title">Operations</h3>
+                        <ul class="app-footer__links">
+                            <li><a asp-area="" asp-page="/Insights/Logs">Change Logs</a></li>
+                            <li><a asp-area="" asp-page="/Settings/Profile">Profile Settings</a></li>
+                            <li><a asp-area="" asp-page="/Settings/Application">Application Settings</a></li>
+                        </ul>
+                    </nav>
+                    <section class="app-footer__col app-footer__col--subscribe">
+                        <h3 class="app-footer__title">Mission status</h3>
+                        <ul class="app-footer__status">
+                            <li>
+                                <span class="app-footer__status-indicator app-footer__status-indicator--online"></span>
+                                <div>
+                                    <strong>Systems online</strong>
+                                    <span>All clusters operational</span>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="app-footer__status-indicator app-footer__status-indicator--deploy"></span>
+                                <div>
+                                    <strong>Latest deploy</strong>
+                                    <span>Hero module v2.9 - 3h ago</span>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="app-footer__status-indicator app-footer__status-indicator--latency"></span>
+                                <div>
+                                    <strong>Response time</strong>
+                                    <span>118 ms global median</span>
+                                </div>
+                            </li>
+                        </ul>
+                        <h3 class="app-footer__title">Stay in sync</h3>
+                        <p class="app-footer__tagline app-footer__tagline--small">
+                            Subscribe for deployment briefs, automation notes, and success stories from the Bugence lab.
+                        </p>
+                        <form class="app-footer__form" method="post" asp-page="/Support">
+                            <input class="app-footer__input" type="email" name="email" placeholder="Email address" autocomplete="email" required />
+                            <button class="app-footer__submit" type="submit" aria-label="Submit email">
+                                <span class="fa-solid fa-paper-plane"></span>
+                            </button>
+                        </form>
+                        <p class="app-footer__note">We only ship mission-critical updates.</p>
+                    </section>
+                </div>
+                <div class="app-footer__divider"></div>
+                <div class="app-footer__bottom">
+                    <p class="app-footer__copyright">&copy; @DateTime.UtcNow.Year Bugence Labs. Engineered for the Bugence Edit Console.</p>
+                    <div class="app-footer__bottom-links">
+                        <a asp-area="" asp-page="/Privacy">Privacy</a>
+                        <a asp-area="" asp-page="/Support">Support</a>
+                        <a asp-area="" asp-page="/Insights/Logs">Changelog</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="~/lib/bootstrap/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+
+
+

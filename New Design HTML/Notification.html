@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox | Bugence</title>
+    
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* --- CORE THEME --- */
+        :root { 
+            --bg: #050505; 
+            --surface: #0a0a0a; 
+            --border: rgba(255,255,255,0.08); 
+            --text: #ffffff; 
+            --muted: #a1a1aa; 
+            --accent: #06b6d4; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b;
+            --purple: #8b5cf6;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+        body { margin:0; background: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; display:flex; height: 100vh; overflow: hidden; }
+
+        /* --- LAYOUT --- */
+        .shell { display:flex; width:100%; height:100%; }
+        
+        aside { 
+            width: 260px; flex-shrink: 0; background: var(--bg); 
+            border-right: 1px solid var(--border); padding: 24px; 
+            display: flex; flex-direction: column; z-index: 10; 
+        }
+        
+        main { 
+            flex-grow: 1; padding: 0; overflow-y: auto; 
+            background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.03), transparent 60%); 
+            position: relative; display: flex; flex-direction: column;
+        }
+
+        /* --- SIDEBAR COMPONENTS --- */
+        .brand { font-family: 'Cabinet Grotesk', sans-serif; font-weight:800; font-size: 1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background: rgba(6,182,212,0.1); color:var(--accent); }
+
+        /* --- NOTIFICATION CONTAINER --- */
+        .inbox-container { max-width: 800px; margin: 0 auto; width: 100%; padding: 40px; }
+
+        /* Header */
+        .inbox-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; }
+        .page-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.5rem; margin: 0; line-height: 1; }
+        .page-subtitle { color: var(--muted); margin-top: 8px; font-size: 0.95rem; }
+
+        /* Controls */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .tabs { display: flex; gap: 5px; background: var(--surface); padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+        .tab { padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: var(--muted); cursor: pointer; transition: 0.2s; }
+        .tab:hover { color: white; }
+        .tab.active { background: #222; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .btn-text { background: transparent; border: none; color: var(--accent); font-weight: 700; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-text:hover { color: white; }
+
+        /* Timeline Groups */
+        .time-group { margin-bottom: 30px; }
+        .group-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 15px; padding-left: 10px; }
+
+        /* Notification Card */
+        .noti-card { 
+            display: flex; gap: 15px; padding: 20px; border-radius: 12px; 
+            background: var(--surface); border: 1px solid var(--border); 
+            margin-bottom: 10px; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; overflow: hidden; cursor: pointer;
+        }
+        .noti-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+        
+        /* Unread Indicator */
+        .noti-card.unread::after { 
+            content: ''; position: absolute; top: 20px; right: 20px; 
+            width: 8px; height: 8px; background: var(--accent); border-radius: 50%; 
+            box-shadow: 0 0 10px var(--accent);
+        }
+        .noti-card.unread { background: rgba(6,182,212,0.03); border-color: rgba(6,182,212,0.2); }
+
+        .noti-icon { 
+            width: 44px; height: 44px; border-radius: 10px; background: #222; 
+            display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0;
+        }
+        
+        .noti-content { flex: 1; padding-right: 20px; }
+        .noti-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: white; }
+        .noti-desc { color: var(--muted); font-size: 0.85rem; line-height: 1.4; margin-bottom: 10px; }
+        .noti-meta { font-size: 0.75rem; color: #555; font-weight: 600; display: flex; gap: 10px; align-items: center; }
+
+        /* Card Actions */
+        .card-actions { display: flex; gap: 10px; margin-top: 12px; }
+        .btn-sm { padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: transparent; color: white; transition: 0.2s; }
+        .btn-sm:hover { background: white; color: black; }
+        .btn-sm.primary { border-color: var(--accent); color: var(--accent); }
+        .btn-sm.primary:hover { background: var(--accent); color: black; }
+
+        /* Animation */
+        .fade-out { opacity: 0; transform: translateX(20px); pointer-events: none; }
+        
+        /* Icon Colors */
+        .icon-success { color: var(--success); background: rgba(16,185,129,0.1); }
+        .icon-danger { color: var(--danger); background: rgba(239,68,68,0.1); }
+        .icon-info { color: var(--accent); background: rgba(6,182,212,0.1); }
+        .icon-warn { color: var(--warning); background: rgba(245,158,11,0.1); }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 60px 0; color: var(--muted); display: none; }
+        .empty-icon { font-size: 3rem; margin-bottom: 20px; color: #222; }
+    </style>
+</head>
+<body>
+
+    <div class="shell">
+        <aside>
+            <a href="/Dashboard/Index" class="brand"><i class="fa-solid fa-bug" style="color:var(--accent)"></i> BUGENCE</a>
+            
+            <a href="/Dashboard/Index" class="nav-item active"><i class="fa-solid fa-layer-group"></i> Overview</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-folder"></i> Projects</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Analytics</a>
+            
+            <div class="menu-cat">Tools</div>
+            <a href="#" class="nav-item"><i class="fa-solid fa-book"></i> Library</a>
+            
+            <a href="/Dashboard/Notifications" class="nav-item" style="color:white;"><i class="fa-solid fa-bell"></i> Inbox <span style="margin-left:auto; background:var(--accent); color:black; font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:800;">3</span></a>
+            
+            <div class="menu-cat">Configuration</div>
+            <a href="/ProjectHub/GlobalSettings" class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+        </aside>
+
+        <main>
+            <div class="inbox-container">
+                <div class="inbox-header">
+                    <div>
+                        <h1 class="page-title">Inbox</h1>
+                        <p class="page-subtitle">You have <span style="color:var(--accent); font-weight:700;">3 unread</span> notifications.</p>
+                    </div>
+                    <button class="btn-text" onclick="markAllRead()"><i class="fa-solid fa-check-double"></i> Mark all as read</button>
+                </div>
+
+                <div class="controls">
+                    <div class="tabs">
+                        <div class="tab active" onclick="filter('all', this)">All</div>
+                        <div class="tab" onclick="filter('unread', this)">Unread</div>
+                        <div class="tab" onclick="filter('archived', this)">Archived</div>
+                    </div>
+                    <button class="btn-text" style="color:var(--muted);" onclick="alert('Settings opened')"><i class="fa-solid fa-sliders"></i> Preferences</button>
+                </div>
+
+                <div id="notificationList">
+                    
+                    <div class="time-group">
+                        <div class="group-label">Today</div>
+                        
+                        <div class="noti-card unread" onclick="readItem(this)">
+                            <div class="noti-icon icon-success"><i class="fa-solid fa-rocket"></i></div>
+                            <div class="noti-content">
+                                <div class="noti-title">Deployment Successful</div>
+                                <div class="noti-desc">High-Tech Heroes (master) was successfully deployed to production. Visit your live site to see changes.</div>
+                                <div class="noti-meta">
+                                    <span><i class="fa-regular fa-clock"></i> 2 hours ago</span>
+                                    <span>•</span>
+                                    <span>High-Tech Heroes</span>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn-sm primary" onclick="event.stopPropagation();">Visit Site</button>
+                                    <button class="btn-sm" onclick="event.stopPropagation(); archiveItem(this)">Archive</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="noti-card unread" onclick="readItem(this)">
+                            <div class="noti-icon icon-warn"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="noti-content">
+                                <div class="noti-title">Usage Limit Approaching</div>
+                                <div class="noti-desc">You have used 85% of your Build Minutes for this billing cycle. Upgrade your plan to avoid interruption.</div>
+                                <div class="noti-meta">
+                                    <span><i class="fa-regular fa-clock"></i> 5 hours ago</span>
+                                    <span>•</span>
+                                    <span>Billing</span>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn-sm primary" onclick="event.stopPropagation(); location.href='/ProjectHub/GlobalSettings'">Upgrade Plan</button>
+                                    <button class="btn-sm" onclick="event.stopPropagation(); archiveItem(this)">Dismiss</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="time-group">
+                        <div class="group-label">Yesterday</div>
+                        
+                        <div class="noti-card unread" onclick="readItem(this)">
+                            <div class="noti-icon icon-info"><i class="fa-solid fa-user-plus"></i></div>
+                            <div class="noti-content">
+                                <div class="noti-title">Team Invitation Accepted</div>
+                                <div class="noti-desc">Sarah Designer has accepted your invitation to join the <b>High-Tech Heroes</b> workspace.</div>
+                                <div class="noti-meta">
+                                    <span><i class="fa-regular fa-clock"></i> Yesterday, 4:20 PM</span>
+                                    <span>•</span>
+                                    <span>Team</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="noti-card" style="opacity:0.7;">
+                            <div class="noti-icon" style="background:#222; color:#777;"><i class="fa-solid fa-file-invoice"></i></div>
+                            <div class="noti-content">
+                                <div class="noti-title" style="color:#aaa;">Invoice Available</div>
+                                <div class="noti-desc">Your invoice for November 2025 is now available for download.</div>
+                                <div class="noti-meta">
+                                    <span><i class="fa-regular fa-clock"></i> Yesterday, 9:00 AM</span>
+                                    <span>•</span>
+                                    <span>Billing</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="empty-state" id="emptyState">
+                    <i class="fa-regular fa-bell-slash empty-icon"></i>
+                    <h3>All caught up!</h3>
+                    <p>You have no new notifications at the moment.</p>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- 1. MARK AS READ ---
+        function readItem(card) {
+            if(card.classList.contains('unread')) {
+                card.classList.remove('unread');
+                // Remove bg highlight smoothly
+                card.style.background = 'var(--surface)';
+                card.style.borderColor = 'var(--border)';
+                updateCount();
+            }
+        }
+
+        function markAllRead() {
+            document.querySelectorAll('.noti-card.unread').forEach(card => {
+                readItem(card);
+            });
+        }
+
+        // --- 2. ARCHIVE ITEM ---
+        function archiveItem(btn) {
+            const card = btn.closest('.noti-card');
+            card.classList.add('fade-out');
+            
+            // Wait for animation then hide
+            setTimeout(() => {
+                card.style.display = 'none';
+                checkEmpty();
+            }, 250);
+        }
+
+        // --- 3. FILTERING ---
+        function filter(type, btn) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.noti-card');
+            
+            cards.forEach(card => {
+                card.style.display = 'flex'; // Reset
+                if (type === 'unread' && !card.classList.contains('unread')) {
+                    card.style.display = 'none';
+                }
+                // Mock logic: Real app would have data-archived attributes
+            });
+            checkEmpty();
+        }
+
+        // --- UTILS ---
+        function checkEmpty() {
+            const visible = Array.from(document.querySelectorAll('.noti-card')).filter(c => c.style.display !== 'none');
+            const emptyEl = document.getElementById('emptyState');
+            const listEl = document.getElementById('notificationList');
+            
+            if(visible.length === 0) {
+                emptyEl.style.display = 'block';
+                listEl.style.display = 'none';
+            } else {
+                emptyEl.style.display = 'none';
+                listEl.style.display = 'block';
+            }
+        }
+
+        function updateCount() {
+            const count = document.querySelectorAll('.noti-card.unread').length;
+            const subtitle = document.querySelector('.page-subtitle');
+            if(count > 0) {
+                subtitle.innerHTML = `You have <span style="color:var(--accent); font-weight:700;">${count} unread</span> notifications.`;
+            } else {
+                subtitle.innerHTML = `You have no unread notifications.`;
+            }
+        }
+    </script>
+</body>
+</html>

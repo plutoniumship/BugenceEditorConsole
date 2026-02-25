@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARDS | DAVID ASK EXPERIENCE</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700&family=Playfair+Display:ital,wght@0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --dark: #050505;
+            --soft-white: #f5f5f5;
+            --primary-gold: #c5a059;
+            --dark-bg: #0a0a0a;
+        }
+
+        /* --- CUSTOM SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: var(--gold); }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            cursor: none;
+        }
+
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        .text-gold { color: var(--gold); }
+
+        /* --- LUXURY CUSTOM CURSOR --- */
+        #cursor { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; position: fixed; pointer-events: none; z-index: 10000; }
+        #cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transition: all 0.1s ease-out; }
+
+        /* --- BUTTON DESIGN --- */
+        .magnetic-wrap { display: inline-flex; align-items: center; justify-content: center; position: relative; padding: 10px; }
+        .btn-luxury {
+            background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 18px 45px;
+            text-transform: uppercase; letter-spacing: 4px; font-size: 0.7rem; font-weight: 600;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); position: relative; z-index: 1; overflow: hidden; display: inline-block; text-decoration: none !important;
+        }
+        .btn-luxury:hover { color: black !important; border-color: var(--gold); }
+        .btn-luxury::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gold); transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); z-index: -1; }
+        .btn-luxury:hover::before { left: 0; }
+        .btn-luxury-gold { background: var(--gold); color: black !important; border-color: var(--gold); }
+
+        /* --- HERO TEXT MASKING --- */
+        .text-reveal {
+            background: linear-gradient(to right, #fff 50%, #444 50%);
+            background-size: 200% 100%;
+            background-position: 100% 0;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: background-position 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .hero-container:hover .text-reveal { background-position: 0 0; }
+
+        /* --- SECTION 2: KINETIC DEAL --- */
+        .deal-section { background-color: #fff; color: #000; overflow: hidden; }
+        .deal-wrapper { display: flex; width: 400%; height: 100vh; will-change: transform; }
+        .deal-step { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; padding: 0 10%; position: relative; }
+        .step-ghost-number { position: absolute; font-size: 35vw; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; color: rgba(0,0,0,0.03); z-index: 0; }
+        .step-content-box { position: relative; z-index: 1; max-width: 800px; }
+
+        /* --- SECTION 3: CATEGORY FLOW --- */
+        .categories-editorial-v2 {
+            background-color: #000;
+            padding: 180px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .editorial-sticky-box {
+            position: sticky;
+            top: 25%;
+            height: fit-content;
+            z-index: 10;
+        }
+        .category-scroll-item {
+            margin-bottom: 200px;
+            padding: 40px 0;
+            position: relative;
+            transition: all 0.8s ease;
+        }
+        .category-scroll-item:last-child { margin-bottom: 0; }
+        
+        .topic-large {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 7vw, 7rem);
+            font-style: italic;
+            line-height: 1;
+            color: rgba(255, 255, 255, 0.1);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-block;
+        }
+        .topic-active .topic-large {
+            color: var(--gold);
+            transform: translateX(30px);
+        }
+        .topic-watermark {
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 15rem;
+            font-weight: 900;
+            color: rgba(212, 175, 55, 0.02);
+            font-family: 'Playfair Display', serif;
+            pointer-events: none;
+            z-index: -1;
+            transition: all 1s ease;
+        }
+        .topic-active .topic-watermark {
+            color: rgba(212, 175, 55, 0.05);
+            left: 50px;
+        }
+
+        /* --- NAVIGATION --- */
+        .nav-link-custom { color: rgba(255, 255, 255, 0.6); text-decoration: none; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3em; transition: all 0.4s ease; }
+        .nav-link-custom:hover { color: var(--gold); }
+        .nav-scrolled { background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(20px); padding: 1.2rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .optin-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding: 20px 0; color: #fff; font-size: 1.25rem; text-align: center; transition: border-color 0.6s ease; }
+        .optin-input:focus { outline: none; border-color: var(--gold); }
+
+        /* --- TEXTURE --- */
+        body::after { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.03; pointer-events: none; z-index: 9997; }
+    </style>
+</head>
+
+<body class="bg-[#050505]">
+
+    <div id="cursor"></div>
+    <div id="cursor-outline"></div>
+
+    <nav id="main-nav" class="fixed top-0 w-full z-[100] px-12 py-10 flex justify-between items-center mix-blend-difference transition-all duration-500">
+        <a href="index.html" class="text-white no-underline tracking-[0.5em] uppercase serif text-xl font-bold">
+            David <span class="text-[#D4AF37]">Ask</span>
+        </a>
+        <div class="hidden lg:flex items-center gap-12">
+            <ul class="flex gap-10 mb-0 list-none">
+                <li><a href="index.html#manifesto" class="nav-link-custom">The Experience</a></li>
+                <li><a href="podcast.html" class="nav-link-custom">Podcast</a></li>
+                <li><a href="book.html" class="nav-link-custom">The Book</a></li>
+                <li><a href="#" class="nav-link-custom text-gold">Cards</a></li>
+            </ul>
+            <div class="magnetic-wrap">
+                <a href="#optin" class="btn-luxury !py-2 !px-8 text-[0.6rem]">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="h-screen relative flex items-center justify-center overflow-hidden hero-container">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=1600" class="w-full h-full object-cover opacity-20 scale-110 grayscale" alt="Conversation Cards">
+        </div>
+        <div class="relative z-10 text-center container px-6">
+            <h1 class="hero-title-main serif italic text-reveal mb-8" style="font-size: clamp(3rem, 8vw, 8rem); line-height: 0.95;">Father & Son <br>Conversation Cards</h1>
+            <p class="max-w-3xl mx-auto text-xl md:text-2xl text-white/40 font-light leading-relaxed mb-16" data-aos="fade-up" data-aos-delay="200">
+                A simple deck of questions to spark honest, meaningful connection - anytime, anywhere.
+            </p>
+            <div class="magnetic-wrap" data-aos="fade-up" data-aos-delay="400">
+                <a href="#optin" class="btn-luxury btn-luxury-gold">Join the Waitlist</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="deal-section">
+        <div class="deal-wrapper">
+            <div class="deal-step">
+                <div class="step-ghost-number">INTRO</div>
+                <div class="step-content-box text-center">
+                    <p class="text-gold uppercase tracking-[0.8em] text-[0.7rem] mb-10">The Rhythms</p>
+                    <h2 class="text-8xl md:text-9xl serif italic mb-6">How the <br>Cards Work</h2>
+                    <div class="w-20 h-1 bg-gold mx-auto"></div>
+                </div>
+            </div>
+            <div class="deal-step">
+                <div class="step-ghost-number">01</div>
+                <div class="step-content-box">
+                    <h3 class="text-7xl serif italic mb-8">Pick a card</h3>
+                    <p class="text-3xl text-zinc-500 font-light leading-relaxed">Choose at random or follow the flow of your evening.</p>
+                </div>
+            </div>
+            <div class="deal-step">
+                <div class="step-ghost-number">02</div>
+                <div class="step-content-box">
+                    <h3 class="text-7xl serif italic mb-8">Ask and listen</h3>
+                    <p class="text-3xl text-zinc-500 font-light leading-relaxed">Ask the question and listen more than you talk. Let his words fill the space.</p>
+                </div>
+            </div>
+            <div class="deal-step">
+                <div class="step-ghost-number">03</div>
+                <div class="step-content-box">
+                    <h3 class="text-7xl serif italic mb-8">Unfold naturally</h3>
+                    <p class="text-3xl text-zinc-500 font-light leading-relaxed">Let the moment unfold naturally with no pressure or no agenda. Just presence.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="categories-editorial-v2">
+        <div class="container mx-auto px-6">
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="editorial-sticky-box">
+                        <p class="text-gold uppercase tracking-[0.8em] text-[0.65rem] mb-10 section-reveal-up">The Deck</p>
+                        <h2 class="text-7xl md:text-8xl serif italic mb-8 section-reveal-up">What’s <br>Inside</h2>
+                        <p class="text-xl text-white/30 font-light max-w-sm leading-relaxed section-reveal-up">
+                            Conversation Starters for character and choices and dreams and the future.
+                        </p>
+                        <div class="w-12 h-[1px] bg-gold mt-16 section-reveal-line"></div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 offset-lg-1">
+                    <div class="category-scroll-item">
+                        <span class="topic-watermark">01</span>
+                        <h3 class="topic-large">Self-Awareness</h3>
+                    </div>
+                    <div class="category-scroll-item">
+                        <span class="topic-watermark">02</span>
+                        <h3 class="topic-large">Joy</h3>
+                    </div>
+                    <div class="category-scroll-item">
+                        <span class="topic-watermark">03</span>
+                        <h3 class="topic-large">Purpose</h3>
+                    </div>
+                    <div class="category-scroll-item">
+                        <span class="topic-watermark">04</span>
+                        <h3 class="topic-large">Love</h3>
+                    </div>
+                    <div class="category-scroll-item">
+                        <span class="topic-watermark">05</span>
+                        <h3 class="topic-large">Certainty</h3>
+                    </div>
+                    <div class="category-scroll-item">
+                        <span class="topic-watermark">06</span>
+                        <h3 class="topic-large">Creation</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="optin" class="py-40 bg-black text-center relative overflow-hidden">
+        <div class="container relative z-10 px-6">
+            <h4 class="text-gold uppercase tracking-[0.6em] text-[0.6rem] mb-12" data-aos="fade-up">Launch List</h4>
+            <h2 class="serif italic mb-8" style="font-size: clamp(3rem, 6vw, 6rem);">Get Notified When They Drop</h2>
+            <p class="text-xl text-white/40 font-light mb-20 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up">
+                Join the waitlist to get early access and special launch updates.
+            </p>
+            <div class="max-w-[600px] mx-auto" data-aos="fade-up">
+                <form action="#" class="flex flex-col gap-12">
+                    <input type="email" placeholder="ENTER YOUR EMAIL ADDRESS" class="optin-input" required>
+                    <div class="magnetic-wrap mx-auto">
+                        <button type="submit" class="btn-luxury btn-luxury-gold !px-20">Join the Waitlist</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="pt-40 pb-20 bg-black border-t border-white/5">
+        <div class="container mx-auto px-10 text-center">
+            <h2 class="text-3xl serif italic mb-8">David Ask.</h2>
+            <div class="flex flex-wrap justify-center gap-10 mb-12">
+                <a href="podcast.html" class="nav-link-custom text-[0.65rem]">Podcast</a>
+                <a href="https://davidaskmusic.com/" class="nav-link-custom text-[0.65rem]">Music</a>
+                <a href="book.html" class="nav-link-custom text-[0.65rem]">The Book</a>
+                <a href="index.html#speaking" class="nav-link-custom text-[0.65rem]">Speaking</a>
+            </div>
+            <p class="text-[0.6rem] text-zinc-700 tracking-[0.4em] uppercase">© 2025 THE ASK EXPERIENCE. ALL RIGHTS RESERVED.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1200, once: true });
+        gsap.registerPlugin(ScrollTrigger);
+
+        const cursor = document.getElementById('cursor');
+        const outline = document.getElementById('cursor-outline');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, {x: e.clientX, y: e.clientY, duration: 0.1});
+            gsap.to(outline, {x: e.clientX - 16, y: e.clientY - 16, duration: 0.2});
+        });
+
+        // SECTION 2: Horizontal Scroll Logic
+        let sections = gsap.utils.toArray(".deal-step");
+        gsap.to(sections, {
+            xPercent: -100 * (sections.length - 1),
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".deal-section",
+                pin: true,
+                scrub: 1,
+                end: () => "+=" + document.querySelector(".deal-wrapper").offsetWidth
+            }
+        });
+
+        // SECTION 3: Kinetic Editorial Logic with Scroll Animations
+        gsap.utils.toArray('.category-scroll-item').forEach((item, i) => {
+            // Focus class toggle
+            ScrollTrigger.create({
+                trigger: item,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => item.classList.add('topic-active'),
+                onEnterBack: () => item.classList.add('topic-active'),
+                onLeave: () => item.classList.remove('topic-active'),
+                onLeaveBack: () => item.classList.remove('topic-active'),
+            });
+
+            // Depth Parallax for Watermarks
+            const watermark = item.querySelector('.topic-watermark');
+            gsap.fromTo(watermark, { y: -50 }, {
+                y: 50,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: true
+                }
+            });
+
+            // Entrance reveal for text
+            const title = item.querySelector('.topic-large');
+            gsap.from(title, {
+                opacity: 0,
+                x: -100,
+                duration: 1,
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top bottom-=100",
+                    toggleActions: "play none none reverse"
+                }
+            });
+        });
+
+        // Left Sidebar Entrance
+        gsap.from(".section-reveal-up", {
+            y: 50,
+            opacity: 0,
+            stagger: 0.2,
+            duration: 1.5,
+            ease: "power4.out",
+            scrollTrigger: {
+                trigger: ".categories-editorial-v2",
+                start: "top 70%"
+            }
+        });
+        
+        gsap.from(".section-reveal-line", {
+            scaleX: 0,
+            transformOrigin: "left center",
+            duration: 1.5,
+            scrollTrigger: {
+                trigger: ".categories-editorial-v2",
+                start: "top 70%"
+            }
+        });
+
+        const magnets = document.querySelectorAll('.magnetic-wrap');
+        magnets.forEach(m => {
+            m.addEventListener('mousemove', (e) => {
+                const rect = m.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                gsap.to(m, { x: x * 0.4, y: y * 0.4, duration: 0.3 });
+            });
+            m.addEventListener('mouseleave', () => {
+                gsap.to(m, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+            });
+        });
+
+        const interactive = document.querySelectorAll('a, button, .category-scroll-item');
+        interactive.forEach(l => {
+            l.addEventListener('mouseenter', () => {
+                gsap.to(cursor, { scale: 4, background: 'rgba(212, 175, 55, 0.2)', duration: 0.3 });
+                gsap.to(outline, { opacity: 0, duration: 0.3 });
+            });
+            l.addEventListener('mouseleave', () => {
+                gsap.to(cursor, { scale: 1, background: '#D4AF37', duration: 0.3 });
+                gsap.to(outline, { opacity: 1, duration: 0.3 });
+            });
+        });
+
+        const nav = document.getElementById('main-nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) nav.classList.add('nav-scrolled');
+            else nav.classList.remove('nav-scrolled');
+        });
+    </script>
+</body>
+
+</html>

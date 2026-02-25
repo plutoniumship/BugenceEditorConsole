@@ -1,0 +1,233 @@
+@page
+@model BugenceEditConsole.Pages.Projects.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+    ViewData["BodyClass"] = "page-projects-index";
+}
+
+@section Head {
+<style>
+        :root {
+            --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4;
+            --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --purple:#8b5cf6;
+        }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; height:100vh; display:flex; overflow:hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
+        main { flex:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); }
+        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:32px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:16px 0 6px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:10px; margin-bottom:4px; transition:0.2s; font-size:0.95rem; }
+        .nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background:rgba(6,182,212,0.12); color:var(--accent); }
+        .profile-block { margin-top:auto; padding-top:20px; border-top:1px solid var(--border); }
+        .profile-card { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; cursor:pointer; position:relative; }
+        .avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#22d3ee); display:grid; place-items:center; font-weight:800; color:#00131a; }
+        .profile-menu { position:absolute; left:0; right:0; bottom:calc(100% + 8px); background:#0b0e14; border:1px solid var(--border); border-radius:12px; padding:8px 0; display:none; box-shadow:0 20px 40px rgba(0,0,0,0.45); }
+        .profile-card.show .profile-menu { display:block; }
+        .profile-menu a { display:block; padding:8px 12px; color:white; text-decoration:none; font-weight:600; }
+        .profile-menu a:hover { background:rgba(255,255,255,0.05); }
+
+        .header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:26px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.5rem; margin:0 0 6px; }
+        .header p { color:var(--muted); margin:0; }
+        .btn-primary { background:var(--accent); color:black; border:none; padding:10px 18px; border-radius:10px; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+        .btn-primary:hover { filter:brightness(1.1); }
+
+        .controls-bar { display:flex; justify-content:space-between; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px; margin-bottom:26px; gap:12px; flex-wrap:wrap; }
+        .search-box { position:relative; width:300px; max-width:100%; }
+        .search-input { width:100%; background:#111; border:1px solid var(--border); padding:10px 10px 10px 34px; border-radius:8px; color:white; }
+        .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); }
+        .filter-pills { display:flex; gap:8px; }
+        .pill { padding:6px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:0.9rem; font-weight:700; }
+        .pill.active { background:white; color:black; border-color:white; }
+        .view-toggle { display:flex; background:#111; padding:4px; border-radius:8px; border:1px solid var(--border); }
+        .toggle-btn { width:32px; height:32px; display:grid; place-items:center; cursor:pointer; color:var(--muted); border-radius:6px; }
+        .toggle-btn.active { background:#333; color:white; }
+        .sort-select { background:#111; border:1px solid var(--border); color:white; padding:8px 10px; border-radius:8px; }
+
+        .projects-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:22px; }
+        .projects-list { display:flex; flex-direction:column; gap:12px; }
+        .project-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:0.25s; position:relative; display:flex; flex-direction:column; }
+        .project-card:hover { transform:translateY(-4px); border-color:rgba(255,255,255,0.15); box-shadow:0 18px 40px rgba(0,0,0,0.5); }
+        .card-preview { height:140px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3)); }
+        .preview-logo { width:50px; height:50px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); display:grid; place-items:center; font-size:1.4rem; color:white; background:rgba(0,0,0,0.25); }
+        .card-body { padding:18px; display:flex; flex-direction:column; gap:10px; flex:1; }
+        .card-header { display:flex; justify-content:space-between; align-items:flex-start; }
+        .project-title { font-size:1.05rem; font-weight:800; margin:0; color:white; text-decoration:none; }
+        .project-domain { color:var(--muted); font-size:0.85rem; text-decoration:none; }
+        .project-domain:hover { color:var(--accent); text-decoration:underline; }
+        .tech-badge { font-size:0.7rem; padding:2px 8px; border-radius:4px; background:#222; border:1px solid var(--border); color:#ccc; }
+        .stats-row { display:flex; gap:12px; flex-wrap:wrap; font-size:0.85rem; color:var(--muted); }
+        .stat-item { display:flex; align-items:center; gap:6px; }
+        .status-dot { width:8px; height:8px; border-radius:50%; }
+        .status-production { background:var(--success); box-shadow:0 0 8px var(--success); }
+        .status-draft { background:var(--warning); }
+        .status-archived { background:#555; }
+        .menu-trigger { background:transparent; border:none; color:var(--muted); cursor:pointer; padding:4px; }
+        .projects-list .project-card { flex-direction:row; height:90px; align-items:center; padding:0 16px; }
+        .projects-list .card-preview { width:60px; height:60px; border-radius:10px; border:1px solid var(--border); margin-right:14px; }
+        .projects-list .card-body { padding:0; flex:1; flex-direction:row; align-items:center; gap:18px; }
+        .projects-list .card-header { margin:0; flex:2; flex-direction:column; }
+        .projects-list .stats-row { margin-left:auto; }
+        .env-row { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:2px; }
+        .env-chip { font-size:.72rem; border:1px solid var(--border); border-radius:999px; padding:3px 9px; color:#cbd5e1; text-transform:uppercase; letter-spacing:.06em; }
+        .card-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+        .promote-btn { border:1px solid var(--border); background:#0f0f0f; color:#e5e7eb; border-radius:8px; padding:7px 10px; font-size:.75rem; font-weight:700; cursor:pointer; }
+        .promote-btn:hover { border-color:#334155; }
+        .promote-btn.primary { border-color:rgba(16,185,129,0.45); color:#86efac; }
+        .project-toast { position:fixed; right:16px; bottom:18px; background:#0b0b0b; border:1px solid var(--border); padding:10px 14px; border-radius:10px; color:#e5e7eb; font-weight:700; z-index:50; opacity:0; transform:translateY(10px); transition:all .2s ease; pointer-events:none; }
+        .project-toast.show { opacity:1; transform:translateY(0); }
+    </style>
+}
+
+<form id="projectsAntiForgery" style="display:none;">@Html.AntiForgeryToken()</form>
+
+<div class="header">
+                <div>
+                    <h1>Projects</h1>
+                    <p>Manage your deployments and repositories.</p>
+                </div>
+            </div>
+
+            <div class="controls-bar">
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" class="search-input" id="search" placeholder="Search projects...">
+                    </div>
+                    <div class="filter-pills">
+                        <button class="pill active" data-filter="all">All</button>
+                        <button class="pill" data-filter="production">Production</button>
+                        <button class="pill" data-filter="draft">Drafts</button>
+                        <button class="pill" data-filter="archived">Archived</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <select class="sort-select" id="sortSelect">
+                        <option value="date">Sort by Date</option>
+                        <option value="name">Sort by Name</option>
+                        <option value="size">Sort by Size</option>
+                    </select>
+                    <div class="view-toggle">
+                        <div class="toggle-btn active" data-view="grid"><i class="fa-solid fa-grip"></i></div>
+                        <div class="toggle-btn" data-view="list"><i class="fa-solid fa-list"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="projectsContainer" class="projects-grid">
+                @foreach (var proj in Model.Cards)
+                {
+                    var statusClass = proj.Status?.ToLower() switch { "draft" => "status-draft", "archived" => "status-archived", _ => "status-production" };
+                    var currentEnv = proj.Status?.ToLower() switch { "draft" => "draft", "staging" => "staging", "production" => "live", _ => "live" };
+                    <div class="project-card" data-project-id="@proj.Id" data-env="@currentEnv" data-name="@proj.Name.ToLower()" data-status="@proj.Status.ToLower()" data-date="@proj.SortDate" data-size="@proj.SizeBytes">
+                        <div class="card-preview" style="background: linear-gradient(135deg, @proj.GradientStart, @proj.GradientEnd);">
+                            <div class="preview-logo">@Html.Raw(proj.Icon)</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-header">
+                                <div>
+                                    <a class="project-title" href="/ProjectHub/Index?projectId=@proj.Id">@proj.Name</a>
+                                    <a class="project-domain" href="/ProjectHub/Index?projectId=@proj.Id">@proj.Domain</a>
+                                </div>
+                                <span class="tech-badge">@proj.Tech</span>
+                            </div>
+                            <div class="stats-row">
+                                <span class="stat-item"><span class="status-dot @statusClass"></span> @proj.Status</span>
+                                <span class="stat-item"><i class="fa-solid fa-clock"></i> @proj.RelativeTime</span>
+                                <span class="stat-item"><i class="fa-solid fa-code-branch"></i> @proj.Branch</span>
+                                <span class="stat-item"><i class="fa-solid fa-database"></i> @proj.SizeText</span>
+                            </div>
+                            <div class="env-row">
+                                <span class="env-chip">Env: @currentEnv</span>
+                                <div class="card-actions">
+                                    <button class="promote-btn" type="button" data-promote="draft">Save Draft</button>
+                                    <button class="promote-btn" type="button" data-promote="staging">Promote Staging</button>
+                                    <button class="promote-btn primary" type="button" data-promote="live">Promote Live</button>
+                                </div>
+                            </div>
+                            @if (proj.Stack.Any())
+                            {
+                                <div class="stats-row" style="border-top:1px solid var(--border); padding-top:10px;">
+                                    @foreach (var s in proj.Stack)
+                                    {
+                                        <span class="tech-badge">@s</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+<div id="projectToast" class="project-toast"></div>
+
+@section Scripts {
+<script>
+(function () {
+    const container = document.getElementById('projectsContainer');
+    const token = document.querySelector('#projectsAntiForgery input[name="__RequestVerificationToken"]')?.value || '';
+    const toast = document.getElementById('projectToast');
+    if (!container) return;
+
+    function notify(message) {
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    container.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-promote]');
+        if (!button) return;
+        const card = button.closest('.project-card');
+        if (!card) return;
+
+        const projectId = card.getAttribute('data-project-id');
+        const fromEnv = card.getAttribute('data-env') || 'live';
+        const toEnv = button.getAttribute('data-promote') || 'draft';
+        if (!projectId) return;
+        if (fromEnv === toEnv) {
+            notify(`Project already in ${toEnv}.`);
+            return;
+        }
+
+        const confirmed = window.confirm(`Promote project from ${fromEnv} to ${toEnv}?`);
+        if (!confirmed) return;
+
+        button.disabled = true;
+        try {
+            const body = new URLSearchParams();
+            body.append('projectId', projectId);
+            body.append('fromEnv', fromEnv);
+            body.append('toEnv', toEnv);
+
+            const response = await fetch('/Projects/Index?handler=Promote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'RequestVerificationToken': token
+                },
+                credentials: 'same-origin',
+                body: body.toString()
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload?.success === false) {
+                throw new Error(payload?.message || 'Promotion failed.');
+            }
+
+            card.setAttribute('data-env', toEnv);
+            const chip = card.querySelector('.env-chip');
+            if (chip) chip.textContent = `Env: ${toEnv}`;
+            notify(`Promotion complete: ${fromEnv} -> ${toEnv}`);
+        } catch (err) {
+            notify(err?.message || 'Promotion failed.');
+        } finally {
+            button.disabled = false;
+        }
+    });
+})();
+</script>
+}

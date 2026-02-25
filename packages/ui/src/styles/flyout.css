@@ -1,0 +1,37 @@
+.bugence-flyout {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  top: var(--flyout-anchor-y, 0);
+  left: var(--flyout-anchor-x, 0);
+  background: var(--bugence-color-surface);
+  color: var(--bugence-color-ink);
+  border-radius: var(--bugence-radius-lg);
+  padding: 1rem;
+  box-shadow: var(--bugence-shadow-md);
+  min-width: 16rem;
+  z-index: 1000;
+}
+
+.bugence-flyout--bottom {
+  transform: translate(-50%, 0);
+}
+
+.bugence-flyout--left {
+  transform: translate(-100%, -50%);
+}
+
+.bugence-flyout--right {
+  transform: translate(0, -50%);
+}
+
+.bugence-flyout--sm {
+  min-width: 12rem;
+}
+
+.bugence-flyout--md {
+  min-width: 18rem;
+}
+
+.bugence-flyout--lg {
+  min-width: 24rem;
+}

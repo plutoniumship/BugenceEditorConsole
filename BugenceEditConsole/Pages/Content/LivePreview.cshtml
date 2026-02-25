@@ -1,0 +1,357 @@
+@page
+@model BugenceEditConsole.Pages.Content.LivePreviewModel
+@{
+    ViewData["Title"] = "Live Preview — Bugence Dark Gold";
+    ViewData["BodyClass"] = "preview-dark bg-[#0b0f19] text-white min-h-screen";
+    var previousSectionPageIndex = Math.Max(Model.SectionPageIndex - 1, 1);
+    var nextSectionPageIndex = Math.Min(Model.SectionPageIndex + 1, Model.TotalSectionPages);
+}
+<style>
+    :root {
+        --gold: #d4af37;
+        --gold-hover: #e7c355;
+        --bg: #0b0f19;
+        --card: #ffffff;
+        --border: rgba(255,255,255,0.1);
+    }
+
+    body {
+        background: var(--bg);
+        color: #e6e9ef;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    /* Cards */
+    .card-white {
+        background: var(--card);
+        color: #0b0f19;
+        border-radius: 1rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        transition: transform .2s, box-shadow .2s;
+    }
+
+        .card-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0,0,0,.3);
+        }
+
+    .card-dark {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+    }
+
+    /* Buttons */
+    .btn-gold {
+        background: var(--gold);
+        color: #111;
+        font-weight: 700;
+        border: none;
+        border-radius: .75rem;
+        padding: .65rem 1.1rem;
+        transition: all .25s;
+        cursor: pointer;
+    }
+
+        .btn-gold:hover {
+            background: var(--gold-hover);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+    .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: .75rem;
+        color: #fff;
+        padding: .55rem 1rem;
+        transition: all .25s;
+    }
+
+        .btn-ghost:hover {
+            border-color: var(--gold);
+            background: rgba(212,175,55,0.1);
+        }
+
+    /* Dropdown */
+    .select-gold {
+        width: 100%;
+        background: #111827;
+        color: #fff;
+        border-radius: .75rem;
+        border: 1px solid rgba(255,255,255,0.18);
+        padding: .6rem .9rem;
+        transition: border-color .25s, box-shadow .25s;
+    }
+
+        .select-gold:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212,175,55,0.4);
+            outline: none;
+        }
+
+    /* Sidebar */
+    .item {
+        background: #0e1422;
+        border: 1px solid rgba(255,255,255,0.08);
+        color: #d1d5db;
+        border-radius: .85rem;
+        padding: .9rem;
+        transition: .2s;
+        display: block;
+        text-decoration: none;
+        max-width: 100%;
+    }
+
+        .item:hover {
+            background: rgba(212,175,55,0.1);
+            color: #fff;
+        }
+
+        .item.active {
+            background: rgba(212,175,55,0.15);
+            border-color: var(--gold);
+            color: #fff;
+        }
+
+    .item .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        max-width: 100%;
+    }
+
+    .item .item-meta {
+        min-width: 74px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .item .item-text {
+        min-width: 0;
+    }
+
+    /* Live Canvas */
+    .block {
+        background: #fff;
+        border-radius: .9rem;
+        border: 1px solid #e5e7eb;
+        padding: 1rem;
+        transition: .2s;
+    }
+
+        .block:hover {
+            border-color: var(--gold);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+    .pulse {
+        outline: 3px solid rgba(212,175,55,.28);
+        outline-offset: 2px;
+    }
+
+    /* Layout */
+    .grid-xl {
+        display: grid;
+        grid-template-columns: 460px 1fr;
+        gap: 2rem;
+    }
+
+    
+
+    /* Prevent card text from spilling */
+    .block {
+        word-break: break-word;
+    }
+    </style>
+
+<section class="px-6 py-8 space-y-10">
+    <!-- Header -->
+    <div class="card-white p-7">
+        <div class="flex flex-col lg:flex-row justify-between gap-6">
+            <div class="space-y-2">
+                <span class="inline-flex items-center gap-2" style="background:var(--gold);color:#111;padding:.4rem .7rem;border-radius:9999px;font-weight:700;">
+                    <i class="fa-solid fa-eye"></i> Preview Console
+                </span>
+                <h1 class="text-3xl font-extrabold tracking-tight">Visualize before you publish — confidently.</h1>
+                <p class="text-sm text-gray-600">Edit copy, media, and structure. See a pixel-perfect preview instantly with gold-standard clarity.</p>
+            </div>
+            <form method="get" class="w-full max-w-md">
+                <label class="block text-[11px] font-semibold tracking-wide text-gray-500 mb-2" for="pageId">Select page</label>
+                <select id="pageId" name="pageId" class="select-gold" onchange="this.form.submit()">
+                    @if (Model.AllPages != null && Model.AllPages.Any())
+                    {
+                        foreach (var p in Model.AllPages)
+                        {
+                            <option value="@p.Id" selected="@(p.Id == Model.Page?.Id ? "selected" : null)">@p.Name</option>
+                        }
+                    }
+                    else
+                    {
+                        <option disabled>No pages found</option>
+                    }
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="grid-xl">
+        <!-- Sidebar -->
+        <aside class="card-dark p-6">
+            <header class="flex justify-between mb-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Page sections</h2>
+                    <p class="text-xs text-gray-400">Tap a block to focus and preview.</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-black text-white">@Model.Sections.Count</div>
+                    <div class="text-[11px] text-gray-400 uppercase">sections</div>
+                </div>
+            </header>
+
+            <div id="sidebarSections" class="space-y-3">
+                @if (Model.Sections != null && Model.Sections.Any())
+                {
+                    foreach (var s in Model.Sections)
+                    {
+                        var isActive = Model.ActiveSectionId == s.Id;
+                        <a asp-page="/Content/LivePreview"
+                           asp-route-pageId="@Model.Page?.Id"
+                           asp-route-sectionId="@s.Id"
+                           asp-route-sectionPageIndex="@Model.SectionPageIndex"
+                           data-section-id="@s.Id"
+                           class="item @(isActive ? "active" : null)">
+                            <div class="item-header">
+                                <div class="item-text">
+                                    <div class="font-semibold truncate">@s.GetDisplayTitle()</div>
+                                    <div class="text-[12px] opacity-70 truncate">@s.SectionKey</div>
+                                </div>
+                                <span class="text-[11px] border rounded-full px-2 py-[2px] bg-white text-gray-700 item-meta">@s.ContentType</span>
+                            </div>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div class="text-sm text-gray-400 italic">No sections available on this page.</div>
+                }
+            </div>
+
+            <div class="mt-6 flex justify-between">
+                <a class="btn-ghost text-sm"
+                   asp-route-pageId="@Model.Page?.Id"
+                   asp-route-sectionPageIndex="@previousSectionPageIndex"
+                   asp-route-sectionId="@Model.ActiveSectionId">
+                    <i class="fa-solid fa-chevron-left mr-2"></i> Previous
+                </a>
+                <a class="btn-gold text-sm"
+                   asp-route-pageId="@Model.Page?.Id"
+                   asp-route-sectionPageIndex="@nextSectionPageIndex"
+                   asp-route-sectionId="@Model.ActiveSectionId">
+                    Next <i class="fa-solid fa-chevron-right ml-2"></i>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Live Canvas -->
+        <div id="liveCanvas" class="card-white p-7 overflow-y-auto max-h-[80vh]">
+            <div class="flex justify-between mb-6">
+                <div>
+                    <span class="inline-flex items-center gap-2" style="background:var(--gold);color:#111;padding:.35rem .7rem;border-radius:9999px;font-weight:700;">
+                        <i class="fa-solid fa-bolt"></i> Live Canvas
+                    </span>
+                    <h3 class="text-2xl font-bold mt-2">@Model.Page?.Name ?? "Select a page"</h3>
+                </div>
+                <div class="text-sm text-gray-500 text-right">
+                    @Model.BusinessName<br />@DateTime.UtcNow.ToString("MMM dd — HH:mm 'UTC'")
+                </div>
+            </div>
+
+            @if (!Model.PagedSections.Any())
+            {
+                <div class="rounded-xl border border-dashed border-gray-300 bg-white py-10 text-center text-gray-500">
+                    The selected page has no previewable sections.
+                </div>
+            }
+            else
+            {
+                <div id="canvasSections" class="space-y-4">
+                    @foreach (var b in Model.PagedSections)
+                    {
+                        var isActive = Model.ActiveSectionId == b.Id;
+                        <article class="block @(isActive ? "pulse" : "")" id="canvas-@b.Id">
+                            <header class="flex justify-between mb-2">
+                                <div class="text-[12px] text-gray-500">@b.SectionKey</div>
+                                <span class="text-[11px] border rounded-full px-2 py-[2px] bg-blue-50 text-blue-900">@b.ContentType</span>
+                            </header>
+
+                            <div class="min-h-10">
+                                @switch (b.ContentType)
+                                {
+                                    case BugenceEditConsole.Models.SectionContentType.Image when !string.IsNullOrWhiteSpace(b.MediaPath):
+                                        <img src="@b.MediaPath" alt="@b.MediaAltText" class="w-full rounded-md border border-gray-200 object-cover" />
+                                        break;
+
+                                    case BugenceEditConsole.Models.SectionContentType.Image:
+                                        <div class="flex flex-col items-center justify-center gap-2 border border-dashed border-gray-300 bg-gray-50 p-8 text-gray-500 rounded-md">
+                                            <span class="fa-regular fa-image text-xl"></span>
+                                            <p class="text-sm">Awaiting imagery</p>
+                                        </div>
+                                        break;
+
+                                    case BugenceEditConsole.Models.SectionContentType.Html:
+                                    case BugenceEditConsole.Models.SectionContentType.RichText:
+                                        <div class="prose max-w-none">@Html.Raw(b.ContentValue)</div>
+                                        break;
+
+                                    case BugenceEditConsole.Models.SectionContentType.Text:
+                                        if (b.LooksLikeMarkup())
+                                        {
+                                            var rawText = b.ContentValue ?? string.Empty;
+                                            var encoded = System.Net.WebUtility.HtmlEncode(rawText);
+                                            <pre class="bg-gray-50 border border-gray-200 rounded-md p-4 text-sm text-gray-700 overflow-x-auto"><code>@Html.Raw(encoded)</code></pre>
+                                        }
+                                        else
+                                        {
+                                            <div class="prose max-w-none">@Html.Raw(b.ToEditorHtml())</div>
+                                        }
+                                        break;
+
+                                    default:
+                                        <div class="prose max-w-none">@Html.Raw(b.ToEditorHtml())</div>
+                                        break;
+                                }
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.getElementById('sidebarSections');
+      if (!sidebar) return;
+      const links = sidebar.querySelectorAll('[data-section-id]');
+      links.forEach(link => {
+        link.addEventListener('click', () => {
+          links.forEach(x => x.classList.remove('active'));
+          link.classList.add('active');
+          const id = link.getAttribute('data-section-id');
+          const target = document.getElementById('canvas-' + id);
+          if (target) {
+            target.classList.remove('pulse');
+            void target.offsetWidth; // restart highlight
+            target.classList.add('pulse');
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, { passive: true });
+      });
+    });
+</script>

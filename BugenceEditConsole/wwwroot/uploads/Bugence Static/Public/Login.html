@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUGENCE — Login Portal</title>
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind on-the-fly config (keeps your brand feel)
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bug: {
+              50: '#f5f7ff',
+              100: '#e9edff',
+              200: '#cdd7ff',
+              300: '#a7b5ff',
+              400: '#7b89ff',
+              500: '#5663ff',
+              600: '#3f49e6',
+              700: '#3239b3',
+              800: '#2a2f8c',
+              900: '#23276f'
+            }
+          },
+          boxShadow: {
+            glow: '0 10px 30px -10px rgba(86,99,255,0.55), 0 2px 10px rgba(0,0,0,.35)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Bootstrap 5 (optional components like tooltips/modals) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" />
+
+  <!-- Meta + Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji','Segoe UI Emoji', 'Segoe UI Symbol'; }
+
+    /* Premium cursor */
+    .cursor-dot {
+      position: fixed; width: 14px; height: 14px; border-radius: 9999px;
+      pointer-events: none; z-index: 50; mix-blend-mode: difference;
+      background: white; transition: transform .18s ease, background .18s ease;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring { position: fixed; width: 42px; height: 42px; border: 2px solid rgba(255,255,255,.55); border-radius: 9999px; pointer-events:none; z-index: 49; transform: translate(-50%,-50%); transition: transform .25s ease, opacity .25s ease; opacity: .6; }
+
+    /* Button ripple */
+    .ripple { position: relative; overflow: hidden; }
+    .ripple span { position:absolute; border-radius:50%; transform:scale(0); animation:ripple .6s linear; background: rgba(255,255,255,.35); }
+    @keyframes ripple { to { transform: scale(4); opacity:0; } }
+
+    /* Glass card floating shapes */
+    .float-shape { animation: floaty 8s ease-in-out infinite; }
+    @keyframes floaty { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+
+    /* Subtle input glow on focus */
+    .glow:focus { box-shadow: 0 0 0 4px rgba(86,99,255,.25); }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-white relative overflow-hidden">
+  <!-- background gradient + grid -->
+  <div class="pointer-events-none absolute inset-0">
+    <div class="absolute inset-0 opacity-80" style="background: radial-gradient(1200px 600px at 80% 10%, rgba(86,99,255,.20), transparent 60%), radial-gradient(900px 500px at 10% 80%, rgba(255,171,0,.14), transparent 55%), radial-gradient(900px 900px at 50% -10%, rgba(255,255,255,.04), transparent 60%);"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(transparent,transparent),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px)] bg-[length:100%_100%,40px_40px,40px_40px]"></div>
+  </div>
+
+  <!-- Custom cursor -->
+  <div class="cursor-ring" id="cursorRing"></div>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <!-- Top bar -->
+  <header class="relative z-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
+      <a href="#" class="group inline-flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-black shadow-glow group-hover:scale-105 transition">
+          <img src="/img/blackbug.svg" alt="BUGENCE" class="h-6 w-6"/>
+        </span>
+        <span class="text-xl sm:text-2xl font-extrabold tracking-tight">BUGENCE</span>
+      </a>
+      <button class="ripple inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold backdrop-blur hover:bg-white/10 active:scale-[.98] transition" data-bs-toggle="tooltip" data-bs-title="Portal menu">
+        <i class="fa-solid fa-bars"></i>
+        <span class="hidden sm:inline">Menu</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Auth Card -->
+  <main class="relative z-10">
+    <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
+      <div class="grid lg:grid-cols-2 gap-6 items-stretch">
+        <!-- Left: Welcome / Sign Up CTA -->
+        <article class="relative overflow-hidden rounded-3xl bg-white text-black p-8 sm:p-10 shadow-glow">
+          <!-- floating shapes -->
+          <div class="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-bug-500/20 blur-2xl float-shape"></div>
+          <div class="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-amber-400/20 blur-2xl float-shape" style="animation-delay: -2s"></div>
+
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">New to the portal?</h2>
+          <p class="mt-2 text-black/70">Create your BUGENCE account to access your dashboard, manage projects, and collaborate with your team.</p>
+
+          <ul class="mt-6 space-y-3 text-black/80">
+            <li class="flex items-center gap-3"><i class="fa-solid fa-shield-halved"></i><span>Secure, SSO-ready authentication</span></li>
+            <li class="flex items-center gap-3"><i class="fa-solid fa-bolt"></i><span>Lightning-fast access & smart session memory</span></li>
+            <li class="flex items-center gap-3"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Polished UI with delightful micro-interactions</span></li>
+          </ul>
+
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a id="goToSignUp" href="createaccount.html" class="ripple inline-flex items-center justify-center rounded-full bg-black px-6 py-3 text-white font-semibold shadow-lg shadow-black/20 hover:translate-y-[-1px] hover:shadow-xl active:translate-y-[0] transition">
+              Create Account
+              <i class="fa-solid fa-arrow-right ms-3"></i>
+            </a>
+            <a  class="ripple inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-medium hover:bg-black/5 transition" href="Dashboard.html">Peek inside</a>
+              
+            </button>
+          </div>
+        </article>
+
+        <!-- Right: Sign In -->
+        <article class="relative overflow-hidden rounded-3xl bg-white text-black p-8 sm:p-10 shadow-glow">
+          <div class="absolute -top-10 -left-10 h-40 w-40 rounded-full bg-bug-500/15 blur-2xl float-shape"></div>
+
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Sign In</h2>
+          <form class="mt-6 space-y-6" id="loginForm">
+            <div>
+              <label for="email" class="mb-2 block text-sm font-semibold text-black/80">Email address</label>
+              <div class="relative">
+                <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-black/40"></i>
+                <input type="email" id="email" required placeholder="you@company.com" class="glow w-full rounded-2xl border border-black/15 bg-white px-10 py-3 text-sm outline-none transition placeholder:text-black/40 focus:border-bug-500" />
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-2 flex items-center justify-between">
+                <label for="password" class="block text-sm font-semibold text-black/80">Password</label>
+                <a href="/forgetpassword.html" class="text-xs font-semibold text-bug-700 hover:text-bug-600">Forgot?</a>
+              </div>
+              <div class="relative">
+                <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-black/40"></i>
+                <input type="password" id="password" required placeholder="••••••••" class="glow w-full rounded-2xl border border-black/15 bg-white px-10 py-3 text-sm outline-none transition placeholder:text-black/40 focus:border-bug-500" />
+                <button type="button" id="togglePw" class="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black/80" aria-label="Toggle password visibility">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <label class="inline-flex items-center gap-2 select-none text-sm text-black/80">
+                <input id="remember" type="checkbox" class="h-4 w-4 rounded border-black/20 text-bug-600 focus:ring-bug-500" />
+                Remember me
+              </label>
+            </div>
+
+            <button type="submit" class="ripple group w-full rounded-2xl bg-black px-6 py-3 text-white font-semibold tracking-wide shadow-lg shadow-black/20 transition active:scale-[.99] hover:shadow-xl hover:-translate-y-[1px]">
+            
+                LOGIN
+             
+            </button>
+
+            <div class="relative py-2 text-center">
+              <span class="bg-white px-3 text-xs font-semibold text-black/60">OR</span>
+              <div class="absolute inset-x-0 top-1/2 -z-10 h-px bg-black/10"></div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-3">
+              <button type="button" class="ripple inline-flex items-center gap-2 rounded-full border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/5 transition"><i class="fab fa-google"></i> Google</button>
+              <button type="button" class="ripple inline-flex items-center gap-2 rounded-full border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/5 transition"><i class="fab fa-facebook-f"></i> Facebook</button>
+              <button type="button" class="ripple inline-flex items-center gap-2 rounded-full border border-black/10 px-4 py-2 text-sm font-semibold hover:bg-black/5 transition"><i class="fab fa-x-twitter"></i> Twitter</button>
+            </div>
+          </form>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- Peek modal (Bootstrap) -->
+  <div class="modal fade" id="peekModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-white text-black rounded-2xl">
+        <div class="modal-header border-0">
+          <h5 class="modal-title font-bold">Inside BUGENCE</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-black/80">
+          Clean dashboards, blazing-fast tables, and A.I. assisted workflows — all in one portal.
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-dark rounded-pill px-4" data-bs-dismiss="modal">Nice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Tooltip
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(el => new bootstrap.Tooltip(el))
+
+    // Custom cursor
+    const dot = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    window.addEventListener('mousemove', (e) => {
+      const { clientX:x, clientY:y } = e;
+      dot.style.left = x + 'px';
+      dot.style.top  = y + 'px';
+      ring.style.left = x + 'px';
+      ring.style.top  = y + 'px';
+    });
+    document.querySelectorAll('button, a, input, .ripple').forEach(el => {
+      el.addEventListener('mouseenter', ()=>{ dot.style.transform = 'translate(-50%, -50%) scale(1.6)'; });
+      el.addEventListener('mouseleave', ()=>{ dot.style.transform = 'translate(-50%, -50%) scale(1)'; });
+    });
+
+    // Ripple effect (for any .ripple elements)
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest('.ripple');
+      if(!target) return;
+      const circle = document.createElement('span');
+      const diameter = Math.max(target.clientWidth, target.clientHeight);
+      const rect = target.getBoundingClientRect();
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${e.clientX - rect.left - diameter/2}px`;
+      circle.style.top  = `${e.clientY - rect.top  - diameter/2}px`;
+      target.appendChild(circle);
+      setTimeout(()=> circle.remove(), 650);
+    });
+
+    // Password toggle
+    const pw = document.getElementById('password');
+    const toggle = document.getElementById('togglePw');
+    toggle?.addEventListener('click', ()=>{
+      const is = pw.getAttribute('type') === 'password';
+      pw.setAttribute('type', is ? 'text' : 'password');
+      toggle.innerHTML = is ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>'
+    });
+
+    // Sign up CTA (in case JS navigation preferred)
+    document.getElementById('goToSignUp')?.addEventListener('click', (e)=>{
+      // allow default link nav, but you can enforce:
+      // e.preventDefault(); window.location.href = 'signup.html';
+    });
+
+    // Basic client-side validation preview
+    document.getElementById('loginForm')?.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('password').value.trim();
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        alert('Please enter a valid email.');
+        return;
+      }
+      if(pass.length < 6){
+        alert('Password must be at least 6 characters.');
+        return;
+      }
+      // Replace with your real submit
+      // fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, pass, remember: document.getElementById('remember').checked }) })
+      //   .then(r=>r.json()).then(console.log)
+      //   .catch(console.error)
+      // For demo
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.innerHTML = 'Signing in…';
+      setTimeout(()=>{ btn.disabled = false; btn.innerHTML = '<span class="inline-flex items-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> LOGIN</span>'; alert('Signed in (demo)'); }, 900);
+    });
+  </script>
+</body>
+</html>

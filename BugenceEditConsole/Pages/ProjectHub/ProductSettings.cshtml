@@ -1,0 +1,228 @@
+@page
+@model BugenceEditConsole.Pages.ProjectHub.ProductSettingsModel
+@{
+    Layout = null;
+    var pid = Model.ProjectId;
+    var projectName = Model.ProjectName;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Settings | Bugence</title>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --bg-black:#000; --bg-card:#0a0a0a; --border-color:rgba(255,255,255,0.08); --accent-cyan:#06b6d4; --accent-green:#10b981; --text-primary:#fff; --text-secondary:#a1a1aa; --sidebar-width:260px; --font-head:'Cabinet Grotesk',sans-serif; --font-body:'Satoshi',sans-serif; }
+        *{box-sizing:border-box;}
+        body{background:var(--bg-black);color:var(--text-primary);font-family:var(--font-body);height:100vh;display:flex;overflow:hidden;margin:0;}
+        .app-container{display:grid;grid-template-columns:var(--sidebar-width) 1fr;height:100vh;width:100vw;}
+        .sidebar{background:#050505;border-right:1px solid var(--border-color);padding:24px;display:flex;flex-direction:column;}
+        .brand{font-family:var(--font-head);font-weight:800;font-size:1.2rem;color:white;text-decoration:none;margin-bottom:32px;display:flex;align-items:center;gap:10px;}
+        .nav-section-title{font-size:0.7rem;color:#555;font-weight:700;letter-spacing:1px;margin:16px 0 6px 10px;}
+        .nav-item{padding:10px 14px;color:var(--text-secondary);border-radius:12px;margin-bottom:2px;cursor:pointer;display:flex;gap:12px;align-items:center;font-weight:600;transition:0.2s;text-decoration:none;}
+        .nav-item:hover{background:rgba(255,255,255,0.03);color:white;}
+        .nav-item.active{background:rgba(6,182,212,0.12);color:var(--accent-cyan);}
+        .main-content{flex:1;overflow-y:auto;padding:40px 60px;background-image:radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%);}
+        .page-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:30px;border-bottom:1px solid var(--border-color);padding-bottom:20px;}
+        .page-title h1{font-family:var(--font-head);font-weight:700;margin:0;font-size:2rem;}
+        .page-title p{color:var(--text-secondary);margin:0;font-size:0.9rem;}
+        .btn-save{background:var(--accent-cyan);color:black;border:none;padding:10px 20px;border-radius:8px;font-weight:800;cursor:pointer;box-shadow:0 0 15px rgba(6,182,212,0.2);}
+        .btn-save:hover{background:#0891b2;color:white;}
+        .settings-tabs{display:flex;gap:20px;margin-bottom:30px;}
+        .tab-link{background:transparent;border:none;color:var(--text-secondary);font-size:0.9rem;font-weight:600;padding:8px 0;cursor:pointer;border-bottom:2px solid transparent;transition:0.2s;}
+        .tab-link.active{color:var(--accent-cyan);border-bottom-color:var(--accent-cyan);}
+        .settings-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:30px;margin-bottom:30px;}
+        .card-title{font-size:1.1rem;font-weight:700;margin-bottom:5px;}
+        .card-desc{color:var(--text-secondary);font-size:0.85rem;margin-bottom:20px;}
+        .form-group{margin-bottom:18px;}
+        .form-label{display:block;font-size:0.85rem;color:#ccc;margin-bottom:6px;font-weight:600;}
+        .form-control{width:100%;background:#000;border:1px solid var(--border-color);padding:12px;border-radius:8px;color:white;}
+        .form-hint{font-size:0.75rem;color:#666;margin-top:6px;}
+        .domain-row{display:flex;justify-content:space-between;align-items:center;padding:15px;border:1px solid var(--border-color);border-radius:8px;background:rgba(255,255,255,0.02);margin-top:10px;}
+        .domain-status{display:flex;align-items:center;gap:8px;font-size:0.85rem;}
+        .status-dot{width:8px;height:8px;border-radius:50%;}
+        .status-dot.active{background:var(--accent-green);box-shadow:0 0 8px var(--accent-green);}
+        .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color);}
+        .toggle-row:last-child{border-bottom:none;}
+        .toggle-switch{position:relative;width:44px;height:24px;}
+        .toggle-switch input{opacity:0;width:0;height:0;}
+        .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;transition:.2s;border-radius:24px;}
+        .slider:before{position:absolute;content:\"\";height:18px;width:18px;left:3px;bottom:3px;background:white;transition:.2s;border-radius:50%;}
+        input:checked + .slider{background:var(--accent-cyan);}
+        input:checked + .slider:before{transform:translateX(20px);}
+        @@media (max-width: 1024px){
+            body{
+                overflow-x:hidden;
+                overflow-y:auto;
+                min-height:100dvh;
+                display:block;
+            }
+            .app-container{
+                grid-template-columns:1fr;
+                min-height:100dvh;
+            }
+            .main-content{
+                padding:12px 10px 20px;
+            }
+            .page-header{
+                margin-top:54px;
+                flex-direction:column;
+                align-items:flex-start;
+                gap:10px;
+            }
+            .settings-tabs{
+                overflow-x:auto;
+                white-space:nowrap;
+                padding-bottom:4px;
+                margin-bottom:16px;
+            }
+            .settings-card{
+                padding:16px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        @await Html.PartialAsync("_ProjectHubSidebar")
+        <div class="main-content">
+            @await Html.PartialAsync("_DashboardTopbar")
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Project Settings</h1>
+                    <p>Configure domains, publishing, and security for @projectName.</p>
+                </div>
+                <button class="btn-save" id="saveBtn">Save Changes</button>
+            </div>
+            <div class="settings-tabs">
+                <button class="tab-link active" data-tab="general">General</button>
+                <button class="tab-link" data-tab="domains">Domains</button>
+                <button class="tab-link" data-tab="publishing">Publishing</button>
+                <button class="tab-link" data-tab="security">Security</button>
+            </div>
+            <div id="tab-general" class="tab-pane">
+                <form class="settings-card" id="generalForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="projectId" value="@pid" />
+                    <div class="card-title">Project Info</div>
+                    <div class="card-desc">Update the basic project metadata.</div>
+                    <div class="form-group">
+                        <label class="form-label">Project Name</label>
+                        <input class="form-control" name="DisplayName" value="@Model.DisplayName" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Repository URL</label>
+                        <input class="form-control" name="RepoUrlInput" value="@Model.RepoUrl" placeholder="https://github.com/org/repo" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="DescriptionInput" rows="3" placeholder="What is this project about?">@Model.Description</textarea>
+                    </div>
+                </form>
+            </div>
+            <div id="tab-domains" class="tab-pane" style="display:none;">
+                <div class="settings-card">
+                    <div class="card-title">Primary Domain</div>
+                    <div class="card-desc">Connect your custom domain to this project.</div>
+                    <div class="domain-row">
+                        <div class="domain-status"><span class="status-dot active"></span> bugence.app</div>
+                        <button class="btn-save" style="padding:8px 12px;">Manage</button>
+                    </div>
+                    <div class="form-group" style="margin-top:16px;">
+                        <label class="form-label">Add Custom Domain</label>
+                        <input class="form-control" placeholder="www.example.com" />
+                        <div class="form-hint">We’ll guide you through DNS setup.</div>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-publishing" class="tab-pane" style="display:none;">
+                <div class="settings-card">
+                    <div class="card-title">Publishing</div>
+                    <div class="card-desc">Control deploy environments and schedules.</div>
+                    <div class="toggle-row">
+                        <div>
+                            <div class="form-label">Auto-deploy on push</div>
+                            <div class="form-hint">Automatically build and publish when code is pushed.</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <div>
+                            <div class="form-label">Preview deploys</div>
+                            <div class="form-hint">Create preview URLs for pull requests.</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-security" class="tab-pane" style="display:none;">
+                <div class="settings-card">
+                    <div class="card-title">Security</div>
+                    <div class="card-desc">TLS, headers, and access control.</div>
+                    <div class="toggle-row">
+                        <div>
+                            <div class="form-label">Enforce HTTPS</div>
+                            <div class="form-hint">Redirect all traffic to HTTPS.</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <div>
+                            <div class="form-label">Content Security Policy</div>
+                            <div class="form-hint">Harden your site with a strict CSP.</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const tabs = document.querySelectorAll('.tab-link');
+        const panes = document.querySelectorAll('.tab-pane');
+        tabs.forEach(t => t.addEventListener('click', () => {
+            tabs.forEach(x => x.classList.remove('active'));
+            t.classList.add('active');
+            const target = t.getAttribute('data-tab');
+            panes.forEach(p => p.style.display = p.id === 'tab-' + target ? '' : 'none');
+        }));
+        document.getElementById('saveBtn')?.addEventListener('click', async () => {
+            const btn = document.getElementById('saveBtn');
+            const form = document.getElementById('generalForm');
+            if (!form) return;
+            const payload = new FormData(form);
+            try {
+                const res = await fetch('/ProjectHub/ProductSettings?handler=Save', {
+                    method: 'POST',
+                    body: payload
+                });
+                if (!res.ok) throw new Error('Save failed');
+                const data = await res.json();
+                if (data?.success && btn) {
+                    btn.textContent = 'Saved';
+                    setTimeout(() => btn.textContent = 'Save Changes', 1200);
+                }
+            } catch {
+                if (btn) {
+                    btn.textContent = 'Error';
+                    setTimeout(() => btn.textContent = 'Save Changes', 1200);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

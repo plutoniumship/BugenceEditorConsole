@@ -1,0 +1,29 @@
+{
+  "name": "@bugence/dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.runtime.json && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm exec eslint \"src/**/*.{ts,tsx}\" --no-error-on-unmatched-pattern --max-warnings 0",
+    "lint:fix": "pnpm exec eslint \"src/**/*.{ts,tsx}\" --no-error-on-unmatched-pattern --fix",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest --passWithNoTests --watch",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@bugence/core": "workspace:*",
+    "@bugence/analytics": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^5.4.2"
+  }
+}

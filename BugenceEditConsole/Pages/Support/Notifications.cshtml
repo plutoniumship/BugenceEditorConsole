@@ -1,0 +1,220 @@
+@page
+@model BugenceEditConsole.Pages.Support.NotificationsModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox | Bugence</title>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --purple:#8b5cf6; }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
+        main { flex-grow:1; padding:0; overflow-y:auto; background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.03), transparent 60%); position:relative; display:flex; flex-direction:column; }
+        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background:rgba(6,182,212,0.1); color:var(--accent); }
+        .inbox-container { max-width:800px; margin:0 auto; width:100%; padding:40px; }
+        .inbox-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:30px; }
+        .page-title { font-family:'Cabinet Grotesk',sans-serif; font-size:2.5rem; margin:0; line-height:1; }
+        .page-subtitle { color:var(--muted); margin-top:8px; font-size:0.95rem; }
+        .controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding-bottom:15px; border-bottom:1px solid var(--border); }
+        .tabs { display:flex; gap:5px; background:var(--surface); padding:4px; border-radius:10px; border:1px solid var(--border); }
+        .tab { padding:6px 16px; border-radius:6px; font-size:0.85rem; font-weight:600; color:var(--muted); cursor:pointer; transition:0.2s; }
+        .tab:hover { color:white; }
+        .tab.active { background:#222; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
+        .btn-text { background:transparent; border:none; color:var(--accent); font-weight:700; cursor:pointer; font-size:0.85rem; display:flex; align-items:center; gap:6px; transition:0.2s; }
+        .btn-text:hover { color:white; }
+        .time-group { margin-bottom:30px; }
+        .group-label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#555; margin-bottom:15px; padding-left:10px; }
+        .noti-card { display:flex; gap:15px; padding:20px; border-radius:12px; background:var(--surface); border:1px solid var(--border); margin-bottom:10px; transition:all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); position:relative; overflow:hidden; cursor:pointer; }
+        .noti-card:hover { transform:translateY(-2px); border-color:rgba(255,255,255,0.15); box-shadow:0 10px 30px -10px rgba(0,0,0,0.5); }
+        .noti-card.unread::after { content:''; position:absolute; top:20px; right:20px; width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent); }
+        .noti-card.unread { background:rgba(6,182,212,0.03); border-color:rgba(6,182,212,0.2); }
+        .noti-icon { width:44px; height:44px; border-radius:10px; background:#222; display:grid; place-items:center; font-size:1.1rem; flex-shrink:0; }
+        .noti-content { flex:1; padding-right:20px; }
+        .noti-title { font-weight:700; font-size:0.95rem; margin-bottom:4px; color:white; }
+        .noti-desc { color:var(--muted); font-size:0.85rem; line-height:1.4; margin-bottom:10px; }
+        .noti-meta { font-size:0.75rem; color:#555; font-weight:600; display:flex; gap:10px; align-items:center; }
+        .card-actions { display:flex; gap:10px; margin-top:12px; }
+        .btn-sm { padding:6px 12px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer; border:1px solid var(--border); background:transparent; color:white; transition:0.2s; }
+        .btn-sm:hover { background:white; color:black; }
+        .btn-sm.primary { border-color:var(--accent); color:var(--accent); }
+        .btn-sm.primary:hover { background:var(--accent); color:black; }
+        .fade-out { opacity:0; transform:translateX(20px); pointer-events:none; }
+        .icon-success { color:var(--success); background:rgba(16,185,129,0.1); }
+        .icon-danger { color:var(--danger); background:rgba(239,68,68,0.1); }
+        .icon-info { color:var(--accent); background:rgba(6,182,212,0.1); }
+        .icon-warn { color:var(--warning); background:rgba(245,158,11,0.1); }
+        .empty-state { text-align:center; padding:60px 0; color:var(--muted); display:none; }
+        .empty-icon { font-size:3rem; margin-bottom:20px; color:#222; }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <aside>
+            <a href="/Dashboard/Index" class="brand"><i class="fa-solid fa-bug" style="color:var(--accent)"></i> BUGENCE</a>
+            <a href="/Dashboard/Index" class="nav-item"><i class="fa-solid fa-grid-2 nav-icon"></i> Overview</a>
+            <a href="/Projects/Index" class="nav-item"><i class="fa-solid fa-layer-group nav-icon"></i> Projects</a>
+            <a href="/Analytics/Index" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Analytics</a>
+            <div class="menu-cat">Tools</div>
+            <a href="/Tools/Applications" class="nav-item"><i class="fa-solid fa-table nav-icon"></i> Applications</a>
+            <a href="/Tools/DatabaseQuerySelector" class="nav-item"><i class="fa-solid fa-database nav-icon"></i> Database Query Selector</a>
+            <a href="/Tools/TempleteViewer" class="nav-item"><i class="fa-solid fa-layer-group nav-icon"></i> Templete Viewer</a>
+            <a href="/Tools/Masterpage" class="nav-item"><i class="fa-solid fa-window-restore nav-icon"></i> Masterpage</a>
+            <a href="/Tools/Pages" class="nav-item"><i class="fa-solid fa-file-lines nav-icon"></i> Pages</a>
+            <a href="/Tools/SystemProperties" class="nav-item"><i class="fa-solid fa-sliders nav-icon"></i> System Properties</a>
+            <a href="/Tools/Permissions" class="nav-item"><i class="fa-solid fa-shield-halved nav-icon"></i> Permissions</a>
+            <div class="menu-cat">Support</div>
+            <a href="/Support/Notifications" class="nav-item active"><i class="fa-solid fa-bell nav-icon"></i> Inbox</a>
+            <a href="/Support/ChangeLog" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Change Log</a>
+            <a href="/Support/DebugPanel" class="nav-item"><i class="fa-solid fa-bug nav-icon"></i> Debug Panel</a>
+            <a href="/Support/PrivacySupport" class="nav-item"><i class="fa-solid fa-shield-halved nav-icon"></i> Privacy & Support</a>
+            <a href="/Support/UpdatesAnnouncements" class="nav-item"><i class="fa-solid fa-bullhorn nav-icon"></i> Updates & Announcments</a>
+            <div style="margin-top:auto;">
+                <a href="/Settings/GlobalSettings" class="nav-item"><i class="fa-solid fa-gear nav-icon"></i> Settings</a>
+            </div>
+        </aside>
+        <main>
+            @await Html.PartialAsync("_DashboardTopbar")
+            <div class="inbox-container">
+                <div class="inbox-header">
+                    <div>
+                        <h1 class="page-title">Inbox</h1>
+                        <p class="page-subtitle">You have <span style="color:var(--accent); font-weight:700;">@Model.UnreadCount</span> unread notifications.</p>
+                    </div>
+                    <button class="btn-text" id="markAllBtn"><i class="fa-solid fa-check-double"></i> Mark all as read</button>
+                </div>
+                <div class="controls">
+                    <div class="tabs">
+                        <div class="tab active" data-filter="all">All</div>
+                        <div class="tab" data-filter="unread">Unread</div>
+                        <div class="tab" data-filter="archived">Archived</div>
+                    </div>
+                    <button class="btn-text" style="color:var(--muted);"><i class="fa-solid fa-sliders"></i> Preferences</button>
+                </div>
+                <div id="notificationList">
+                    <div class="time-group">
+                        <div class="group-label">Latest</div>
+                        @if (Model.Notifications.Count == 0)
+                        {
+                            <div class="noti-card">
+                                <div class="noti-icon icon-info"><i class="fa-regular fa-bell"></i></div>
+                                <div class="noti-content">
+                                    <div class="noti-title">No notifications yet</div>
+                                    <div class="noti-desc">Upload a project or publish changes to see updates here.</div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            foreach (var item in Model.Notifications)
+                            {
+                                var state = item.IsRead ? "all" : "unread";
+                                var iconClass = item.Type switch
+                                {
+                                    "success" => "icon-success",
+                                    "warning" => "icon-warn",
+                                    "danger" => "icon-danger",
+                                    _ => "icon-info"
+                                };
+                                <div class="noti-card @(item.IsRead ? "" : "unread")" data-state="@state">
+                                    <div class="noti-icon @iconClass"><i class="fa-solid fa-bell"></i></div>
+                                    <div class="noti-content">
+                                        <div class="noti-title">@item.Title</div>
+                                        <div class="noti-desc">@item.Message</div>
+                                        <div class="noti-meta">
+                                            <span><i class="fa-regular fa-clock"></i> @item.CreatedAtUtc.ToLocalTime().ToString("g")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="empty-state" id="emptyState">
+                    <i class="fa-regular fa-bell-slash empty-icon"></i>
+                    <h3>All caught up!</h3>
+                    <p>You have no new notifications at the moment.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const tabs = document.querySelectorAll('.tab');
+        const notificationList = document.getElementById('notificationList');
+        const emptyState = document.getElementById('emptyState');
+        const markAllBtn = document.getElementById('markAllBtn');
+
+        tabs.forEach(tab => tab.addEventListener('click', () => filter(tab.dataset.filter, tab)));
+
+        function filter(type, activeTab) {
+            tabs.forEach(t => t.classList.remove('active'));
+            activeTab.classList.add('active');
+            document.querySelectorAll('.noti-card').forEach(card => {
+                card.style.display = 'flex';
+                const state = card.getAttribute('data-state') || 'all';
+                if (type === 'unread' && state !== 'unread') card.style.display = 'none';
+                if (type === 'archived' && state !== 'archived') card.style.display = 'none';
+            });
+            checkEmpty();
+        }
+
+        function readItem(card) {
+            if (card.classList.contains('unread')) {
+                card.classList.remove('unread');
+                card.setAttribute('data-state', 'all');
+            }
+            updateSubtitle();
+        }
+
+        async function markAllRead() {
+            document.querySelectorAll('.noti-card.unread').forEach(readItem);
+            await fetch('/api/notifications/read-all', { method: 'POST' });
+            updateSubtitle();
+            checkEmpty();
+        }
+
+        function archiveItem(card) {
+            card.setAttribute('data-state', 'archived');
+            card.classList.add('fade-out');
+            setTimeout(() => { card.style.display = 'none'; checkEmpty(); }, 250);
+        }
+
+        function checkEmpty() {
+            const visible = Array.from(document.querySelectorAll('.noti-card')).filter(c => c.style.display !== 'none');
+            if (!visible.length) {
+                emptyState.style.display = 'block';
+                notificationList.style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                notificationList.style.display = 'block';
+            }
+        }
+
+        function updateSubtitle() {
+            const count = document.querySelectorAll('.noti-card.unread').length;
+            const subtitle = document.querySelector('.page-subtitle');
+            subtitle.innerHTML = count > 0 ? `You have <span style="color:var(--accent); font-weight:700;">${count} unread</span> notifications.` : 'You have no unread notifications.';
+        }
+
+        notificationList?.addEventListener('click', (e) => {
+            const card = e.target.closest('.noti-card');
+            if (!card) return;
+            readItem(card);
+        });
+
+        markAllBtn?.addEventListener('click', markAllRead);
+        updateSubtitle();
+    </script>
+</body>
+</html>

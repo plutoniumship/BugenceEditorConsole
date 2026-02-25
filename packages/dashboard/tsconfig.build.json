@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@bugence/core": ["../core/dist/index"],
+      "@bugence/core/*": ["../core/dist/*"],
+      "@bugence/analytics": ["../analytics/dist/index"],
+      "@bugence/analytics/*": ["../analytics/dist/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

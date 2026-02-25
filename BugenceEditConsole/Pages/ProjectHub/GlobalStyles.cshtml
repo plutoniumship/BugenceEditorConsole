@@ -1,0 +1,637 @@
+@page
+@model BugenceEditConsole.Pages.ProjectHub.GlobalStylesModel
+@{
+    Layout = null;
+    var pid = Model.ProjectId;
+    var projectName = Model.ProjectName;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Styles | Bugence</title>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-black: #000000;
+            --bg-card: #0a0a0a;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-blue: #2563eb;
+            --accent-green: #10b981;
+            --accent-purple: #7c3aed;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --sidebar-width: 260px;
+            --font-head: 'Cabinet Grotesk', sans-serif;
+            --font-body: 'Satoshi', sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+        * { box-sizing: border-box; }
+        body { background-color: var(--bg-black); color: var(--text-primary); font-family: var(--font-body); height: 100vh; display: flex; overflow: hidden; margin: 0; }
+        .app-container { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; width: 100vw; }
+        .brand { font-family: var(--font-head); font-weight: 800; font-size: 1.2rem; color: white; text-decoration: none; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .back-dashboard { margin-bottom: 20px; color: var(--text-secondary); font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .back-dashboard:hover { color: white; transform: translateX(-5px); }
+        .nav-section-title { font-size: 0.7rem; color: #555; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px; padding-left: 16px; }
+        .nav-item { padding: 10px 16px; color: var(--text-secondary); border-radius: 12px; margin-bottom: 2px; cursor: pointer; display: flex; gap: 12px; align-items: center; font-weight: 500; transition: 0.2s; text-decoration:none; }
+        .nav-item:hover { background: rgba(255,255,255,0.03); color: white; }
+        .nav-item.active { background: rgba(6, 182, 212, 0.08); color: var(--accent-cyan); }
+        .main-content { flex: 1; overflow-y: auto; padding: 40px 60px; background-image: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
+        .page-title h1 { font-family: var(--font-head); font-weight: 700; margin: 0; font-size: 2rem; }
+        .page-title p { color: var(--text-secondary); margin: 0; font-size: 0.9rem; }
+        .btn-save { background: var(--accent-cyan); color: black; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); transition: 0.2s; }
+        .btn-save:hover { background: #0891b2; color: white; }
+        .style-section { margin-bottom: 50px; animation: slideUp 0.5s ease-out; }
+        .section-title { font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .section-title i { color: var(--text-secondary); font-size: 1rem; }
+        .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; }
+        .color-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px; cursor: pointer; transition: 0.2s; }
+        .color-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
+        .color-swatch { height: 100px; border-radius: 8px; margin-bottom: 12px; position: relative; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1); }
+        .color-info { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+        .color-name { font-weight: 600; }
+        .color-hex { color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.75rem; }
+        .add-color-card { border: 2px dashed var(--border-color); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; min-height: 160px; }
+        .add-color-card:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(6,182,212,0.02); }
+        .type-preview-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; display: grid; grid-template-columns: 1fr 250px; gap: 40px; }
+        #previewRoot { --heading-font: 'Cabinet Grotesk'; --body-font: 'Satoshi'; --heading-weight: 700; --body-weight: 400; --letter-spacing: 0px; }
+        .type-list h1, .type-list h2, .type-list h3, .type-list p { margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 10px; letter-spacing: var(--letter-spacing); }
+        .type-list h1, .type-list h2, .type-list h3 { font-weight: var(--heading-weight); }
+        .type-list p { font-weight: var(--body-weight); letter-spacing: calc(var(--letter-spacing) / 1.5); }
+        .type-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-cyan); margin-bottom: 5px; display: block; }
+        .type-controls { background: #000; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; height: fit-content; }
+        .control-group { margin-bottom: 20px; }
+        .control-label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .style-select { width: 100%; background: #111; border: 1px solid var(--border-color); color: white; padding: 8px; border-radius: 6px; outline: none; font-size: 0.9rem; }
+        .range-slider { width: 100%; -webkit-appearance: none; height: 4px; background: #333; border-radius: 2px; outline: none; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--accent-cyan); border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .range-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .mini-input { width: 100%; background: #111; border: 1px solid var(--border-color); color: white; padding: 8px; border-radius: 6px; outline: none; font-size: 0.9rem; }
+        .action-row { display:flex; gap:10px; flex-wrap:wrap; }
+        .mini-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: white; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; display:flex; gap:8px; align-items:center; }
+        .mini-btn:hover { border-color: rgba(255,255,255,0.2); }
+        .ui-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .ui-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
+        .dummy-btn { padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; border: none; cursor: pointer; }
+        .dummy-btn.primary { background: var(--ui-primary); color: var(--ui-primary-text); border-radius: var(--ui-radius); }
+        .dummy-btn.secondary { background: var(--ui-secondary); color: var(--ui-secondary-text); border: 1px solid var(--ui-secondary-border); border-radius: var(--ui-radius); }
+        .dummy-input { width: 100%; background: #000; border: 1px solid var(--ui-input-border); padding: 10px; border-radius: var(--ui-radius); color: white; outline: none; }
+        .dummy-input:focus { border-color: var(--ui-focus); box-shadow: 0 0 0 3px rgba(6,182,212,0.15); }
+        .ui-preview .badge { border-radius: var(--ui-badge-radius); }
+        .ui-preview .badge.bg-info { background: var(--ui-badge-info) !important; color: #031018 !important; }
+        .ui-preview .badge.bg-success { background: var(--ui-badge-success) !important; }
+        .ui-preview .badge.bg-danger { background: var(--ui-badge-danger) !important; }
+        @@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .alert-banner { background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.25); color: #e0f2fe; padding: 12px 14px; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+        .color-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .color-modal-backdrop.show { display: flex; }
+        .color-modal { width: 380px; background: #0b0c0d; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:14px; }
+        .color-modal h4 { margin:0; }
+        .color-modal .field { display:flex; flex-direction:column; gap:6px; }
+        .color-modal label { color: var(--text-secondary); font-size: 0.9rem; }
+        .color-modal input { background:#050505; color:white; border:1px solid var(--border-color); border-radius:10px; padding:10px; }
+        .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+        .btn-ghost { border:1px solid var(--border-color); background:rgba(255,255,255,0.04); color:white; padding:10px 14px; border-radius:10px; cursor:pointer; }
+        @@media (max-width: 1024px) {
+            body {
+                overflow-x: hidden;
+                overflow-y: auto;
+                min-height: 100dvh;
+                display: block;
+            }
+            .app-container {
+                grid-template-columns: 1fr;
+                min-height: 100dvh;
+            }
+            .main-content {
+                padding: 12px 10px 20px;
+            }
+            .page-header {
+                margin-top: 54px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .type-preview-container {
+                grid-template-columns: 1fr;
+                padding: 16px 12px;
+                gap: 14px;
+            }
+            .ui-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+        <div class="app-container">
+            @await Html.PartialAsync("_ProjectHubSidebar")
+            <div class="main-content">
+                @await Html.PartialAsync("_DashboardTopbar")
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Global Styles</h1>
+                    <p>Manage typography, colors, and UI theme for @projectName.</p>
+                </div>
+                <div class="alert-banner" id="alertBanner" style="display:none;"><i class="fa-solid fa-circle-info"></i><span id="alertText">Saved</span></div>
+                <button class="btn-save" id="saveBtn"><i class="fa-solid fa-check me-2"></i> Save Changes</button>
+            </div>
+            <div class="style-section">
+                <div class="section-title"><i class="fa-solid fa-swatchbook"></i> Color Palette</div>
+                <div class="color-grid" id="colorGrid"></div>
+                <div class="add-color-card" id="addColorCard"><i class="fa-solid fa-plus mb-2"></i> Add Color</div>
+                <input type="color" id="colorPicker" style="display:none;" />
+            </div>
+                <div class="style-section" id="previewRoot">
+                    <div class="section-title"><i class="fa-solid fa-font"></i> Typography</div>
+                    <div class="type-preview-container">
+                        <div class="type-list">
+                            <span class="type-label">DISPLAY</span>
+                            <h1 style="font-family: var(--heading-font);">Bold and expressive headlines</h1>
+                            <span class="type-label">SECTION</span>
+                            <h2 style="font-family: var(--heading-font);">Section title and labels</h2>
+                            <span class="type-label">CONTENT</span>
+                            <h3 style="font-family: var(--heading-font);">Readable content blocks</h3>
+                            <p style="font-family: var(--body-font);">Paragraph body copy demonstrating the base font, color, and leading for longform content.</p>
+                        </div>
+                        <div class="type-controls">
+                            <div class="control-group">
+                                <label class="control-label">Heading Typeface</label>
+                                <select class="style-select" id="headingSelect">
+                                    <option>Cabinet Grotesk</option>
+                                    <option>Satoshi</option>
+                                    <option>Inter</option>
+                                    <option>Manrope</option>
+                                    <option>Poppins</option>
+                                    <option>Space Grotesk</option>
+                                    <option>DM Sans</option>
+                                    <option>Work Sans</option>
+                                    <option>Montserrat</option>
+                                    <option>Nunito</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Body Typeface</label>
+                                <select class="style-select" id="bodySelect">
+                                    <option>Satoshi</option>
+                                    <option>Inter</option>
+                                    <option>Manrope</option>
+                                    <option>Cabinet Grotesk</option>
+                                    <option>Open Sans</option>
+                                    <option>Lato</option>
+                                    <option>DM Sans</option>
+                                    <option>Work Sans</option>
+                                    <option>Roboto</option>
+                                    <option>Source Sans Pro</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Heading Weight</label>
+                                <select class="style-select" id="headingWeightSelect">
+                                    <option value="800">Extra Bold</option>
+                                    <option value="700" selected>Bold</option>
+                                    <option value="600">Semi Bold</option>
+                                    <option value="500">Medium</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Body Weight</label>
+                                <select class="style-select" id="bodyWeightSelect">
+                                    <option value="700">Bold</option>
+                                    <option value="600">Semi Bold</option>
+                                    <option value="500">Medium</option>
+                                    <option value="400" selected>Regular</option>
+                                    <option value="300">Light</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Base Font Size</label>
+                                <input type="range" class="range-slider" id="baseSize" min="14" max="20" value="16">
+                                <div class="text-secondary small mt-1" id="baseSizeVal">16px</div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Line Height</label>
+                                <input type="range" class="range-slider" id="lineHeight" min="1.3" max="1.8" value="1.5" step="0.05">
+                                <div class="text-secondary small mt-1" id="lineHeightVal">1.5</div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Letter Spacing</label>
+                                <input type="range" class="range-slider" id="letterSpacing" min="-1" max="4" value="0" step="0.1">
+                                <div class="text-secondary small mt-1" id="letterSpacingVal">0px</div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Preview Text</label>
+                                <input type="text" class="mini-input" id="previewTextInput" value="Readable content blocks" />
+                            </div>
+                            <div class="action-row">
+                                <button type="button" class="mini-btn" id="copyCss"><i class="fa-solid fa-copy"></i> Copy CSS</button>
+                                <button type="button" class="mini-btn" id="resetStyles"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                                <button type="button" class="mini-btn" id="applyPreview"><i class="fa-solid fa-wand-magic-sparkles"></i> Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div class="style-section">
+                <div class="section-title"><i class="fa-solid fa-shapes"></i> UI Elements</div>
+                <div class="ui-grid ui-preview" id="uiPreview">
+                    <div class="ui-card">
+                        <div class="type-label">BUTTONS</div>
+                        <button class="dummy-btn primary">Primary Action</button>
+                        <button class="dummy-btn secondary">Secondary</button>
+                    </div>
+                    <div class="ui-card">
+                        <div class="type-label">INPUTS</div>
+                        <input class="dummy-input" placeholder="Placeholder text" />
+                        <input class="dummy-input" value="Active value" />
+                    </div>
+                    <div class="ui-card">
+                        <div class="type-label">BADGES</div>
+                        <span class="badge bg-info text-dark">INFO</span>
+                        <span class="badge bg-success">SUCCESS</span>
+                        <span class="badge bg-danger">ERROR</span>
+                    </div>
+                    <div class="ui-card">
+                        <div class="type-label">STYLE CONTROLS</div>
+                        <div class="control-group">
+                            <label class="control-label">Primary Button Color</label>
+                            <input type="color" class="mini-input" id="uiPrimaryColor" value="#06b6d4" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Secondary Button Color</label>
+                            <input type="color" class="mini-input" id="uiSecondaryColor" value="#1f2937" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Input Border</label>
+                            <input type="color" class="mini-input" id="uiInputBorder" value="#2a2a2a" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Focus Color</label>
+                            <input type="color" class="mini-input" id="uiFocusColor" value="#06b6d4" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Corner Radius</label>
+                            <input type="range" class="range-slider" id="uiRadius" min="4" max="18" value="10">
+                            <div class="text-secondary small mt-1" id="uiRadiusVal">10px</div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Badge Radius</label>
+                            <input type="range" class="range-slider" id="uiBadgeRadius" min="4" max="30" value="12">
+                            <div class="text-secondary small mt-1" id="uiBadgeRadiusVal">12px</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const projectId = @Model.ProjectId;
+        const defaultPalette = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DefaultPalette));
+        const storageKey = `globalStyles_${projectId}`;
+
+        const colorGrid = document.getElementById('colorGrid');
+        const addColorCard = document.getElementById('addColorCard');
+        const colorPicker = document.getElementById('colorPicker');
+        const modalBackdrop = document.createElement('div');
+        modalBackdrop.className = 'color-modal-backdrop';
+        modalBackdrop.innerHTML = `
+            <div class="color-modal">
+                <h4 id="colorModalTitle">Add Color</h4>
+                <div class="field">
+                    <label for="modalColorName">Name</label>
+                    <input id="modalColorName" type="text" value="Custom" />
+                </div>
+                <div class="field">
+                    <label for="modalColorHex">Color</label>
+                    <input id="modalColorHex" type="color" />
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-ghost" id="modalCancel">Cancel</button>
+                    <button type="button" class="btn-save" style="padding:10px 16px;" id="modalSave"><i class="fa-solid fa-check me-2"></i>Save</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modalBackdrop);
+        const modalTitle = modalBackdrop.querySelector('#colorModalTitle');
+        const modalName = modalBackdrop.querySelector('#modalColorName');
+        const modalHex = modalBackdrop.querySelector('#modalColorHex');
+        const modalSave = modalBackdrop.querySelector('#modalSave');
+        const modalCancel = modalBackdrop.querySelector('#modalCancel');
+        let editingIndex = null;
+        const saveBtn = document.getElementById('saveBtn');
+
+        const headingSelect = document.getElementById('headingSelect');
+        const bodySelect = document.getElementById('bodySelect');
+        const headingWeightSelect = document.getElementById('headingWeightSelect');
+        const bodyWeightSelect = document.getElementById('bodyWeightSelect');
+        const baseSize = document.getElementById('baseSize');
+        const lineHeight = document.getElementById('lineHeight');
+        const letterSpacing = document.getElementById('letterSpacing');
+        const baseSizeVal = document.getElementById('baseSizeVal');
+        const lineHeightVal = document.getElementById('lineHeightVal');
+        const letterSpacingVal = document.getElementById('letterSpacingVal');
+        const previewRoot = document.getElementById('previewRoot');
+        const previewTextInput = document.getElementById('previewTextInput');
+        const copyCssBtn = document.getElementById('copyCss');
+        const resetBtn = document.getElementById('resetStyles');
+        const applyPreviewBtn = document.getElementById('applyPreview');
+        const uiPreview = document.getElementById('uiPreview');
+        const uiPrimaryColor = document.getElementById('uiPrimaryColor');
+        const uiSecondaryColor = document.getElementById('uiSecondaryColor');
+        const uiInputBorder = document.getElementById('uiInputBorder');
+        const uiFocusColor = document.getElementById('uiFocusColor');
+        const uiRadius = document.getElementById('uiRadius');
+        const uiRadiusVal = document.getElementById('uiRadiusVal');
+        const uiBadgeRadius = document.getElementById('uiBadgeRadius');
+        const uiBadgeRadiusVal = document.getElementById('uiBadgeRadiusVal');
+
+        const defaults = {
+            palette: [...defaultPalette],
+            heading: 'Cabinet Grotesk',
+            body: 'Satoshi',
+            headingWeight: 700,
+            bodyWeight: 400,
+            baseSize: 16,
+            lineHeight: 1.5,
+            letterSpacing: 0,
+            previewText: 'Readable content blocks',
+            ui: {
+                primary: '#06b6d4',
+                primaryText: '#031018',
+                secondary: '#1f2937',
+                secondaryText: '#ffffff',
+                secondaryBorder: '#2a2a2a',
+                inputBorder: '#2a2a2a',
+                focus: '#06b6d4',
+                radius: 10,
+                badgeRadius: 12,
+                badgeInfo: '#22d3ee',
+                badgeSuccess: '#22c55e',
+                badgeDanger: '#ef4444'
+            }
+        };
+
+        let state = { ...defaults };
+
+        function loadState() {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = { ...state, ...parsed, palette: parsed.palette || state.palette };
+                    state.ui = { ...defaults.ui, ...(parsed.ui || {}) };
+                } catch { /* ignore */ }
+            }
+        }
+
+        function persist() {
+            localStorage.setItem(storageKey, JSON.stringify(state));
+        }
+
+        function renderPalette() {
+            colorGrid.innerHTML = '';
+            state.palette.forEach((c, idx) => {
+                const card = document.createElement('div');
+                card.className = 'color-card';
+                card.innerHTML = `
+                    <div class="color-swatch" style="background:${c.Hex};"></div>
+                    <div class="color-info">
+                        <span class="color-name">${c.Name}</span>
+                        <span class="color-hex">${c.Hex.toUpperCase()}</span>
+                    </div>`;
+                card.title = "Click to edit • Right-click to delete";
+                card.onclick = () => openColorModal(idx);
+                card.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    if (state.palette.length <= 1) return;
+                    state.palette.splice(idx, 1);
+                    renderPalette();
+                    toast('Color removed');
+                };
+                colorGrid.appendChild(card);
+            });
+        }
+
+        function openColorModal(idx = null) {
+            editingIndex = idx;
+            if (idx === null) {
+                modalTitle.textContent = 'Add Color';
+                modalName.value = 'Custom';
+                modalHex.value = '#06b6d4';
+            } else {
+                modalTitle.textContent = 'Edit Color';
+                modalName.value = state.palette[idx].Name;
+                modalHex.value = state.palette[idx].Hex;
+            }
+            modalBackdrop.classList.add('show');
+        }
+
+        function closeColorModal() {
+            modalBackdrop.classList.remove('show');
+            editingIndex = null;
+        }
+
+        function applyTypography() {
+            previewRoot.style.setProperty('--heading-font', state.heading);
+            previewRoot.style.setProperty('--body-font', state.body);
+            previewRoot.style.fontSize = `${state.baseSize}px`;
+            previewRoot.style.lineHeight = state.lineHeight;
+            previewRoot.style.setProperty('--heading-weight', state.headingWeight);
+            previewRoot.style.setProperty('--body-weight', state.bodyWeight);
+            previewRoot.style.setProperty('--letter-spacing', `${state.letterSpacing}px`);
+            baseSizeVal.textContent = `${state.baseSize}px`;
+            lineHeightVal.textContent = state.lineHeight;
+            letterSpacingVal.textContent = `${state.letterSpacing}px`;
+            headingSelect.value = state.heading;
+            bodySelect.value = state.body;
+            headingWeightSelect.value = state.headingWeight;
+            bodyWeightSelect.value = state.bodyWeight;
+            baseSize.value = state.baseSize;
+            lineHeight.value = state.lineHeight;
+            letterSpacing.value = state.letterSpacing;
+            if (previewTextInput) {
+                previewTextInput.value = state.previewText;
+                document.querySelectorAll('#previewRoot .type-list h1, #previewRoot .type-list h2, #previewRoot .type-list h3, #previewRoot .type-list p').forEach(el => el.textContent = state.previewText);
+            }
+        }
+
+        function applyUiStyles() {
+            if (!uiPreview) return;
+            uiPreview.style.setProperty('--ui-primary', state.ui.primary);
+            uiPreview.style.setProperty('--ui-primary-text', state.ui.primaryText);
+            uiPreview.style.setProperty('--ui-secondary', state.ui.secondary);
+            uiPreview.style.setProperty('--ui-secondary-text', state.ui.secondaryText);
+            uiPreview.style.setProperty('--ui-secondary-border', state.ui.secondaryBorder);
+            uiPreview.style.setProperty('--ui-input-border', state.ui.inputBorder);
+            uiPreview.style.setProperty('--ui-focus', state.ui.focus);
+            uiPreview.style.setProperty('--ui-radius', `${state.ui.radius}px`);
+            uiPreview.style.setProperty('--ui-badge-radius', `${state.ui.badgeRadius}px`);
+            uiPreview.style.setProperty('--ui-badge-info', state.ui.badgeInfo);
+            uiPreview.style.setProperty('--ui-badge-success', state.ui.badgeSuccess);
+            uiPreview.style.setProperty('--ui-badge-danger', state.ui.badgeDanger);
+            if (uiPrimaryColor) uiPrimaryColor.value = state.ui.primary;
+            if (uiSecondaryColor) uiSecondaryColor.value = state.ui.secondary;
+            if (uiInputBorder) uiInputBorder.value = state.ui.inputBorder;
+            if (uiFocusColor) uiFocusColor.value = state.ui.focus;
+            if (uiRadius) uiRadius.value = state.ui.radius;
+            if (uiRadiusVal) uiRadiusVal.textContent = `${state.ui.radius}px`;
+            if (uiBadgeRadius) uiBadgeRadius.value = state.ui.badgeRadius;
+            if (uiBadgeRadiusVal) uiBadgeRadiusVal.textContent = `${state.ui.badgeRadius}px`;
+        }
+
+        function wireControls() {
+            addColorCard?.addEventListener('click', () => openColorModal());
+            headingSelect?.addEventListener('change', () => {
+                state.heading = headingSelect.value;
+                applyTypography();
+            });
+            bodySelect?.addEventListener('change', () => {
+                state.body = bodySelect.value;
+                applyTypography();
+            });
+            headingWeightSelect?.addEventListener('change', () => {
+                state.headingWeight = parseInt(headingWeightSelect.value, 10);
+                applyTypography();
+            });
+            bodyWeightSelect?.addEventListener('change', () => {
+                state.bodyWeight = parseInt(bodyWeightSelect.value, 10);
+                applyTypography();
+            });
+            baseSize?.addEventListener('input', () => {
+                state.baseSize = parseInt(baseSize.value, 10);
+                applyTypography();
+            });
+            lineHeight?.addEventListener('input', () => {
+                state.lineHeight = parseFloat(lineHeight.value);
+                applyTypography();
+            });
+            letterSpacing?.addEventListener('input', () => {
+                state.letterSpacing = parseFloat(letterSpacing.value);
+                applyTypography();
+            });
+            previewTextInput?.addEventListener('input', () => {
+                state.previewText = previewTextInput.value;
+                applyTypography();
+            });
+            saveBtn?.addEventListener('click', () => {
+                persist();
+                toast('Styles saved');
+            });
+            copyCssBtn?.addEventListener('click', () => {
+                const css = buildCssSnippet();
+                navigator.clipboard?.writeText(css).then(() => toast('CSS copied')).catch(() => toast('Copy failed'));
+            });
+            resetBtn?.addEventListener('click', () => {
+                state = { ...defaults, palette: [...defaults.palette], ui: { ...defaults.ui } };
+                applyTypography();
+                applyUiStyles();
+                renderPalette();
+                toast('Reset to defaults');
+            });
+            applyPreviewBtn?.addEventListener('click', () => {
+                persist();
+                toast('Applied to preview');
+            });
+            uiPrimaryColor?.addEventListener('input', () => {
+                state.ui.primary = uiPrimaryColor.value;
+                applyUiStyles();
+            });
+            uiSecondaryColor?.addEventListener('input', () => {
+                state.ui.secondary = uiSecondaryColor.value;
+                applyUiStyles();
+            });
+            uiInputBorder?.addEventListener('input', () => {
+                state.ui.inputBorder = uiInputBorder.value;
+                state.ui.secondaryBorder = uiInputBorder.value;
+                applyUiStyles();
+            });
+            uiFocusColor?.addEventListener('input', () => {
+                state.ui.focus = uiFocusColor.value;
+                applyUiStyles();
+            });
+            uiRadius?.addEventListener('input', () => {
+                state.ui.radius = parseInt(uiRadius.value, 10);
+                applyUiStyles();
+            });
+            uiBadgeRadius?.addEventListener('input', () => {
+                state.ui.badgeRadius = parseInt(uiBadgeRadius.value, 10);
+                applyUiStyles();
+            });
+            modalCancel?.addEventListener('click', closeColorModal);
+            modalBackdrop?.addEventListener('click', (e) => { if (e.target === modalBackdrop) closeColorModal(); });
+            modalSave?.addEventListener('click', () => {
+                const name = modalName.value?.trim() || 'Custom';
+                const hex = modalHex.value || '#06b6d4';
+                if (editingIndex === null) {
+                    state.palette.push({ Name: name, Hex: hex });
+                } else {
+                    state.palette[editingIndex] = { Name: name, Hex: hex };
+                }
+                renderPalette();
+                toast(editingIndex === null ? 'Color added' : 'Color updated');
+                closeColorModal();
+            });
+        }
+
+        function toast(message) {
+            const alert = document.getElementById('alertBanner');
+            const text = document.getElementById('alertText');
+            if (!alert || !text) return;
+            text.textContent = message;
+            alert.style.display = 'inline-flex';
+            alert.classList.add('show');
+            setTimeout(() => alert.style.display = 'none', 1800);
+        }
+
+        function buildCssSnippet() {
+            return `
+:root {
+  --heading-font: '${state.heading}';
+  --body-font: '${state.body}';
+  --heading-weight: ${state.headingWeight};
+  --body-weight: ${state.bodyWeight};
+  --letter-spacing: ${state.letterSpacing}px;
+  --base-font-size: ${state.baseSize}px;
+  --line-height: ${state.lineHeight};
+  --ui-primary: ${state.ui.primary};
+  --ui-primary-text: ${state.ui.primaryText};
+  --ui-secondary: ${state.ui.secondary};
+  --ui-secondary-text: ${state.ui.secondaryText};
+  --ui-secondary-border: ${state.ui.secondaryBorder};
+  --ui-input-border: ${state.ui.inputBorder};
+  --ui-focus: ${state.ui.focus};
+  --ui-radius: ${state.ui.radius}px;
+  --ui-badge-radius: ${state.ui.badgeRadius}px;
+  --ui-badge-info: ${state.ui.badgeInfo};
+  --ui-badge-success: ${state.ui.badgeSuccess};
+  --ui-badge-danger: ${state.ui.badgeDanger};
+}
+h1, h2, h3 { font-family: var(--heading-font); font-weight: var(--heading-weight); letter-spacing: var(--letter-spacing); }
+body, p { font-family: var(--body-font); font-weight: var(--body-weight); font-size: var(--base-font-size); line-height: var(--line-height); letter-spacing: calc(var(--letter-spacing)/1.5); }
+button.primary { background: var(--ui-primary); color: var(--ui-primary-text); border-radius: var(--ui-radius); }
+button.secondary { background: var(--ui-secondary); color: var(--ui-secondary-text); border: 1px solid var(--ui-secondary-border); border-radius: var(--ui-radius); }
+input, textarea, select { border-radius: var(--ui-radius); border: 1px solid var(--ui-input-border); }
+input:focus, textarea:focus, select:focus { border-color: var(--ui-focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-focus) 15%, transparent); outline: none; }
+.badge { border-radius: var(--ui-badge-radius); }
+.badge.info { background: var(--ui-badge-info); color: #031018; }
+.badge.success { background: var(--ui-badge-success); }
+.badge.error { background: var(--ui-badge-danger); }
+`.trim();
+        }
+
+        function init() {
+            loadState();
+            renderPalette();
+            applyTypography();
+            applyUiStyles();
+            wireControls();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

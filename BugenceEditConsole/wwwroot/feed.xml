@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Bugence Blog</title>
+    <link>https://www.bugence.com/Blog.html</link>
+    <description>Official Bugence blog updates, guides, and product insights.</description>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 15 Feb 2026 00:00:00 GMT</lastBuildDate>
+    <managingEditor>support@bugence.com (Bugence Team)</managingEditor>
+    <webMaster>support@bugence.com (Bugence Team)</webMaster>
+
+    <item>
+      <title>What Is Bugence?</title>
+      <link>https://www.bugence.com/Blog-What-Is-Bugence.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-What-Is-Bugence.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>What Bugence is, who it is for, and how it helps teams ship website updates faster.</description>
+    </item>
+    <item>
+      <title>Bugence Pricing Guide</title>
+      <link>https://www.bugence.com/Blog-Bugence-Pricing-Guide.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Bugence-Pricing-Guide.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>A clear guide to evaluating Bugence pricing and plan fit for growing teams.</description>
+    </item>
+    <item>
+      <title>Bugence vs Traditional CMS</title>
+      <link>https://www.bugence.com/Blog-Bugence-vs-CMS.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Bugence-vs-CMS.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>Compare Bugence with traditional CMS approaches for speed, control, and implementation effort.</description>
+    </item>
+    <item>
+      <title>Bugence Visual Editing Workflow</title>
+      <link>https://www.bugence.com/Blog-Bugence-Visual-Editing.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Bugence-Visual-Editing.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>How Bugence visual editing works from page updates to production publish.</description>
+    </item>
+    <item>
+      <title>How Bugence Improves Deployment Safety</title>
+      <link>https://www.bugence.com/Blog-Bugence-Deployment-Safety.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Bugence-Deployment-Safety.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>See how Bugence reduces release risk with review gates and controlled publishing.</description>
+    </item>
+    <item>
+      <title>Bugence for Agencies</title>
+      <link>https://www.bugence.com/Blog-Bugence-for-Agencies.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Bugence-for-Agencies.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>Why agencies use Bugence to manage faster client website updates at scale.</description>
+    </item>
+    <item>
+      <title>Bugence for Developers</title>
+      <link>https://www.bugence.com/Blog-Bugence-for-Developers.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Bugence-for-Developers.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>How Bugence helps developers keep control while enabling non-dev visual updates.</description>
+    </item>
+    <item>
+      <title>Bugence SEO Workflow</title>
+      <link>https://www.bugence.com/Blog-Bugence-SEO-Workflow.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Bugence-SEO-Workflow.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>Use Bugence to improve on-page SEO execution and publishing consistency.</description>
+    </item>
+    <item>
+      <title>Bugence and Brand Control</title>
+      <link>https://www.bugence.com/Blog-Bugence-Brand-Control.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Bugence-Brand-Control.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>How Bugence helps teams maintain brand consistency across web updates.</description>
+    </item>
+    <item>
+      <title>Why Searches for Bugence Grow Over Time</title>
+      <link>https://www.bugence.com/Blog-Why-Searches-for-Bugence-Grow.html</link>
+      <guid isPermaLink="true">https://www.bugence.com/Blog-Why-Searches-for-Bugence-Grow.html</guid>
+      <pubDate>Sat, 15 Feb 2026 00:00:00 GMT</pubDate>
+      <description>How product quality, content strategy, and authority signals improve branded search.</description>
+    </item>
+  </channel>
+</rss>

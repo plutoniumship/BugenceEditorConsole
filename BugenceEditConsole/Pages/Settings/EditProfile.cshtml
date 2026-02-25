@@ -1,0 +1,497 @@
+@page
+@model BugenceEditConsole.Pages.Settings.EditProfileModel
+@{
+    Layout = null;
+    var userName = Model.DisplayName;
+    var userInitials = Model.Initials;
+    var displayEmail = string.IsNullOrWhiteSpace(Model.Email) ? "—" : Model.Email;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile | Bugence</title>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020202;
+            --surface: #0a0a0a;
+            --surface-hover: #121212;
+            --border: rgba(255,255,255,0.08);
+            --text: #e5e5e5;
+            --muted: #737373;
+            --accent: #06b6d4;
+            --accent-dim: rgba(6,182,212,0.1);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; outline: none; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        body { margin:0; background: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; display:flex; height: 100vh; overflow: hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside {
+            width: 260px; flex-shrink: 0; background: #050505;
+            border-right: 1px solid var(--border); padding: 24px;
+            display: flex; flex-direction: column; z-index: 20;
+        }
+        main { flex-grow: 1; padding: 0; overflow-y: auto; background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.04), transparent 50%); position: relative; }
+        .content-container { max-width: 1400px; margin: 0 auto; padding: 40px; }
+        .brand { font-family: 'Cabinet Grotesk', sans-serif; font-weight:800; font-size: 1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; letter-spacing: -0.5px; }
+        .menu-label { font-size:0.7rem; color:#444; font-weight:700; margin:20px 0 8px 12px; text-transform:uppercase; letter-spacing:1px; }
+        .text-secondary { color: var(--muted); }
+        .nav-item {
+            padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center;
+            font-weight:600; border-radius:10px; margin-bottom:4px; transition:0.2s; font-size:0.9rem;
+        }
+        .nav-item:hover { background: var(--surface-hover); color: white; }
+        .nav-item.active { background: var(--surface-hover); color: white; border: 1px solid var(--border); }
+        .nav-icon { width: 20px; text-align: center; }
+        .avatar-chip { background: rgba(255,255,255,0.06); border: 1px solid var(--border); display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:12px; color:white; cursor:pointer; transition:0.2s; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02); }
+        .avatar-chip:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.2); }
+        .avatar-dot { width:34px; height:34px; border-radius:50%; background: linear-gradient(135deg, #2dd4bf, #06b6d4); color:#041017; font-weight:800; display:grid; place-items:center; }
+        .avatar-meta { display:flex; flex-direction:column; line-height:1.2; }
+        .dropdown-wrapper { position: relative; }
+        .dropdown-menu {
+            position: absolute; top: 120%; right: 0; width: 320px;
+            background: #0c0c0c; border: 1px solid var(--border); border-radius: 16px;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.8);
+            opacity: 0; transform: translateY(-10px); pointer-events: none;
+            transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100;
+            overflow: hidden;
+        }
+        .dropdown-menu.top-open { top: auto; bottom: 120%; transform: translateY(10px); }
+        .dropdown-menu.top-open.show { transform: translateY(0); }
+        .dropdown-menu.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .profile-dd { border-radius: 16px; }
+        .profile-dd .dd-body { padding: 10px; }
+        .profile-dd .profile-option {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 10px; text-decoration: none;
+            color: #e5e7eb; font-weight: 600; transition: 0.2s;
+        }
+        .profile-dd .profile-option:hover { background: rgba(255,255,255,0.06); color: white; }
+        .profile-dd .profile-option i { width: 18px; text-align: center; color: var(--muted); }
+        .profile-dd .profile-option:hover i { color: white; }
+        #sidebarProfileDropdown { width: 240px; left: 0; right: auto; }
+        #sidebarProfileDropdown .dd-body { display: flex; flex-direction: column; gap: 6px; }
+        #sidebarProfileDropdown .profile-option { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+        #sidebarProfileDropdown .profile-option:hover { border-color: rgba(255,255,255,0.2); }
+
+        .page-header { margin-bottom: 24px; }
+        .page-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2.4rem; margin: 0 0 8px; }
+        .page-subtitle { color: var(--muted); margin: 0; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 20px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.45); }
+        .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 14px; display:flex; align-items:center; gap:10px; }
+        .hero-card { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap: wrap; }
+        .profile-avatar { width: 72px; height: 72px; border-radius: 18px; background: linear-gradient(135deg,#2dd4bf,#06b6d4); display: grid; place-items: center; font-weight: 800; color: #041017; font-size: 1.4rem; }
+        .hero-meta { display:flex; flex-direction:column; gap:6px; }
+        .pill { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius: 999px; border:1px solid var(--border); background: rgba(255,255,255,0.04); font-size:0.75rem; color: var(--muted); font-weight:700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .pill.success { color: var(--success); border-color: rgba(16,185,129,0.2); background: rgba(16,185,129,0.1); }
+        .btn { border: 1px solid var(--border); background: rgba(255,255,255,0.06); color: white; padding: 10px 14px; border-radius: 12px; font-weight: 700; cursor: pointer; text-decoration: none; display:inline-flex; align-items:center; gap:8px; }
+        .btn.primary { background: var(--accent); color: black; border-color: transparent; }
+        .btn-row { display:flex; gap:10px; flex-wrap: wrap; margin-top: 16px; }
+        .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+        .form-field { display:flex; flex-direction:column; gap:6px; }
+        .form-field label { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .input, .select, .textarea { background: #050505; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; color: white; font-family: inherit; }
+        .textarea { min-height: 100px; resize: vertical; }
+        .input:focus, .select:focus, .textarea:focus { border-color: rgba(6,182,212,0.7); box-shadow: 0 0 0 3px rgba(6,182,212,0.2); }
+        .field-error { color: #f87171; font-size: 0.75rem; min-height: 16px; }
+        .input.error, .select.error, .textarea.error { border-color: rgba(248,113,113,0.6); box-shadow: 0 0 0 3px rgba(248,113,113,0.15); }
+        .grid-single { display:grid; grid-template-columns: 1fr; gap: 14px; }
+        .toast { position: fixed; bottom: 24px; right: 24px; background: #0b0e14; border: 1px solid var(--border); color: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 18px 40px rgba(0,0,0,0.6); display:none; z-index: 1000; }
+        .toast.show { display: inline-flex; align-items:center; gap:10px; }
+        @@media (max-width: 1100px) { .form-grid { grid-template-columns: 1fr; } }
+        @@media (max-width: 720px) { .content-container { padding: 24px 16px 40px; } aside { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <form id="profileAntiForgery" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
+        </form>
+        <aside>
+            <a href="/Dashboard/Index" class="brand"><i class="fa-solid fa-bug" style="color:var(--accent)"></i> BUGENCE</a>
+            <div class="menu-label">Workspace</div>
+            <a href="/Dashboard/Index" class="nav-item"><i class="fa-solid fa-grid-2 nav-icon"></i> Overview</a>
+            <a href="/Projects/Index" class="nav-item"><i class="fa-solid fa-layer-group nav-icon"></i> Projects</a>
+            <a href="/Analytics/Index" class="nav-item"><i class="fa-solid fa-chart-pie nav-icon"></i> Analytics</a>
+            <div class="menu-label">Tools</div>
+            <a href="/Tools/Applications" class="nav-item"><i class="fa-solid fa-table nav-icon"></i> Applications</a>
+            <a href="/Tools/DatabaseQuerySelector" class="nav-item"><i class="fa-solid fa-database nav-icon"></i> Database Query Selector</a>
+            <a href="/Tools/TempleteViewer" class="nav-item"><i class="fa-solid fa-layer-group nav-icon"></i> Templete Viewer</a>
+            <a href="/Content/EditBySlug?slug=index" class="nav-item"><i class="fa-solid fa-pen-to-square nav-icon"></i> Text Editor</a>
+            <div class="menu-label">Configuration</div>
+            <a href="/Settings/Domains" class="nav-item"><i class="fa-solid fa-globe nav-icon"></i> Domains</a>
+            <a href="/Settings/GlobalSettings" class="nav-item"><i class="fa-solid fa-gear nav-icon"></i> Global Settings</a>
+            <a href="/Settings/Teams" class="nav-item"><i class="fa-solid fa-users nav-icon"></i> Teams</a>
+            <div class="menu-label">Support</div>
+            <a href="/Support/ChangeLog" class="nav-item"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Change Log</a>
+            <a href="/DeployLogs/Index" class="nav-item"><i class="fa-solid fa-list-check nav-icon"></i> Deploy Logs</a>
+            <a href="/Support/DebugPanel" class="nav-item"><i class="fa-solid fa-bug"></i> Debug Panel</a>
+            <a href="/Support/PrivacySupport" class="nav-item"><i class="fa-solid fa-shield-halved nav-icon"></i> Privacy Support</a>
+            <a href="/Support/UpdatesAnnouncements" class="nav-item"><i class="fa-solid fa-bullhorn nav-icon"></i> Updates & Announcments</a>
+
+            <div style="margin-top:auto; padding-top:16px;">
+                <div class="dropdown-wrapper">
+                    <div class="avatar-chip" onclick="toggleDropdown('sidebarProfileDropdown')">
+                        <div class="avatar-dot" data-profile-initials>@userInitials</div>
+                        <div class="avatar-meta">
+                            <strong style="font-size:0.95rem;" data-profile-name>@userName</strong>
+                            <span class="text-secondary" style="font-size:0.8rem;" data-profile-email>@displayEmail</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-up" style="margin-left:auto; font-size:0.8rem; color:var(--muted);"></i>
+                    </div>
+                    <div class="dropdown-menu profile-dd top-open" id="sidebarProfileDropdown">
+                        <div class="dd-body" style="padding:6px;">
+                            <a class="profile-option" href="/Settings/Profile"><i class="fa-solid fa-user-gear"></i> Account</a>
+                            <a class="profile-option" href="/Settings/Teams"><i class="fa-solid fa-users"></i> Team</a>
+                            <a class="profile-option" href="/Settings/Billing"><i class="fa-solid fa-credit-card"></i> Billing</a>
+                            <div style="height:1px; background:var(--border); margin:6px 0;"></div>
+                            <a class="profile-option" style="color:var(--danger);" href="/Auth/Logout"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="content-container">
+                @await Html.PartialAsync("_DashboardTopbar")
+
+                <div class="page-header">
+                    <h1 class="page-title">Edit Profile</h1>
+                    <p class="page-subtitle">Update your identity, contact details, and public profile settings.</p>
+                </div>
+
+                <div class="card" style="margin-bottom:18px;">
+                    <div class="hero-card">
+                        <div style="display:flex; align-items:center; gap:16px;">
+                            <div class="profile-avatar" data-profile-initials>@userInitials</div>
+                            <div class="hero-meta">
+                                <strong style="font-size:1.1rem;" data-profile-name>@userName</strong>
+                                <span class="text-secondary" data-profile-email>@displayEmail</span>
+                                <span class="pill success"><i class="fa-solid fa-circle-check"></i> Active</span>
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <input type="file" id="avatarUpload" accept="image/*" style="display:none;" />
+                            <button class="btn" id="uploadAvatarBtn"><i class="fa-solid fa-camera"></i> Upload Photo</button>
+                            <button class="btn" id="generateAvatarBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Avatar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fa-solid fa-user-pen"></i> Profile Details</div>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label>Full Name</label>
+                            <input class="input" id="editFullName" value="@userName" data-default="@userName" />
+                            <span class="field-error" data-error-for="editFullName"></span>
+                        </div>
+                        <div class="form-field">
+                            <label>Email</label>
+                            <input class="input" id="editEmail" value="@Model.Email" data-default="@Model.Email" />
+                            <span class="field-error" data-error-for="editEmail"></span>
+                        </div>
+                        <div class="form-field">
+                            <label>Job Title</label>
+                            <input class="input" id="editTitle" placeholder="Founder / CTO" data-default="" />
+                            <span class="field-error" data-error-for="editTitle"></span>
+                        </div>
+                        <div class="form-field">
+                            <label>Company</label>
+                            <input class="input" id="editCompany" placeholder="Bugence Studio" data-default="" />
+                            <span class="field-error" data-error-for="editCompany"></span>
+                        </div>
+                        <div class="form-field">
+                            <label>Phone</label>
+                            <input class="input" id="editPhone" value="@Model.PhoneNumber" placeholder="+1 (000) 000-0000" data-default="@Model.PhoneNumber" />
+                            <span class="field-error" data-error-for="editPhone"></span>
+                        </div>
+                        <div class="form-field">
+                            <label>Website</label>
+                            <input class="input" id="editWebsite" placeholder="https://bugence.app" data-default="" />
+                            <span class="field-error" data-error-for="editWebsite"></span>
+                        </div>
+                        <div class="form-field">
+                            <label>Country</label>
+                            <select class="select" id="editCountry" data-default="@Model.Country">
+                                <option value="">Select a country</option>
+                                <option>United States</option>
+                                <option>Canada</option>
+                                <option>United Kingdom</option>
+                                <option>United Arab Emirates</option>
+                                <option>Germany</option>
+                                <option>France</option>
+                                <option>India</option>
+                                <option>Pakistan</option>
+                                <option>Australia</option>
+                                <option>Japan</option>
+                            </select>
+                            <span class="field-error" data-error-for="editCountry"></span>
+                        </div>
+                        <div class="form-field">
+                            <label>Timezone</label>
+                            <select class="select" id="editTimezone" data-default="@Model.Timezone">
+                                <option value="">Select timezone</option>
+                                <option value="UTC (Default)">UTC (Default)</option>
+                                <option>GMT +4</option>
+                                <option>GMT -5</option>
+                            </select>
+                            <span class="field-error" data-error-for="editTimezone"></span>
+                        </div>
+                    </div>
+                    <div class="grid-single" style="margin-top:14px;">
+                        <div class="form-field">
+                            <label>Bio</label>
+                            <textarea class="textarea" id="editBio" placeholder="Tell your team about your role and focus." data-default=""></textarea>
+                            <span class="field-error" data-error-for="editBio"></span>
+                        </div>
+                        <div class="form-field">
+                            <label>Public Profile</label>
+                            <textarea class="textarea" id="editPublic" placeholder="Short public-facing bio for your profile." data-default=""></textarea>
+                            <span class="field-error" data-error-for="editPublic"></span>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn primary" id="editSave"><i class="fa-solid fa-floppy-disk"></i> Save Profile</button>
+                        <button class="btn" id="editReset"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                        <a class="btn" href="/Settings/Profile"><i class="fa-solid fa-arrow-left"></i> Back to Account</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleDropdown(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('show');
+        }
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            const dropdown = document.getElementById('sidebarProfileDropdown');
+            if (!dropdown) return;
+            if (dropdown.contains(target)) return;
+            if (target.closest('.avatar-chip')) return;
+            dropdown.classList.remove('show');
+        });
+
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+
+        const fields = {
+            name: document.getElementById('editFullName'),
+            email: document.getElementById('editEmail'),
+            title: document.getElementById('editTitle'),
+            company: document.getElementById('editCompany'),
+            phone: document.getElementById('editPhone'),
+            website: document.getElementById('editWebsite'),
+            country: document.getElementById('editCountry'),
+            timezone: document.getElementById('editTimezone'),
+            bio: document.getElementById('editBio'),
+            publicBio: document.getElementById('editPublic')
+        };
+        const saveBtn = document.getElementById('editSave');
+        const resetBtn = document.getElementById('editReset');
+        const tokenInput = document.querySelector('#profileAntiForgery input[name="__RequestVerificationToken"]');
+        const csrfToken = tokenInput ? tokenInput.value : '';
+        const profileAvatarStorageKey = 'bugence.account.avatar';
+        [fields.country, fields.timezone].forEach((select) => {
+            if (select && select.dataset.default) {
+                select.value = select.dataset.default;
+            }
+        });
+        const avatarUpload = document.getElementById('avatarUpload');
+        const uploadAvatarBtn = document.getElementById('uploadAvatarBtn');
+        const generateAvatarBtn = document.getElementById('generateAvatarBtn');
+        const avatarTargets = document.querySelectorAll('.profile-avatar, .avatar-dot');
+
+        function showToast(message, icon) {
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${message}`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2200);
+        }
+
+        function setError(id, message) {
+            const field = document.getElementById(id);
+            const error = document.querySelector(`[data-error-for="${id}"]`);
+            if (field) field.classList.toggle('error', Boolean(message));
+            if (error) error.textContent = message || '';
+        }
+
+        function validateForm() {
+            let ok = true;
+            const emailValue = fields.email?.value.trim() || '';
+            const nameValue = fields.name?.value.trim() || '';
+            const emailOk = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(emailValue);
+
+            setError('editFullName', nameValue ? '' : 'Full name is required.');
+            setError('editEmail', emailOk ? '' : 'Enter a valid email address.');
+            setError('editCountry', fields.country?.value ? '' : 'Select a country.');
+            setError('editTimezone', fields.timezone?.value ? '' : 'Select a timezone.');
+
+            ok = nameValue && emailOk && fields.country?.value && fields.timezone?.value;
+            return Boolean(ok);
+        }
+
+        function resetProfile() {
+            Object.values(fields).forEach((input) => {
+                if (!input) return;
+                const defaultValue = input.dataset.default || '';
+                if (input.tagName.toLowerCase() === 'select') {
+                    input.value = defaultValue;
+                } else {
+                    input.value = defaultValue;
+                }
+                input.classList.remove('error');
+            });
+            document.querySelectorAll('.field-error').forEach(node => { node.textContent = ''; });
+            showToast('Profile reset to default.', 'fa-rotate-left');
+        }
+
+        function applyAvatar(dataUrl, initials) {
+            avatarTargets.forEach((el) => {
+                if (!(el instanceof HTMLElement)) return;
+                el.style.backgroundImage = `url("${dataUrl}")`;
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+                el.textContent = initials ? initials : '';
+            });
+        }
+
+        function clearAvatar(initials) {
+            avatarTargets.forEach((el) => {
+                if (!(el instanceof HTMLElement)) return;
+                el.style.backgroundImage = '';
+                el.textContent = initials || '';
+            });
+        }
+
+        function generateAvatarSvg(initials) {
+            const palettes = [
+                ['#2dd4bf', '#06b6d4'],
+                ['#22d3ee', '#0ea5e9'],
+                ['#f59e0b', '#f97316'],
+                ['#a855f7', '#6366f1'],
+                ['#10b981', '#14b8a6']
+            ];
+            const palette = palettes[Math.floor(Math.random() * palettes.length)];
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+                    <defs>
+                        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+                            <stop offset="0%" stop-color="${palette[0]}"/>
+                            <stop offset="100%" stop-color="${palette[1]}"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="200" height="200" rx="36" fill="url(#g)"/>
+                    <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
+                        font-family="Satoshi, sans-serif" font-size="78" font-weight="800" fill="#041017">${initials}</text>
+                </svg>`;
+            return `data:image/svg+xml;base64,${btoa(svg)}`;
+        }
+
+        function getInitials() {
+            const nameValue = fields.name?.value.trim() || '';
+            if (!nameValue) return 'AD';
+            return nameValue.split(' ')
+                .filter(Boolean)
+                .map(part => part[0].toUpperCase())
+                .slice(0, 2)
+                .join('');
+        }
+
+        function loadAvatar() {
+            const saved = localStorage.getItem(profileAvatarStorageKey);
+            if (saved) {
+                applyAvatar(saved, '');
+            } else {
+                clearAvatar(getInitials());
+            }
+        }
+
+        uploadAvatarBtn?.addEventListener('click', () => avatarUpload?.click());
+        avatarUpload?.addEventListener('change', () => {
+            const file = avatarUpload.files?.[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select an image file.', 'fa-triangle-exclamation');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result?.toString();
+                if (!result) return;
+                localStorage.setItem(profileAvatarStorageKey, result);
+                applyAvatar(result, '');
+                showToast('Avatar updated.', 'fa-circle-check');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        generateAvatarBtn?.addEventListener('click', () => {
+            const initials = getInitials();
+            const svgUrl = generateAvatarSvg(initials);
+            localStorage.setItem(profileAvatarStorageKey, svgUrl);
+            applyAvatar(svgUrl, '');
+            showToast('New avatar generated.', 'fa-circle-check');
+        });
+
+        async function persistProfile(payload) {
+            const response = await fetch('/Settings/EditProfile?handler=Save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': csrfToken
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const data = await response.json().catch(() => null);
+                throw new Error(data?.message || 'Failed to save profile.');
+            }
+            return response.json();
+        }
+
+        saveBtn?.addEventListener('click', async () => {
+            if (!validateForm()) {
+                showToast('Please fix the highlighted fields.', 'fa-triangle-exclamation');
+                return;
+            }
+            const payload = {
+                name: fields.name?.value.trim(),
+                email: fields.email?.value.trim(),
+                phone: fields.phone?.value.trim(),
+                country: fields.country?.value,
+                timezone: fields.timezone?.value
+            };
+            try {
+                const result = await persistProfile(payload);
+                if (result?.displayName) {
+                    document.querySelectorAll('[data-profile-name]').forEach(node => { node.textContent = result.displayName; });
+                }
+                if (result?.email) {
+                    document.querySelectorAll('[data-profile-email]').forEach(node => { node.textContent = result.email; });
+                }
+                if (result?.initials) {
+                    document.querySelectorAll('[data-profile-initials]').forEach(node => { node.textContent = result.initials; });
+                }
+                showToast('Profile saved successfully.', 'fa-circle-check');
+            } catch (error) {
+                showToast(error?.message || 'Save failed.', 'fa-triangle-exclamation');
+            }
+        });
+        resetBtn?.addEventListener('click', resetProfile);
+
+        loadAvatar();
+    </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+@page
+@model BugenceEditConsole.Pages.Settings.DomainsModel
+@{
+    ViewData["Title"] = "Domains";
+    ViewData["BodyClass"] = "page-settings-domains";
+
+    var userName = (User?.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(User.Identity?.Name))
+        ? User.Identity!.Name!
+        : "Administrator";
+    var userInitials = new string(userName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Where(part => !string.IsNullOrWhiteSpace(part))
+        .Select(part => char.ToUpperInvariant(part[0]))
+        .Take(2)
+        .ToArray());
+    if (string.IsNullOrWhiteSpace(userInitials))
+    {
+        userInitials = "AD";
+    }
+    var userEmail = User?.Claims?.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+    if (string.IsNullOrWhiteSpace(userEmail))
+    {
+        userEmail = "Bugence";
+    }
+}
+
+@section Head {
+<style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
+        main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); position:relative; }
+        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background:rgba(6,182,212,0.1); color:var(--accent); }
+        .profile-block { margin-top:auto; padding-top:20px; border-top:1px solid var(--border); position:relative; }
+        .profile-card { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; cursor:pointer; position:relative; }
+        .avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#22d3ee); display:grid; place-items:center; font-weight:800; color:#00131a; }
+        .profile-menu { position:absolute; left:0; right:0; bottom:calc(100% + 8px); background:#0b0e14; border:1px solid var(--border); border-radius:12px; padding:8px 0; display:none; box-shadow:0 20px 40px rgba(0,0,0,0.45); }
+        .profile-card.show .profile-menu { display:block; }
+        .profile-menu a { display:block; padding:8px 12px; color:white; text-decoration:none; font-weight:600; }
+        .profile-menu a:hover { background:rgba(255,255,255,0.05); }
+        .header { margin-bottom:40px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.5rem; margin:0 0 10px; }
+        .project-label { font-size:0.9rem; color:var(--muted); margin-bottom:8px; display:block; font-weight:500; }
+        .project-manage-row { display:flex; gap:10px; align-items:stretch; width:100%; max-width:740px; flex-wrap:wrap; }
+        .project-switcher { display:inline-flex; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:10px; cursor:pointer; transition:0.2s; position:relative; width:100%; min-width:280px; flex:1; }
+        .project-switcher:hover { border-color:var(--accent); box-shadow:0 0 0 2px rgba(6,182,212,0.1); }
+        .project-select { appearance:none; -webkit-appearance:none; background:transparent; border:none; color:white; font-family:inherit; font-weight:700; font-size:1rem; cursor:pointer; width:100%; padding:12px 40px 12px 16px; z-index:2; position:relative; }
+        .project-select option { background-color:#111; color:white; padding:12px; }
+        .select-arrow { position:absolute; right:16px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--muted); font-size:0.8rem; z-index:1; }
+        .btn-publish { background:var(--surface); border:1px solid var(--border); color:white; border-radius:10px; font-weight:700; cursor:pointer; transition:0.2s; white-space:nowrap; padding:0 16px; min-height:46px; }
+        .btn-publish:hover { border-color:var(--accent); color:var(--accent); }
+        .section-title { font-size:0.9rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:15px; }
+        .primary-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:30px; display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; box-shadow:0 20px 40px -10px rgba(0,0,0,0.3); position:relative; overflow:hidden; transition:opacity 0.2s; }
+        .primary-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--success); }
+        .domain-info h3 { margin:0 0 5px; font-size:1.5rem; color:white; display:flex; align-items:center; gap:10px; }
+        .domain-info p { margin:0; color:var(--muted); font-size:0.9rem; }
+        .badge { font-size:0.75rem; padding:4px 10px; border-radius:20px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        .badge-primary { background:rgba(16,185,129,0.1); color:var(--success); border:1px solid rgba(16,185,129,0.2); }
+        .btn-visit { background:white; color:black; border:none; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px; text-decoration:none; transition:0.2s; }
+        .btn-visit:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(255,255,255,0.2); }
+        .btn-visit.disabled { opacity:0.6; pointer-events:none; }
+        .add-domain-wrapper { display:flex; gap:10px; margin-bottom:30px; max-width:600px; }
+        .input-group { flex:1; position:relative; }
+        .domain-input { width:100%; background:var(--surface); border:1px solid var(--border); padding:14px 14px 14px 45px; border-radius:10px; color:white; outline:none; transition:0.2s; font-family:monospace; font-size:1rem; }
+        .domain-input:focus { border-color:var(--accent); }
+        .input-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--muted); }
+        .btn-add { background:var(--surface); border:1px solid var(--border); color:white; padding:0 24px; border-radius:10px; font-weight:700; cursor:pointer; transition:0.2s; }
+        .btn-add:hover { background:var(--accent); border-color:var(--accent); color:black; }
+        .domain-table { width:100%; border-collapse:collapse; background:var(--surface); border-radius:16px; overflow:hidden; border:1px solid var(--border); transition:opacity 0.2s; }
+        .domain-table th { text-align:left; padding:18px 25px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
+        .domain-table td { padding:20px 25px; border-bottom:1px solid var(--border); vertical-align:middle; color:var(--text); }
+        .domain-table tr:last-child td { border-bottom:none; }
+        .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px; }
+        .dot-success { background:var(--success); box-shadow:0 0 8px var(--success); }
+        .dot-warning { background:var(--warning); box-shadow:0 0 8px var(--warning); }
+        .dot-error { background:var(--danger); box-shadow:0 0 8px var(--danger); }
+        .dns-record { font-family:monospace; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:#ddd; font-size:0.85rem; }
+        .btn-icon { background:transparent; border:1px solid var(--border); color:var(--muted); width:32px; height:32px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:0.2s; }
+        .btn-icon:hover { color:white; border-color:white; }
+        .btn-icon.delete:hover { color:var(--danger); border-color:var(--danger); }
+        .btn-icon.spinning i { animation: spin 1s linear infinite; }
+        .config-details { display:none; background:#0c0c0c; padding:20px; margin:10px 25px 20px; border-radius:8px; border:1px solid var(--border); font-size:0.9rem; color:#ccc; }
+        .config-details.open { display:block; animation: fadeIn 0.3s; }
+        #domainContent.loading { opacity:0.5; pointer-events:none; }
+        .dns-detail-row .config-details { display:block; }
+        @@keyframes fadeIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+        @@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .copy-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #222; }
+        .copy-row:last-child { border:none; margin:0; padding:0; }
+    </style>
+}
+
+<div class="header">
+                <div style="font-size:0.9rem; color:var(--accent); margin-bottom:10px; font-weight:600;">
+                    <i class="fa-solid fa-arrow-left"></i> <a href="/Dashboard/Index" style="color:inherit; text-decoration:none;">Back to Dashboard</a>
+                </div>
+                <h1>Domains</h1>
+                <div style="margin-top:20px;">
+                    <span class="project-label">Select Project to Manage</span>
+                    <div class="project-manage-row">
+                        <div class="project-switcher">
+                        <select id="projectSelect" class="project-select" @(Model.Projects.Count == 0 ? "disabled" : string.Empty)>
+@if (Model.Projects.Count == 0)
+{
+                            <option value="">No projects yet</option>
+}
+else
+{
+    foreach (var project in Model.Projects)
+    {
+                            <option value="@project.Id" data-primary-domain="@project.PrimaryDomain" data-project-slug="@project.Slug">@project.Name</option>
+    }
+}
+                        </select>
+                        <i class="fa-solid fa-chevron-down select-arrow"></i>
+                        </div>
+                        <button class="btn-publish" id="publishProjectBtn" type="button">
+                            <i class="fa-solid fa-bullhorn"></i> Publish Selected Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="domainContent">
+                <div class="section-title">Primary Domain</div>
+                <div class="primary-card">
+                    <div class="domain-info">
+                        <h3 id="primaryDomain">hightech-heroes.bugence.app <span class="badge badge-primary">Primary</span></h3>
+                        <p>Assigned automatically. Serves as the default endpoint.</p>
+                    </div>
+                    <a id="visitLink" href="https://hightech-heroes.bugence.app" target="_blank" class="btn-visit">
+                        Visit Site <i class="fa-solid fa-external-link-alt" style="font-size:0.8rem;"></i>
+                    </a>
+                </div>
+                <div class="section-title">Custom Domains</div>
+                <div class="add-domain-wrapper">
+                    <div class="input-group">
+                        <i class="fa-solid fa-globe input-icon"></i>
+                        <input type="text" class="domain-input" id="newDomainInput" placeholder="e.g. www.mywebsite.com">
+                    </div>
+                    <button class="btn-add" id="addDomainBtn">Add</button>
+                </div>
+                <table class="domain-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Domain</th>
+                            <th>Configuration</th>
+                            <th>SSL Status</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="domainList"></tbody>
+                </table>
+            </div>
+            <form id="domainsAntiForgery" method="post" style="display:none;">
+                @Html.AntiForgeryToken()
+            </form>
+
+
+
+

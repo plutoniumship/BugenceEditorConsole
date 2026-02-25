@@ -1,0 +1,1191 @@
+@page
+@model BugenceEditConsole.Pages.Auth.RegisterModel
+@{
+    ViewData["Title"] = "Bugence - Create Account";
+    Layout = "/Pages/Shared/_AuthLayout.cshtml";
+    var isGoogleFlow = string.Equals(Model.Provider, "Google", StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+
+<div class="register-shell">
+    <aside class="register-panel">
+        <a href="/Auth/Login" class="back-link hover-trigger">
+            <i class="fa-solid fa-arrow-left"></i> Back to Login
+        </a>
+
+        <header class="hero-block reveal active">
+            <div class="brand-mark" aria-hidden="true"><i class="fa-solid fa-bug"></i></div>
+            <h1>Create your Bugence account</h1>
+            <p>@(isGoogleFlow ? "Your Google profile is connected. Set a password, choose a plan, and launch your workspace." : "Verify your email, choose a plan, and launch your workspace in minutes.")</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Provider))
+            {
+                <div class="provider-note">
+                    <i class="fa-solid fa-shield-check"></i>
+                    Connected via <strong>@Model.Provider</strong>
+                </div>
+            }
+        </header>
+
+        <div class="stepper" aria-label="Signup steps">
+            @if (isGoogleFlow)
+            {
+                <div class="step-dot active" data-step="1"><span>1</span><small>Password</small></div>
+                <div class="step-dot" data-step="3"><span>2</span><small>Identity</small></div>
+                <div class="step-dot" data-step="4"><span>3</span><small>Plan</small></div>
+                <div class="step-dot" data-step="5"><span>4</span><small>Checkout</small></div>
+            }
+            else
+            {
+                <div class="step-dot active" data-step="1"><span>1</span><small>Account</small></div>
+                <div class="step-dot" data-step="2"><span>2</span><small>Verify</small></div>
+                <div class="step-dot" data-step="3"><span>3</span><small>Identity</small></div>
+                <div class="step-dot" data-step="4"><span>4</span><small>Plan</small></div>
+                <div class="step-dot" data-step="5"><span>5</span><small>Checkout</small></div>
+            }
+        </div>
+        <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="stepProgress"></div></div>
+
+        <section class="card-stack">
+            <div class="signup-step active" data-step="1">
+                @if (isGoogleFlow)
+                {
+                    <h3>Secure Your Google Account</h3>
+                    <p class="step-subtitle">Google verified your identity. Create a password to finish account security.</p>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regFullName">Full Name</label>
+                        <input class="field-input hover-trigger" id="regFullName" value="@Model.ExternalDisplayName" readonly />
+                        <span class="field-help">Imported from your Google profile.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regEmail">Email Address</label>
+                        <input class="field-input hover-trigger" id="regEmail" type="email" value="@Model.Email" readonly autocomplete="email" />
+                        <span class="field-help">Google-managed address.</span>
+                    </div>
+
+                    <div class="grid-two">
+                        <div class="form-group">
+                            <label class="form-label" for="regPassword">Create Password</label>
+                            <input class="field-input hover-trigger" id="regPassword" type="password" placeholder="Min. 8 characters" autocomplete="new-password" />
+                            <div class="password-strength" id="passwordStrength"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="regConfirmPassword">Confirm Password</label>
+                            <input class="field-input hover-trigger" id="regConfirmPassword" type="password" placeholder="Re-enter your password" autocomplete="new-password" />
+                            <span class="field-error" data-error-for="regConfirmPassword"></span>
+                        </div>
+                    </div>
+
+                    <div class="inline-alert" id="otpStatus"></div>
+                    <button class="btn-primary hover-trigger" id="googleStepOneBtn" type="button">Continue</button>
+                }
+                else
+                {
+                    <h3>Create Account</h3>
+                    <p class="step-subtitle">Start with your secure workspace credentials.</p>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regFullName">Full Name</label>
+                        <input class="field-input hover-trigger" id="regFullName" placeholder="John Doe" />
+                        <span class="field-error" data-error-for="regFullName"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regEmail">Email Address</label>
+                        <input class="field-input hover-trigger" id="regEmail" type="email" value="@Model.Email" placeholder="john@example.com" autocomplete="email" />
+                        <span class="field-error" data-error-for="regEmail"></span>
+                    </div>
+
+                    <div class="grid-two">
+                        <div class="form-group">
+                            <label class="form-label" for="regPhone">Mobile Number</label>
+                            <input class="field-input hover-trigger" id="regPhone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="regPassword">Secure Password</label>
+                            <input class="field-input hover-trigger" id="regPassword" type="password" placeholder="Min. 8 characters" autocomplete="new-password" />
+                            <div class="password-strength" id="passwordStrength"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regConfirmPassword">Confirm Password</label>
+                        <input class="field-input hover-trigger" id="regConfirmPassword" type="password" placeholder="Re-enter your password" autocomplete="new-password" />
+                        <span class="field-error" data-error-for="regConfirmPassword"></span>
+                    </div>
+
+                    <button class="btn-primary hover-trigger" id="sendOtpBtn" type="button">Send Verification Code</button>
+                }
+            </div>
+
+            <div class="signup-step @(isGoogleFlow ? "google-hidden-step" : string.Empty)" data-step="2">
+                <h3>Email Verification</h3>
+                <p class="step-subtitle">Enter the 6-digit code sent to your email.</p>
+
+                <div class="otp-group">
+                    <input type="text" maxlength="1" class="otp-input hover-trigger" inputmode="numeric" />
+                    <input type="text" maxlength="1" class="otp-input hover-trigger" inputmode="numeric" />
+                    <input type="text" maxlength="1" class="otp-input hover-trigger" inputmode="numeric" />
+                    <input type="text" maxlength="1" class="otp-input hover-trigger" inputmode="numeric" />
+                    <input type="text" maxlength="1" class="otp-input hover-trigger" inputmode="numeric" />
+                    <input type="text" maxlength="1" class="otp-input hover-trigger" inputmode="numeric" />
+                </div>
+
+                <div class="inline-alert" id="otpStatus"></div>
+                <button class="btn-primary hover-trigger" id="verifyOtpBtn" type="button">Verify and Continue</button>
+                <button class="btn-secondary hover-trigger" id="changeEmailBtn" type="button">Change Email</button>
+            </div>
+
+            <div class="signup-step" data-step="3">
+                <h3>Company Profile</h3>
+                <p class="step-subtitle">Set your company details to isolate projects and team access.</p>
+
+                <div class="type-grid">
+                    <button class="type-selector active hover-trigger" data-role="freelancer" type="button">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <div><strong>Freelancer</strong><span>I work independently.</span></div>
+                    </button>
+                    <button class="type-selector hover-trigger" data-role="company" type="button">
+                        <i class="fa-solid fa-building"></i>
+                        <div><strong>Company / Team</strong><span>I collaborate with others.</span></div>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="regCompany">Company Name</label>
+                    <input class="field-input hover-trigger" id="regCompany" placeholder="Bugence Studio LLC" />
+                    <span class="field-error" data-error-for="regCompany"></span>
+                </div>
+
+                <div class="grid-two">
+                    <div class="form-group">
+                        <label class="form-label" for="regCompanyPhone">Company Phone</label>
+                        <input class="field-input hover-trigger" id="regCompanyPhone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="regExpectedUsers">Expected Users</label>
+                        <input class="field-input hover-trigger" id="regExpectedUsers" type="number" min="1" max="10000" placeholder="10" />
+                    </div>
+                </div>
+
+                <div class="grid-two">
+                    <div class="form-group">
+                        <label class="form-label" for="regCompanyAddress1">Address Line 1</label>
+                        <input class="field-input hover-trigger" id="regCompanyAddress1" placeholder="123 Main St" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="regCompanyAddress2">Address Line 2</label>
+                        <input class="field-input hover-trigger" id="regCompanyAddress2" placeholder="Suite 401 (optional)" />
+                    </div>
+                </div>
+
+                <div class="grid-two">
+                    <div class="form-group">
+                        <label class="form-label" for="regCompanyCity">City</label>
+                        <input class="field-input hover-trigger" id="regCompanyCity" placeholder="Austin" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="regCompanyState">State / Province</label>
+                        <input class="field-input hover-trigger" id="regCompanyState" placeholder="Texas" />
+                    </div>
+                </div>
+
+                <div class="grid-two">
+                    <div class="form-group">
+                        <label class="form-label" for="regCompanyPostalCode">Postal Code</label>
+                        <input class="field-input hover-trigger" id="regCompanyPostalCode" placeholder="78701" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="regCompanyCountry">Country</label>
+                        <input class="field-input hover-trigger" id="regCompanyCountry" placeholder="United States" />
+                    </div>
+                </div>
+
+                <button class="btn-primary hover-trigger" id="identityNextBtn" type="button">Continue</button>
+                <button class="btn-secondary hover-trigger" type="button" data-back="@(isGoogleFlow ? "1" : "2")">Back</button>
+            </div>
+
+            <div class="signup-step" data-step="4">
+                <h3>Choose Your Plan</h3>
+                <p class="step-subtitle">Pick a plan and billing interval.</p>
+
+                <div class="plan-grid">
+                    <label class="plan-card hover-trigger">
+                        <input type="radio" name="plan" value="Starter" checked />
+                        <div><strong>Starter</strong><span>Free • 1 Project • 100 MB</span></div>
+                    </label>
+                    <label class="plan-card hover-trigger">
+                        <input type="radio" name="plan" value="Pro" />
+                        <div><strong>Pro</strong><span>$24/mo • 3 Projects • 5 GB</span></div>
+                    </label>
+                    <label class="plan-card hover-trigger">
+                        <input type="radio" name="plan" value="Team" />
+                        <div><strong>Team</strong><span>$59/mo • 3 Projects • 50 GB</span></div>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="planInterval">Billing Interval</label>
+                    <select class="field-input hover-trigger" id="planInterval">
+                        <option value="Monthly">Monthly</option>
+                        <option value="6Months">6 Months (10% off)</option>
+                        <option value="Yearly">Yearly (20% off)</option>
+                    </select>
+                </div>
+
+                <label class="trial-toggle hover-trigger">
+                    <input type="checkbox" id="trialOptIn" />
+                    <span>Start with a free 1-hour trial.</span>
+                </label>
+
+                <button class="btn-primary hover-trigger" id="planNextBtn" type="button">Continue to Checkout</button>
+                <button class="btn-secondary hover-trigger" type="button" data-back="3">Back</button>
+            </div>
+
+            <div class="signup-step" data-step="5">
+                <h3>Checkout</h3>
+                <p class="step-subtitle">Complete payment details for paid plans.</p>
+
+                <div class="provider-row">
+                    <label class="provider-card hover-trigger">
+                        <input type="radio" name="provider" value="stripe" />
+                        <span>Stripe</span>
+                    </label>
+                    <label class="provider-card hover-trigger">
+                        <input type="radio" name="provider" value="paypal" />
+                        <span>PayPal</span>
+                    </label>
+                    <label class="provider-card active hover-trigger">
+                        <input type="radio" name="provider" value="local" checked />
+                        <span>Local Card</span>
+                    </label>
+                </div>
+
+                <div class="card-fields">
+                    <div class="form-group">
+                        <label class="form-label" for="cardName">Name on Card</label>
+                        <input class="field-input hover-trigger" id="cardName" placeholder="John Doe" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="cardNumber">Card Number</label>
+                        <input class="field-input hover-trigger" id="cardNumber" placeholder="•••• •••• •••• ••••" inputmode="numeric" />
+                    </div>
+                    <div class="grid-two">
+                        <div class="form-group">
+                            <label class="form-label" for="cardExpMonth">Exp Month</label>
+                            <input class="field-input hover-trigger" id="cardExpMonth" placeholder="MM" inputmode="numeric" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cardExpYear">Exp Year</label>
+                            <input class="field-input hover-trigger" id="cardExpYear" placeholder="YYYY" inputmode="numeric" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="inline-alert" id="signupStatus"></div>
+                <button class="btn-primary hover-trigger" id="finishSignupBtn" type="button">Complete Signup</button>
+                <button class="btn-secondary hover-trigger" type="button" data-back="4">Back</button>
+            </div>
+        </section>
+    </aside>
+
+    <section class="insight-panel">
+        <div class="insight-card">
+            <div class="insight-top">
+                <span class="chip">SECURITY CHECK</span>
+                <span class="signal"><i></i> Protected</span>
+            </div>
+
+            <div class="summary-title">Signup Overview</div>
+            <ul class="summary-list">
+                <li><span>Name</span><strong id="summaryName">-</strong></li>
+                <li><span>Email</span><strong id="summaryEmail">-</strong></li>
+                <li><span>Identity</span><strong id="summaryRole">Freelancer</strong></li>
+                <li><span>Plan</span><strong id="summaryPlan">Starter</strong></li>
+                <li><span>Provider</span><strong id="summaryProvider">Local Card</strong></li>
+            </ul>
+
+            <div class="terminal-block" aria-hidden="true">
+                <span>➜ Verifying identity protocol...</span>
+                <span>➜ Encrypting credentials at rest...</span>
+                <span>➜ Provisioning workspace blueprint...</span>
+                <span class="accent">➜ Ready to launch</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<form id="antiForgeryRegister" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const isGoogleFlow = @((isGoogleFlow ? "true" : "false").ToLowerInvariant());
+        const steps = Array.from(document.querySelectorAll('.signup-step'));
+        const dots = Array.from(document.querySelectorAll('.step-dot'));
+        const otpInputs = Array.from(document.querySelectorAll('.otp-input'));
+        const progressFill = document.getElementById('stepProgress');
+        const statusEl = document.getElementById('signupStatus');
+        const otpStatus = document.getElementById('otpStatus');
+        const summaryName = document.getElementById('summaryName');
+        const summaryEmail = document.getElementById('summaryEmail');
+        const summaryRole = document.getElementById('summaryRole');
+        const summaryPlan = document.getElementById('summaryPlan');
+        const summaryProvider = document.getElementById('summaryProvider');
+        const csrfToken = document.querySelector('#antiForgeryRegister input[name="__RequestVerificationToken"]')?.value || '';
+        const stepSequence = isGoogleFlow ? [1, 3, 4, 5] : [1, 2, 3, 4, 5];
+
+        const getValue = (id) => document.getElementById(id)?.value?.trim() || '';
+
+        const setStatus = (el, message, kind = 'info') => {
+            if (!el) return;
+            el.textContent = message || '';
+            el.className = `inline-alert ${kind}`;
+        };
+
+        const setButtonBusy = (button, busy, label) => {
+            if (!button) return;
+            if (!button.dataset.originalLabel) {
+                button.dataset.originalLabel = button.textContent;
+            }
+            button.disabled = busy;
+            button.textContent = busy ? label : (button.dataset.originalLabel || button.textContent);
+        };
+
+        const updateSummary = () => {
+            if (summaryName) summaryName.textContent = getValue('regFullName') || '-';
+            if (summaryEmail) summaryEmail.textContent = getValue('regEmail') || '-';
+            if (summaryRole) summaryRole.textContent = (document.querySelector('.type-selector.active')?.dataset.role || 'freelancer') === 'company' ? 'Company / Team' : 'Freelancer';
+            if (summaryPlan) summaryPlan.textContent = document.querySelector('input[name="plan"]:checked')?.value || 'Starter';
+            if (summaryProvider) {
+                const provider = document.querySelector('input[name="provider"]:checked')?.value || 'local';
+                summaryProvider.textContent = provider === 'stripe' ? 'Stripe' : (provider === 'paypal' ? 'PayPal' : 'Local Card');
+            }
+        };
+
+        const goStep = (num) => {
+            if (!stepSequence.includes(num)) return;
+            steps.forEach(step => step.classList.toggle('active', step.dataset.step === String(num)));
+            dots.forEach(dot => {
+                const dotStep = Number(dot.dataset.step || '0');
+                const dotIndex = stepSequence.indexOf(dotStep);
+                const currentIndex = stepSequence.indexOf(num);
+                dot.classList.toggle('active', dotStep === num);
+                dot.classList.toggle('completed', dotIndex >= 0 && currentIndex >= 0 && dotIndex < currentIndex);
+            });
+            if (progressFill) {
+                const currentIndex = stepSequence.indexOf(num);
+                const denominator = Math.max(1, dots.length - 1);
+                progressFill.style.width = `${(Math.max(0, currentIndex) / denominator) * 100}%`;
+            }
+            updateSummary();
+        };
+
+        const setFieldError = (fieldId, message) => {
+            const el = document.querySelector(`[data-error-for="${fieldId}"]`);
+            if (el) el.textContent = message || '';
+        };
+
+        const validateStep1 = () => {
+            let valid = true;
+            const name = getValue('regFullName');
+            const email = getValue('regEmail');
+            const password = getValue('regPassword');
+            const confirmPassword = getValue('regConfirmPassword');
+
+            setFieldError('regFullName', '');
+            setFieldError('regEmail', '');
+            setFieldError('regConfirmPassword', '');
+            setStatus(otpStatus, '');
+
+            if (!isGoogleFlow && !name) {
+                setFieldError('regFullName', 'Full name is required.');
+                valid = false;
+            }
+
+            const atSign = String.fromCharCode(64);
+            const emailValid = !!email && email.includes(atSign) && email.includes('.') && !email.startsWith(atSign);
+            if (!emailValid) {
+                setFieldError('regEmail', 'Enter a valid email address.');
+                valid = false;
+            }
+
+            if (!password || password.length < 8) {
+                setStatus(otpStatus, 'Password must be at least 8 characters.', 'error');
+                valid = false;
+            }
+
+            if (!confirmPassword) {
+                setFieldError('regConfirmPassword', 'Please confirm your password.');
+                valid = false;
+            }
+            else if (confirmPassword !== password) {
+                setFieldError('regConfirmPassword', 'Passwords do not match.');
+                valid = false;
+            }
+
+            return valid;
+        };
+
+        otpInputs.forEach((input, idx) => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '');
+                if (e.target.value && otpInputs[idx + 1]) otpInputs[idx + 1].focus();
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && otpInputs[idx - 1]) {
+                    otpInputs[idx - 1].focus();
+                }
+            });
+        });
+
+        document.querySelector('.otp-group')?.addEventListener('paste', (e) => {
+            const pasted = (e.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+            if (!pasted) return;
+            e.preventDefault();
+            otpInputs.forEach((input, i) => input.value = pasted[i] || '');
+        });
+
+        document.getElementById('sendOtpBtn')?.addEventListener('click', async (e) => {
+            if (!validateStep1()) return;
+
+            const button = e.currentTarget;
+            setButtonBusy(button, true, 'Sending Code...');
+            setStatus(otpStatus, '');
+
+            try {
+                const email = document.getElementById('regEmail').value.trim();
+                const fullName = document.getElementById('regFullName').value.trim();
+                const res = await fetch('/Auth/Register?handler=SendOtp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': csrfToken
+                    },
+                    body: new URLSearchParams({ email, fullName })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    setStatus(otpStatus, data.message || 'Unable to send code.', 'error');
+                    return;
+                }
+
+                setStatus(otpStatus, data.warning ? data.warning : 'Verification code sent successfully.', data.warning ? 'info' : 'success');
+                otpInputs.forEach(i => i.value = '');
+                goStep(2);
+                otpInputs[0]?.focus();
+            } catch {
+                setStatus(otpStatus, 'Unable to send code right now.', 'error');
+            } finally {
+                setButtonBusy(button, false);
+            }
+        });
+
+        document.getElementById('verifyOtpBtn')?.addEventListener('click', async (e) => {
+            const code = otpInputs.map(i => i.value).join('');
+            if (code.length !== 6) {
+                setStatus(otpStatus, 'Enter the complete 6-digit verification code.', 'error');
+                return;
+            }
+
+            const button = e.currentTarget;
+            setButtonBusy(button, true, 'Verifying...');
+            try {
+                const email = document.getElementById('regEmail').value.trim();
+                const res = await fetch('/Auth/Register?handler=VerifyOtp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': csrfToken
+                    },
+                    body: new URLSearchParams({ email, code })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    setStatus(otpStatus, data.message || 'Invalid code.', 'error');
+                    return;
+                }
+
+                setStatus(otpStatus, 'Email verified.', 'success');
+                goStep(3);
+            } catch {
+                setStatus(otpStatus, 'Verification failed. Please try again.', 'error');
+            } finally {
+                setButtonBusy(button, false);
+            }
+        });
+
+        document.getElementById('changeEmailBtn')?.addEventListener('click', () => goStep(1));
+        document.getElementById('googleStepOneBtn')?.addEventListener('click', () => {
+            if (!validateStep1()) return;
+            goStep(3);
+        });
+        document.querySelectorAll('[data-back]').forEach(btn => {
+            btn.addEventListener('click', () => goStep(Number(btn.dataset.back || 1)));
+        });
+
+        document.querySelectorAll('.type-selector').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.type-selector').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                updateSummary();
+            });
+        });
+
+        document.getElementById('identityNextBtn')?.addEventListener('click', () => {
+            setFieldError('regCompany', '');
+            const companyName = getValue('regCompany');
+            if (!companyName) {
+                setFieldError('regCompany', 'Company name is required.');
+                return;
+            }
+            goStep(4);
+        });
+        document.getElementById('planNextBtn')?.addEventListener('click', () => goStep(5));
+
+        document.querySelectorAll('.provider-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                updateSummary();
+            });
+        });
+
+        document.getElementById('finishSignupBtn')?.addEventListener('click', async (e) => {
+            setStatus(statusEl, '');
+            const button = e.currentTarget;
+            setButtonBusy(button, true, 'Completing...');
+
+            try {
+                const payload = {
+                    fullName: getValue('regFullName'),
+                    email: getValue('regEmail'),
+                    password: getValue('regPassword'),
+                    confirmPassword: getValue('regConfirmPassword'),
+                    externalProvider: isGoogleFlow ? '@Model.Provider' : null,
+                    phone: getValue('regPhone'),
+                    roleType: document.querySelector('.type-selector.active')?.dataset.role || 'freelancer',
+                    company: getValue('regCompany'),
+                    companyName: getValue('regCompany'),
+                    companyAddressLine1: getValue('regCompanyAddress1'),
+                    companyAddressLine2: getValue('regCompanyAddress2'),
+                    companyCity: getValue('regCompanyCity'),
+                    companyStateOrProvince: getValue('regCompanyState'),
+                    companyPostalCode: getValue('regCompanyPostalCode'),
+                    companyCountry: getValue('regCompanyCountry'),
+                    companyPhone: getValue('regCompanyPhone'),
+                    companyExpectedUsers: (() => {
+                        const value = getValue('regExpectedUsers');
+                        if (!value) return null;
+                        const parsed = parseInt(value, 10);
+                        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+                    })(),
+                    planKey: document.querySelector('input[name="plan"]:checked')?.value || 'Starter',
+                    interval: document.getElementById('planInterval')?.value || 'Monthly',
+                    trialOptIn: !!document.getElementById('trialOptIn')?.checked,
+                    provider: document.querySelector('input[name="provider"]:checked')?.value || 'local',
+                    cardName: getValue('cardName'),
+                    cardNumber: getValue('cardNumber').replace(/\s+/g, ''),
+                    cardExpMonth: getValue('cardExpMonth'),
+                    cardExpYear: getValue('cardExpYear')
+                };
+
+                const res = await fetch('/Auth/Register?handler=CreateAccount', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    setStatus(statusEl, data.message || 'Unable to complete signup.', 'error');
+                    return;
+                }
+
+                setStatus(statusEl, 'Account created. Redirecting…', 'success');
+                if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                }
+            } catch {
+                setStatus(statusEl, 'Unable to complete signup right now.', 'error');
+            } finally {
+                setButtonBusy(button, false);
+            }
+        });
+
+        const passwordInput = document.getElementById('regPassword');
+        const strength = document.getElementById('passwordStrength');
+        passwordInput?.addEventListener('input', () => {
+            const value = passwordInput.value || '';
+            const score = (value.length >= 8) + /[A-Z]/.test(value) + /[0-9]/.test(value) + /[^A-Za-z0-9]/.test(value);
+            const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+            strength.textContent = value ? `Strength: ${labels[Math.min(score, 3)]}` : '';
+            updateSummary();
+        });
+
+        ['regFullName', 'regEmail', 'regConfirmPassword'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', updateSummary);
+        });
+        document.querySelectorAll('input[name="plan"], input[name="provider"]').forEach(el => {
+            el.addEventListener('change', updateSummary);
+        });
+
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+        const hoverTriggers = document.querySelectorAll('.hover-trigger');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            if (cursorDot) {
+                cursorDot.style.left = `${posX}px`;
+                cursorDot.style.top = `${posY}px`;
+            }
+            if (cursorOutline) {
+                cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 350, fill: 'forwards' });
+            }
+        });
+
+        hoverTriggers.forEach(trigger => {
+            trigger.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+            trigger.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+        });
+
+        goStep(stepSequence[0]);
+        updateSummary();
+    </script>
+}
+
+@section Head {
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #040505;
+            --panel: #090c10;
+            --panel-soft: #0d1118;
+            --text: #ecf0f6;
+            --muted: #9ca6b7;
+            --line: rgba(177, 194, 216, 0.18);
+            --accent: #14c4df;
+            --accent-soft: rgba(20, 196, 223, 0.18);
+            --success: #31d0a0;
+            --danger: #f87171;
+            --font-head: 'Cabinet Grotesk', sans-serif;
+            --font-body: 'Satoshi', sans-serif;
+        }
+
+        .mesh, .vignette, header, #cursor { display: none !important; }
+        main { max-width: none; padding: 0; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(1200px 700px at -8% 5%, rgba(20,196,223,0.15), transparent 45%),
+                        radial-gradient(900px 600px at 100% 100%, rgba(255,184,108,0.08), transparent 45%),
+                        var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        .cursor-dot, .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .cursor-dot { width: 8px; height: 8px; background: #ffffff; }
+        .cursor-outline {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            transition: width 0.2s, height 0.2s, background 0.2s;
+        }
+
+        body.hovering .cursor-outline {
+            width: 58px;
+            height: 58px;
+            background: rgba(20,196,223,0.14);
+            border-color: transparent;
+        }
+
+        .register-shell {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            min-height: 100vh;
+        }
+
+        .register-panel {
+            position: relative;
+            padding: 90px 84px 56px;
+            background: linear-gradient(180deg, rgba(6, 9, 12, 0.9), rgba(5, 7, 10, 0.95));
+        }
+
+        .insight-panel {
+            border-left: 1px solid var(--line);
+            display: grid;
+            place-items: center;
+            padding: 42px;
+        }
+
+        .back-link {
+            position: absolute;
+            left: 28px;
+            top: 26px;
+            color: var(--muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover { color: #fff; }
+
+        .hero-block { max-width: 760px; }
+
+        .brand-mark {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            color: var(--accent);
+            background: rgba(20,196,223,0.08);
+            border: 1px solid rgba(20,196,223,0.32);
+            margin-bottom: 16px;
+            font-size: 1.3rem;
+        }
+
+        .hero-block h1 {
+            margin: 0;
+            font-family: var(--font-head);
+            font-size: 3rem;
+            line-height: 1.02;
+            letter-spacing: -0.03em;
+        }
+
+        .hero-block p {
+            margin: 10px 0 0;
+            color: var(--muted);
+            max-width: 620px;
+            font-size: 1rem;
+        }
+
+        .provider-note {
+            margin-top: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(49,208,160,0.12);
+            border: 1px solid rgba(49,208,160,0.35);
+            color: #c9ffe6;
+            font-size: 0.86rem;
+        }
+
+        .stepper {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
+            max-width: 760px;
+        }
+
+        .progress-track {
+            height: 4px;
+            width: 100%;
+            max-width: 760px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #14c4df, #45e0f2);
+            transition: width 0.3s ease;
+        }
+
+        .step-dot {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            color: var(--muted);
+        }
+
+        .step-dot span {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: #0b0f14;
+            font-size: 0.83rem;
+            font-weight: 700;
+        }
+
+        .step-dot small { font-size: 0.75rem; letter-spacing: 0.02em; }
+
+        .step-dot.active span,
+        .step-dot.completed span {
+            border-color: rgba(20,196,223,0.75);
+            color: #042832;
+            background: linear-gradient(145deg, #7de5f4, #14c4df);
+        }
+
+        .step-dot.active,
+        .step-dot.completed { color: #d8f8ff; }
+
+        .card-stack {
+            margin-top: 18px;
+            max-width: 760px;
+            border-radius: 24px;
+            border: 1px solid rgba(142, 171, 212, 0.2);
+            background: linear-gradient(180deg, rgba(10,13,18,0.96), rgba(8,10,14,0.96));
+            box-shadow: 0 34px 80px rgba(0,0,0,0.45);
+            padding: 26px;
+        }
+
+        .signup-step { display: none; }
+        .signup-step.active { display: block; animation: rise 0.28s ease; }
+
+        .signup-step h3 {
+            margin: 0;
+            font-family: var(--font-head);
+            font-size: 1.5rem;
+        }
+
+        .step-subtitle {
+            margin: 6px 0 18px;
+            color: var(--muted);
+        }
+
+        .form-group { margin-bottom: 14px; }
+
+        .form-label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 0.9rem;
+            color: #dbe4f3;
+            font-weight: 600;
+        }
+
+        .field-input {
+            width: 100%;
+            height: 48px;
+            border-radius: 13px;
+            border: 1px solid rgba(177,194,216,0.18);
+            background: #0a0d12;
+            color: #f8fbff;
+            font-size: 0.95rem;
+            padding: 0 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: rgba(20,196,223,0.75);
+            box-shadow: 0 0 0 4px rgba(20,196,223,0.15);
+        }
+
+        .field-input:-webkit-autofill,
+        .field-input:-webkit-autofill:hover,
+        .field-input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #f8fbff;
+            -webkit-box-shadow: 0 0 0px 1000px #0a0d12 inset;
+            box-shadow: 0 0 0px 1000px #0a0d12 inset;
+            border: 1px solid rgba(177,194,216,0.18);
+            transition: background-color 9999s ease-in-out 0s;
+        }
+
+        .field-error {
+            display: block;
+            min-height: 16px;
+            margin-top: 6px;
+            color: #fda4af;
+            font-size: 0.78rem;
+        }
+
+        .field-help {
+            display: block;
+            margin-top: 6px;
+            color: #8fa0b5;
+            font-size: 0.78rem;
+        }
+
+        .field-input[readonly] {
+            background: #0d1219;
+            border-color: rgba(177,194,216,0.24);
+            color: #d4deeb;
+        }
+
+        .google-hidden-step {
+            display: none !important;
+        }
+
+        .grid-two {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            height: 48px;
+            border-radius: 999px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            margin-top: 8px;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #fdfcf9, #b9eef6);
+            color: #01151c;
+            box-shadow: 0 12px 28px rgba(20,196,223,0.24);
+        }
+
+        .btn-primary:disabled { opacity: 0.7; cursor: wait; }
+
+        .btn-secondary {
+            margin-top: 10px;
+            background: transparent;
+            color: #e3edf9;
+            border: 1px solid rgba(177,194,216,0.25);
+        }
+
+        .otp-group {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .otp-input {
+            height: 52px;
+            text-align: center;
+            border-radius: 12px;
+            border: 1px solid rgba(177,194,216,0.18);
+            background: #0a0d12;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .type-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .type-selector {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(177,194,216,0.2);
+            background: #0a0d12;
+            color: #e3edf9;
+            padding: 14px;
+            display: grid;
+            grid-template-columns: 30px 1fr;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .type-selector i {
+            color: #9ddce7;
+            margin-top: 3px;
+        }
+
+        .type-selector strong { display: block; margin-bottom: 3px; }
+        .type-selector span { color: var(--muted); font-size: 0.86rem; }
+
+        .type-selector.active {
+            border-color: rgba(20,196,223,0.6);
+            background: linear-gradient(180deg, rgba(20,196,223,0.14), rgba(20,196,223,0.06));
+        }
+
+        .plan-grid { display: grid; gap: 10px; margin-bottom: 10px; }
+
+        .plan-card {
+            display: grid;
+            grid-template-columns: 22px 1fr;
+            gap: 10px;
+            align-items: center;
+            border-radius: 13px;
+            border: 1px solid rgba(177,194,216,0.2);
+            background: #0a0d12;
+            padding: 12px;
+        }
+
+        .plan-card strong { display: block; margin-bottom: 2px; }
+        .plan-card span { color: var(--muted); font-size: 0.83rem; }
+
+        .trial-toggle {
+            display: inline-flex;
+            gap: 10px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.86rem;
+            margin-top: 8px;
+        }
+
+        .provider-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .provider-card {
+            border: 1px solid rgba(177,194,216,0.2);
+            background: #0a0d12;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 42px;
+            color: #e4edf8;
+            font-weight: 600;
+        }
+
+        .provider-card.active {
+            border-color: rgba(20,196,223,0.65);
+            background: rgba(20,196,223,0.12);
+            color: #dffbff;
+        }
+
+        .provider-card input { display: none; }
+
+        .inline-alert {
+            min-height: 18px;
+            margin-top: 6px;
+            font-size: 0.85rem;
+        }
+
+        .inline-alert.error { color: var(--danger); }
+        .inline-alert.success { color: var(--success); }
+        .inline-alert.info { color: #9ad6e0; }
+
+        .password-strength {
+            min-height: 18px;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .insight-card {
+            width: min(430px, 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(177,194,216,0.2);
+            background: linear-gradient(180deg, rgba(9,12,17,0.9), rgba(7,10,14,0.9));
+            padding: 24px;
+            box-shadow: 0 28px 70px rgba(0,0,0,0.46);
+        }
+
+        .insight-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .chip {
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            color: #9ad6e0;
+            border: 1px solid rgba(20,196,223,0.35);
+            border-radius: 999px;
+            padding: 5px 9px;
+        }
+
+        .signal { color: #c7fbe7; font-size: 0.84rem; display: inline-flex; gap: 6px; align-items: center; }
+        .signal i { width: 8px; height: 8px; border-radius: 50%; background: #31d0a0; display: inline-block; box-shadow: 0 0 12px rgba(49,208,160,0.85); }
+
+        .summary-title {
+            font-family: var(--font-head);
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .summary-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 9px;
+        }
+
+        .summary-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            border-bottom: 1px solid rgba(177,194,216,0.12);
+            padding-bottom: 8px;
+        }
+
+        .summary-list span { color: var(--muted); font-size: 0.82rem; }
+        .summary-list strong { color: #ecf6ff; font-size: 0.9rem; text-align: right; }
+
+        .terminal-block {
+            margin-top: 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(177,194,216,0.2);
+            background: #06090d;
+            padding: 12px;
+            display: grid;
+            gap: 5px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #9cb6c8;
+        }
+
+        .terminal-block .accent { color: #8de8f5; }
+
+        @@keyframes rise {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @@media (max-width: 1200px) {
+            .register-shell { grid-template-columns: 1fr; }
+            .insight-panel { border-left: 0; border-top: 1px solid var(--line); }
+            .register-panel { padding: 80px 26px 34px; }
+            .card-stack, .stepper, .progress-track, .hero-block { max-width: none; }
+        }
+
+        @@media (max-width: 760px) {
+            body { cursor: default; }
+            .cursor-dot, .cursor-outline { display: none; }
+            .hero-block h1 { font-size: 2.1rem; }
+            .grid-two { grid-template-columns: 1fr; }
+            .otp-group { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+            .provider-row { grid-template-columns: 1fr; }
+            .step-dot small { display: none; }
+            .back-link { position: static; margin-bottom: 18px; }
+            .register-panel { padding-top: 24px; }
+        }
+    </style>
+}

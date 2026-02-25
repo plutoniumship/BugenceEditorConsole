@@ -1,0 +1,687 @@
+@page
+@model BugenceEditConsole.Pages.ProjectHub.MediaAssetsModel
+@{
+    Layout = null;
+    // Capture ID for sidebar links
+    var pid = Model.ProjectId;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Assets | @Model.CurrentProject.Name</title>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-black: #000000;
+            --bg-card: #0a0a0a;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-blue: #2563eb;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --sidebar-width: 260px;
+            --font-head: 'Cabinet Grotesk', sans-serif;
+            --font-body: 'Satoshi', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .sidebar {
+            background: #050505;
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            font-family: var(--font-head);
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-dashboard {
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+            .back-dashboard:hover {
+                color: white;
+                transform: translateX(-5px);
+            }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            color: #555;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-left: 16px;
+        }
+
+        .nav-item {
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            border-radius: 12px;
+            margin-bottom: 2px;
+            cursor: pointer;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-weight: 500;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+            .nav-item:hover {
+                background: rgba(255,255,255,0.03);
+                color: white;
+            }
+
+            .nav-item.active {
+                background: rgba(6, 182, 212, 0.08);
+                color: var(--accent-cyan);
+            }
+
+        .storage-widget {
+            margin-top: auto;
+            padding: 20px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            background: var(--accent-cyan);
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            background-image: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%);
+            position: relative;
+        }
+
+        .media-toolbar {
+            padding: 30px 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-wrapper {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 10px 10px 35px;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+            .search-input:focus {
+                border-color: var(--accent-cyan);
+            }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 5px;
+            background: #0f0f0f;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-tab {
+            padding: 6px 16px;
+            border-radius: 6px;
+            color: #888;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .filter-tab.active {
+                background: rgba(255,255,255,0.1);
+                color: white;
+                font-weight: 600;
+            }
+
+        .assets-area {
+            flex: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+        }
+
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 24px;
+        }
+
+        @@media (max-width: 1024px) {
+            body {
+                overflow-x: hidden;
+                overflow-y: auto;
+                min-height: 100dvh;
+                display: block;
+            }
+            .app-container {
+                grid-template-columns: 1fr;
+                min-height: 100dvh;
+            }
+            .media-toolbar {
+                padding: 10px 10px 12px;
+                margin-top: 54px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .search-wrapper {
+                width: 100%;
+            }
+            .assets-area {
+                padding: 14px 10px 18px;
+            }
+        }
+
+        .asset-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .asset-card:hover {
+                border-color: rgba(255,255,255,0.2);
+                transform: translateY(-3px);
+                box-shadow: 0 10px 30px -5px rgba(0,0,0,0.5);
+            }
+
+            .asset-card.selected {
+                border-color: var(--accent-cyan);
+                box-shadow: 0 0 0 1px var(--accent-cyan);
+            }
+
+        .asset-preview {
+            height: 160px;
+            background: #111;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(45deg, #151515 25%, transparent 25%), linear-gradient(-45deg, #151515 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #151515 75%), linear-gradient(-45deg, transparent 75%, #151515 75%);
+            background-size: 20px 20px;
+        }
+
+        .asset-preview.broken::after {
+            content: attr(data-ext);
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: #777;
+            font-weight: 800;
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+        .asset-preview .ext-big {
+            position:absolute;
+            inset:0;
+            display:grid;
+            place-items:center;
+            color:#fff;
+            font-weight:900;
+            font-size:1.05rem;
+            letter-spacing:1px;
+            text-shadow:0 2px 8px rgba(0,0,0,0.6);
+        }
+
+        .asset-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .asset-icon {
+            font-size: 3rem;
+            color: #444;
+        }
+
+        .asset-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .asset-card:hover .asset-overlay {
+            opacity: 1;
+        }
+
+        .overlay-btn {
+            background: white;
+            color: black;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transform: translateY(10px);
+            transition: 0.2s;
+        }
+
+        .asset-card:hover .overlay-btn {
+            transform: translateY(0);
+        }
+
+        .overlay-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .asset-info {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            background: #0a0a0a;
+        }
+
+        .asset-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+            color: white;
+        }
+
+        .asset-meta {
+            font-size: 0.75rem;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+        }
+        .ext-pill { font-weight: 800; letter-spacing: 0.6px; }
+        .ext-jpg, .ext-jpeg { color: #f472b6; }
+        .ext-png { color: #22c55e; }
+        .ext-gif { color: #06b6d4; }
+        .ext-webp { color: #a855f7; }
+        .ext-mp4, .ext-mov, .ext-mkv, .ext-webm { color: #38bdf8; }
+        .ext-pdf { color: #ef4444; }
+        .ext-doc, .ext-docx { color: #60a5fa; }
+        .ext-xls, .ext-xlsx { color: #22c55e; }
+        .ext-ppt, .ext-pptx { color: #f59e0b; }
+
+        .btn-upload {
+            background: var(--accent-cyan);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .btn-upload:hover {
+                background: #0891b2;
+                color: white;
+            }
+
+        .upload-status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #333;
+            z-index: 100;
+            display: none;
+        }
+
+        .upload-fill {
+            height: 100%;
+            background: var(--accent-green);
+            width: 0%;
+            transition: width 0.2s;
+        }
+
+        .details-panel {
+            width: 300px;
+            background: #080808;
+            border-left: 1px solid var(--border-color);
+            padding: 24px;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+            animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+            .details-panel.show {
+                display: flex;
+            }
+
+        .detail-preview {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+
+        .detail-label {
+            color: #666;
+        }
+
+        .detail-value {
+            color: white;
+            font-family: monospace;
+        }
+
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    @Html.AntiForgeryToken()
+    <input type="file" id="mediaUpload" multiple style="display: none;">
+    <div class="upload-status-bar" id="uploadStatusBar"><div class="upload-fill" id="uploadFill"></div></div>
+
+    <div class="app-container">
+        @await Html.PartialAsync("_ProjectHubSidebar")
+
+        <div style="display: flex; flex: 1; overflow: hidden;">
+            <div class="main-content" style="flex: 1;">
+                @await Html.PartialAsync("_DashboardTopbar")
+                <div class="media-toolbar">
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-search search-icon"></i>
+                            <input type="text" class="search-input" id="assetSearch" placeholder="Search assets...">
+                        </div>
+                        <div class="filter-tabs" id="filterTabs">
+                            <div class="filter-tab active" data-filter="all">All</div>
+                            <div class="filter-tab" data-filter="image">Images</div>
+                            <div class="filter-tab" data-filter="video">Videos</div>
+                            <div class="filter-tab" data-filter="doc">Docs</div>
+                        </div>
+                    </div>
+                    <button class="btn-upload" onclick="document.getElementById('mediaUpload').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Upload</button>
+                </div>
+
+                <div class="assets-area">
+                    <h5 class="text-secondary small fw-bold mb-4">LIBRARY: @Model.CurrentProject.Name.ToUpper()</h5>
+                    <div class="assets-grid" id="assetGrid">
+                        @foreach (var asset in Model.Assets)
+                        {
+                            var resolvedUrl = string.IsNullOrWhiteSpace(asset.Url) ? "" : Url.Content(asset.Url);
+                            <div class="asset-card" data-type="@asset.Type" data-url="@resolvedUrl" data-name="@asset.Name.ToLower()" onclick="selectAsset(this, '@asset.Name', '@asset.Dimensions', '@asset.Size', '@asset.Type', '@asset.Id', '@resolvedUrl')">
+                                <div class="asset-preview @(asset.Type=="image" ? "" : "placeholder")" data-ext="@asset.Extension">
+                                    @if (asset.Type == "image" && !string.IsNullOrEmpty(resolvedUrl))
+                                    {
+                                        <img src="@resolvedUrl" class="asset-img" alt="@asset.Name" onerror="this.remove(); this.parentElement.classList.add('broken');">
+                                    }
+                                    else if (asset.Type == "video")
+                                    {
+                                        <i class="fa-solid fa-film asset-icon text-info"></i>
+                                    }
+                                    else if (asset.Type == "doc")
+                                    {
+                                        <i class="fa-solid fa-file-pdf asset-icon text-danger"></i>
+                                    }
+                                    else
+                                    {
+                                        <div class="ext-big">@asset.Extension</div>
+                                    }
+
+                                    <div class="asset-overlay"><button class="overlay-btn" onclick="event.stopPropagation(); copyLink('@resolvedUrl')"><i class="fa-solid fa-link me-1"></i> Copy Link</button></div>
+                                </div>
+                                <div class="asset-info">
+                                    <div class="asset-name">@asset.Name</div>
+                                    <div class="asset-meta">
+                                        <span class="ext-pill ext-@asset.Extension.ToLower()">@asset.Extension</span>
+                                        <span>@asset.Size</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-panel" id="detailsPanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="m-0 text-white">Asset Details</h5>
+                    <i class="fa-solid fa-xmark text-secondary" style="cursor:pointer;" onclick="closeDetails()"></i>
+                </div>
+                <div class="detail-preview" id="detailPreview"></div>
+                <div class="mb-4">
+                    <label class="text-secondary small mb-1">Filename</label>
+                    <input type="text" class="form-control bg-black border-secondary text-white" id="detailName">
+                </div>
+                <input type="hidden" id="detailId">
+                <div class="detail-row"><span class="detail-label">Dimensions</span><span class="detail-value" id="detailDims">-</span></div>
+                <div class="detail-row"><span class="detail-label">Size</span><span class="detail-value" id="detailSize">-</span></div>
+                <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value" id="detailType">-</span></div>
+                <div class="detail-row"><span class="detail-label">Uploaded</span><span class="detail-value">Just now</span></div>
+                <hr class="border-secondary border-opacity-25 my-4">
+                <button class="btn btn-outline-light w-100 mb-2" onclick="renameCurrentAsset()"><i class="fa-solid fa-pen me-2"></i> Rename</button>
+                <button class="btn btn-outline-danger w-100" onclick="deleteCurrentAsset()"><i class="fa-solid fa-trash me-2"></i> Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            let currentProjectId = @Model.ProjectId;
+            const assetGrid = document.getElementById("assetGrid");
+            const mediaUpload = document.getElementById("mediaUpload");
+            const uploadStatusBar = document.getElementById("uploadStatusBar");
+            const uploadFill = document.getElementById("uploadFill");
+
+            // Panel Elements
+            const detailsPanel = document.getElementById('detailsPanel');
+            const detailId = document.getElementById('detailId');
+            const detailName = document.getElementById('detailName');
+            const detailDims = document.getElementById('detailDims');
+            const detailSize = document.getElementById('detailSize');
+            const detailType = document.getElementById('detailType');
+            const detailPreview = document.getElementById('detailPreview');
+
+            function selectAsset(card, name, dims, size, type, id, url) {
+                document.querySelectorAll('.asset-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+
+                detailId.value = id;
+                detailName.value = name;
+                detailDims.innerText = dims;
+                detailSize.innerText = size;
+                detailType.innerText = type.toUpperCase();
+
+                if (type === 'image' && url) {
+                    detailPreview.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:contain;">`;
+                } else {
+                    const iconClass = type === 'video'
+                        ? 'fa-film text-info'
+                        : (type === 'doc' ? 'fa-file-pdf text-danger' : 'fa-file text-secondary');
+                    detailPreview.innerHTML = `<i class="fa-solid ${iconClass}" style="font-size:3rem;"></i>`;
+                }
+                detailsPanel.classList.add('show');
+            }
+
+            function closeDetails() {
+                detailsPanel.classList.remove('show');
+                document.querySelectorAll('.asset-card').forEach(c => c.classList.remove('selected'));
+            }
+
+            // Upload
+            mediaUpload.addEventListener("change", () => {
+                if (!mediaUpload.files.length) return;
+                const data = new FormData();
+                Array.from(mediaUpload.files).forEach(f => data.append("upload", f));
+
+                uploadStatusBar.style.display = 'block';
+                uploadFill.style.width = '0%';
+
+                fetch(`?handler=UploadAsset&projectId=${currentProjectId}`, {
+                    method: "POST",
+                    headers: { "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value },
+                    body: data
+                }).then(() => {
+                    uploadFill.style.width = "100%";
+                    setTimeout(() => location.reload(), 500);
+                });
+            });
+
+            // Rename
+            function renameCurrentAsset() {
+                const id = detailId.value;
+                const newName = detailName.value;
+                if(!id || !newName) return;
+                postAction("RenameAsset", { projectId: currentProjectId, assetId: id, newName: newName });
+            }
+
+            // Delete
+            function deleteCurrentAsset() {
+                const id = detailId.value;
+                if(!id || !confirm("Delete this asset?")) return;
+                postAction("DeleteAsset", { projectId: currentProjectId, assetId: id });
+            }
+
+            function postAction(handler, body) {
+                fetch(`?handler=${handler}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value },
+                    body: JSON.stringify(body)
+                }).then(r => { if(r.ok) location.reload(); });
+            }
+
+            function copyLink(url) {
+                if(!url) return;
+                navigator.clipboard.writeText(url);
+                alert("Link copied!");
+            }
+
+            // Filter tabs
+            const tabs = document.querySelectorAll('#filterTabs .filter-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    applyFilters();
+                });
+            });
+
+            const searchInput = document.getElementById('assetSearch');
+            searchInput?.addEventListener('input', applyFilters);
+
+            function applyFilters() {
+                const active = document.querySelector('#filterTabs .filter-tab.active');
+                const filter = active ? active.getAttribute('data-filter') : 'all';
+                const term = (searchInput?.value || '').toLowerCase();
+                document.querySelectorAll('.asset-card').forEach(card => {
+                    const type = card.getAttribute('data-type');
+                    const name = card.getAttribute('data-name') || '';
+                    const matchesType = filter === 'all' || filter === type;
+                    const matchesSearch = !term || name.includes(term);
+                    card.style.display = matchesType && matchesSearch ? 'flex' : 'none';
+                });
+            }
+        </script>
+</body>
+</html>

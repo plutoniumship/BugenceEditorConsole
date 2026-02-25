@@ -1,0 +1,80 @@
+@page
+@model BugenceEditConsole.Pages.Auth.DeniedModel
+@{
+    ViewData["Title"] = "Access Denied";
+    Layout = "/Pages/Shared/_AuthLayout.cshtml";
+}
+
+<div class="grid items-stretch gap-10 md:grid-cols-2">
+    <section class="tilt animate-fadeUp rounded-3xl border border-white/10 bg-white/[0.03] p-8 md:p-10 backdrop-blur-lg shadow-soft">
+        <div class="shine rounded-3xl"></div>
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold ring-1 ring-white/10">
+                <span class="h-2 w-2 rounded-full bg-ember/80"></span>
+                Restricted zone
+            </div>
+            <h2 class="mt-5 text-3xl font-black tracking-tight text-white md:text-4xl">
+                Elevated clearance required<br />
+                <span class="text-white/70">for the module you pinged.</span>
+            </h2>
+            <ul class="mt-6 space-y-3 text-white/80">
+                <li class="flex items-start gap-3">
+                    <span class="mt-1 h-2 w-2 rounded-full bg-accent/80"></span>
+                    <span>Access policies guard experimental dashboards and audit lanes.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="mt-1 h-2 w-2 rounded-full bg-glow/80"></span>
+                    <span>Your attempt is logged with a full trace for concierge review.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="mt-1 h-2 w-2 rounded-full bg-ember/80"></span>
+                    <span>Ping support to request clearance or route through an approved lead.</span>
+                </li>
+            </ul>
+            <div aria-hidden="true" class="pointer-events-none absolute -left-10 bottom-10 h-36 w-36 rounded-full bg-gradient-to-tr from-ember/30 via-white/5 to-transparent blur-2xl animate-float"></div>
+        </div>
+    </section>
+    <section class="relative grid gap-8">
+        <article class="on-white tilt animate-fadeUp rounded-3xl bg-card text-ink shadow-2xl ring-1 ring-black/5" role="alert" aria-labelledby="deniedTitle">
+            <div class="shine rounded-3xl"></div>
+            <div class="relative p-8 md:p-10 space-y-6">
+                <div>
+                    <span class="inline-flex items-center gap-2 rounded-full bg-black/5 px-3 py-1 text-[11px] font-semibold text-black/70 ring-1 ring-black/10">
+                        <span class="fa-solid fa-triangle-exclamation text-ember"></span>
+                        Access blocked
+                    </span>
+                    <h2 id="deniedTitle" class="mt-4 text-2xl font-extrabold tracking-tight text-black sm:text-3xl">
+                        This dashboard is locked behind a higher role
+                    </h2>
+                    <p class="mt-2 text-sm text-black/60">
+                        Forward the log details below to your Bugence concierge so they can elevate your seat or assist with a hand-off.
+                    </p>
+                </div>
+                <div class="rounded-2xl border border-black/10 bg-black/5 p-6 text-sm text-black/75 space-y-3">
+                    <p class="flex items-center gap-2">
+                        <span class="fa-solid fa-id-badge text-black/60"></span>
+                        <span class="font-mono text-xs text-black/70">Session: @Model.CorrelationId</span>
+                    </p>
+                    <p class="flex items-center gap-2">
+                        <span class="fa-regular fa-clock text-black/60"></span>
+                        <span class="font-mono text-xs text-black/70">@Model.TimestampUtc.ToString("u") UTC</span>
+                    </p>
+                    <p class="text-xs text-black/60">
+                        Keeping this identifier handy lets us unspool the server audit trail in seconds.
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-4">
+                    <a asp-page="/Auth/Login" class="ripple inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3 font-semibold text-white shadow-lg shadow-black/20 transition hover:-translate-y-px hover:shadow-xl active:translate-y-0">
+                        <span class="fa-solid fa-arrow-left text-xs"></span>
+                        Return to login
+                    </a>
+                    <a asp-page="/Support" class="ripple inline-flex items-center justify-center gap-2 rounded-full border border-black/15 px-5 py-3 text-sm font-semibold transition hover:bg-black/5">
+                        <span class="fa-solid fa-life-ring text-xs"></span>
+                        Contact support
+                    </a>
+                </div>
+            </div>
+        </article>
+    </section>
+</div>
+

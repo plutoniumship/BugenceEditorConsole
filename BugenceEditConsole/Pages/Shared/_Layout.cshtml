@@ -1,0 +1,742 @@
+@using Microsoft.AspNetCore.Identity
+@using BugenceEditConsole.Models
+@using Microsoft.AspNetCore.Mvc.RazorPages
+@using BugenceEditConsole.Infrastructure
+@using Microsoft.Extensions.Options
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IOptions<FeatureFlagOptions> FeatureFlags
+@{
+    ApplicationUser? currentUser = null;
+    string displayName = "Administrator";
+    string displayEmail = "Bugence";
+    string userInitials = "AD";
+    if (User?.Identity?.IsAuthenticated == true)
+    {
+        currentUser = UserManager.GetUserAsync(User).GetAwaiter().GetResult();
+        displayName = currentUser?.GetFriendlyName();
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            displayName = currentUser?.UserName ?? "Administrator";
+        }
+        displayEmail = currentUser?.Email ?? "Bugence";
+    }
+    userInitials = new string(displayName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Where(part => !string.IsNullOrWhiteSpace(part))
+        .Select(part => char.ToUpperInvariant(part[0]))
+        .Take(2)
+        .ToArray());
+    if (string.IsNullOrWhiteSpace(userInitials))
+    {
+        userInitials = "AD";
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] ?? "Bugence Console")</title>
+    <meta name="robots" content="noindex,nofollow,noarchive,nosnippet" />
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="~/images/bugence-logo.svg" />
+
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400,300&f[]=cabinet-grotesk@800,500,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/console-mobile-sidebar.css" asp-append-version="true" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap/bootstrap.bundle.min.js" asp-append-version="true"></script>
+
+    @RenderSection("Head", required: false)
+
+    <style>
+        :root {
+            --bg-black: #000000;
+            --bg-panel: #050505;
+            --bg-card: #0a0a0a;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #2563eb;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-orange: #f59e0b;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --sidebar-width: 260px;
+            --font-head: 'Cabinet Grotesk', sans-serif;
+            --font-body: 'Satoshi', sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .dashboard-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            overflow: visible;
+            position: relative;
+        }
+
+        .sidebar {
+            width: clamp(210px, 18vw, var(--sidebar-width));
+            background: rgba(5, 5, 5, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 10;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: visible;
+            transition: width 0.2s ease, transform 0.22s ease;
+        }
+        .sidebar-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .collapsed-brand-stack {
+            display: none;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .brand-icon-pill {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.04);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .brand-icon-pill svg {
+            width: 18px;
+            height: 18px;
+        }
+        .de-chip {
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.04);
+            color: #e2e8f0;
+            border-radius: 999px;
+            height: 28px;
+            min-width: 66px;
+            padding: 0 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: default;
+        }
+        .sidebar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sidebar-action-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.03);
+            color: #cbd5e1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .sidebar-action-btn:hover {
+            color: #fff;
+            border-color: rgba(255,255,255,0.24);
+            background: rgba(255,255,255,0.06);
+        }
+        .sidebar-edge-toggle {
+            position: absolute;
+            top: 50%;
+            right: -16px;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 64px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: linear-gradient(180deg, rgba(7, 12, 16, 0.96), rgba(4, 7, 10, 0.96));
+            color: #dbe5f1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 320;
+            box-shadow: 0 14px 32px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(6,182,212,0.16);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        .sidebar-edge-toggle:hover {
+            color: #fff;
+            border-color: rgba(6,182,212,0.6);
+            transform: translateY(-50%) scale(1.02);
+        }
+        .sidebar-edge-toggle i {
+            font-size: 0.82rem;
+            transform: translateX(-1px);
+        }
+        #sidebarCloseBtn { display: none; }
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148,163,184,0.45) transparent;
+        }
+        .sidebar-scroll::-webkit-scrollbar { width: 8px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 999px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.55); }
+
+        .brand {
+            font-family: var(--font-head);
+            font-weight: 800;
+            font-size: 1.38rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 10px rgba(6,182,212,0.28));
+        }
+        .brand-text { white-space: nowrap; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+            font-weight: 500;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-cyan);
+        }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            color: #444;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 25px;
+            margin-bottom: 8px;
+            padding-left: 16px;
+            flex-shrink: 0;
+        }
+
+        .profile-wrapper {
+            margin-top: auto;
+            position: relative;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+        }
+
+        .user-mini-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
+            background: linear-gradient(160deg, rgba(11, 14, 18, 0.95), rgba(6, 8, 12, 0.95));
+            border-radius: 14px;
+            border: 1px solid rgba(148,163,184,0.24);
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 10px 24px rgba(0,0,0,0.35);
+        }
+        .user-mini-profile:hover {
+            border-color: rgba(6,182,212,0.55);
+            box-shadow: inset 0 0 0 1px rgba(6,182,212,0.2), 0 14px 30px rgba(0,0,0,0.45);
+            transform: translateY(-1px);
+        }
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #1bd6ff, #0ea5e9);
+            color: #04141f;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            box-shadow: 0 6px 18px rgba(14,165,233,0.42);
+            flex-shrink: 0;
+        }
+        .profile-meta {
+            min-width: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .profile-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #f8fafc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .profile-email {
+            font-size: 0.74rem;
+            color: #8ea0b4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .profile-caret {
+            font-size: 0.78rem;
+            color: #8ca3b8;
+            flex-shrink: 0;
+        }
+
+        .profile-menu {
+            position: absolute;
+            bottom: 110%;
+            left: 0;
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 5px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .profile-menu.show { display: flex; opacity: 1; transform: translateY(0); }
+        .menu-option {
+            padding: 10px 12px;
+            color: #ccc;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+        .menu-option:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+        .menu-option.danger {
+            color: var(--accent-red);
+            margin-top: 5px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-radius: 0 0 8px 8px;
+        }
+        .menu-option.danger:hover { background: rgba(239, 68, 68, 0.1); }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: visible;
+            padding: 32px;
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(6,182,212,0.05), transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        .content-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sidebar-mobile-toggle {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 160;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(8,8,8,0.92);
+            color: #fff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+        .sidebar-mobile-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.56);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 140;
+        }
+
+        body.sidebar-collapsed .sidebar {
+            width: 84px;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        body.sidebar-collapsed .collapsed-brand-stack {
+            display: inline-flex;
+        }
+        body.sidebar-collapsed .brand {
+            justify-content: center;
+        }
+        body.sidebar-collapsed .brand {
+            display: none;
+        }
+        body.sidebar-collapsed .brand-text,
+        body.sidebar-collapsed .nav-section-title,
+        body.sidebar-collapsed .user-mini-profile [data-profile-name],
+        body.sidebar-collapsed .user-mini-profile [data-profile-email] {
+            display: none !important;
+        }
+        body.sidebar-collapsed .sidebar-actions {
+            display: none !important;
+        }
+        body.sidebar-collapsed .nav-item {
+            justify-content: center;
+            gap: 0;
+            font-size: 0;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        body.sidebar-collapsed .nav-item i {
+            font-size: 1rem;
+            margin: 0;
+            width: auto;
+        }
+        body.sidebar-collapsed .user-mini-profile {
+            justify-content: center;
+            padding: 10px;
+        }
+        body.sidebar-collapsed .sidebar-edge-toggle {
+            right: -16px;
+        }
+        body.sidebar-collapsed .sidebar-edge-toggle i {
+            transform: rotate(180deg) translateX(-1px);
+        }
+
+        @@media (max-width: 1024px) {
+            body { overflow: hidden; }
+            .main-content {
+                padding: 16px 14px 20px;
+                width: 100%;
+            }
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: min(82vw, 300px);
+                max-width: 300px;
+                transform: translateX(-102%);
+                z-index: 150;
+                padding: 18px 14px;
+            }
+            #sidebarCloseBtn { display: inline-flex; }
+            #sidebarCollapseBtn { display: none; }
+            .sidebar-edge-toggle { display: none; }
+            .sidebar-mobile-toggle { display: inline-flex; }
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+            body.sidebar-open .sidebar-mobile-backdrop {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            body.sidebar-collapsed .sidebar {
+                width: min(82vw, 300px);
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+            body.sidebar-collapsed .brand-text,
+            body.sidebar-collapsed .nav-section-title,
+            body.sidebar-collapsed .user-mini-profile [data-profile-name],
+            body.sidebar-collapsed .user-mini-profile [data-profile-email] {
+                display: initial !important;
+            }
+            body.sidebar-collapsed .brand {
+                display: inline-flex;
+            }
+            body.sidebar-collapsed .collapsed-brand-stack {
+                display: none !important;
+            }
+            body.sidebar-collapsed .sidebar-actions {
+                display: inline-flex !important;
+            }
+            body.sidebar-collapsed .nav-item {
+                justify-content: flex-start;
+                gap: 12px;
+                font-size: 1rem;
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            body.sidebar-collapsed .nav-item i {
+                width: 20px;
+            }
+            body.sidebar-collapsed .user-mini-profile {
+                justify-content: flex-start;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+@{
+    var currentPage = ViewContext.ActionDescriptor is PageActionDescriptor desc ? desc.ViewEnginePath : string.Empty;
+    bool Matches(string path) => !string.IsNullOrWhiteSpace(path) &&
+        (string.Equals(currentPage, path, StringComparison.OrdinalIgnoreCase) ||
+         currentPage.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase));
+    string Active(params string[] pages) => pages.Any(Matches) ? "nav-item active" : "nav-item";
+    var bodyClass = ViewData["BodyClass"] as string;
+}
+<body class="@bodyClass">
+    <button class="sidebar-mobile-toggle" id="sidebarMobileToggle" type="button" aria-label="Open sidebar" aria-expanded="false">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="sidebar-mobile-backdrop" id="sidebarMobileBackdrop"></div>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar-scroll">
+                <div class="sidebar-head">
+                    <div class="collapsed-brand-stack" aria-hidden="true">
+                        <span class="brand-icon-pill">
+                            <svg viewBox="0 0 24 24">
+                                <path fill="#06b6d4" d="M11 2h2a1 1 0 0 1 1 1v2.1a6.1 6.1 0 0 1 3.22 1.86l1.78-1.78 1.42 1.42-2.01 2.01c.3.6.49 1.27.57 1.98H22v2h-2.1a7.9 7.9 0 0 1-.57 1.98l2.01 2.01-1.42 1.42-1.78-1.78A6.1 6.1 0 0 1 14 18.9V21a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2.1a6.1 6.1 0 0 1-3.22-1.86l-1.78 1.78-1.42-1.42 2.01-2.01A7.9 7.9 0 0 1 4.1 13H2v-2h2.1c.08-.7.27-1.38.57-1.98L2.66 6.99l1.42-1.42 1.78 1.78A6.1 6.1 0 0 1 10 5.1V3a1 1 0 0 1 1-1Zm1 5a4 4 0 0 0-4 4v2a4 4 0 1 0 8 0v-2a4 4 0 0 0-4-4Z"/>
+                            </svg>
+                        </span>
+                        <button class="de-chip" type="button" tabindex="-1">Bugence DE <i class="fa-solid fa-chevron-down"></i></button>
+                    </div>
+                    <a asp-page="/Dashboard/Index" class="brand">
+                        <img src="~/images/bugence-logo.svg" alt="Bugence" class="brand-logo" />
+                        <span class="brand-text">BUGENCE</span>
+                    </a>
+                    <div class="sidebar-actions">
+                        <button class="sidebar-action-btn" id="sidebarCloseBtn" type="button" aria-label="Close sidebar">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="nav-section-title">Workspace</div>
+                <a asp-page="/Dashboard/Index" class="@Active("/Dashboard/Index")">
+                    <i class="fa-solid fa-house"></i> Overview
+                </a>
+                <a asp-page="/Projects/Index" class="@Active("/Projects/Index")">
+                    <i class="fa-solid fa-box-archive"></i> Projects
+                </a>
+                <a asp-page="/Analytics/Index" class="@Active("/Analytics/Index")">
+                    <i class="fa-solid fa-chart-line"></i> Analytics
+                </a>
+
+                <div class="nav-section-title">Tools</div>
+                <a asp-page="/Tools/Applications" class="@Active("/Tools/Applications")" data-tools-protected="true"><i class="fa-solid fa-table nav-icon"></i> Applications</a>
+                <a asp-page="/Tools/DatabaseQuerySelector" class="@Active("/Tools/DatabaseQuerySelector")" data-tools-protected="true"><i class="fa-solid fa-database nav-icon"></i> Database Query Selector</a>
+                <a asp-page="/Tools/TempleteViewer" class="@Active("/Tools/TempleteViewer")" data-tools-protected="true"><i class="fa-solid fa-layer-group nav-icon"></i> Templete Viewer</a>
+                <a asp-page="/Tools/Masterpage" class="@Active("/Tools/Masterpage")" data-tools-protected="true"><i class="fa-solid fa-window-restore nav-icon"></i> Masterpage</a>
+                <a asp-page="/Tools/Pages" class="@Active("/Tools/Pages")" data-tools-protected="true"><i class="fa-solid fa-file-lines nav-icon"></i> Pages</a>
+                <a asp-page="/Tools/ReactBuilder" class="@Active("/Tools/ReactBuilder","/Tools/ReactBuilderEditor")" data-tools-protected="true"><i class="fa-brands fa-react nav-icon"></i> React Builder</a>
+                @if (FeatureFlags.Value.DynamicVeV1)
+                {
+                    <a asp-page="/DynamicVE/Index" class="@Active("/DynamicVE/Index")"><i class="fa-solid fa-wand-magic-sparkles nav-icon"></i> Dynamic VE</a>
+                }
+                <a asp-page="/Tools/SystemProperties" class="@Active("/Tools/SystemProperties")" data-tools-protected="true"><i class="fa-solid fa-sliders nav-icon"></i> System Properties</a>
+                <a asp-page="/Tools/Permissions" class="@Active("/Tools/Permissions")" data-tools-protected="true"><i class="fa-solid fa-shield-halved nav-icon"></i> Permissions</a>
+                <a asp-page="/Tools/Portlets" class="@Active("/Tools/Portlets")" data-tools-protected="true"><i class="fa-solid fa-cubes nav-icon"></i> Portlets</a>
+                <a asp-page="/Workflows/Index" class="@Active("/Workflows/Index","/Workflows/Editor")">
+                    <i class="fa-solid fa-diagram-project"></i> Workflow
+                </a>
+                <a asp-page="/Content/EditBySlug" asp-route-slug="index" class="@Active("/Content/Edit","/Content/EditBySlug")">
+                    <i class="fa-solid fa-file-code"></i> Text Editor
+                </a>
+
+                <div class="nav-section-title">Configuration</div>
+                <a asp-page="/Settings/Domains" class="@Active("/Settings/Domains")">
+                    <i class="fa-solid fa-globe"></i> Domains
+                </a>
+                <a asp-page="/Settings/GlobalSettings" class="@Active("/Settings/GlobalSettings","/Settings/Application")">
+                    <i class="fa-solid fa-gear"></i> Global Settings
+                </a>
+                <a asp-page="/Settings/Teams" class="@Active("/Settings/Teams")">
+                    <i class="fa-solid fa-users"></i> Teams
+                </a>
+
+                <div class="nav-section-title">Support</div>
+                <a asp-page="/Support/ChangeLog" class="@Active("/Support/ChangeLog")">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Change Log
+                </a>
+                <a asp-page="/DeployLogs/Index" class="@Active("/DeployLogs/Index","/DeployLogs/Project")">
+                    <i class="fa-solid fa-list-check"></i> Deploy Logs
+                </a>
+                <a asp-page="/Support/DebugPanel" class="@Active("/Support/DebugPanel")">
+                    <i class="fa-solid fa-bug"></i> Debug Panel
+                </a>
+                <a asp-page="/Support/PrivacySupport" class="@Active("/Support/PrivacySupport")">
+                    <i class="fa-solid fa-shield-halved"></i> Privacy Support
+                </a>
+                <a asp-page="/Support/UpdatesAnnouncements" class="@Active("/Support/UpdatesAnnouncements")">
+                    <i class="fa-solid fa-bullhorn"></i> Updates & Announcements
+                </a>
+            </div>
+
+            <div class="profile-wrapper">
+                <div class="profile-menu" id="sidebarProfileMenu">
+                    <a asp-page="/Settings/Profile" class="menu-option"><i class="fa-solid fa-user"></i> My Account</a>
+                    <a asp-page="/Settings/Billing" class="menu-option"><i class="fa-solid fa-credit-card"></i> Billing</a>
+                    <form method="post" asp-page="/Auth/Logout" asp-route-returnUrl="@Url.Page("/Dashboard/Index")" class="menu-option danger mb-0 p-0">
+                        <button type="submit" class="w-100 text-start bg-transparent border-0 text-inherit d-flex align-items-center gap-2 ps-3 pe-3 pt-2 pb-2">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </button>
+                    </form>
+                </div>
+
+                <div class="user-mini-profile" id="sidebarProfileBtn">
+                    <div class="avatar profile-avatar" data-profile-initials>@userInitials</div>
+                    <div class="profile-meta">
+                        <div class="profile-name" data-profile-name>@displayName</div>
+                        <div class="profile-email" data-profile-email>@displayEmail</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-up profile-caret"></i>
+                </div>
+            </div>
+            <button class="sidebar-edge-toggle" id="sidebarEdgeToggle" type="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-shell">
+                @await Html.PartialAsync("_DashboardTopbar")
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    @RenderSection("Scripts", required: false)
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const profileBtn = document.getElementById("sidebarProfileBtn");
+            const profileMenu = document.getElementById("sidebarProfileMenu");
+            const body = document.body;
+            const sidebarMobileToggle = document.getElementById("sidebarMobileToggle");
+            const sidebarMobileBackdrop = document.getElementById("sidebarMobileBackdrop");
+            const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
+            const sidebarEdgeToggle = document.getElementById("sidebarEdgeToggle");
+            const sidebarStateKey = "bugence.sidebar.collapsed";
+
+            const setSidebarOpen = (open) => {
+                body.classList.toggle("sidebar-open", open);
+                if (sidebarMobileToggle) {
+                    sidebarMobileToggle.setAttribute("aria-expanded", open ? "true" : "false");
+                }
+            };
+            const setSidebarCollapsed = (collapsed) => {
+                body.classList.toggle("sidebar-collapsed", collapsed);
+                localStorage.setItem(sidebarStateKey, collapsed ? "1" : "0");
+            };
+
+            try {
+                const raw = localStorage.getItem(sidebarStateKey);
+                const saved = raw === null ? true : raw === "1";
+                if (window.innerWidth > 1024) {
+                    setSidebarCollapsed(saved);
+                } else {
+                    setSidebarCollapsed(false);
+                }
+            } catch { }
+
+            sidebarEdgeToggle?.addEventListener("click", () => {
+                if (window.innerWidth <= 1024) return;
+                const next = !body.classList.contains("sidebar-collapsed");
+                setSidebarCollapsed(next);
+            });
+            sidebarMobileToggle?.addEventListener("click", () => {
+                setSidebarOpen(!body.classList.contains("sidebar-open"));
+            });
+            sidebarMobileBackdrop?.addEventListener("click", () => setSidebarOpen(false));
+            sidebarCloseBtn?.addEventListener("click", () => setSidebarOpen(false));
+
+            document.querySelectorAll(".sidebar .nav-item").forEach((link) => {
+                link.addEventListener("click", () => {
+                    if (window.innerWidth <= 1024) {
+                        setSidebarOpen(false);
+                    }
+                });
+            });
+
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 1024) {
+                    setSidebarOpen(false);
+                    try {
+                        const saved = localStorage.getItem(sidebarStateKey) === "1";
+                        setSidebarCollapsed(saved);
+                    } catch { }
+                } else {
+                    setSidebarCollapsed(false);
+                }
+            });
+
+            if (profileBtn && profileMenu) {
+                profileBtn.addEventListener("click", () => {
+                    profileMenu.classList.toggle("show");
+                });
+                document.addEventListener("click", (e) => {
+                    if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+                        profileMenu.classList.remove("show");
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/console-page-interactions.js" asp-append-version="true"></script>
+    <script src="~/js/console-mobile-sidebar.js" asp-append-version="true"></script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+@page
+@model BugenceEditConsole.Pages.Support.DebugPanelModel
+@{
+    ViewData["Title"] = "Debug Panel";
+    ViewData["BodyClass"] = "page-support-debugpanel";
+}
+@section Head {
+<style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --danger:#ef4444; }
+        * { box-sizing:border-box; outline:none; }
+        .tool-page-main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); }
+        .header { margin-bottom:22px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.4rem; margin:0 0 8px; }
+        .header p { margin:0; color:var(--muted); font-size:0.95rem; }
+        .table-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+        .search-input { width:min(420px, 100%); background:#0b0b0b; border:1px solid rgba(148,163,184,0.2); padding:10px 14px; border-radius:10px; color:white; font-size:0.9rem; }
+        .search-input:focus { border-color:var(--accent); }
+        .toolbar-right { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:0.82rem; }
+        .page-size-select { background:#0b0b0b; border:1px solid rgba(148,163,184,0.2); color:#e2e8f0; border-radius:8px; padding:8px 10px; font-size:0.82rem; }
+        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow-x:auto; overflow-y:hidden; }
+        table { width:100%; min-width:1400px; border-collapse:collapse; table-layout:auto; }
+        th { text-align:left; padding:16px 18px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.74rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
+        td { padding:16px 18px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); font-size:0.9rem; overflow-wrap:anywhere; word-break:break-word; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.03); }
+        .muted { color:var(--muted); font-size:0.85rem; }
+        .short { color:#f8fafc; font-weight:600; line-height:1.35; }
+        .long-desc { color:#cbd5e1; max-height:54px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.35; }
+        .source-pill { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(148,163,184,0.25); border-radius:999px; padding:4px 10px; font-size:0.78rem; color:#cbd5e1; }
+        .empty-state { padding:40px; text-align:center; color:var(--muted); }
+        .pagination { display:flex; align-items:center; gap:8px; margin-top:16px; justify-content:flex-end; }
+        .page-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+        .page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+        .page-info { color:var(--muted); font-size:0.85rem; }
+        @@media (max-width: 900px) { main { padding:28px 20px; } aside { display:none; } }
+    </style>
+}
+<main class="tool-page-main">
+            <div class="header">
+                <h1>Debug Panel</h1>
+                <p>Central error log for portlets, repeaters, query selectors, and unhandled runtime exceptions.</p>
+            </div>
+
+            <div class="table-toolbar">
+                <input class="search-input" id="errorSearch" placeholder="Search by source, summary, description, or path..." />
+                <div class="toolbar-right">
+                    <span id="resultCount">0 results</span>
+                    <label for="pageSizeSelect">Rows</label>
+                    <select id="pageSizeSelect" class="page-size-select">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:7%;">ID</th>
+                            <th style="width:15%;">Timestamp</th>
+                            <th style="width:14%;">Source</th>
+                            <th style="width:22%;">Short Description</th>
+                            <th style="width:30%;">Long Description</th>
+                            <th style="width:12%;">Path</th>
+                        </tr>
+                    </thead>
+                    <tbody id="errorTableBody">
+                        @if (Model.Errors.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="6" class="empty-state">No errors logged yet.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var error in Model.Errors)
+                            {
+                                <tr>
+                                    <td><strong>#@error.Id</strong></td>
+                                    <td class="muted">@error.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy HH:mm:ss")</td>
+                                    <td><span class="source-pill"><i class="fa-solid fa-circle-exclamation" style="color:var(--danger)"></i> @error.Source</span></td>
+                                    <td class="short" title="@error.ShortDescription">@error.ShortDescription</td>
+                                    <td><div class="long-desc" title="@error.LongDescription">@error.LongDescription</div></td>
+                                    <td class="muted" title="@error.Path">@error.Path</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="errorPagination" style="display:none;">
+                <button class="page-btn" id="prevPage">Previous</button>
+                <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                <button class="page-btn" id="nextPage">Next</button>
+            </div>
+        </main>
+@section Scripts {
+    <script>
+        const errorData = @Html.Raw(Model.ErrorsJson);
+        const searchInput = document.getElementById('errorSearch');
+        const tableBody = document.getElementById('errorTableBody');
+        const pager = document.getElementById('errorPagination');
+        const pageInfo = document.getElementById('pageInfo');
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        const resultCount = document.getElementById('resultCount');
+
+        let page = 1;
+        let pageSize = Number(pageSizeSelect?.value || 25);
+
+        function toText(value) {
+            return (value || '').toString().toLowerCase();
+        }
+
+        function getFiltered() {
+            const term = toText(searchInput?.value);
+            if (!term) return errorData.slice();
+            return errorData.filter(item =>
+                toText(item.source).includes(term) ||
+                toText(item.shortDescription).includes(term) ||
+                toText(item.longDescription).includes(term) ||
+                toText(item.path).includes(term) ||
+                toText(item.id).includes(term)
+            );
+        }
+
+        function formatDate(value) {
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value || '—';
+            return date.toLocaleString();
+        }
+
+        function escapeHtmlDebug(value) {
+            return (value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderTable() {
+            const filtered = getFiltered();
+            const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+            if (page > pageCount) page = pageCount;
+            if (resultCount) {
+                resultCount.textContent = `${filtered.length} result${filtered.length === 1 ? '' : 's'}`;
+            }
+
+            const start = (page - 1) * pageSize;
+            const rows = filtered.slice(start, start + pageSize);
+
+            if (!rows.length) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No matching errors found.</td></tr>';
+            } else {
+                tableBody.innerHTML = rows.map(row => `
+                    <tr>
+                        <td><strong>#${row.id}</strong></td>
+                        <td class="muted">${escapeHtmlDebug(formatDate(row.createdAtUtc))}</td>
+                        <td><span class="source-pill"><i class="fa-solid fa-circle-exclamation" style="color:var(--danger)"></i> ${escapeHtmlDebug(row.source || 'Unknown')}</span></td>
+                        <td class="short" title="${escapeHtmlDebug(row.shortDescription || '')}">${escapeHtmlDebug(row.shortDescription || '')}</td>
+                        <td><div class="long-desc" title="${escapeHtmlDebug(row.longDescription || '')}">${escapeHtmlDebug(row.longDescription || '')}</div></td>
+                        <td class="muted" title="${escapeHtmlDebug(row.path || '')}">${escapeHtmlDebug(row.path || '')}</td>
+                    </tr>
+                `).join('');
+            }
+
+            pager.style.display = filtered.length > pageSize ? 'flex' : 'none';
+            pageInfo.textContent = `Page ${page} of ${pageCount}`;
+            prevBtn.disabled = page <= 1;
+            nextBtn.disabled = page >= pageCount;
+        }
+
+        searchInput?.addEventListener('input', () => {
+            page = 1;
+            renderTable();
+        });
+        pageSizeSelect?.addEventListener('change', () => {
+            pageSize = Math.max(1, Number(pageSizeSelect.value || 25));
+            page = 1;
+            renderTable();
+        });
+        prevBtn?.addEventListener('click', () => {
+            if (page > 1) page--;
+            renderTable();
+        });
+        nextBtn?.addEventListener('click', () => {
+            page++;
+            renderTable();
+        });
+
+        renderTable();
+    </script>
+}
+

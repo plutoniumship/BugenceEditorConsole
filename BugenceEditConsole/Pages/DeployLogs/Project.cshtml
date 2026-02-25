@@ -1,0 +1,356 @@
+@page
+@model BugenceEditConsole.Pages.DeployLogs.ProjectModel
+
+@{
+    ViewData["Title"] = "Project";
+    ViewData["BodyClass"] = "page-deploylogs-project";
+}
+
+@section Head {
+<style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
+        main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); position:relative; }
+        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:32px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:16px 0 6px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:10px; margin-bottom:4px; transition:0.2s; font-size:0.95rem; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background: rgba(6,182,212,0.12); color:var(--accent); }
+        .header { margin-bottom:26px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.4rem; margin:0 0 6px; }
+        .header p { color:var(--muted); margin:0; }
+        .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background:rgba(255,255,255,0.06); border:1px solid var(--border); color:white; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; }
+        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 20px 40px -10px rgba(0,0,0,0.5); }
+        table { width:100%; border-collapse:collapse; table-layout:fixed; }
+        th { text-align:left; padding:18px 26px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+        td { padding:20px 26px; border-bottom:1px solid var(--border); vertical-align:middle; color:var(--text); }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.03); }
+        .status-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:20px; font-weight:800; font-size:0.8rem; text-transform:uppercase; white-space:nowrap; }
+        .status-Success { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+        .status-Failed { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+        .dot { width:6px; height:6px; border-radius:50%; background: currentColor; }
+        .summary-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+        .summary-card { background:rgba(255,255,255,0.04); border:1px solid var(--border); padding:10px 14px; border-radius:12px; font-weight:700; color:white; }
+        .summary-card span { color:var(--muted); font-weight:600; margin-left:8px; }
+        .table-toolbar { display:flex; justify-content:flex-end; margin-bottom:12px; }
+        .search-input { width:min(360px,100%); background:#0b0b0b; border:1px solid var(--border); color:#fff; border-radius:10px; padding:10px 12px; }
+        .search-input:focus { outline:none; border-color:var(--accent); }
+        .pagination { display:flex; justify-content:flex-end; gap:8px; align-items:center; margin-top:12px; }
+        .page-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+        .page-btn:disabled { opacity:.45; cursor:not-allowed; }
+        .page-info { color:var(--muted); font-size:.85rem; }
+        .snapshot-panel { margin-top:16px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; }
+        .snapshot-toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+        .snapshot-select { min-width:220px; background:#0b0b0b; border:1px solid var(--border); color:#fff; border-radius:10px; padding:10px 12px; }
+        .muted { color:var(--muted); font-size:.85rem; }
+        .diff-output { max-height:220px; overflow:auto; background:#050505; border:1px solid var(--border); border-radius:10px; padding:10px; font-family:Consolas,monospace; font-size:.8rem; white-space:pre-wrap; }
+        .action-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#fff; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer; }
+        .action-btn.danger { border-color:rgba(239,68,68,0.45); color:#fecaca; }
+        .action-btn:disabled { opacity:.5; cursor:not-allowed; }
+        .gold-btn {
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            border:1px solid rgba(245,158,11,0.55);
+            border-radius:999px;
+            background:linear-gradient(180deg, rgba(251,191,36,0.18), rgba(161,98,7,0.22));
+            color:#fde68a;
+            font-weight:800;
+            font-size:0.74rem;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            padding:8px 14px;
+            cursor:pointer;
+            transition:all .15s ease;
+        }
+        .gold-btn:hover:not(:disabled) {
+            border-color:rgba(252,211,77,0.9);
+            color:#fef3c7;
+            box-shadow:0 0 0 1px rgba(252,211,77,0.18), 0 8px 22px rgba(161,98,7,0.2);
+        }
+        .gold-btn:disabled {
+            opacity:.45;
+            cursor:not-allowed;
+        }    </style>
+}
+
+<div class="header">
+                <div>
+                    <a href="/DeployLogs/Index" style="color:var(--muted); text-decoration:none; display:inline-flex; gap:6px; align-items:center; font-weight:700; margin-bottom:6px;"><i class="fa-solid fa-arrow-left"></i> Back to Deploy Logs</a>
+                    <h1>@Model.ProjectName</h1>
+                    <div class="summary-row">
+                        <div class="summary-card">Total Publishes <span>@Model.Entries.Count</span></div>
+                        <div class="summary-card">Last Publish <span>@Model.LastPublish</span></div>
+                        <div class="summary-card">Status <span>@Model.LatestStatus</span></div>
+                    </div>
+                    <div class="summary-row" style="margin-top:14px;">
+                        <button type="button" id="reuploadBtn" class="gold-btn">
+                            <i class="fa-solid fa-upload"></i> Re-upload Project Folder
+                        </button>
+                        <button type="button" id="restoreBtn" class="gold-btn" @(Model.HasRestoreBackup ? string.Empty : "disabled")>
+                            <i class="fa-solid fa-rotate-left"></i> Restore Previous Upload
+                        </button>
+                        <a class="gold-btn" href="?handler=DownloadLatest&projectId=@Model.ProjectId">
+                            <i class="fa-solid fa-file-zipper"></i> Download Latest Published Folder
+                        </a>
+                        <input type="file" id="reuploadInput" webkitdirectory directory multiple style="display:none;" />
+                        @Html.AntiForgeryToken()
+                    </div>
+                </div>
+                <span class="pill"><i class="fa-solid fa-circle-nodes"></i> Project History</span>
+            </div>
+
+            <div class="table-toolbar">
+                <input class="search-input" id="projectLogSearch" placeholder="Search by build, status, reason, or notes..." />
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 12%;">Build</th>
+                            <th style="width: 16%;">Status</th>
+                            <th style="width: 18%;">Published At</th>
+                            <th style="width: 22%;">Failure Reason</th>
+                            <th style="width: 32%;">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectLogTableBody">
+                        @foreach (var entry in Model.Entries)
+                        {
+                            <tr data-search="@($"{entry.BuildId} {entry.Status} {entry.PublishedAt} {entry.FailureReason} {entry.Description}".ToLowerInvariant())">
+                                <td>@entry.BuildId</td>
+                                <td><span class="status-badge status-@entry.Status"><span class="dot"></span> @entry.Status</span></td>
+                                <td>@entry.PublishedAt</td>
+                                <td>@entry.FailureReason</td>
+                                <td>@entry.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="projectLogPagination" style="display:none;">
+                <button class="page-btn" id="projectLogPrev">Previous</button>
+                <span class="page-info" id="projectLogInfo">Page 1 of 1</span>
+                <button class="page-btn" id="projectLogNext">Next</button>
+            </div>
+
+            <div class="snapshot-panel">
+                <h3 style="margin:0 0 10px;">Snapshots</h3>
+                <div class="snapshot-toolbar">                    <select class="snapshot-select" id="snapshotFrom">
+                        @if (Model.Snapshots.Count == 0)
+                        {
+                            <option value="">No snapshots available</option>
+                        }
+                        else
+                        {
+                            @foreach (var snapshot in Model.Snapshots)
+                            {
+                                <option value="@snapshot.Id" data-snapshot-id="@snapshot.Id">@snapshot.Id | @snapshot.Environment | @snapshot.CreatedAtUtc.ToLocalTime().ToString("MMM d, h:mm tt")</option>
+                            }
+                        }
+                    </select>                    <select class="snapshot-select" id="snapshotTo">
+                        @if (Model.Snapshots.Count == 0)
+                        {
+                            <option value="">No snapshots available</option>
+                        }
+                        else
+                        {
+                            @foreach (var snapshot in Model.Snapshots)
+                            {
+                                <option value="@snapshot.Id" data-snapshot-id="@snapshot.Id">@snapshot.Id | @snapshot.Environment | @snapshot.CreatedAtUtc.ToLocalTime().ToString("MMM d, h:mm tt")</option>
+                            }
+                        }
+                    </select>
+                    <button type="button" class="action-btn" id="viewDiffBtn">View Diff</button>
+                    <button type="button" class="action-btn danger" id="rollbackSnapshotBtn">Rollback To Selected</button>
+                </div>
+                <div class="muted" style="margin-bottom:8px;">Select two snapshots to compare, or rollback to a selected snapshot.</div>
+                <div class="diff-output" id="snapshotDiffOutput">No diff loaded.</div>
+            </div>
+
+@section Scripts {
+<script>
+(function () {
+    const search = document.getElementById("projectLogSearch");
+    const tbody = document.getElementById("projectLogTableBody");
+    const prev = document.getElementById("projectLogPrev");
+    const next = document.getElementById("projectLogNext");
+    const info = document.getElementById("projectLogInfo");
+    const pager = document.getElementById("projectLogPagination");
+    if (!tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll("tr[data-search]"));
+    const state = { page: 1, pageSize: 10 };
+
+    function filteredRows() {
+        const q = (search?.value || "").trim().toLowerCase();
+        return q ? rows.filter(r => (r.getAttribute("data-search") || "").includes(q)) : rows;
+    }
+
+    function render() {
+        const filtered = filteredRows();
+        const pages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+        if (state.page > pages) state.page = pages;
+        const start = (state.page - 1) * state.pageSize;
+        const end = start + state.pageSize;
+        const visible = new Set(filtered.slice(start, end));
+
+        rows.forEach(row => {
+            row.style.display = visible.has(row) ? "" : "none";
+        });
+
+        if (filtered.length > state.pageSize) {
+            pager.style.display = "flex";
+            info.textContent = "Page " + state.page + " of " + pages;
+            prev.disabled = state.page <= 1;
+            next.disabled = state.page >= pages;
+        } else {
+            pager.style.display = "none";
+        }
+    }
+
+    search?.addEventListener("input", () => {
+        state.page = 1;
+        render();
+    });
+    prev?.addEventListener("click", () => {
+        state.page = Math.max(1, state.page - 1);
+        render();
+    });
+    next?.addEventListener("click", () => {
+        state.page += 1;
+        render();
+    });
+
+    render();
+
+    const projectId = @Model.ProjectId;
+    const fromSelect = document.getElementById("snapshotFrom");
+    const toSelect = document.getElementById("snapshotTo");
+    const diffOutput = document.getElementById("snapshotDiffOutput");
+    const viewDiffBtn = document.getElementById("viewDiffBtn");
+    const rollbackBtn = document.getElementById("rollbackSnapshotBtn");
+    const antiforgery = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    const optionCount = Math.min(fromSelect?.options?.length || 0, toSelect?.options?.length || 0);
+
+    if (fromSelect && toSelect && toSelect.options.length > 1) {
+        toSelect.selectedIndex = 1;
+    }
+    if (optionCount === 0) {
+        if (viewDiffBtn) viewDiffBtn.disabled = true;
+        if (rollbackBtn) rollbackBtn.disabled = true;
+        diffOutput.textContent = "No snapshots available yet. Publish or deploy once to generate snapshots.";
+    } else if (optionCount < 2) {
+        if (viewDiffBtn) viewDiffBtn.disabled = true;
+        if (rollbackBtn) rollbackBtn.disabled = false;
+        diffOutput.textContent = "At least two snapshots are required to view differences.";
+    }
+
+    function selectedSnapshotId(select) {
+        const selected = select?.selectedOptions?.[0];
+        return selected?.dataset?.snapshotId || select?.value || "";
+    }
+
+    function ensureDistinctSelections() {
+        if (!fromSelect || !toSelect) return;
+        const fromId = selectedSnapshotId(fromSelect);
+        const toId = selectedSnapshotId(toSelect);
+        if (!fromId || !toId || fromId !== toId || toSelect.options.length < 2) return;
+
+        for (let i = 0; i < toSelect.options.length; i += 1) {
+            const option = toSelect.options[i];
+            const candidateId = option.dataset?.snapshotId || option.value || "";
+            if (candidateId && candidateId !== fromId) {
+                toSelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+
+    function summarizeDiff(payload) {
+        const added = Array.isArray(payload?.added) ? payload.added : [];
+        const removed = Array.isArray(payload?.removed) ? payload.removed : [];
+        const changed = Array.isArray(payload?.changed) ? payload.changed : [];
+        const lines = [];
+        lines.push(`Added: ${added.length}`);
+        added.slice(0, 20).forEach(x => lines.push(` + ${x.path}`));
+        lines.push(`Removed: ${removed.length}`);
+        removed.slice(0, 20).forEach(x => lines.push(` - ${x.path}`));
+        lines.push(`Changed: ${changed.length}`);
+        changed.slice(0, 20).forEach(x => lines.push(` * ${x.path}`));
+        return lines.join('\n');
+    }
+
+    viewDiffBtn?.addEventListener('click', async () => {
+        ensureDistinctSelections();
+        const from = selectedSnapshotId(fromSelect);
+        const to = selectedSnapshotId(toSelect);
+        if (!from || !to || from === to) {
+            diffOutput.textContent = optionCount < 2
+                ? "At least two snapshots are required to view differences."
+                : "Choose two different snapshots.";
+            return;
+        }
+        diffOutput.textContent = "Loading diff...";
+        try {
+            const response = await fetch(`/DeployLogs?handler=Diff&projectId=${projectId}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, {
+                credentials: 'same-origin'
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload?.success === false) {
+                throw new Error(payload?.message || "Unable to load diff.");
+            }
+            diffOutput.textContent = summarizeDiff(payload);
+        } catch (err) {
+            diffOutput.textContent = `Diff failed: ${err?.message || err}`;
+        }
+    });
+
+    rollbackBtn?.addEventListener('click', async () => {
+        const snapshotId = selectedSnapshotId(toSelect);
+        if (!snapshotId) {
+            return;
+        }
+        const confirmed = window.confirm(`Rollback project to snapshot ${snapshotId}?`);
+        if (!confirmed) {
+            return;
+        }
+        rollbackBtn.disabled = true;
+        diffOutput.textContent = "Rollback in progress...";
+        try {
+            const body = new URLSearchParams();
+            body.append('projectId', String(projectId));
+            body.append('snapshotId', String(snapshotId));
+            const response = await fetch('/DeployLogs?handler=Rollback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'RequestVerificationToken': antiforgery
+                },
+                body: body.toString(),
+                credentials: 'same-origin'
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload?.success === false) {
+                throw new Error(payload?.message || "Rollback failed.");
+            }
+            diffOutput.textContent = `Rollback complete. Restored snapshot ${payload.restoredSnapshotId}, created snapshot ${payload.newSnapshotId}. Reloading...`;
+            setTimeout(() => window.location.reload(), 900);
+        } catch (err) {
+            diffOutput.textContent = `Rollback failed: ${err?.message || err}`;
+        } finally {
+            rollbackBtn.disabled = false;
+        }
+    });
+})();
+</script>
+}
+
+
+

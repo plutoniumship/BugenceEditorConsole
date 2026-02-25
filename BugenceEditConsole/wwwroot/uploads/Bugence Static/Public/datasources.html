@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUGENCE — Data Sources (Queries)</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { bug: { 50:'#f5f7ff',100:'#e9edff',200:'#cdd7ff',300:'#a7b5ff',400:'#7b89ff',500:'#5663ff',600:'#3f49e6',700:'#3239b3',800:'#2a2f8c',900:'#23276f' } },
+          boxShadow: { glow: '0 10px 30px -10px rgba(86,99,255,.55), 0 2px 10px rgba(0,0,0,.35)'}
+        }
+      }
+    }
+  </script>
+
+  <!-- Icons & fonts -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; }
+    .grid-bg { background:
+      linear-gradient(transparent,transparent),
+      linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+      linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px; }
+    .glow:focus { box-shadow: 0 0 0 4px rgba(86,99,255,.25); }
+    .badge { display:inline-flex; align-items:center; justify-content:center; height:22px; min-width:22px; border-radius:999px; padding:0 8px; font-size:11px; font-weight:700; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-white relative grid-bg">
+  <!-- Backdrop glows -->
+  <div class="pointer-events-none absolute inset-0">
+    <div class="absolute top-[-10%] right-[-10%] h-[40rem] w-[40rem] rounded-full bg-bug-500/20 blur-3xl"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] h-[40rem] w-[40rem] rounded-full bg-amber-300/20 blur-3xl"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="relative z-10 flex min-h-screen">
+    <!-- Sidebar -->
+     <nav class="px-4 pb-6 text-sm space-y-6">
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Main</div>
+            <a href="/languages.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Languages</a>
+            <a href="/translation.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Translation</a>
+            <a href="/urlreroute.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">URL rewrite & rerouting</a>
+            <a href="/systemproperties.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">System Properties</a>
+            <a href="/erroemanagment.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Errors Management</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Data Sources</div>
+          <a href="/datasources.html" class="block rounded-xl border border-white/10 px-3 py-2 bg-white/10">Database Sources</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">API Sources</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Stored Procedures</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Content</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">HTML Templates</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Master Pages / Pages</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Site / Logical Hierarchy</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Workflow</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Workflows</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Actions Management</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Engine Status</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Form Builder</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Form Builder</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Form Templates / Views</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Data Type Templates</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">File Groups</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Permission Profiles</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Access</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Users / Groups</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Page Permissions</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Modules</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Modules</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Components Library</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Site Assemblies</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">React Components</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">File Includes / Permission Profiles</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Authentication Services</a>
+        </div>
+      </nav>
+
+    <!-- Main area -->
+    <section class="flex-1 min-w-0">
+      <!-- Top Bar -->
+      <div class="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
+        <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h1 class="text-xl sm:text-2xl font-extrabold">Database Sources — Queries</h1>
+            <span class="badge bg-white/10 border border-white/15">Admin</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="hidden sm:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs">
+              <span class="h-2 w-2 rounded-full bg-green-400"></span> Engine <span class="font-semibold">Online</span>
+            </div>
+            <img src="https://i.pravatar.cc/64?img=35" class="h-9 w-9 rounded-full" alt="user"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Banner -->
+      <div id="banner" class="mx-auto max-w-7xl px-6 pt-4 hidden"></div>
+
+      <!-- Content Shell -->
+      <div class="mx-auto max-w-7xl px-6 py-6 space-y-6">
+        <!-- List View -->
+        <div id="view-list" class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 class="text-lg font-semibold">Queries</h2>
+              <p class="text-xs text-white/60">Search, inspect and manage SQL queries powering your data sources.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
+                <i class="fa-solid fa-magnifying-glass text-white/60"></i>
+                <input id="search" class="bg-transparent outline-none text-sm w-60 placeholder:text-white/50" placeholder="Search queries…" />
+              </div>
+              <button id="addNew" class="rounded-2xl bg-black px-4 py-2 text-sm font-semibold">Add New</button>
+            </div>
+          </div>
+
+          <div class="mt-4 overflow-x-auto rounded-2xl border border-white/10">
+            <table class="min-w-full text-sm">
+              <thead class="bg-white/10 text-left text-white/70">
+                <tr>
+                  <th class="px-4 py-2">Query ID</th>
+                  <th class="px-4 py-2">Query Caption</th>
+                  <th class="px-4 py-2">Parent Query</th>
+                  <th class="px-4 py-2">Key Field</th>
+                  <th class="px-4 py-2">Linking Field</th>
+                  <th class="px-4 py-2">Template ID</th>
+                  <th class="px-4 py-2">Application ID</th>
+                  <th class="px-4 py-2">Is Report</th>
+                  <th class="px-4 py-2">Is Filter</th>
+                  <th class="px-4 py-2">Name</th>
+                  <th class="px-4 py-2">DGUID</th>
+                  <th class="px-4 py-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody" class="divide-y divide-white/10"></tbody>
+            </table>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between text-sm">
+            <div class="text-white/60" id="pageInfo"></div>
+            <div class="flex items-center gap-2">
+              <button id="prev" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">Previous</button>
+              <button id="next" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit View -->
+        <div id="view-edit" class="hidden rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 class="text-lg font-semibold">Edit Query</h2>
+              <p class="text-xs text-white/60">Update SQL, key/linking fields and flags.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnView" class="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm">View</button>
+              <button id="btnSave" class="rounded-2xl bg-black px-4 py-2 text-sm font-semibold">Save</button>
+              <button id="btnDelete" class="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">Delete</button>
+              <button id="btnList" class="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm">List</button>
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Query ID *</label>
+              <input id="f_id" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" disabled />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Query Caption *</label>
+              <input id="f_caption" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="ProjectMilestone Related To Task" />
+              <p id="err_caption" class="mt-1 hidden rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800">Required</p>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Query Caption (AR)</label>
+              <input id="f_caption_ar" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="العنوان" />
+            </div>
+
+            <div class="lg:col-span-2">
+              <label class="mb-1 block text-xs font-semibold text-white/70">SQL *</label>
+              <textarea id="f_sql" rows="6" class="code glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm outline-none" placeholder="select * from DCMilestones"></textarea>
+              <p id="err_sql" class="mt-1 hidden rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800">SQL is required</p>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Fields Generation SQL</label>
+              <textarea id="f_fields_sql" rows="6" class="code glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm outline-none" placeholder="select TOP 1 * from DCMilestones"></textarea>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Parent Query</label>
+              <input id="f_parent" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="0" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Key Field</label>
+              <input id="f_key" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="ID" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Linking Field</label>
+              <input id="f_link" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="TaskID" />
+            </div>
+
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Template ID</label>
+              <input id="f_template" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="0" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Application ID</label>
+              <select id="f_app" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none">
+                <option value="">Please Select</option>
+                <option>CRM</option>
+                <option>Portal</option>
+                <option>UAT</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-white/70">Name</label>
+              <input id="f_name" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" />
+            </div>
+
+            <div class="flex items-center gap-6">
+              <label class="inline-flex items-center gap-2 text-sm"><input id="f_is_report" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/10"/> Is Report</label>
+              <label class="inline-flex items-center gap-2 text-sm"><input id="f_is_filter" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/10"/> Is Filter</label>
+            </div>
+
+            <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div>
+                <div class="text-white/60 text-xs">Create User</div>
+                <div id="f_create_user" class="font-semibold text-sm">Mohammed Dwaik</div>
+              </div>
+              <div>
+                <div class="text-white/60 text-xs">Create Date</div>
+                <div id="f_create_date" class="font-semibold text-sm">—</div>
+              </div>
+              <div>
+                <div class="text-white/60 text-xs">Update User</div>
+                <div id="f_update_user" class="font-semibold text-sm">Mohammed Dwaik</div>
+              </div>
+              <div>
+                <div class="text-white/60 text-xs">DGUID</div>
+                <div id="f_dguid" class="font-semibold text-sm">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- Confirm modal -->
+  <div id="confirm" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-4">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-5">
+      <div class="text-lg font-semibold">Delete query?</div>
+      <p class="mt-2 text-sm text-white/70">This action cannot be undone.</p>
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <button id="cCancel" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm">Cancel</button>
+        <button id="cOk" class="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-sm text-red-200">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Demo rows
+    let rows = [
+      { id:1289, caption:'ProjectMilstone Related To Task', parent:0, key:'', link:'', template:0, app:'', isReport:false, isFilter:false, name:'', dguid:'831196f0-a081-441c-8980-e355ff9c8ccae' },
+      { id:1288, caption:'ProjectName Related To Task', parent:0, key:'', link:'', template:0, app:'', isReport:false, isFilter:false, name:'', dguid:'67d914df-f2bd-433e-b182-bf8b6f06454b' },
+      { id:1287, caption:'ProjectTask Related to Task', parent:0, key:'', link:'', template:0, app:'', isReport:false, isFilter:false, name:'', dguid:'ae387f32-891d-4065-bbc1-f3648c715b94' }
+    ];
+
+    let page=1; const pageSize=10; let editingId=null; let filtered=[...rows];
+
+    const tbody=document.getElementById('tbody');
+    const pageInfo=document.getElementById('pageInfo');
+    const search=document.getElementById('search');
+
+    const listView=document.getElementById('view-list');
+    const editView=document.getElementById('view-edit');
+
+    const banner=document.getElementById('banner');
+    function showBanner(type,title,message){
+      banner.innerHTML='';
+      const div=document.createElement('div');
+      div.className='rounded-2xl border px-4 py-3 text-sm flex items-start gap-3 '+(type==='success'?'border-green-200 bg-green-50 text-green-800':type==='error'?'border-red-200 bg-red-50 text-red-800':'border-blue-200 bg-blue-50 text-blue-800');
+      div.innerHTML=`<i class="${type==='success'?'fa-solid fa-circle-check':type==='error'?'fa-solid fa-triangle-exclamation':'fa-solid fa-circle-info'} mt-0.5"></i><div><div class='font-semibold'>${title}</div><div>${message}</div></div>`;
+      banner.appendChild(div); banner.classList.remove('hidden');
+      setTimeout(()=>banner.classList.add('hidden'),3500);
+    }
+
+    function renderTable(){
+      const start=(page-1)*pageSize; const end=start+pageSize; const slice=filtered.slice(start,end);
+      tbody.innerHTML='';
+      slice.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td class='px-4 py-2'>${r.id}</td>
+          <td class='px-4 py-2'>${r.caption}</td>
+          <td class='px-4 py-2'>${r.parent}</td>
+          <td class='px-4 py-2'>${r.key||'—'}</td>
+          <td class='px-4 py-2'>${r.link||'—'}</td>
+          <td class='px-4 py-2'>${r.template}</td>
+          <td class='px-4 py-2'>${r.app||'—'}</td>
+          <td class='px-4 py-2'>${r.isReport? 'True':'False'}</td>
+          <td class='px-4 py-2'>${r.isFilter? 'True':'False'}</td>
+          <td class='px-4 py-2'>${r.name||'—'}</td>
+          <td class='px-4 py-2 text-white/60'>${r.dguid||'—'}</td>
+          <td class='px-4 py-2 text-right'>
+            <button class='rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-xs me-2' data-edit='${r.id}'>Edit</button>
+            <button class='rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-200' data-del='${r.id}'>Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      pageInfo.textContent=`Showing ${slice.length} of ${filtered.length}`;
+    }
+
+    function toList(){ editView.classList.add('hidden'); listView.classList.remove('hidden'); }
+    function toEdit(){ listView.classList.add('hidden'); editView.classList.remove('hidden'); }
+
+    // Pagination
+    document.getElementById('prev').addEventListener('click',()=>{ if(page>1){ page--; renderTable(); }});
+    document.getElementById('next').addEventListener('click',()=>{ if(page*pageSize<filtered.length){ page++; renderTable(); }});
+
+    // Search
+    search.addEventListener('input',()=>{
+      const q=search.value.toLowerCase();
+      filtered=rows.filter(r=>`${r.id}`.includes(q)||r.caption.toLowerCase().includes(q)||`${r.parent}`.includes(q)||`${r.template}`.includes(q)||`${r.app}`.toLowerCase().includes(q));
+      page=1; renderTable();
+    });
+
+    // Add New
+    document.getElementById('addNew').addEventListener('click',()=>{
+      editingId=null; fillForm({ id:'—', caption:'', caption_ar:'', sql:'', fields_sql:'', parent:0, key:'', link:'', template:0, app:'', isReport:false, isFilter:false, name:'', dguid:crypto.randomUUID(), create_user:'Mohammed Dwaik', create_date:new Date().toISOString() }); toEdit();
+    });
+
+    // Row actions
+    tbody.addEventListener('click',(e)=>{
+      const editId=e.target.getAttribute('data-edit');
+      const delId=e.target.getAttribute('data-del');
+      if(editId){ const item=rows.find(r=>r.id===Number(editId)); editingId=item.id; fillForm(item); toEdit(); }
+      if(delId){ pendingDelete=Number(delId); openConfirm(); }
+    });
+
+    // Form refs
+    const f_id=document.getElementById('f_id');
+    const f_caption=document.getElementById('f_caption');
+    const f_caption_ar=document.getElementById('f_caption_ar');
+    const f_sql=document.getElementById('f_sql');
+    const f_fields_sql=document.getElementById('f_fields_sql');
+    const f_parent=document.getElementById('f_parent');
+    const f_key=document.getElementById('f_key');
+    const f_link=document.getElementById('f_link');
+    const f_template=document.getElementById('f_template');
+    const f_app=document.getElementById('f_app');
+    const f_is_report=document.getElementById('f_is_report');
+    const f_is_filter=document.getElementById('f_is_filter');
+    const f_name=document.getElementById('f_name');
+
+    function fillForm(r){
+      f_id.value=r.id; f_caption.value=r.caption||''; f_caption_ar.value=r.caption_ar||''; f_sql.value=r.sql||''; f_fields_sql.value=r.fields_sql||'';
+      f_parent.value=r.parent??0; f_key.value=r.key||''; f_link.value=r.link||''; f_template.value=r.template??0; f_app.value=r.app||''; f_is_report.checked=!!r.isReport; f_is_filter.checked=!!r.isFilter; f_name.value=r.name||'';
+      document.getElementById('f_create_user').textContent=r.create_user||'—';
+      document.getElementById('f_create_date').textContent=r.create_date? new Date(r.create_date).toLocaleString() : '—';
+      document.getElementById('f_update_user').textContent=r.update_user||'—';
+      document.getElementById('f_dguid').textContent=r.dguid||'—';
+    }
+
+    function validateForm(){
+      let ok=true; const ec=document.getElementById('err_caption'); const es=document.getElementById('err_sql');
+      [ec,es].forEach(e=>e.classList.add('hidden'));
+      if(!f_caption.value.trim()){ ec.classList.remove('hidden'); ok=false; }
+      if(!f_sql.value.trim()){ es.classList.remove('hidden'); ok=false; }
+      return ok;
+    }
+
+    document.getElementById('btnList').addEventListener('click',()=>toList());
+    document.getElementById('btnView').addEventListener('click',()=>showBanner('info','Read-only','Viewing query in read-only mode (demo).'));
+
+    document.getElementById('btnSave').addEventListener('click',()=>{
+      if(!validateForm()){ showBanner('error','Validation','Please fix the required fields.'); return; }
+      const now=new Date().toISOString();
+      if(editingId==null){
+        const newId=rows.length?Math.max(...rows.map(r=>r.id))+1:1;
+        rows.unshift({ id:newId, caption:f_caption.value.trim(), caption_ar:f_caption_ar.value.trim(), sql:f_sql.value, fields_sql:f_fields_sql.value, parent:Number(f_parent.value||0), key:f_key.value.trim(), link:f_link.value.trim(), template:Number(f_template.value||0), app:f_app.value, isReport:f_is_report.checked, isFilter:f_is_filter.checked, name:f_name.value.trim(), dguid:crypto.randomUUID(), create_user:'Mohammed Dwaik', create_date:now, update_user:'Mohammed Dwaik' });
+        showBanner('success','Created','Query added.');
+      } else {
+        const idx=rows.findIndex(r=>r.id===editingId);
+        rows[idx]={ ...rows[idx], caption:f_caption.value.trim(), caption_ar:f_caption_ar.value.trim(), sql:f_sql.value, fields_sql:f_fields_sql.value, parent:Number(f_parent.value||0), key:f_key.value.trim(), link:f_link.value.trim(), template:Number(f_template.value||0), app:f_app.value, isReport:f_is_report.checked, isFilter:f_is_filter.checked, name:f_name.value.trim(), update_user:'Mohammed Dwaik' };
+        showBanner('success','Saved','Query updated.');
+      }
+      filtered=[...rows]; page=1; renderTable(); toList();
+    });
+
+    // Delete flow
+    let pendingDelete=null; const modal=document.getElementById('confirm');
+    function openConfirm(){ modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    function closeConfirm(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    document.getElementById('cCancel').addEventListener('click',()=>{ pendingDelete=null; closeConfirm(); });
+    document.getElementById('cOk').addEventListener('click',()=>{ if(pendingDelete!=null){ rows=rows.filter(r=>r.id!==pendingDelete); filtered=[...rows]; showBanner('success','Deleted','Query removed.'); renderTable(); } pendingDelete=null; closeConfirm(); });
+
+    // Init
+    renderTable();
+  </script>
+</body>
+</html>

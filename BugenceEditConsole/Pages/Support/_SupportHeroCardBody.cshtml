@@ -1,0 +1,18 @@
+@model BugenceEditConsole.Pages.SupportModel
+
+<div class="dashboard-card__badge">
+    <span class="fa-solid fa-headset dashboard-card__badge-icon"></span>
+    Bugence Support Ops
+</div>
+<div class="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+    @foreach (var metric in Model.Metrics)
+    {
+        <div class="flex items-center gap-3 rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-ink/80">
+            <span class="@metric.Icon text-accent"></span>
+            <div>
+                <p class="text-xs uppercase tracking-[0.28em] text-ink/45">@metric.Title</p>
+                <p class="mt-1 text-sm font-medium text-ink">@metric.Detail</p>
+            </div>
+        </div>
+    }
+</div>

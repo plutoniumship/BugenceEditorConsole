@@ -1,0 +1,167 @@
+/* ===== Reset ===== */
+* { border: 0; box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== Theme (light-first with nav accent fallbacks) ===== */
+:root {
+  /* If your navbar already defines these, they’ll be used automatically */
+  --accent-a: var(--nav-btn-start, #0ea5e9); /* cyan */
+  --accent-b: var(--nav-btn-end,   #22c55e); /* green */
+
+  --hue-primary: 223;
+  --hue-secondary: 178;
+
+  /* kept for internal gradients, but tuned lighter */
+  --primary500: hsl(var(--hue-primary), 90%, 50%);
+  --primary600: hsl(var(--hue-primary), 90%, 60%);
+  --primary700: hsl(var(--hue-primary), 90%, 65%);
+  --secondary800: hsl(var(--hue-secondary), 90%, 72%);
+
+  /* light neutrals */
+  --light-50:  #ffffff;
+  --light-100: #f8fafc; /* slate-50 */
+  --light-200: #f1f5f9; /* slate-100 */
+
+  /* white transparencies (used for glass layers) */
+  --white0:   hsla(0, 0%, 100%, 0);
+  --white50:  hsla(0, 0%, 100%, .05);
+  --white100: hsla(0, 0%, 100%, .10);
+  --white200: hsla(0, 0%, 100%, .20);
+  --white300: hsla(0, 0%, 100%, .30);
+  --white400: hsla(0, 0%, 100%, .40);
+  --white500: hsla(0, 0%, 100%, .50);
+  --white:    hsl(0, 0%, 100%);
+
+  /* ink */
+  --ink: #0f172a;   /* title/body on light */
+  --muted: #475569; /* body secondary on light */
+
+  font-size: clamp(.75rem, .65rem + .5vw, 1.25rem);
+}
+
+/* ===== Page (light surface) ===== */
+body {
+  background: linear-gradient(180deg, var(--light-100), var(--light-200));
+  color: var(--ink);
+  font: 1em/1.5 "Work Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  display: grid; place-items: center; min-height: 100vh;
+}
+
+/* ===== Card (kept structure; tuned for light) ===== */
+.card {
+  --blur: 12px;
+  --width: 21.1em;
+  --height: 12.8em;
+  --move-by: 2em;
+
+  /* base gradient card (behind the glass) uses site accent */
+  background-image: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+  border-radius: 1em;
+  box-shadow: 0 .25em .9em rgba(2, 6, 23, .10);
+  position: absolute;
+  top: var(--move-by);
+  left: calc(var(--move-by) * -1);
+  width: var(--width);
+  height: var(--height);
+  transform: translate(-50%, -50%);
+
+  [dir="rtl"] & {
+    background-image: linear-gradient(-90deg, var(--accent-a), var(--accent-b));
+    left: var(--move-by);
+  }
+
+  /* ===== Glass variant ===== */
+  &--glass {
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
+    /* lighter glass for light theme */
+    background-image: linear-gradient(180deg, hsla(0,0%,100%, .72), hsla(0,0%,100%, .48));
+    color: transparent; /* gradient text via background-clip on content */
+    top: calc(var(--move-by) * -1);
+    left: var(--move-by);
+
+    /* gradient ring (white glint + accent ring) */
+    &:before,
+    &:after {
+      border-radius: inherit;
+      content: "";
+      position: absolute;
+      inset: 0;
+      display: block;
+      pointer-events: none;
+    }
+    /* inner white highlight (subtle on light) */
+    &:before {
+      border: 1px solid rgba(255,255,255,.85);
+      mask-image: linear-gradient(135deg, var(--white), var(--white0) 55%);
+    }
+    /* outer accent ring */
+    &:after {
+      border: 1px solid transparent;
+      /* fake border via gradient on border-box */
+      background:
+        linear-gradient(135deg, var(--accent-a), var(--accent-b)) border-box,
+        linear-gradient(135deg, transparent, transparent) padding-box;
+      mask:
+        linear-gradient(#000, #000) padding-box,
+        linear-gradient(#000, #000) border-box;
+      -webkit-mask-composite: destination-out;
+              mask-composite: exclude;
+    }
+
+    [dir="rtl"] & {
+      left: calc(var(--move-by) * -1);
+      &:before { mask-image: linear-gradient(-135deg, var(--white), var(--white0) 55%); }
+    }
+  }
+
+  /* ===== Content with gradient text (readable on light) ===== */
+  &__content {
+    /* use your original layered approach but with accent hues so it reads on light */
+    background:
+      /* top bar tint on headings */
+      linear-gradient(var(--white0) 3.125em, var(--accent-a) 3.375em, var(--accent-b) 4.5em) 0 0 / calc(var(--width) - var(--move-by) * 2) 52%,
+      /* bottom sweep tint */
+      linear-gradient(90deg, var(--accent-b) 13em, var(--accent-a) calc(var(--width) - var(--move-by) * 2), var(--white0) 19.1em) 0 100% / 100% 48%,
+      /* base: give text a soft graphite fallback */
+      linear-gradient(90deg, rgba(15,23,42,.85) 4em, rgba(15,23,42,.65)) 0 0 / 100% 100%;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
+    padding: 1.25em 1.5em; position: relative; height: 100%; z-index: 1;
+
+    [dir="rtl"] & {
+      background:
+        linear-gradient(var(--white0) 3.125em, var(--accent-a) 3.375em, var(--accent-b) 4.5em) 100% 0 / calc(var(--width) - var(--move-by) * 2) 52%,
+        linear-gradient(-90deg, var(--accent-b) 13em, var(--accent-a) calc(var(--width) - var(--move-by) * 2), var(--white0) 19.1em) 100% 100% / 100% 48%,
+        linear-gradient(-90deg, rgba(15,23,42,.85) 4em, rgba(15,23,42,.65)) 100% 0 / 100% 100%;
+    }
+
+    &, [dir="rtl"] & {
+      -webkit-background-clip: text;
+              background-clip: text;
+      background-repeat: no-repeat;
+    }
+  }
+
+  &__logo,
+  &__title {
+    font-size: 1.5em;
+    font-weight: 700;
+    line-height: 1.17;
+  }
+  &__logo { text-align: end; width: 25%; }
+  &__title { font-family: Caladea, serif; width: 75%; }
+  &__url {
+    font-size: .75em; align-self: flex-end; margin-inline-start: auto;
+  }
+}
+
+/* wrapper from your CodePen */
+.cards { position: relative; }
+
+/* ===== Optional: dark-mode fallback if user toggles OS scheme ===== */
+@media (prefers-color-scheme: dark) {
+  body { background: linear-gradient(90deg, hsl(var(--hue-primary), 90%, 10%), hsl(var(--hue-primary), 90%, 5%)); color: #e5e7eb; }
+  .card--glass {
+    background-image: linear-gradient(180deg, rgba(13,23,42,.60), rgba(13,23,42,.45));
+    &:before { border-color: rgba(255,255,255,.65); }
+  }
+}

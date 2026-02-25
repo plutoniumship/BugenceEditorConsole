@@ -1,0 +1,128 @@
+@page
+@model BugenceEditConsole.Pages.Content.SiteUploadModel
+@{
+    ViewData["Title"] = "Upload Static Site";
+    ViewData["BodyClass"] = "bg-canvas";
+}
+
+<section class="stack stack--loose">
+    <div class="rounded-3xl border border-white/10 bg-[#0b1020]/80 p-6 sm:p-8 shadow-[0_18px_55px_-18px_rgba(0,0,0,.6)]">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div class="space-y-2">
+                <p class="text-[11px] uppercase tracking-[0.28em] text-slate-400">Static sites</p>
+                <h1 class="text-2xl font-semibold text-white">Upload & activate a static site</h1>
+                <p class="text-slate-300 text-sm max-w-3xl">
+                    Drop a .zip containing your HTML, CSS, JS, and assets. We’ll unpack it, set <code>/</code> to your <code>index.html</code>,
+                    and keep <code>/login</code> reserved for the visual editor. No hardcoded project hooks required.
+                </p>
+            </div>
+            <div class="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-sm text-emerald-100 flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                <span>Auto-prepare & activate on upload</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1.2fr),minmax(0,0.9fr)]">
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8 shadow-lg">
+            <div class="flex items-center gap-3">
+                <span class="fa-solid fa-cloud-arrow-up text-amber-300 text-lg"></span>
+                <div>
+                    <p class="text-sm font-semibold text-white">Upload a new bundle</p>
+                    <p class="text-xs text-slate-300">Max 250 MB .zip. We’ll locate <code>index.html</code> automatically.</p>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+            {
+                <div class="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+                    <span class="fa-solid fa-circle-check mr-2"></span>@Model.StatusMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="mt-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                    <span class="fa-solid fa-circle-xmark mr-2"></span>@Model.ErrorMessage
+                </div>
+            }
+
+            <form method="post" enctype="multipart/form-data" class="mt-5 space-y-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-white flex items-center gap-2" for="Archive">
+                        <span class="fa-solid fa-file-zipper text-amber-300"></span>
+                        Upload .zip
+                    </label>
+                    <input asp-for="Archive"
+                           type="file"
+                           accept=".zip"
+                           class="block w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-4 file:rounded-xl file:border-0 file:bg-amber-500 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-black hover:border-amber-400/60 focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/30" />
+                    <span asp-validation-for="Archive" class="text-sm text-rose-200"></span>
+                </div>
+                <p class="text-xs text-slate-300">
+                    - Bundles must include <code>index.html</code>.<br />
+                    - Assets stay same-origin; we keep <code>/login</code> for the editor.<br />
+                    - After upload, running the app will land on your bundle’s index page.
+                </p>
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-rose-500 px-5 py-2.5 text-sm font-semibold text-black shadow-lg hover:brightness-110">
+                        <span class="fa-solid fa-rocket-launch"></span>
+                        Upload & activate
+                    </button>
+                        <span class="fa-solid fa-eye"></span>
+                        Live preview
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="rounded-3xl border border-white/10 bg-black/40 p-6 sm:p-8 shadow-lg space-y-4">
+            <div class="flex items-center gap-3">
+                <span class="fa-solid fa-circle-nodes text-sky-300 text-lg"></span>
+                <div>
+                    <p class="text-sm font-semibold text-white">Active site status</p>
+                    <p class="text-xs text-slate-300">Shows the bundle currently served at <code>/</code>.</p>
+                </div>
+            </div>
+
+            @if (Model.ActiveSite is null)
+            {
+                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                    No active uploaded site yet. Upload a bundle to replace the default placeholder.
+                </div>
+            }
+            else
+            {
+                <dl class="grid grid-cols-1 gap-3 text-sm text-slate-200 sm:grid-cols-2">
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-1">
+                        <dt class="text-[11px] uppercase tracking-[0.18em] text-slate-400">Name</dt>
+                        <dd class="font-semibold text-white">@Model.ActiveSite.Name</dd>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-1">
+                        <dt class="text-[11px] uppercase tracking-[0.18em] text-slate-400">Uploaded (UTC)</dt>
+                        <dd class="font-semibold text-white">@Model.ActiveSite.UploadedAtUtc.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-1">
+                        <dt class="text-[11px] uppercase tracking-[0.18em] text-slate-400">Entry</dt>
+                        <dd class="font-semibold text-white">@Model.ActiveSite.EntryPoint</dd>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-1">
+                        <dt class="text-[11px] uppercase tracking-[0.18em] text-slate-400">Files</dt>
+                        <dd class="font-semibold text-white">@Model.ActiveSite.FileCount.ToString("N0")</dd>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-1 sm:col-span-2">
+                        <dt class="text-[11px] uppercase tracking-[0.18em] text-slate-400">Path</dt>
+                        <dd class="font-mono text-[12px] text-amber-200 break-all">@Model.ActiveSite.ActivePhysicalPath</dd>
+                    </div>
+                </dl>
+                <div class="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-xs text-emerald-100">
+                    Active bundle is already wired to <code>/</code>. Use <strong>Upload & activate</strong> to swap in a new site.
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,166 @@
+@page "/Application/Table/{tableId:guid}"
+@model BugenceEditConsole.Pages.Application.TableModel
+@{
+    ViewData["Title"] = "Table";
+    ViewData["BodyClass"] = "page-application-table";
+
+    var columns = Model.Columns;
+    var records = Model.Records;
+}
+
+@section Head {
+<style>
+        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --purple:#8b5cf6; }
+        * { box-sizing:border-box; outline:none; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
+        .shell { display:flex; width:100%; height:100%; }
+        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
+        main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); position:relative; }
+        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
+        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
+        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
+        .nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
+        .nav-item.active { background:rgba(6,182,212,0.1); color:var(--accent); }
+        .profile-block { margin-top:auto; padding-top:20px; border-top:1px solid var(--border); position:relative; }
+        .profile-card { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; cursor:pointer; position:relative; }
+        .profile-card .avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#22d3ee); display:grid; place-items:center; font-weight:800; color:#00131a; border:none; }
+        .profile-menu { position:absolute; left:0; right:0; bottom:calc(100% + 8px); background:#0b0e14; border:1px solid var(--border); border-radius:12px; padding:8px 0; display:none; box-shadow:0 20px 40px rgba(0,0,0,0.45); }
+        .profile-card.show .profile-menu { display:block; }
+        .profile-menu a { display:block; padding:8px 12px; color:white; text-decoration:none; font-weight:600; }
+        .profile-menu a:hover { background:rgba(255,255,255,0.05); }
+        .header { margin-bottom:24px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.3rem; margin:0 0 6px; }
+        .header p { margin:0; color:var(--muted); font-size:0.95rem; }
+        .primary-btn { background:var(--accent); color:#00131a; border:none; border-radius:10px; font-weight:700; padding:12px 16px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+        .primary-btn:hover { background:#0891b2; color:white; }
+        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; padding:18px 25px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
+        td { padding:18px 25px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); }
+        tr:last-child td { border-bottom:none; }
+        .muted { color:var(--muted); font-size:0.85rem; }
+        .drawer { position:fixed; inset:0; display:none; z-index:200; }
+        .drawer.show { display:flex; }
+        .drawer-backdrop { flex:1; background:rgba(2,6,23,0.65); }
+        .drawer-panel { width:min(520px, 92vw); background:#0b0e14; border-left:1px solid rgba(148,163,184,0.2); padding:24px; overflow-y:auto; }
+        .drawer-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+        .drawer-header h3 { margin:0; font-family:'Cabinet Grotesk',sans-serif; font-size:1.4rem; }
+        .drawer-sub { color:#94a3b8; font-size:0.85rem; }
+        .form-input { width:100%; background:#111; border:1px solid var(--border); padding:12px 14px; border-radius:8px; color:white; outline:none; transition:0.2s; font-family:inherit; font-size:0.95rem; }
+        .form-input:focus { border-color:var(--accent); }
+        .chip-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+        .chip-btn:hover { border-color:var(--accent); color:white; }
+        .footer-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+        .empty-state { padding:32px; text-align:center; color:var(--muted); }
+        .table-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+        .search-input { width:min(360px, 100%); background:#0b0b0b; border:1px solid rgba(148,163,184,0.2); padding:10px 14px; border-radius:10px; color:white; font-size:0.9rem; }
+        .search-input:focus { border-color:var(--accent); }
+        .pagination { display:flex; align-items:center; gap:8px; margin-top:16px; justify-content:flex-end; }
+        .page-btn { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:#e2e8f0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+        .page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+        .page-info { color:var(--muted); font-size:0.85rem; }
+        .confirm-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:220; }
+        .confirm-modal.show { display:flex; }
+        .confirm-backdrop { position:absolute; inset:0; background:rgba(2,6,23,0.7); }
+        .confirm-card { position:relative; width:min(420px, 92vw); background:#0b0e14; border:1px solid rgba(148,163,184,0.2); border-radius:16px; padding:20px; box-shadow:0 30px 60px rgba(0,0,0,0.5); }
+        .confirm-card h4 { margin:0 0 6px; font-family:'Cabinet Grotesk',sans-serif; }
+        .confirm-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+        .danger-btn { background:transparent; border:1px solid rgba(239,68,68,0.5); color:#fecaca; }
+        .danger-btn:hover { border-color:#ef4444; color:white; }
+        @@media (max-width: 900px) { main { padding:32px 24px; } aside { display:none; } }
+    </style>
+}
+
+<div class="header">
+                <div>
+                    <h1>@(Model.TableName ?? "Application Records")</h1>
+                    <p>View and manage records for this table.</p>
+                </div>
+                @if (Model.CanManage && Model.TableId != Guid.Empty)
+                {
+                    <button class="primary-btn" id="openDrawer"><i class="fa-solid fa-plus"></i> New Record</button>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="table-wrapper" style="padding:20px; margin-bottom:16px;">
+                    <div class="muted">@Model.ErrorMessage</div>
+                </div>
+            }
+
+            <div class="table-toolbar">
+                <input class="search-input" id="recordSearch" placeholder="Search records..." />
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:12%;">Application ID</th>
+                            @foreach (var column in columns.Where(c => !string.Equals(c.Name, "DGUID", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                <th>@column.Name</th>
+                            }
+                            <th style="width:16%;">Created</th>
+                            <th style="width:12%; text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (records.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="@(columns.Count + 2)" class="empty-state">No records yet. Create one to get started.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var record in records)
+                            {
+                                var searchText = string.Join(" ", record.Values.Select(v => $"{v.Key} {v.Value}"));
+                                <tr data-record-id="@record.RecordId"
+                                    data-values='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(record.Values, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))'
+                                    data-search="@($"{record.RecordId} {searchText}".ToLowerInvariant())">
+                                    <td>#@record.RecordId</td>
+                                    @foreach (var column in columns.Where(c => !string.Equals(c.Name, "DGUID", StringComparison.OrdinalIgnoreCase)))
+                                    {
+                                        var isImage = string.Equals(column.Type, "image", StringComparison.OrdinalIgnoreCase)
+                                            || column.Name.Contains("image", StringComparison.OrdinalIgnoreCase);
+                                        record.Values.TryGetValue(column.Name, out var value);
+                        if (isImage && value is string path && !string.IsNullOrWhiteSpace(path))
+                        {
+                            <td><img src="@path" alt="@column.Name" style="width:42px;height:42px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.12);" /></td>
+                        }
+                        else
+                        {
+                            <td class="muted">@((value ?? "—").ToString())</td>
+                        }
+                    }
+                                    <td class="muted">@record.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</td>
+                                    <td style="text-align:right;">
+                                        @if (Model.CanManage)
+                                        {
+                                            <button class="chip-btn edit-record" type="button" data-record-id="@record.RecordId"><i class="fa-solid fa-pen"></i> Edit</button>
+                                            <button class="chip-btn delete-record" type="button" data-record-id="@record.RecordId"><i class="fa-solid fa-trash"></i> Delete</button>
+                                        }
+                                        else
+                                        {
+                                            <span class="muted">View only</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="recordPagination" style="display:none;">
+                <button class="page-btn" id="prevRecordPage">Previous</button>
+                <span class="page-info" id="recordPageInfo">Page 1 of 1</span>
+                <button class="page-btn" id="nextRecordPage">Next</button>
+            </div>
+
+
+
+
