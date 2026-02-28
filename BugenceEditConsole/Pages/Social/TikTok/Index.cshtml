@@ -1,0 +1,48 @@
+@page "/social/tiktok"
+@{
+    ViewData["Title"] = "TikTok Marketing";
+    ViewData["BodyClass"] = "page-social-tiktok";
+}
+
+<style>
+    .soc-shell { max-width: 1600px; margin: 0 auto; display: grid; gap: 18px; padding-bottom: 28px; }
+    .soc-hero, .soc-panel { border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); background: radial-gradient(720px 260px at -8% -18%, rgba(45,212,191,0.16), transparent 54%), radial-gradient(560px 220px at 108% 0%, rgba(236,72,153,0.16), transparent 58%), linear-gradient(145deg, rgba(10,10,10,0.985), rgba(4,4,4,0.995)); box-shadow: 0 30px 80px rgba(0,0,0,0.48); }
+    .soc-hero { padding: 28px; }
+    .soc-kicker { display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); color:#2dd4bf; font-size:.72rem; font-weight:900; letter-spacing:.18em; text-transform:uppercase; }
+    .soc-title { margin:14px 0 10px; color:#f5f7fa; font-family:"Cabinet Grotesk",sans-serif; font-size:clamp(2rem,3.6vw,4rem); line-height:.92; letter-spacing:-.05em; }
+    .soc-copy { margin:0; color:#95a1b3; line-height:1.7; max-width:900px; }
+    .soc-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:18px; }
+    .soc-panel { padding:22px; }
+    .soc-panel h3 { margin:0 0 8px; color:#f5f7fa; font-family:"Cabinet Grotesk",sans-serif; font-size:1.5rem; }
+    .soc-list { display:grid; gap:12px; margin-top:16px; }
+    .soc-item { border-radius:18px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.025); padding:14px; color:#dfe6ef; }
+    .soc-item strong { display:block; margin-bottom:6px; color:#fff; }
+    @@media (max-width: 1100px) { .soc-grid { grid-template-columns:1fr; } }
+</style>
+
+<div class="soc-shell">
+    <section class="soc-hero">
+        <span class="soc-kicker">Channel Expansion</span>
+        <h1 class="soc-title">TikTok Marketing is staged for high-volume lead capture with the same operating rigor.</h1>
+        <p class="soc-copy">The visual and operational shell is now aligned. Once TikTok lead sync is enabled, this channel will inherit the same action drawer, attribution reporting, SLA monitoring, and automation orchestration already established in the social module.</p>
+    </section>
+
+    <section class="soc-grid">
+        <article class="soc-panel">
+            <h3>What the channel will support</h3>
+            <div class="soc-list">
+                <div class="soc-item"><strong>Lead capture operations</strong>Unified queue for inbound social leads with fast action handling.</div>
+                <div class="soc-item"><strong>Short-form attribution</strong>Ad and creative-level reporting with trend and conversion insight.</div>
+                <div class="soc-item"><strong>Automation handoff</strong>Workflow-triggered follow-up, enrichment, and compliance routing.</div>
+            </div>
+        </article>
+        <article class="soc-panel">
+            <h3>Enablement path</h3>
+            <div class="soc-list">
+                <div class="soc-item"><strong>Integration layer</strong>TikTok auth, asset sync, and ingestion adapter.</div>
+                <div class="soc-item"><strong>Operational reuse</strong>Lead actions, reporting structure, and routing rules are already solved at module level.</div>
+                <div class="soc-item"><strong>Readiness state</strong>UI shell complete, ingestion still pending platform connection work.</div>
+            </div>
+        </article>
+    </section>
+</div>

@@ -1,0 +1,454 @@
+<script src="/MOHAPTheme/js/chart.min.js"></script>
+<script src="/MOHAPTheme/js/highcharts.js"></script>
+<script src="/MOHAPTheme/js/highcharts-more.js"></script>
+<script src="/MOHAPTheme/js/pie-chart.js" type="text/javascript"></script>
+
+<style>
+  /* —— New, clean theme (dark + glass) —— */
+  :root{
+    --ink:#E5F4FF;           /* text on dark */
+    --muted:#8DA8C6;         /* secondary text */
+    --brand:#3399FF;         /* primary */
+    --brand-2:#6EE7FF;       /* accent */
+    --good:#22C55E;
+    --warn:#FFAB00;
+    --bad:#EF4444;
+    --panel: rgba(255,255,255,.06);
+    --panel-hover: rgba(255,255,255,.12);
+    --border: rgba(255,255,255,.10);
+    --ring: rgba(102,178,255,.35);
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --glass: blur(10px) saturate(120%);
+  }
+
+  body{ background: radial-gradient(1200px 700px at 20% -10%, rgba(51,153,255,.12), transparent 60%),
+                     radial-gradient(900px 700px at 120% 10%, rgba(102,231,255,.10), transparent 60%),
+                     #0B1220; color: var(--ink); }
+
+  .head_block{
+    padding: 1.5rem 0 1rem;
+  }
+  .head_block .page_name{
+    font-weight:800; letter-spacing:.3px;
+    background: linear-gradient(90deg,#fff, #9EDCFF 60%, #6EE7FF);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .head_block p{ color: var(--muted); }
+
+  /* Quick Links */
+  .crm-quick-links{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    backdrop-filter: var(--glass);
+    box-shadow: var(--shadow);
+  }
+  .crm-quick-links a{
+    width: 132px; min-width: 120px;
+    color: var(--ink); text-decoration:none;
+    border:1px solid var(--border);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border-radius: 16px; padding: 16px 10px; transition: .25s ease;
+    position: relative; overflow: hidden;
+  }
+  .crm-quick-links a:before{
+    content:""; position:absolute; inset:auto -30% 0 -30%; height: 0;
+    background: radial-gradient(200px 40px at 50% 100%, rgba(110,231,255,.25), transparent);
+    transition:.25s ease;
+  }
+  .crm-quick-links a:hover{ transform: translateY(-3px); border-color: var(--ring); box-shadow: 0 12px 30px rgba(51,153,255,.15);}
+  .crm-quick-links a:hover:before{ height: 70px; }
+  .crm-quick-links .system-icn{
+    display:grid; place-items:center; width:72px;height:72px; margin:0 auto 10px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(51,153,255,.18), rgba(51,153,255,.08));
+    border:1px solid var(--border);
+  }
+  .crm-quick-links img{ filter: drop-shadow(0 4px 12px rgba(51,153,255,.4)); max-height:42px; }
+  .disabled-box{ filter: grayscale(.85) opacity(.75); pointer-events:none; }
+
+  /* Cards / panels */
+  .panel{
+    background: var(--panel);
+    border:1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: var(--glass);
+  }
+  .panel:hover{ border-color: var(--ring); }
+
+  /* Chart legend pills */
+  .pipline-legend{
+    display:flex; gap:.5rem; align-items:center; padding:.25rem .6rem; border-radius:999px;
+    background: rgba(255,255,255,.05); border:1px solid var(--border); color: var(--muted);
+  }
+  .pipline-legend .circle{
+    width:12px;height:12px;border-radius:999px;background-color:#3399FF; box-shadow:0 0 0 3px rgba(51,153,255,.15) inset;
+  }
+  .pipline-legend.target .circle{ background-color:#004F8B;}
+  .pipline-legend.achieved .circle{ background-color:#68C6FF;}
+
+  /* Accordion (Tasks) */
+  .accordion .accordion-item{ border: 1px solid var(--border)!important; border-radius: 16px!important; overflow:hidden; background: var(--panel); }
+  .accordion-header{ border-top: 5px solid var(--brand); }
+  .accordion-header.general-tasks{ border-top: 5px solid #3399FF; }
+  .accordion-header .btn-toggle{ border:0;background:transparent;color:var(--muted); }
+  .accordion-body{ background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); }
+
+  /* Gauge label tweak */
+  .chart-vl{ font-weight:700; color:#E5F4FF; }
+  .label-arrow{ width:24px; margin-left:6px; transform: translateY(3px); }
+
+  /* Selects & small UI */
+  .form-select, select{ background:#0F1A2A; color:var(--ink); border-color: var(--border); border-radius: 12px; }
+
+  /* Utility */
+  .text-secondary{ color: var(--muted)!important; }
+  .fixed_height{ max-height: 450px; overflow:auto; }
+</style>
+
+<div class="container-fluid">
+  <div class="head_block">
+    <h1 class="page_name mb-1">
+      <span class="good-msg">Good Morning</span>
+    </h1>
+    <p class="m-0">Welcome to your Workspace.</p>
+  </div>
+
+  <div class="row">
+    <!-- LEFT -->
+    <div class="col-12 col-md-8">
+      <!-- Quick Links -->
+      <div class="crm-quick-links mb-3 rounded-3 p-4">
+        <div class="d-flex gap-3 gap-md-4 flex-wrap">
+          <a href="/portal/page/175" class="text-center">
+            <div class="system-icn">
+              <img class="svgreplace" src="/MOHAPTheme/img/crm-h-icon.svg" alt="strategy">
+            </div>
+            <h6 class="mb-0">CRM</h6>
+          </a>
+
+          <a href="#" class="text-center disabled-box">
+            <div class="system-icn">
+              <img class="svgreplace" src="/MOHAPTheme/img/helpD-h-icon.svg" alt="Help Desk">
+            </div>
+            <h6 class="mb-0">Help Desk</h6>
+          </a>
+
+          <a href="/portal/page/148" class="text-center">
+            <div class="system-icn">
+              <img class="svgreplace" src="/MOHAPTheme/img/kn-hub-icon.svg" alt="Knowledge Hub">
+            </div>
+            <h6 class="mb-0">Knowledge Hub</h6>
+          </a>
+
+          <a href="#" class="text-center disabled-box">
+            <div class="system-icn">
+              <img class="svgreplace" src="/MOHAPTheme/img/finance-h-icon.svg" alt="HR & Finance">
+            </div>
+            <h6 class="mb-0">HR & Finance</h6>
+          </a>
+
+          <a href="/portal/page/183" class="text-center">
+            <div class="system-icn">
+              <img class="svgreplace" src="/MOHAPTheme/img/projects-h-icon.svg" alt="Projects">
+            </div>
+            <h6 class="mb-0">Projects</h6>
+          </a>
+
+          <a href="/portal/page/193" class="text-center">
+            <div class="system-icn">
+              <img class="svgreplace" style="height:58px;width:auto" src="/MOHAPTheme/img/datacellcrm/bugenceWeb.png" alt="AI Lead Outreach">
+            </div>
+            <h6 class="mb-0">AI Lead Outreach</h6>
+          </a>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <h3 class="fw-bold mb-3" style="color:var(--brand)">Charts</h3>
+      <div class="row">
+        <div class="col-12 col-lg-4">
+          <div class="mb-3 panel p-3">
+            <h6 class="mb-1">Target Value : <span class="text-secondary">103</span></h6>
+            <h6 class="mb-3">Achieved Value : <span class="text-secondary">103</span></h6>
+            <div class="position-relative">
+              <img class="bg_guage w-100" src="/MOHAPTheme/img/guage-bg.svg" alt="guage">
+              <div id="kpi_chart2" class="mt-n4"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-8">
+          <div class="mb-3 panel p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <p class="text-secondary mb-3">Sales from 1–6 Dec, 2020</p>
+            </div>
+            <div style="height:240px">
+              <canvas id="multiLineChart"></canvas>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <div class="target pipline-legend">
+                <span class="circle"></span><span>Last 6 days</span>
+              </div>
+              <div class="achieved pipline-legend">
+                <span class="circle"></span><span>Last Week</span>
+              </div>
+            </div>
+
+            <script>
+              // Dark theme for Chart.js
+              const staticData = {
+                rows: [
+                  { KPI: "KPI1", Value1: 10, Value2: 50, Value3: 30 },
+                  { KPI: "KPI2", Value1: 15, Value2: 25, Value3: 80 }
+                ]
+              };
+              const labels = Object.keys(staticData.rows[0] || []).filter(k => !["ID", "KPI"].includes(k));
+              const palette = ['#68C6FF','#3399FF','#6EE7FF','#A5B4FC'];
+              const datapoints = staticData.rows.map((vals,i)=>({
+                label: vals.KPI,
+                data: labels.map(l=>vals[l]),
+                fill: false,
+                borderColor: palette[i%palette.length],
+                backgroundColor: palette[i%palette.length],
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: .45
+              }));
+
+              const ctx = document.getElementById("multiLineChart").getContext('2d');
+              new Chart(ctx, {
+                type:'line',
+                data:{ labels: labels.map(k=>k.replace("Value","")), datasets:datapoints },
+                options:{
+                  responsive:true, maintainAspectRatio:false,
+                  scales:{
+                    x:{ ticks:{ color:'#9DB7D6' }, grid:{ color:'rgba(255,255,255,.06)' } },
+                    y:{ ticks:{ color:'#9DB7D6' }, grid:{ color:'rgba(255,255,255,.06)' } }
+                  },
+                  plugins:{ legend:{ labels:{ color:'#E5F4FF' } } }
+                }
+              });
+            </script>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="col-12">
+        <div class="mb-3 panel p-3 fixed_height">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-secondary m-0">Notifications</h5>
+            <div class="col-7 col-md-3">
+              <select class="form-select">
+                <option>Latest</option>
+                <option>Unread</option>
+                <option>Mentions</option>
+                <option>Archived</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="mt-0 mb-2 text-secondary">Priority</h6>
+            <div class="p-3 panel">
+              <div class="d-flex justify-content-between gap-2">
+                <div>
+                  <h5 class="mt-0 mb-1">Review award applications</h5>
+                  <small class="text-secondary m-0">Today — 11:30 AM</small>
+                </div>
+                <div class="dropdown">
+                  <button class="bg-transparent border-0 fs-4 text-secondary" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">⋯</button>
+                  <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
+                    <li><a class="dropdown-item" href="#">Mark done</a></li>
+                    <li><a class="dropdown-item" href="#">Snooze</a></li>
+                    <li><a class="dropdown-item" href="#">Remove</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="mt-0 mb-2 text-secondary">Other</h6>
+            <div class="p-3 panel">
+              <div class="d-flex justify-content-between gap-2">
+                <div>
+                  <h5 class="mt-0 mb-1">Sync weekly sales report</h5>
+                  <small class="text-secondary m-0">Tomorrow — 9:00 AM</small>
+                </div>
+                <div class="dropdown">
+                  <button class="bg-transparent border-0 fs-4 text-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">⋯</button>
+                  <ul class="dropdown-menu dropdown-menu-dark">
+                    <li><a class="dropdown-item" href="#">Mark done</a></li>
+                    <li><a class="dropdown-item" href="#">Snooze</a></li>
+                    <li><a class="dropdown-item" href="#">Remove</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT (Tasks) -->
+    <div class="col-12 col-md-4">
+      <div class="panel h-100 rounded-3 overflow-auto py-4 px-3">
+        <div class="d-flex justify-content-between mb-4 flex-wrap">
+          <p class="m-0 d-flex align-items-center gap-2">
+            <img class="me-1 svgreplace text-dark" src="/MOHAPTheme/img/tasks-icnn.svg" alt="tasks"> <span>Tasks</span>
+          </p>
+          <div class="d-flex gap-2">
+            <div class="target pipline-legend"><span class="circle"></span><span>Project Tasks</span></div>
+            <div class="billed pipline-legend"><span class="circle"></span><span>General Tasks</span></div>
+          </div>
+        </div>
+
+        <div class="accordion" id="tasksList">
+  <div class="w-full shadow-sm rounded-3 mb-2 accordion-item">
+    <div class="d-flex justify-content-between gap-2 p-3 accordion-header" id='heading<^QueryField.d861f8d5-b62b-4469-acae-33235812a75a.TaskID^/>'>
+      <div>
+        <a class="mb-1 fw-semibold text-decoration-none" href="">
+          
+        </a>
+        <h6 class="m-0 text-secondary"></h6>
+      </div>
+      <button class="btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target='' aria-label="toggle">
+        <img src="/MOHAPTheme/img/angle-down-icon.svg" alt="">
+      </button>
+    </div>
+
+    <div id='' class="accordion-collapse collapse" aria-labelledby='' data-bs-parent="#tasksList">
+      <div class="accordion-body">
+        <h6 class="mb-2 text-secondary">Progress</h6>
+        <div class="progress mb-4" style="height: 10px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="m-0 text-secondary">Date Assigned</h6>
+          <h6 class="m-0"></h6>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="m-0 text-secondary">Due Date</h6>
+          <h6 class="m-0"></h6>
+        </div>
+
+        <div class="small">
+            <div class="mb-2">
+              <h6 class="m-0 text-secondary">Description:</h6>
+              <div></div>
+            </div>
+
+          
+                <div class="mb-2">
+                  <h6 class="m-0 text-secondary">Project Name:</h6>
+                  <a href=""></a>
+                </div>
+
+              <div class="mb-2">
+                <h6 class="m-0 text-secondary">Project Task:</h6>
+                <a href="javascript:void(0)" onclick="">
+                  
+                </a>
+              </div>
+
+             
+                <div class="mb-2">
+                  <h6 class="m-0 text-secondary">Project Milestone:</h6>
+                  <div></div>
+                </div>
+             
+    
+              <div class="mb-2">
+                <h6 class="m-0 text-secondary">Opportunity:</h6>
+                <a href="javascript:void(0)" onclick="">
+                 
+                </a>
+              </div>
+
+           
+                <div class="mb-2">
+                  <h6 class="m-0 text-secondary">Account:</h6>
+                  <div></div>
+                </div>
+         
+
+        
+                <div class="mb-2">
+                  <h6 class="m-0 text-secondary">SalesMan:</h6>
+                  <div></div>
+                </div>
+
+              <div class="mb-1">
+                <h6 class="m-0 text-secondary">Leads:</h6>
+                <div></div>
+              </div>
+         
+        </div>
+      </div>
+    </div>
+  </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function percentage(percent, total) {
+    if (percent == 0 && total == 0) return 0;
+    return (percent / total) * 100;
+  }
+
+  Highcharts.setOptions({
+    chart: { style: { fontFamily: 'Poppins, system-ui, -apple-system, Segoe UI, Roboto, Arial' } },
+    colors: ['#68C6FF', '#3399FF', '#6EE7FF', '#A5B4FC'],
+  });
+
+  Highcharts.chart('kpi_chart2', {
+    chart: {
+      type: 'gauge',
+      plotBackgroundColor: null, plotBackgroundImage: null, plotBorderWidth: 0, plotShadow: false,
+      backgroundColor: 'transparent', height: '72%'
+    },
+    title: { text: '' }, credits: { enabled: false },
+    pane: { startAngle: -90, endAngle: 89.9, background: null, center: ['50%','74%'], size: '100%' },
+    yAxis: {
+      min:0, max:120, tickPosition:'inside', tickColor:'transparent', tickWidth:0, minorTickInterval:null, tickInterval:30,
+      labels: {
+        enabled:true, distance:-40, style:{ fontSize:'14px', color:'#9DB7D6' },
+        formatter:function(){ return (this.isFirst||this.isLast)? `<span style="font-size:16px;color:#E5F4FF">${this.value} %</span>` : '' }
+      },
+      plotBands:[
+        { from:0, to:40, color:'#E3403E', thickness:10 },
+        { from:40, to:80, color:'#FFAB00', thickness:10 },
+        { from:80, to:100, color:'#22C55E', thickness:10 },
+        { from:100, to:120, color:'#3399FF', thickness:10 }
+      ]
+    },
+    series: [{
+      name:'Value', data:[30],
+      tooltip:{ valueSuffix:' %' },
+      dataLabels:{
+        enabled:true,useHTML:true,borderWidth:0,
+        formatter:function(){ return '<div style="position:relative;"><span class="chart-vl">'+this.y+'%</span><img src="/MOHAPTheme/img/chart-arrow.png" class="label-arrow"/></div>'; }
+      },
+      dial:{ radius:'80%', backgroundColor:'#2872B8', baseWidth:12, baseLength:'0%', rearLength:'0%' },
+      pivot:{ backgroundColor:'#000', radius:6 }
+    }]
+  });
+</script>
+
+<script>
+  const hour = new Date().getHours();
+  const greetingElement = document.querySelector('.good-msg');
+  greetingElement.textContent =
+    hour >= 5 && hour < 12 ? 'Good Morning ☀️' :
+    hour >= 12 && hour < 18 ? 'Good Afternoon 🌞' :
+    'Good Evening 🌓';
+</script>

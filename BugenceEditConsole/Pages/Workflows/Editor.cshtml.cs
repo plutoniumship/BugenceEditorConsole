@@ -262,8 +262,10 @@ public class EditorModel : PageModel
 
         var tokenSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var tokenRows = new List<ImportedTokenRow>();
-        var marker = workflow.Id.ToString();
-        var attrRegex = new Regex("data-bugence-workflow-id\\s*=\\s*(['\\\"])(.*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        var matchedWorkflowTaggedForm = false;
+        var idMarker = workflow.Id.ToString();
+        var dguidMarker = workflow.Dguid?.Replace("-", string.Empty, StringComparison.Ordinal).Trim().ToLowerInvariant() ?? string.Empty;
+        var attrRegex = new Regex("data-bugence-workflow-(?:id|dguid)\\s*=\\s*(['\\\"])(.*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         var fieldRegex = new Regex("<(?:input|select|textarea)\\b[^>]*>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         foreach (var project in projects)
@@ -288,7 +290,11 @@ public class EditorModel : PageModel
                 foreach (Match attrMatch in attrRegex.Matches(html))
                 {
                     var value = (attrMatch.Groups[2].Value ?? string.Empty).Trim();
-                    if (!value.Equals(marker, StringComparison.OrdinalIgnoreCase))
+                    var normalized = value.Replace("-", string.Empty, StringComparison.Ordinal).Trim().ToLowerInvariant();
+                    var isWorkflowMatch =
+                        value.Equals(idMarker, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrWhiteSpace(dguidMarker) && normalized.Equals(dguidMarker, StringComparison.OrdinalIgnoreCase));
+                    if (!isWorkflowMatch)
                     {
                         continue;
                     }
@@ -299,33 +305,65 @@ public class EditorModel : PageModel
                         continue;
                     }
 
-                    foreach (Match fieldMatch in fieldRegex.Matches(formHtml))
+                    var added = AddTokensFromFormHtml(
+                        formHtml,
+                        fieldRegex,
+                        tokenSet,
+                        tokenRows,
+                        project.Id,
+                        project.Name,
+                        projectRoot,
+                        filePath,
+                        "form-field");
+                    if (added > 0)
                     {
-                        var tag = fieldMatch.Value;
-                        var name = ExtractAttribute(tag, "name");
-                        var idValue = ExtractAttribute(tag, "id");
-
-                        var candidates = new[] { name, idValue }
-                            .Where(v => !string.IsNullOrWhiteSpace(v))
-                            .Select(v => v!.Trim())
-                            .Where(v => !v.Equals("__RequestVerificationToken", StringComparison.OrdinalIgnoreCase))
-                            .Distinct(StringComparer.OrdinalIgnoreCase)
-                            .ToList();
-
-                        foreach (var candidate in candidates)
-                        {
-                            if (!tokenSet.Add(candidate)) continue;
-                            tokenRows.Add(new ImportedTokenRow
-                            {
-                                Key = candidate,
-                                Token = $"^{candidate}^",
-                                ProjectId = project.Id,
-                                ProjectName = project.Name,
-                                File = GetProjectRelativePath(projectRoot, filePath),
-                                Source = "form-field"
-                            });
-                        }
+                        matchedWorkflowTaggedForm = true;
                     }
+                }
+            }
+        }
+
+        // Fallback: if no workflow-tagged form was found yet, still surface available form tokens
+        // from the same uploaded projects so users can continue email token mapping immediately.
+        if (!matchedWorkflowTaggedForm && tokenRows.Count == 0)
+        {
+            foreach (var project in projects)
+            {
+                if (string.IsNullOrWhiteSpace(project.FolderName)) continue;
+                var projectRoot = Path.Combine(webRoot, "Uploads", project.FolderName);
+                if (!Directory.Exists(projectRoot)) continue;
+
+                var htmlFiles = Directory.EnumerateFiles(projectRoot, "*.htm*", SearchOption.AllDirectories).Take(120);
+                foreach (var filePath in htmlFiles)
+                {
+                    string html;
+                    try
+                    {
+                        html = await System.IO.File.ReadAllTextAsync(filePath, HttpContext.RequestAborted);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    foreach (Match formMatch in Regex.Matches(html, "<form\\b[\\s\\S]*?</form>", RegexOptions.IgnoreCase))
+                    {
+                        AddTokensFromFormHtml(
+                            formMatch.Value,
+                            fieldRegex,
+                            tokenSet,
+                            tokenRows,
+                            project.Id,
+                            project.Name,
+                            projectRoot,
+                            filePath,
+                            "fallback-form-field");
+                    }
+                }
+
+                if (tokenRows.Count >= 40)
+                {
+                    break;
                 }
             }
         }
@@ -448,6 +486,102 @@ public class EditorModel : PageModel
         {
             return Path.GetFileName(fullPath);
         }
+    }
+
+    private static bool IsDetailsLikeField(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return false;
+        var normalized = new string(key.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+        return normalized is "details" or "message" or "inquiry" or "comment" or "description" or "body" or "text";
+    }
+
+    private static bool IsNameLikeField(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return false;
+        var normalized = new string(key.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+        return normalized is "name" or "fullname";
+    }
+
+    private static void AddAliasToken(
+        HashSet<string> tokenSet,
+        List<ImportedTokenRow> tokenRows,
+        string key,
+        int projectId,
+        string projectName,
+        string projectRoot,
+        string filePath,
+        string source)
+    {
+        if (!tokenSet.Add(key)) return;
+        tokenRows.Add(new ImportedTokenRow
+        {
+            Key = key,
+            Token = $"^{key}^",
+            ProjectId = projectId,
+            ProjectName = projectName,
+            File = GetProjectRelativePath(projectRoot, filePath),
+            Source = source
+        });
+    }
+
+    private static int AddTokensFromFormHtml(
+        string formHtml,
+        Regex fieldRegex,
+        HashSet<string> tokenSet,
+        List<ImportedTokenRow> tokenRows,
+        int projectId,
+        string projectName,
+        string projectRoot,
+        string filePath,
+        string source)
+    {
+        if (string.IsNullOrWhiteSpace(formHtml))
+        {
+            return 0;
+        }
+
+        var added = 0;
+        foreach (Match fieldMatch in fieldRegex.Matches(formHtml))
+        {
+            var tag = fieldMatch.Value;
+            var name = ExtractAttribute(tag, "name");
+            var idValue = ExtractAttribute(tag, "id");
+
+            var candidates = new[] { name, idValue }
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => v!.Trim())
+                .Where(v => !v.Equals("__RequestVerificationToken", StringComparison.OrdinalIgnoreCase))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var candidate in candidates)
+            {
+                if (!tokenSet.Add(candidate)) continue;
+                tokenRows.Add(new ImportedTokenRow
+                {
+                    Key = candidate,
+                    Token = $"^{candidate}^",
+                    ProjectId = projectId,
+                    ProjectName = projectName,
+                    File = GetProjectRelativePath(projectRoot, filePath),
+                    Source = source
+                });
+                added++;
+
+                if (IsDetailsLikeField(candidate))
+                {
+                    AddAliasToken(tokenSet, tokenRows, "details", projectId, projectName, projectRoot, filePath, "alias");
+                    AddAliasToken(tokenSet, tokenRows, "message", projectId, projectName, projectRoot, filePath, "alias");
+                }
+                if (IsNameLikeField(candidate))
+                {
+                    AddAliasToken(tokenSet, tokenRows, "fullName", projectId, projectName, projectRoot, filePath, "alias");
+                    AddAliasToken(tokenSet, tokenRows, "name", projectId, projectName, projectRoot, filePath, "alias");
+                }
+            }
+        }
+
+        return added;
     }
 
     private sealed class ImportedTokenRow

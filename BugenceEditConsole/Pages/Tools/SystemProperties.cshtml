@@ -15,8 +15,15 @@
         .header p { margin:0; color:var(--muted); font-size:0.95rem; }
         .primary-btn { background:var(--accent); color:#00131a; border:none; border-radius:10px; font-weight:700; padding:12px 16px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
         .primary-btn:hover { background:#0891b2; color:white; }
-        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
-        table { width:100%; border-collapse:collapse; }
+        .table-wrapper {
+            background:var(--surface);
+            border:1px solid var(--border);
+            border-radius:16px;
+            overflow-x:auto;
+            overflow-y:hidden;
+            -webkit-overflow-scrolling:touch;
+        }
+        table { width:100%; min-width:1200px; border-collapse:collapse; }
         th { text-align:left; padding:16px 14px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.72rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
         td { padding:16px 14px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); font-size:0.88rem; }
         tr:last-child td { border-bottom:none; }
@@ -49,6 +56,17 @@
         .action-btn { background:transparent; border:1px solid var(--border); color:var(--muted); width:34px; height:34px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:0.2s; }
         .action-btn:hover { color:white; border-color:white; }
         .action-btn.delete:hover { color:var(--danger); border-color:var(--danger); }
+        th:last-child,
+        td:last-child {
+            position: sticky;
+            right: 0;
+            background: #0a0a0a;
+            z-index: 2;
+        }
+        th:last-child { z-index: 3; }
+        .table-wrapper::-webkit-scrollbar { height: 10px; }
+        .table-wrapper::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+        .table-wrapper::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 999px; }
         .confirm-modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:220; }
         .confirm-modal.show { display:flex; }
         .confirm-card { width:min(420px, 92vw); background:#0b0e14; border:1px solid rgba(148,163,184,0.2); border-radius:16px; padding:20px; box-shadow:0 30px 60px rgba(0,0,0,0.5); }
@@ -120,7 +138,18 @@
                                         @if (canManage)
                                         {
                                             <div class="action-group">
-                                                <button class="action-btn edit-property" type="button" data-property-id="@property.Id" title="Edit">
+                                                <button class="action-btn edit-property" type="button"
+                                                        data-property-id="@property.Id"
+                                                        data-property-dguid="@property.Dguid"
+                                                        data-property-name="@property.Name"
+                                                        data-property-category="@property.Category"
+                                                        data-property-username="@property.Username"
+                                                        data-property-password="@property.Password"
+                                                        data-property-host="@property.Host"
+                                                        data-property-port="@property.Port"
+                                                        data-property-route-url="@property.RouteUrl"
+                                                        data-property-notes="@property.Notes"
+                                                        title="Edit">
                                                     <i class="fa-solid fa-pen"></i>
                                                 </button>
                                                 <button class="action-btn delete delete-property" type="button" data-property-id="@property.Id" title="Delete">
@@ -264,7 +293,8 @@ const canManage = @canManage.ToString().ToLowerInvariant();
         const saveProperty = document.getElementById('saveProperty');
         const formStatus = document.getElementById('formStatus');
         const csrfToken = document.querySelector('#antiForgery input[name="__RequestVerificationToken"]')?.value || '';
-        const propertiesData = @Html.Raw(Model.PropertiesJson);
+        const rawPropertiesData = @Html.Raw(Model.PropertiesJson);
+        const propertiesData = Array.isArray(rawPropertiesData) ? rawPropertiesData : [];
         const propertySearchMap = new Map(propertiesData.map(property => [String(property.id || ''), `${(property.name || '')} ${(property.category || '')} ${(property.username || '')} ${(property.routeUrl || '')} ${(property.host || '')} ${(property.dguid || '')}`.toLowerCase()]));
 
         const confirmModal = document.getElementById('confirmModal');
@@ -460,10 +490,28 @@ const canManage = @canManage.ToString().ToLowerInvariant();
             }
         });
 
+        const buildPropertyFromButton = (button, id) => {
+            const data = button?.dataset || {};
+            if (!id) return null;
+            return {
+                id: Number(id),
+                dguid: data.propertyDguid || '',
+                name: data.propertyName || '',
+                category: data.propertyCategory || '',
+                username: data.propertyUsername || '',
+                password: data.propertyPassword || '',
+                host: data.propertyHost || '',
+                port: data.propertyPort || '',
+                routeUrl: data.propertyRouteUrl || '',
+                notes: data.propertyNotes || ''
+            };
+        };
+
         document.querySelectorAll('.edit-property').forEach((button) => {
             button.addEventListener('click', () => {
                 const id = button.getAttribute('data-property-id');
-                const property = propertiesData.find(p => (p.id || '').toString() === (id || ''));
+                const property = propertiesData.find(p => String(p?.id ?? '') === String(id || ''))
+                    || buildPropertyFromButton(button, id);
                 if (!property) return;
 
                 if (propertyId) propertyId.value = String(property.id || '');

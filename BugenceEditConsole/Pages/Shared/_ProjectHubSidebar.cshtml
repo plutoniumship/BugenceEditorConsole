@@ -1,30 +1,66 @@
-@* Shared Project Hub sidebar with profile dropdown matching dashboard *@
 @using BugenceEditConsole.Models
+@using Microsoft.EntityFrameworkCore
 @inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> UserManager
+@inject BugenceEditConsole.Data.ApplicationDbContext Db
 @{
     var projectIdValue = ViewContext.HttpContext?.Request?.Query["projectId"].ToString();
     var projectQuery = string.IsNullOrWhiteSpace(projectIdValue) ? string.Empty : $"?projectId={projectIdValue}";
     var currentUser = await UserManager.GetUserAsync(User);
+    var company = currentUser?.CompanyId.HasValue == true
+        ? await Db.CompanyProfiles.FirstOrDefaultAsync(x => x.Id == currentUser.CompanyId.Value)
+        : null;
     var displayName = currentUser?.GetFriendlyName();
     if (string.IsNullOrWhiteSpace(displayName))
     {
         displayName = User?.Identity?.Name ?? "Administrator";
     }
-    var displayEmail = currentUser?.Email ?? User?.Claims?.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? "admin@bugence.app";
+
+    var displayEmail = currentUser?.Email
+        ?? User?.Claims?.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value
+        ?? "admin@bugence.app";
     var initials = new string((displayName ?? "AD")
         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-        .Select(p => char.ToUpperInvariant(p[0]))
+        .Select(part => char.ToUpperInvariant(part[0]))
         .Take(2)
         .ToArray());
     if (string.IsNullOrWhiteSpace(initials))
     {
         initials = "AD";
     }
+
+    var companyName = string.IsNullOrWhiteSpace(company?.Name) ? "Bugence Workspace" : company!.Name;
+    var companyLogoUrl = string.IsNullOrWhiteSpace(company?.LogoPath)
+        ? null
+        : (company.LogoPath!.StartsWith('/') ? company.LogoPath : "/" + company.LogoPath);
+    var profileAvatarUrl = string.IsNullOrWhiteSpace(currentUser?.ProfileImagePath)
+        ? null
+        : (currentUser!.ProfileImagePath!.StartsWith('/') ? currentUser.ProfileImagePath : "/" + currentUser.ProfileImagePath);
+    var requestPath = ViewContext.HttpContext?.Request?.Path.Value ?? string.Empty;
 }
 
 <style>
-    .ph-sidebar { width:260px; flex-shrink:0; background:#050505; border-right:1px solid rgba(255,255,255,0.08); padding:24px; display:flex; flex-direction:column; transition:width .2s ease, transform .22s ease; z-index:120; }
-    .ph-topbar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:16px; }
+    .ph-sidebar {
+        position: relative;
+        width: 300px;
+        flex-shrink: 0;
+        background: rgba(5, 5, 5, 0.95);
+        border-right: 1px solid rgba(255,255,255,0.05);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        transition: width 0.2s ease, transform 0.22s ease;
+        z-index: 150;
+        overflow: visible;
+        backdrop-filter: blur(20px);
+    }
+    .ph-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 18px;
+        min-width: 0;
+    }
     .ph-collapsed-stack {
         display: none;
         width: 100%;
@@ -60,83 +96,440 @@
         gap: 6px;
         cursor: default;
     }
-    .ph-side-actions { display:flex; align-items:center; gap:6px; }
-    .ph-side-btn { width:30px; height:30px; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.03); color:#d1d5db; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
-    .ph-side-btn:hover { color:#fff; border-color:rgba(255,255,255,0.24); background:rgba(255,255,255,0.06); }
-    .ph-edge-toggle {
-        position: absolute;
-        top: 50%;
-        right: -14px;
-        transform: translateY(-50%);
-        width: 28px;
-        height: 54px;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.16);
-        background: rgba(8,8,8,0.94);
-        color: #d1d5db;
+    .ph-brand {
+        font-family: 'Cabinet Grotesk', sans-serif;
+        font-weight: 800;
+        font-size: 1.56rem;
+        color: #fff;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+        min-width: 0;
+        line-height: 1;
+    }
+    .ph-brand-logo {
+        width: 38px;
+        height: 38px;
+        object-fit: contain;
+        flex-shrink: 0;
+        filter: drop-shadow(0 0 10px rgba(6,182,212,0.28));
+    }
+    .ph-brand-text {
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        transform: translateY(1px);
+        letter-spacing: 0.02em;
+    }
+    .ph-side-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .ph-side-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.03);
+        color: #cbd5e1;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        z-index: 165;
-        box-shadow: 0 10px 24px rgba(0,0,0,0.35);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
     }
-    .ph-edge-toggle:hover { color:#fff; border-color:rgba(255,255,255,0.28); background:rgba(16,16,16,0.98); }
-    #phSidebarCloseBtn { display:none; }
-    .ph-brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; display:flex; align-items:center; gap:10px; }
-    .ph-brand-text { white-space:nowrap; }
-    .ph-back { margin-bottom:20px; color:#a1a1aa; font-size:0.9rem; text-decoration:none; display:flex; align-items:center; gap:8px; }
-    .ph-back:hover { color:white; transform:translateX(-4px); transition:0.2s; }
-    .ph-menu-title { margin:20px 0 10px 12px; font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#555; font-weight:700; }
-    .ph-nav-item { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:12px; color:#a1a1aa; text-decoration:none; font-weight:600; font-size:0.95rem; margin-bottom:4px; transition:all 0.2s; }
-    .ph-nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
-    .ph-nav-item.active { background:rgba(6,182,212,0.1); color:#06b6d4; }
-    .ph-profile { margin-top:auto; padding-top:16px; }
-    .ph-avatar-chip { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; color:white; cursor:pointer; transition:0.2s; position:relative; }
-    .ph-avatar-chip:hover { background:#121212; }
-    .ph-avatar-dot { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#2dd4bf,#06b6d4); color:#041017; font-weight:800; display:grid; place-items:center; }
-    .ph-avatar-meta { display:flex; flex-direction:column; line-height:1.2; }
-    .ph-dropdown { position:relative; }
-    .ph-dropdown-menu { position:absolute; bottom:calc(100% + 8px); left:0; width:100%; background:#0c0c0c; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:6px 0; display:none; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.8); z-index:50; }
-    .ph-dropdown-menu.show { display:flex; }
-    .ph-profile-option { padding:10px 12px; color:#ccc; text-decoration:none; font-weight:600; display:flex; align-items:center; gap:10px; border-radius:8px; }
-    .ph-profile-option:hover { background:rgba(255,255,255,0.05); color:white; }
-    .ph-profile-option.danger { color:#ef4444; border-top:1px solid rgba(255,255,255,0.05); margin-top:4px; padding-top:12px; }
+    .ph-side-btn:hover {
+        color: #fff;
+        border-color: rgba(255,255,255,0.24);
+        background: rgba(255,255,255,0.06);
+    }
+    .ph-back {
+        margin-bottom: 20px;
+        color: #a1a1aa;
+        font-size: 0.9rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .ph-back:hover {
+        color: #fff;
+        transform: translateX(-4px);
+        transition: 0.2s;
+    }
+    .ph-menu-title {
+        margin: 20px 0 10px 12px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #555;
+        font-weight: 700;
+    }
+    .ph-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        color: #a1a1aa;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+        transition: all 0.2s;
+    }
+    .ph-nav-item:hover {
+        background: rgba(255,255,255,0.03);
+        color: #fff;
+    }
+    .ph-nav-item.active {
+        background: rgba(6,182,212,0.1);
+        color: #06b6d4;
+    }
+    .ph-edge-toggle {
+        position: absolute;
+        top: 50%;
+        right: -16px;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 64px;
+        border-radius: 999px;
+        border: 1px solid rgba(148,163,184,0.35);
+        background: linear-gradient(180deg, rgba(7,12,16,0.96), rgba(4,7,10,0.96));
+        color: #dbe5f1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 320;
+        box-shadow: 0 14px 32px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(6,182,212,0.16);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+    .ph-edge-toggle:hover {
+        color: #fff;
+        border-color: rgba(6,182,212,0.6);
+        transform: translateY(-50%) scale(1.02);
+    }
+    .ph-edge-toggle i {
+        font-size: 0.82rem;
+        transform: translateX(-1px);
+    }
+    .ph-profile {
+        margin-top: auto;
+        position: relative;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .ph-avatar-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 12px;
+        background: linear-gradient(160deg, rgba(11,14,18,0.95), rgba(6,8,12,0.95));
+        border-radius: 14px;
+        border: 1px solid rgba(148,163,184,0.24);
+        color: #fff;
+        cursor: pointer;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 10px 24px rgba(0,0,0,0.35);
+    }
+    .ph-avatar-chip:hover {
+        border-color: rgba(6,182,212,0.55);
+        box-shadow: inset 0 0 0 1px rgba(6,182,212,0.2), 0 14px 30px rgba(0,0,0,0.45);
+        transform: translateY(-1px);
+    }
+    .ph-avatar-dot {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: linear-gradient(145deg, #1bd6ff, #0ea5e9);
+        color: #04141f;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        box-shadow: 0 6px 18px rgba(14,165,233,0.42);
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    .ph-avatar-dot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .ph-avatar-meta {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        line-height: 1.2;
+    }
+    .ph-avatar-meta strong {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #f8fafc;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .ph-avatar-meta span {
+        font-size: 0.74rem;
+        color: #8ea0b4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .ph-dropdown-menu {
+        position: absolute;
+        bottom: calc(100% + 12px);
+        left: 0;
+        right: 0;
+        display: none;
+        z-index: 3200;
+        transform: translateY(10px);
+        transform-origin: bottom center;
+    }
+    .ph-dropdown-menu.show {
+        display: block;
+        transform: translateY(0);
+    }
+    .dash-profile-card {
+        display: grid;
+        gap: 10px;
+        border-radius: 18px;
+        padding: 12px;
+        border: 1px solid rgba(148,163,184,0.18);
+        background: linear-gradient(180deg, rgba(10,12,16,0.98), rgba(5,7,10,0.98));
+        box-shadow: 0 24px 48px rgba(0,0,0,0.52);
+    }
+    .dash-profile-head {
+        display: grid;
+        grid-template-columns: 42px minmax(0,1fr);
+        gap: 10px;
+        align-items: center;
+    }
+    .dash-profile-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        overflow: hidden;
+        background: linear-gradient(145deg, #1bd6ff, #0ea5e9);
+        color: #04141f;
+        font-size: 0.9rem;
+        font-weight: 900;
+        display: grid;
+        place-items: center;
+    }
+    .dash-profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .dash-profile-meta strong {
+        display: block;
+        color: #fff;
+        font-size: 0.92rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .dash-profile-meta span {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.74rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .dash-profile-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .dash-profile-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: #dbe5f1;
+        font-size: 0.65rem;
+        letter-spacing: 0.03em;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .dash-profile-grid {
+        display: grid;
+        gap: 8px;
+    }
+    .dash-profile-link {
+        padding: 10px 11px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+        color: #e5e7eb;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .dash-profile-link:hover {
+        background: rgba(255,255,255,0.06);
+        color: #fff;
+        border-color: rgba(255,255,255,0.18);
+    }
+    .dash-profile-link .left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+    .dash-profile-link .left > div {
+        min-width: 0;
+    }
+    .dash-profile-link strong {
+        display: block;
+        font-size: 0.88rem;
+        line-height: 1.2;
+    }
+    .dash-profile-link span {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.72rem;
+        line-height: 1.3;
+        white-space: normal;
+    }
+    .dash-profile-company {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 11px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+    }
+    .dash-profile-company-badge {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.06);
+        display: grid;
+        place-items: center;
+        flex: 0 0 34px;
+    }
+    .dash-profile-company-badge img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .dash-profile-company strong {
+        display: block;
+        color: #fff;
+        font-size: 0.92rem;
+        line-height: 1.2;
+    }
+    .dash-profile-company span {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.72rem;
+        line-height: 1.3;
+        white-space: normal;
+    }
+    .dash-profile-footer {
+        padding-top: 2px;
+    }
+    .dash-profile-signout {
+        justify-content: center;
+        color: #fecaca;
+        border-color: rgba(248,113,113,0.22);
+        background: rgba(127,29,29,0.16);
+    }
+    .dash-profile-signout:hover {
+        background: rgba(127,29,29,0.26);
+        border-color: rgba(248,113,113,0.42);
+        color: #fff1f2;
+    }
     .ph-mobile-toggle {
-        position: fixed; top: 14px; left: 14px; z-index: 160;
-        width: 40px; height: 40px; border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.14); background: rgba(8,8,8,0.92);
-        color: #fff; display: none; align-items: center; justify-content: center;
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 200;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(8,8,8,0.92);
+        color: #fff;
+        display: none;
+        align-items: center;
+        justify-content: center;
         backdrop-filter: blur(8px);
     }
     .ph-mobile-backdrop {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.56);
-        opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 140;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.56);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease;
+        z-index: 140;
     }
-    body.ph-sidebar-collapsed .ph-sidebar { width:84px; padding-left:12px; padding-right:12px; }
-    body.ph-sidebar-collapsed .ph-brand { justify-content:center; }
-    body.ph-sidebar-collapsed .ph-collapsed-stack { display: inline-flex; }
+    #phSidebarCloseBtn {
+        display: none;
+    }
+    body.ph-sidebar-collapsed .ph-sidebar {
+        width: 84px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    body.ph-sidebar-collapsed .ph-brand {
+        display: none;
+    }
+    body.ph-sidebar-collapsed .ph-collapsed-stack {
+        display: inline-flex;
+    }
     body.ph-sidebar-collapsed .ph-brand-text,
     body.ph-sidebar-collapsed .ph-menu-title,
-    body.ph-sidebar-collapsed .ph-avatar-meta { display:none !important; }
-    body.ph-sidebar-collapsed .ph-brand,
-    body.ph-sidebar-collapsed .ph-side-actions { display:none !important; }
+    body.ph-sidebar-collapsed .ph-avatar-meta {
+        display: none !important;
+    }
+    body.ph-sidebar-collapsed .ph-side-actions {
+        display: none !important;
+    }
     body.ph-sidebar-collapsed .ph-back,
     body.ph-sidebar-collapsed .ph-nav-item {
-        justify-content:center;
-        gap:0;
-        font-size:0;
+        justify-content: center;
+        gap: 0;
+        font-size: 0;
+        padding-left: 10px;
+        padding-right: 10px;
     }
     body.ph-sidebar-collapsed .ph-back i,
     body.ph-sidebar-collapsed .ph-nav-item i {
-        font-size:1rem;
-        width:auto;
+        font-size: 1rem;
+        width: auto;
     }
-    body.ph-sidebar-collapsed #phSidebarCollapseBtn i { transform: rotate(180deg); }
-    body.ph-sidebar-collapsed .ph-edge-toggle { right: -18px; }
-    body.ph-sidebar-collapsed .ph-edge-toggle i { transform: rotate(180deg); }
+    body.ph-sidebar-collapsed .ph-avatar-chip {
+        justify-content: center;
+        padding: 10px;
+    }
+    body.ph-sidebar-collapsed .ph-edge-toggle i {
+        transform: rotate(180deg) translateX(-1px);
+    }
     @@media (max-width: 1024px) {
         .ph-sidebar {
             position: fixed;
@@ -148,32 +541,57 @@
             transform: translateX(-102%);
             padding: 18px 14px;
         }
-        .ph-mobile-toggle { display: inline-flex; }
-        #phSidebarCollapseBtn { display: none; }
-        .ph-edge-toggle { display: none; }
-        #phSidebarCloseBtn { display: inline-flex; }
-        body.ph-sidebar-open .ph-sidebar { transform: translateX(0); }
-        body.ph-sidebar-open .ph-mobile-backdrop { opacity: 1; pointer-events: auto; }
+        .ph-mobile-toggle {
+            display: inline-flex;
+        }
+        #phSidebarCloseBtn {
+            display: inline-flex;
+        }
+        #phSidebarCollapseBtn,
+        .ph-edge-toggle {
+            display: none;
+        }
+        body.ph-sidebar-open .ph-sidebar {
+            transform: translateX(0);
+        }
+        body.ph-sidebar-open .ph-mobile-backdrop {
+            opacity: 1;
+            pointer-events: auto;
+        }
         body.ph-sidebar-collapsed .ph-sidebar {
             width: min(82vw, 300px);
             padding-left: 14px;
             padding-right: 14px;
         }
+        body.ph-sidebar-collapsed .ph-brand {
+            display: inline-flex;
+        }
+        body.ph-sidebar-collapsed .ph-collapsed-stack {
+            display: none !important;
+        }
         body.ph-sidebar-collapsed .ph-brand-text,
         body.ph-sidebar-collapsed .ph-menu-title,
-        body.ph-sidebar-collapsed .ph-avatar-meta { display: initial !important; }
-        body.ph-sidebar-collapsed .ph-brand,
-        body.ph-sidebar-collapsed .ph-side-actions { display:inline-flex !important; }
-        body.ph-sidebar-collapsed .ph-collapsed-stack { display: none !important; }
+        body.ph-sidebar-collapsed .ph-avatar-meta {
+            display: initial !important;
+        }
+        body.ph-sidebar-collapsed .ph-side-actions {
+            display: inline-flex !important;
+        }
         body.ph-sidebar-collapsed .ph-back,
         body.ph-sidebar-collapsed .ph-nav-item {
-            justify-content:flex-start;
-            gap:12px;
-            font-size:0.95rem;
+            justify-content: flex-start;
+            gap: 12px;
+            font-size: 0.95rem;
+            padding-left: 16px;
+            padding-right: 16px;
         }
         body.ph-sidebar-collapsed .ph-back i,
         body.ph-sidebar-collapsed .ph-nav-item i {
-            width:20px;
+            width: 20px;
+        }
+        body.ph-sidebar-collapsed .ph-avatar-chip {
+            justify-content: flex-start;
+            padding: 12px;
         }
     }
 </style>
@@ -185,42 +603,108 @@
 <aside class="ph-sidebar">
     <div class="ph-topbar">
         <div class="ph-collapsed-stack" aria-hidden="true">
-            <span class="ph-brand-pill"><i class="fa-solid fa-bug" style="color:#06b6d4;"></i></span>
+            <span class="ph-brand-pill">
+                <img src="~/images/bugence-logo.svg" alt="Bugence" class="ph-brand-logo" />
+            </span>
             <button class="ph-de-chip" type="button" tabindex="-1">Bugence DE <i class="fa-solid fa-chevron-down"></i></button>
         </div>
-        <a href="/Dashboard/Index" class="ph-brand"><i class="fa-solid fa-bug" style="color:#06b6d4;"></i> <span class="ph-brand-text">BUGENCE</span></a>
+        <a href="/Dashboard/Index" class="ph-brand">
+            <img src="~/images/bugence-logo.svg" alt="Bugence" class="ph-brand-logo" />
+            <span class="ph-brand-text">BUGENCE</span>
+        </a>
         <div class="ph-side-actions">
             <button class="ph-side-btn" id="phSidebarCollapseBtn" type="button" aria-label="Minimize sidebar"><i class="fa-solid fa-chevron-left"></i></button>
             <button class="ph-side-btn" id="phSidebarCloseBtn" type="button" aria-label="Close sidebar"><i class="fa-solid fa-xmark"></i></button>
         </div>
     </div>
+
     <a class="ph-back" href="/Dashboard/Index"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
 
-    <div class="ph-menu-title">Project Menu</div>
-    <a class="ph-nav-item @(((ViewContext.HttpContext?.Request?.Path.Value ?? string.Empty).Contains("/ProjectHub/Index", StringComparison.OrdinalIgnoreCase)) ? "active" : "")" href="@($"/ProjectHub/Index{projectQuery}")"><i class="fa-solid fa-layer-group"></i> Site Pages</a>
-    <a class="ph-nav-item @(((ViewContext.HttpContext?.Request?.Path.Value ?? string.Empty).Contains("/ProjectHub/MediaAssets", StringComparison.OrdinalIgnoreCase)) ? "active" : "")" href="@($"/ProjectHub/MediaAssets{projectQuery}")"><i class="fa-solid fa-images"></i> Media Assets</a>
-    <a class="ph-nav-item @(((ViewContext.HttpContext?.Request?.Path.Value ?? string.Empty).Contains("/ProjectHub/GlobalStyles", StringComparison.OrdinalIgnoreCase)) ? "active" : "")" href="@($"/ProjectHub/GlobalStyles{projectQuery}")"><i class="fa-solid fa-palette"></i> Global Styles</a>
-    <a class="ph-nav-item @(((ViewContext.HttpContext?.Request?.Path.Value ?? string.Empty).Contains("/ProjectHub/CustomCode", StringComparison.OrdinalIgnoreCase)) ? "active" : "")" href="@($"/ProjectHub/CustomCode{projectQuery}")"><i class="fa-solid fa-code"></i> Custom Code</a>
-    <a class="ph-nav-item @(((ViewContext.HttpContext?.Request?.Path.Value ?? string.Empty).Contains("/ProjectHub/ProductSettings", StringComparison.OrdinalIgnoreCase)) ? "active" : "")" href="@($"/ProjectHub/ProductSettings{projectQuery}")"><i class="fa-solid fa-gear"></i> Project Settings</a>
-    <a class="ph-nav-item @(((ViewContext.HttpContext?.Request?.Path.Value ?? string.Empty).Contains("/Tools/ReactBuilder", StringComparison.OrdinalIgnoreCase)) ? "active" : "")" href="/Tools/ReactBuilder"><i class="fa-brands fa-react"></i> React Builder</a>
+    <div class="ph-menu-title">Project Hub</div>
+    <a class="ph-nav-item @(requestPath.Contains("/ProjectHub/Index", StringComparison.OrdinalIgnoreCase) ? "active" : "")" href="@($"/ProjectHub/Index{projectQuery}")"><i class="fa-solid fa-layer-group"></i> Site Pages</a>
+    <a class="ph-nav-item @(requestPath.Contains("/ProjectHub/MediaAssets", StringComparison.OrdinalIgnoreCase) ? "active" : "")" href="@($"/ProjectHub/MediaAssets{projectQuery}")"><i class="fa-solid fa-images"></i> Media Assets</a>
+    <a class="ph-nav-item @(requestPath.Contains("/ProjectHub/GlobalStyles", StringComparison.OrdinalIgnoreCase) ? "active" : "")" href="@($"/ProjectHub/GlobalStyles{projectQuery}")"><i class="fa-solid fa-palette"></i> Global Styles</a>
+    <a class="ph-nav-item @(requestPath.Contains("/ProjectHub/CustomCode", StringComparison.OrdinalIgnoreCase) ? "active" : "")" href="@($"/ProjectHub/CustomCode{projectQuery}")"><i class="fa-solid fa-code"></i> Custom Code</a>
+    <a class="ph-nav-item @(requestPath.Contains("/ProjectHub/ProductSettings", StringComparison.OrdinalIgnoreCase) ? "active" : "")" href="@($"/ProjectHub/ProductSettings{projectQuery}")"><i class="fa-solid fa-gear"></i> Project Settings</a>
 
-    <div class="ph-profile dropdown-wrapper" style="position:relative;">
-        <div class="ph-avatar-chip" data-ph-profile>
-            <div class="ph-avatar-dot" data-profile-initials>@initials</div>
-            <div class="ph-avatar-meta">
-                <strong style="font-size:0.95rem;" data-profile-name>@displayName</strong>
-                <span style="font-size:0.8rem; color:#a1a1aa;" data-profile-email>@displayEmail</span>
-            </div>
-            <i class="fa-solid fa-chevron-up" style="margin-left:auto; font-size:0.8rem; color:#737373;"></i>
-        </div>
+    <div class="ph-profile">
         <div class="ph-dropdown-menu" id="phProfileMenu">
-            <a href="/Settings/Profile" class="ph-profile-option"><i class="fa-solid fa-user-gear"></i> Account</a>
-            <a href="/Settings/Teams" class="ph-profile-option"><i class="fa-solid fa-users"></i> Team</a>
-            <a href="/Settings/Billing" class="ph-profile-option"><i class="fa-solid fa-credit-card"></i> Billing</a>
-            <a href="/Support/PrivacySupport" class="ph-profile-option"><i class="fa-solid fa-shield-halved"></i> Privacy</a>
-            <a href="/Auth/Logout" class="ph-profile-option danger"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+            <div class="dash-profile-card">
+                <div class="dash-profile-head">
+                    <div class="dash-profile-avatar">
+                        @if (!string.IsNullOrWhiteSpace(profileAvatarUrl))
+                        {
+                            <img src="@profileAvatarUrl" alt="@displayName" />
+                        }
+                        else
+                        {
+                            @initials
+                        }
+                    </div>
+                    <div class="dash-profile-meta">
+                        <strong>@displayName</strong>
+                        <span>@displayEmail</span>
+                    </div>
+                </div>
+                <div class="dash-profile-pills">
+                    <span class="dash-profile-pill"><i class="fa-solid fa-user-shield"></i> Console User</span>
+                    <span class="dash-profile-pill"><i class="fa-solid fa-building"></i> Bugence Workspace</span>
+                </div>
+                <div class="dash-profile-grid">
+                    <a href="/Settings/Profile" class="dash-profile-link">
+                        <div class="left"><i class="fa-solid fa-user-gear"></i><div><strong>Profile Settings</strong><span>Identity, account, and security</span></div></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="/Settings/Integration" class="dash-profile-link">
+                        <div class="left"><i class="fa-solid fa-plug"></i><div><strong>Integrations</strong><span>Connected channels and providers</span></div></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                    <a href="/Settings/Teams" class="dash-profile-link">
+                        <div class="left"><i class="fa-solid fa-users"></i><div><strong>Team Access</strong><span>Roles, seats, and invitations</span></div></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+                <div class="dash-profile-company">
+                    <div class="dash-profile-company-badge">
+                        @if (!string.IsNullOrWhiteSpace(companyLogoUrl))
+                        {
+                            <img src="@companyLogoUrl" alt="@companyName" />
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-building"></i>
+                        }
+                    </div>
+                    <div>
+                        <strong>@companyName</strong>
+                        <span>Workspace identity and brand</span>
+                    </div>
+                </div>
+                <div class="dash-profile-footer">
+                    <a href="/Auth/Logout" class="dash-profile-link dash-profile-signout"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="ph-avatar-chip" data-ph-profile>
+            <div class="ph-avatar-dot" data-profile-initials>
+                @if (!string.IsNullOrWhiteSpace(profileAvatarUrl))
+                {
+                    <img src="@profileAvatarUrl" alt="@displayName" />
+                }
+                else
+                {
+                    @initials
+                }
+            </div>
+            <div class="ph-avatar-meta">
+                <strong data-profile-name>@displayName</strong>
+                <span data-profile-email>@displayEmail</span>
+            </div>
+            <i class="fa-solid fa-chevron-up" style="margin-left:auto; font-size:0.78rem; color:#8ca3b8;"></i>
         </div>
     </div>
+
     <button class="ph-edge-toggle" id="phSidebarEdgeToggle" type="button" aria-label="Toggle sidebar">
         <i class="fa-solid fa-chevron-left"></i>
     </button>
@@ -234,19 +718,27 @@
     const phSidebarCollapseBtn = document.getElementById('phSidebarCollapseBtn');
     const phSidebarCloseBtn = document.getElementById('phSidebarCloseBtn');
     const phSidebarEdgeToggle = document.getElementById('phSidebarEdgeToggle');
+    const phProfileTrigger = document.querySelector('[data-ph-profile]');
+    const phProfileMenu = document.getElementById('phProfileMenu');
+
     const setPhOpen = (open) => {
         phBody.classList.toggle('ph-sidebar-open', open);
         phSidebarMobileToggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
     };
+
     const setPhCollapsed = (collapsed) => {
         phBody.classList.toggle('ph-sidebar-collapsed', collapsed);
         localStorage.setItem(phCollapseKey, collapsed ? '1' : '0');
     };
+
     try {
         const raw = localStorage.getItem(phCollapseKey);
         const saved = raw == null ? true : raw === '1';
-        if (window.innerWidth > 1024) setPhCollapsed(saved);
+        if (window.innerWidth > 1024) {
+            setPhCollapsed(saved);
+        }
     } catch { }
+
     phSidebarCollapseBtn?.addEventListener('click', () => setPhCollapsed(!phBody.classList.contains('ph-sidebar-collapsed')));
     phSidebarEdgeToggle?.addEventListener('click', () => {
         if (window.innerWidth <= 1024) return;
@@ -255,9 +747,15 @@
     phSidebarMobileToggle?.addEventListener('click', () => setPhOpen(!phBody.classList.contains('ph-sidebar-open')));
     phSidebarBackdrop?.addEventListener('click', () => setPhOpen(false));
     phSidebarCloseBtn?.addEventListener('click', () => setPhOpen(false));
+
     document.querySelectorAll('.ph-sidebar .ph-nav-item, .ph-sidebar .ph-back').forEach((item) => {
-        item.addEventListener('click', () => { if (window.innerWidth <= 1024) setPhOpen(false); });
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) {
+                setPhOpen(false);
+            }
+        });
     });
+
     window.addEventListener('resize', () => {
         if (window.innerWidth > 1024) {
             setPhOpen(false);
@@ -271,32 +769,15 @@
         }
     });
 
-    const phAvatarStorageKey = 'bugence.account.avatar';
-    const applyProjectHubAvatar = () => {
-        const stored = localStorage.getItem(phAvatarStorageKey);
-        if (!stored) return;
-        document.querySelectorAll('.ph-avatar-dot, .avatar-dot, .profile-avatar').forEach((el) => {
-            if (!(el instanceof HTMLElement)) return;
-            el.style.backgroundImage = `url("${stored}")`;
-            el.style.backgroundSize = 'cover';
-            el.style.backgroundPosition = 'center';
-            el.textContent = '';
-        });
-    };
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', applyProjectHubAvatar);
-    } else {
-        applyProjectHubAvatar();
-    }
-
-    document.querySelector('[data-ph-profile]')?.addEventListener('click', (e) => {
-        const menu = document.getElementById('phProfileMenu');
-        menu?.classList.toggle('show');
-        e.stopPropagation();
+    phProfileTrigger?.addEventListener('click', (event) => {
+        phProfileMenu?.classList.toggle('show');
+        event.stopPropagation();
     });
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.ph-profile')) {
-            document.getElementById('phProfileMenu')?.classList.remove('show');
+
+    document.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element)) return;
+        if (!event.target.closest('.ph-profile')) {
+            phProfileMenu?.classList.remove('show');
         }
     });
 </script>

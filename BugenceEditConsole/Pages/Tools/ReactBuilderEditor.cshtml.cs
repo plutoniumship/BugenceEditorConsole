@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Data.Common;
+using System.IO.Compression;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -106,94 +107,96 @@ WHERE ReactBuilderId=@builder AND Path=@path AND NodeType='file' AND OwnerUserId
         var builder = await LoadBuilderAsync(payload.ReactBuilderId, ctx.OwnerUserId, ctx.CompanyId);
         if (builder == null) return NotFoundJson("Builder not found.");
 
-        var normalized = new List<WorkspaceNode>();
-        foreach (var n in payload.Files ?? new List<WorkspaceNode>())
+        var normalized = NormalizeWorkspaceNodes(payload.Files ?? new List<WorkspaceNode>(), out var error);
+        if (error != null) return BadJson(error);
+        await PersistWorkspaceAsync(payload.ReactBuilderId, ctx, normalized);
+        return new JsonResult(new { success = true, message = "Workspace saved." });
+    }
+
+    public async Task<IActionResult> OnPostImportWorkspaceAsync(int reactBuilderId, List<IFormFile> upload)
+    {
+        var ctx = await GetAccessContextAsync();
+        if (ctx == null) return UnauthorizedJson();
+        if (!ctx.CanManage) return ForbiddenJson("You do not have permission to import builders.");
+
+        await EnsureReactBuilderTablesAsync();
+        var builder = await LoadBuilderAsync(reactBuilderId, ctx.OwnerUserId, ctx.CompanyId);
+        if (builder == null) return NotFoundJson("Builder not found.");
+        if (upload == null || upload.Count == 0) return BadJson("Select a local folder or files to import.");
+
+        var nodes = new List<WorkspaceNode>();
+        var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var file in upload.Where(f => f != null && f.Length > 0))
         {
-            var p = NormalizePath(n.Path);
-            if (string.IsNullOrWhiteSpace(p)) return BadJson("Invalid node path detected.");
-            var type = string.Equals(n.NodeType, "folder", StringComparison.OrdinalIgnoreCase) ? "folder" : "file";
-            if (type == "folder" && p.EndsWith("/", StringComparison.Ordinal)) p = p.TrimEnd('/');
-            if (type == "file" && p.EndsWith("/", StringComparison.Ordinal)) return BadJson("Invalid file path detected.");
-            normalized.Add(new WorkspaceNode
+            var path = NormalizePath(file.FileName);
+            if (string.IsNullOrWhiteSpace(path)) continue;
+
+            await using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream);
+            var content = await reader.ReadToEndAsync();
+
+            nodes.Add(new WorkspaceNode
             {
-                Path = p,
-                NodeType = type,
-                Language = type == "file" ? (string.IsNullOrWhiteSpace(n.Language) ? GuessLanguage(p) : n.Language!.Trim()) : "plaintext",
-                Content = type == "file" ? (n.Content ?? string.Empty) : null,
-                SortOrder = n.SortOrder,
-                IsReadOnly = n.IsReadOnly
+                Path = path,
+                NodeType = "file",
+                Language = GuessLanguage(path),
+                Content = content
+            });
+
+            var parent = ParentPath(path);
+            while (!string.IsNullOrWhiteSpace(parent))
+            {
+                if (!folders.Add(parent)) break;
+                parent = ParentPath(parent);
+            }
+        }
+
+        foreach (var folder in folders.OrderBy(x => x, StringComparer.OrdinalIgnoreCase))
+        {
+            nodes.Add(new WorkspaceNode
+            {
+                Path = folder,
+                NodeType = "folder",
+                Language = "plaintext"
             });
         }
 
-        var distinctPaths = normalized.Select(x => x.Path).Distinct(StringComparer.OrdinalIgnoreCase).Count();
-        if (distinctPaths != normalized.Count) return BadJson("Duplicate node paths found.");
+        if (nodes.Count == 0) return BadJson("No valid files were found in the selected upload.");
 
-        using var c = _db.Database.GetDbConnection();
-        if (c.State != ConnectionState.Open) await c.OpenAsync();
-        var isSqlite = IsSqlite();
-        await using var tx = await c.BeginTransactionAsync();
+        var normalized = NormalizeWorkspaceNodes(nodes, out var error);
+        if (error != null) return BadJson(error);
+        await PersistWorkspaceAsync(reactBuilderId, ctx, normalized);
 
-        var existing = await LoadFilesAsync(payload.ReactBuilderId, ctx.OwnerUserId, ctx.CompanyId, c, tx);
-        var existingSet = new HashSet<string>(existing.Select(x => x.Path), StringComparer.OrdinalIgnoreCase);
-        var incomingSet = new HashSet<string>(normalized.Select(x => x.Path), StringComparer.OrdinalIgnoreCase);
+        return new JsonResult(new { success = true, message = "Local workspace imported." });
+    }
 
-        foreach (var old in existing.Where(x => !incomingSet.Contains(x.Path)))
+    public async Task<IActionResult> OnGetDownloadWorkspaceAsync(int id)
+    {
+        var ctx = await GetAccessContextAsync();
+        if (ctx == null) return Content("Unauthorized", "text/plain");
+        await EnsureReactBuilderTablesAsync();
+
+        var builder = await LoadBuilderAsync(id, ctx.OwnerUserId, ctx.CompanyId);
+        if (builder == null) return Content("Builder not found", "text/plain");
+        var files = await LoadFilesAsync(id, ctx.OwnerUserId, ctx.CompanyId);
+
+        using var ms = new MemoryStream();
+        using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
         {
-            await using var del = c.CreateCommand();
-            del.Transaction = tx;
-            del.CommandText = "DELETE FROM ReactBuilderFiles WHERE ReactBuilderId=@builder AND Path=@path AND OwnerUserId=@owner";
-            Add(del, "@builder", payload.ReactBuilderId);
-            Add(del, "@path", old.Path);
-            Add(del, "@owner", ctx.OwnerUserId);
-            await del.ExecuteNonQueryAsync();
+            foreach (var file in files.Where(f => string.Equals(f.NodeType, "file", StringComparison.OrdinalIgnoreCase)))
+            {
+                var entry = archive.CreateEntry(file.Path, CompressionLevel.Fastest);
+                await using var entryStream = entry.Open();
+                await using var writer = new StreamWriter(entryStream);
+                await writer.WriteAsync(file.Content ?? string.Empty);
+            }
         }
 
-        var i = 0;
-        foreach (var n in normalized)
-        {
-            if (existingSet.Contains(n.Path))
-            {
-                await using var upd = c.CreateCommand();
-                upd.Transaction = tx;
-                upd.CommandText = @"UPDATE ReactBuilderFiles
-SET NodeType=@type, Language=@lang, Content=@content, SortOrder=@sort, IsReadOnly=@readonly, UpdatedAtUtc=@updated
-WHERE ReactBuilderId=@builder AND Path=@path AND OwnerUserId=@owner";
-                Add(upd, "@type", n.NodeType);
-                Add(upd, "@lang", n.Language);
-                Add(upd, "@content", n.Content == null ? DBNull.Value : n.Content);
-                Add(upd, "@sort", n.SortOrder == 0 ? i : n.SortOrder);
-                Add(upd, "@readonly", n.IsReadOnly);
-                Add(upd, "@updated", DateTime.UtcNow);
-                Add(upd, "@builder", payload.ReactBuilderId);
-                Add(upd, "@path", n.Path);
-                Add(upd, "@owner", ctx.OwnerUserId);
-                await upd.ExecuteNonQueryAsync();
-            }
-            else
-            {
-                await using var ins = c.CreateCommand();
-                ins.Transaction = tx;
-                ins.CommandText = @"INSERT INTO ReactBuilderFiles (ReactBuilderId, OwnerUserId, CompanyId, DGUID, Path, NodeType, Language, Content, SortOrder, IsReadOnly, CreatedAtUtc, UpdatedAtUtc)
-VALUES (@builder, @owner, @company, @dguid, @path, @type, @lang, @content, @sort, @readonly, @created, @updated)";
-                Add(ins, "@builder", payload.ReactBuilderId);
-                Add(ins, "@owner", ctx.OwnerUserId);
-                AddCompany(ins, "@company", ctx.CompanyId, isSqlite);
-                Add(ins, "@dguid", isSqlite ? Guid.NewGuid().ToString("N") : Guid.NewGuid());
-                Add(ins, "@path", n.Path);
-                Add(ins, "@type", n.NodeType);
-                Add(ins, "@lang", n.Language);
-                Add(ins, "@content", n.Content == null ? DBNull.Value : n.Content);
-                Add(ins, "@sort", n.SortOrder == 0 ? i : n.SortOrder);
-                Add(ins, "@readonly", n.IsReadOnly);
-                Add(ins, "@created", DateTime.UtcNow);
-                Add(ins, "@updated", DateTime.UtcNow);
-                await ins.ExecuteNonQueryAsync();
-            }
-            i++;
-        }
-
-        await tx.CommitAsync();
-        return new JsonResult(new { success = true, message = "Workspace saved." });
+        ms.Position = 0;
+        var safeName = string.Concat((builder.Name ?? "react-builder").Select(ch => char.IsLetterOrDigit(ch) ? ch : '-')).Trim('-');
+        if (string.IsNullOrWhiteSpace(safeName)) safeName = "react-builder";
+        return File(ms.ToArray(), "application/zip", $"{safeName}.zip");
     }
 
     public async Task<IActionResult> OnPostCreateNodeAsync([FromBody] CreateNodePayload payload)
@@ -422,6 +425,127 @@ ORDER BY CASE WHEN NodeType='folder' THEN 0 ELSE 1 END, Path";
     }
 
     private bool IsSqlite() => (_db.Database.ProviderName ?? string.Empty).Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
+    private static string ParentPath(string path)
+    {
+        var normalized = NormalizePath(path);
+        var idx = normalized.LastIndexOf('/');
+        return idx >= 0 ? normalized[..idx] : string.Empty;
+    }
+
+    private List<WorkspaceNode> NormalizeWorkspaceNodes(IEnumerable<WorkspaceNode> source, out string? error)
+    {
+        var normalized = new List<WorkspaceNode>();
+        foreach (var n in source ?? Enumerable.Empty<WorkspaceNode>())
+        {
+            var p = NormalizePath(n.Path);
+            if (string.IsNullOrWhiteSpace(p))
+            {
+                error = "Invalid node path detected.";
+                return [];
+            }
+
+            var type = string.Equals(n.NodeType, "folder", StringComparison.OrdinalIgnoreCase) ? "folder" : "file";
+            if (type == "folder" && p.EndsWith("/", StringComparison.Ordinal)) p = p.TrimEnd('/');
+            if (type == "file" && p.EndsWith("/", StringComparison.Ordinal))
+            {
+                error = "Invalid file path detected.";
+                return [];
+            }
+
+            normalized.Add(new WorkspaceNode
+            {
+                Path = p,
+                NodeType = type,
+                Language = type == "file" ? (string.IsNullOrWhiteSpace(n.Language) ? GuessLanguage(p) : n.Language!.Trim()) : "plaintext",
+                Content = type == "file" ? (n.Content ?? string.Empty) : null,
+                SortOrder = n.SortOrder,
+                IsReadOnly = n.IsReadOnly
+            });
+        }
+
+        var distinctPaths = normalized.Select(x => x.Path).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        if (distinctPaths != normalized.Count)
+        {
+            error = "Duplicate node paths found.";
+            return [];
+        }
+
+        error = null;
+        return normalized
+            .OrderBy(x => string.Equals(x.NodeType, "folder", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(x => x.Path, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private async Task PersistWorkspaceAsync(int reactBuilderId, AccessContext ctx, List<WorkspaceNode> normalized)
+    {
+        using var c = _db.Database.GetDbConnection();
+        if (c.State != ConnectionState.Open) await c.OpenAsync();
+        var isSqlite = IsSqlite();
+        await using var tx = await c.BeginTransactionAsync();
+
+        var existing = await LoadFilesAsync(reactBuilderId, ctx.OwnerUserId, ctx.CompanyId, c, tx);
+        var existingSet = new HashSet<string>(existing.Select(x => x.Path), StringComparer.OrdinalIgnoreCase);
+        var incomingSet = new HashSet<string>(normalized.Select(x => x.Path), StringComparer.OrdinalIgnoreCase);
+
+        foreach (var old in existing.Where(x => !incomingSet.Contains(x.Path)))
+        {
+            await using var del = c.CreateCommand();
+            del.Transaction = tx;
+            del.CommandText = "DELETE FROM ReactBuilderFiles WHERE ReactBuilderId=@builder AND Path=@path AND OwnerUserId=@owner";
+            Add(del, "@builder", reactBuilderId);
+            Add(del, "@path", old.Path);
+            Add(del, "@owner", ctx.OwnerUserId);
+            await del.ExecuteNonQueryAsync();
+        }
+
+        var i = 0;
+        foreach (var n in normalized)
+        {
+            if (existingSet.Contains(n.Path))
+            {
+                await using var upd = c.CreateCommand();
+                upd.Transaction = tx;
+                upd.CommandText = @"UPDATE ReactBuilderFiles
+SET NodeType=@type, Language=@lang, Content=@content, SortOrder=@sort, IsReadOnly=@readonly, UpdatedAtUtc=@updated
+WHERE ReactBuilderId=@builder AND Path=@path AND OwnerUserId=@owner";
+                Add(upd, "@type", n.NodeType);
+                Add(upd, "@lang", n.Language);
+                Add(upd, "@content", n.Content == null ? DBNull.Value : n.Content);
+                Add(upd, "@sort", n.SortOrder == 0 ? i : n.SortOrder);
+                Add(upd, "@readonly", n.IsReadOnly);
+                Add(upd, "@updated", DateTime.UtcNow);
+                Add(upd, "@builder", reactBuilderId);
+                Add(upd, "@path", n.Path);
+                Add(upd, "@owner", ctx.OwnerUserId);
+                await upd.ExecuteNonQueryAsync();
+            }
+            else
+            {
+                await using var ins = c.CreateCommand();
+                ins.Transaction = tx;
+                ins.CommandText = @"INSERT INTO ReactBuilderFiles (ReactBuilderId, OwnerUserId, CompanyId, DGUID, Path, NodeType, Language, Content, SortOrder, IsReadOnly, CreatedAtUtc, UpdatedAtUtc)
+VALUES (@builder, @owner, @company, @dguid, @path, @type, @lang, @content, @sort, @readonly, @created, @updated)";
+                Add(ins, "@builder", reactBuilderId);
+                Add(ins, "@owner", ctx.OwnerUserId);
+                AddCompany(ins, "@company", ctx.CompanyId, isSqlite);
+                Add(ins, "@dguid", isSqlite ? Guid.NewGuid().ToString("N") : Guid.NewGuid());
+                Add(ins, "@path", n.Path);
+                Add(ins, "@type", n.NodeType);
+                Add(ins, "@lang", n.Language);
+                Add(ins, "@content", n.Content == null ? DBNull.Value : n.Content);
+                Add(ins, "@sort", n.SortOrder == 0 ? i : n.SortOrder);
+                Add(ins, "@readonly", n.IsReadOnly);
+                Add(ins, "@created", DateTime.UtcNow);
+                Add(ins, "@updated", DateTime.UtcNow);
+                await ins.ExecuteNonQueryAsync();
+            }
+            i++;
+        }
+
+        await tx.CommitAsync();
+    }
+
     private static string NormalizePath(string? p)
     {
         if (string.IsNullOrWhiteSpace(p)) return string.Empty;

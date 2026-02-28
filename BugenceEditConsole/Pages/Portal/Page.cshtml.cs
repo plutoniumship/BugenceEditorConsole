@@ -61,15 +61,15 @@ public class PortalPageModel : PageModel
         SelectedTemplateViewerId = page.TemplateViewerId;
 
         var context = await GetAccessContextAsync();
-        AdminViewEnabled = adminview == 1 && context != null && context.CanManage && string.Equals(page.OwnerUserId, context.OwnerUserId, StringComparison.OrdinalIgnoreCase);
+        AdminViewEnabled = adminview == 1 && context != null && context.CanManage;
 
         if (AdminViewEnabled)
         {
             await EnsureMasterpagesTableAsync();
             await EnsureTempleteViewerTableAsync();
-            Masterpages = await LoadMasterpagesAsync(context!.OwnerUserId);
-            TemplateViewers = await LoadTemplateViewersAsync(context.OwnerUserId);
-            Portlets = await LoadPortletsAsync(context.OwnerUserId, page.Id);
+            Masterpages = await LoadMasterpagesAsync(page.OwnerUserId);
+            TemplateViewers = await LoadTemplateViewersAsync(page.OwnerUserId);
+            Portlets = await LoadPortletsAsync(page.OwnerUserId, page.Id);
             PortletsJson = System.Text.Json.JsonSerializer.Serialize(Portlets, new System.Text.Json.JsonSerializerOptions
             {
                 PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
@@ -122,7 +122,12 @@ public class PortalPageModel : PageModel
         }
 
         await EnsurePagesTableAsync();
-        if (!await IsPageOwnerAsync(payload.PageId, context.OwnerUserId))
+        var page = await LoadPageAsync(payload.PageId);
+        if (page == null)
+        {
+            return new JsonResult(new { success = false, message = "Page not found." }) { StatusCode = 404 };
+        }
+        if (string.IsNullOrWhiteSpace(page.OwnerUserId))
         {
             return new JsonResult(new { success = false, message = "Unauthorized page update." }) { StatusCode = 403 };
         }
@@ -139,7 +144,7 @@ WHERE Id = @id AND OwnerUserId = @owner";
         AddParameter(command, "@master", payload.MasterpageId);
         AddParameter(command, "@updated", DateTime.UtcNow);
         AddParameter(command, "@id", payload.PageId);
-        AddParameter(command, "@owner", context.OwnerUserId);
+        AddParameter(command, "@owner", page.OwnerUserId);
         var updated = await command.ExecuteNonQueryAsync();
 
         if (updated == 0)
@@ -167,7 +172,12 @@ WHERE Id = @id AND OwnerUserId = @owner";
         }
 
         await EnsurePagePortletsTableAsync();
-        if (!await IsPageOwnerAsync(payload.PageId, context.OwnerUserId))
+        var page = await LoadPageAsync(payload.PageId);
+        if (page == null)
+        {
+            return new JsonResult(new { success = false, message = "Page not found." }) { StatusCode = 404 };
+        }
+        if (string.IsNullOrWhiteSpace(page.OwnerUserId))
         {
             return new JsonResult(new { success = false, message = "Unauthorized page update." }) { StatusCode = 403 };
         }
@@ -186,7 +196,7 @@ WHERE Id = @id AND OwnerUserId = @owner AND (MasterpageId IS NULL OR MasterpageI
             AddParameter(setMasterpage, "@master", payload.MasterpageId.Value);
             AddParameter(setMasterpage, "@updated", DateTime.UtcNow);
             AddParameter(setMasterpage, "@id", payload.PageId);
-            AddParameter(setMasterpage, "@owner", context.OwnerUserId);
+            AddParameter(setMasterpage, "@owner", page.OwnerUserId);
             await setMasterpage.ExecuteNonQueryAsync();
         }
 
@@ -196,7 +206,7 @@ WHERE Id = @id AND OwnerUserId = @owner AND (MasterpageId IS NULL OR MasterpageI
         await using var command = connection.CreateCommand();
         command.CommandText = @"INSERT INTO PagePortlets (OwnerUserId, PageId, DGUID, ZoneKey, TemplateViewerId, SortOrder, CreatedAtUtc, UpdatedAtUtc)
 VALUES (@owner, @page, @dguid, @zone, @viewer, @order, @created, @updated)";
-        AddParameter(command, "@owner", context.OwnerUserId);
+        AddParameter(command, "@owner", page.OwnerUserId);
         AddParameter(command, "@page", payload.PageId);
         AddParameter(command, "@dguid", isSqlite ? dguid.ToString("N") : dguid);
         AddParameter(command, "@zone", payload.ZoneKey.Trim());
@@ -225,7 +235,12 @@ VALUES (@owner, @page, @dguid, @zone, @viewer, @order, @created, @updated)";
         }
 
         await EnsurePagePortletsTableAsync();
-        if (!await IsPageOwnerAsync(payload.PageId, context.OwnerUserId))
+        var page = await LoadPageAsync(payload.PageId);
+        if (page == null)
+        {
+            return new JsonResult(new { success = false, message = "Page not found." }) { StatusCode = 404 };
+        }
+        if (string.IsNullOrWhiteSpace(page.OwnerUserId))
         {
             return new JsonResult(new { success = false, message = "Unauthorized page update." }) { StatusCode = 403 };
         }
@@ -245,7 +260,7 @@ WHERE Id = @id AND PageId = @page AND OwnerUserId = @owner";
         AddParameter(command, "@updated", DateTime.UtcNow);
         AddParameter(command, "@id", payload.Id);
         AddParameter(command, "@page", payload.PageId);
-        AddParameter(command, "@owner", context.OwnerUserId);
+        AddParameter(command, "@owner", page.OwnerUserId);
         var updated = await command.ExecuteNonQueryAsync();
         if (updated == 0)
         {
@@ -271,7 +286,12 @@ WHERE Id = @id AND PageId = @page AND OwnerUserId = @owner";
         }
 
         await EnsurePagePortletsTableAsync();
-        if (!await IsPageOwnerAsync(payload.PageId, context.OwnerUserId))
+        var page = await LoadPageAsync(payload.PageId);
+        if (page == null)
+        {
+            return new JsonResult(new { success = false, message = "Page not found." }) { StatusCode = 404 };
+        }
+        if (string.IsNullOrWhiteSpace(page.OwnerUserId))
         {
             return new JsonResult(new { success = false, message = "Unauthorized page update." }) { StatusCode = 403 };
         }
@@ -285,7 +305,7 @@ WHERE Id = @id AND PageId = @page AND OwnerUserId = @owner";
         command.CommandText = "DELETE FROM PagePortlets WHERE Id = @id AND PageId = @page AND OwnerUserId = @owner";
         AddParameter(command, "@id", payload.Id);
         AddParameter(command, "@page", payload.PageId);
-        AddParameter(command, "@owner", context.OwnerUserId);
+        AddParameter(command, "@owner", page.OwnerUserId);
         await command.ExecuteNonQueryAsync();
         return new JsonResult(new { success = true, message = "Portlet deleted." });
     }
@@ -303,7 +323,13 @@ WHERE Id = @id AND PageId = @page AND OwnerUserId = @owner";
         }
 
         await EnsureTempleteViewerTableAsync();
-        var viewer = await LoadTemplateViewerRecordAsync(id, context.OwnerUserId);
+        var page = await ResolveCurrentPageAsync();
+        if (page == null)
+        {
+            return new JsonResult(new { success = false, message = "Page not found." }) { StatusCode = 404 };
+        }
+
+        var viewer = await LoadTemplateViewerRecordAsync(id, page.OwnerUserId);
         if (viewer == null)
         {
             return new JsonResult(new { success = false, message = "Template viewer not found." }) { StatusCode = 404 };
@@ -340,6 +366,11 @@ WHERE Id = @id AND PageId = @page AND OwnerUserId = @owner";
         }
 
         await EnsureTempleteViewerTableAsync();
+        var page = await ResolveCurrentPageAsync();
+        if (page == null)
+        {
+            return new JsonResult(new { success = false, message = "Page not found." }) { StatusCode = 404 };
+        }
 
         using var connection = _db.Database.GetDbConnection();
         if (connection.State != ConnectionState.Open)
@@ -356,7 +387,7 @@ WHERE Id = @id AND OwnerUserId = @owner";
         AddParameter(command, "@text", payload.TemplateText);
         AddParameter(command, "@updated", DateTime.UtcNow);
         AddParameter(command, "@id", payload.Id);
-        AddParameter(command, "@owner", context.OwnerUserId);
+        AddParameter(command, "@owner", page.OwnerUserId);
         var updated = await command.ExecuteNonQueryAsync();
         if (updated == 0)
         {
@@ -485,19 +516,15 @@ WHERE Id = @id AND OwnerUserId = @owner";
         };
     }
 
-    private async Task<bool> IsPageOwnerAsync(int pageId, string ownerUserId)
+    private async Task<PageRecord?> ResolveCurrentPageAsync()
     {
-        using var connection = _db.Database.GetDbConnection();
-        if (connection.State != ConnectionState.Open)
+        var routeValue = RouteData.Values["id"]?.ToString();
+        if (!int.TryParse(routeValue, out var pageId) || pageId <= 0)
         {
-            await connection.OpenAsync();
+            return null;
         }
 
-        await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT COUNT(1) FROM Pages WHERE Id = @id AND OwnerUserId = @owner";
-        AddParameter(command, "@id", pageId);
-        AddParameter(command, "@owner", ownerUserId);
-        return Convert.ToInt32(await command.ExecuteScalarAsync()) > 0;
+        return await LoadPageAsync(pageId);
     }
 
     private async Task<string?> LoadMasterpageHtmlAsync(int id)

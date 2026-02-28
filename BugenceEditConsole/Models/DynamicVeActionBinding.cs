@@ -16,8 +16,19 @@ public class DynamicVeActionBinding
 
     public Guid? WorkflowId { get; set; }
 
+    [MaxLength(64)]
+    public string? WorkflowDguid { get; set; }
+
+    [MaxLength(256)]
+    public string? WorkflowNameSnapshot { get; set; }
+
     [MaxLength(2048)]
     public string? NavigateUrl { get; set; }
+
+    [MaxLength(24)]
+    public string? TriggerEvent { get; set; }
+
+    public string? ValidationJson { get; set; }
 
     public string BehaviorJson { get; set; } = "{}";
 
@@ -25,4 +36,3 @@ public class DynamicVeActionBinding
 
     public DynamicVePageRevision? Revision { get; set; }
 }
-

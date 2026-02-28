@@ -20,6 +20,8 @@
     <PathSeparator Condition="'$(OS)' == 'Windows_NT'">;</PathSeparator>
     <PathSeparator Condition="'$(PathSeparator)' == ''">:</PathSeparator>
     <FrontendToolPath>$(UserHome)/.local/node20/bin$(PathSeparator)/usr/local/bin$(PathSeparator)$(PATH)</FrontendToolPath>
+    <!-- Exec.EnvironmentVariables splits on ';'. Escape it so Windows PATH entries stay one value. -->
+    <FrontendToolPathEscaped>$([System.String]::Copy('$(FrontendToolPath)').Replace(';','%3B'))</FrontendToolPathEscaped>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -57,7 +59,7 @@
 
 
 		<Target Name="EnsurePnpm" Condition="'$(SkipFrontendBuild)' != 'true'" BeforeTargets="BuildFrontendAssets">
-    <Exec Command="&quot;$(PnpmExecutable)&quot; --version" ContinueOnError="true" IgnoreExitCode="true" EnvironmentVariables="PATH=$(FrontendToolPath)">
+    <Exec Command="&quot;$(PnpmExecutable)&quot; --version" ContinueOnError="true" IgnoreExitCode="true" EnvironmentVariables="PATH=$(FrontendToolPathEscaped)">
       <Output TaskParameter="ExitCode" PropertyName="PnpmAvailableExitCode" />
     </Exec>
     <PropertyGroup>
@@ -69,8 +71,8 @@
 
 	  <Target Name="BuildFrontendAssets" BeforeTargets="Build" DependsOnTargets="EnsurePnpm" Condition="'$(SkipFrontendBuild)' != 'true' and '$(PnpmAvailable)' == 'true' and Exists('$(RepoRoot)packages/dashboard/package.json')">
     <Message Importance="high" Text="Building Bugence dashboard assets with pnpm ..." />
-    <Exec Command="&quot;$(PnpmExecutable)&quot; --filter @bugence/dashboard run build" WorkingDirectory="$(RepoRoot)" EnvironmentVariables="PATH=$(FrontendToolPath)" />
-    <Exec Command="&quot;$(PnpmExecutable)&quot; --filter @bugence/canvas run build" WorkingDirectory="$(RepoRoot)" EnvironmentVariables="PATH=$(FrontendToolPath)" />
+    <Exec Command="&quot;$(PnpmExecutable)&quot; --filter @bugence/dashboard run build" WorkingDirectory="$(RepoRoot)" EnvironmentVariables="PATH=$(FrontendToolPathEscaped)" />
+    <Exec Command="&quot;$(PnpmExecutable)&quot; --filter @bugence/canvas run build" WorkingDirectory="$(RepoRoot)" EnvironmentVariables="PATH=$(FrontendToolPathEscaped)" />
   </Target>
 
   <!-- Ensure the local sqlite database ships to the output folder so EF can open it when launched from bin/Debug -->
@@ -84,6 +86,25 @@
     <Content Include="..\norwester\**\*.*" Link="wwwroot\norwester\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\norwester')" />
     <Content Include="..\_framework\**\*.*" Link="wwwroot\_framework\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\_framework')" />
   </ItemGroup>
+
+  <!-- For IIS file-system publish: drop app_offline.htm so w3wp unloads and releases locked DLLs. -->
+  <Target Name="CreateAppOfflineForFileSystemPublish"
+          BeforeTargets="CopyFilesToPublishDirectory"
+          Condition="'$(WebPublishMethod)' == 'FileSystem' and '$(PublishUrl)' != ''">
+    <MakeDir Directories="$(PublishUrl)" />
+    <WriteLinesToFile
+      File="$(PublishUrl)\app_offline.htm"
+      Overwrite="true"
+      Lines="&lt;!doctype html&gt;&#x0A;&lt;html&gt;&lt;head&gt;&lt;meta charset='utf-8' /&gt;&lt;title&gt;Updating&lt;/title&gt;&lt;/head&gt;&lt;body&gt;Application is being updated. Please retry in a moment.&lt;/body&gt;&lt;/html&gt;" />
+    <Exec Condition="'$(OS)' == 'Windows_NT'"
+          Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Start-Sleep -Seconds 2&quot;" />
+  </Target>
+
+  <Target Name="RemoveAppOfflineAfterFileSystemPublish"
+          AfterTargets="Publish"
+          Condition="'$(WebPublishMethod)' == 'FileSystem' and '$(PublishUrl)' != '' and Exists('$(PublishUrl)\app_offline.htm')">
+    <Delete Files="$(PublishUrl)\app_offline.htm" />
+  </Target>
 </Project>
 
 

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUGENCE — Errors Management</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { bug: { 50:'#f5f7ff',100:'#e9edff',200:'#cdd7ff',300:'#a7b5ff',400:'#7b89ff',500:'#5663ff',600:'#3f49e6',700:'#3239b3',800:'#2a2f8c',900:'#23276f' } },
+          boxShadow: { glow: '0 10px 30px -10px rgba(86,99,255,0.55), 0 2px 10px rgba(0,0,0,.35)'}
+        }
+      }
+    }
+  </script>
+
+  <!-- Icons & fonts -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; }
+    .grid-bg { background:
+      linear-gradient(transparent,transparent),
+      linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+      linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px; }
+    .glow:focus { box-shadow: 0 0 0 4px rgba(86,99,255,.25); }
+    .badge { display:inline-flex; align-items:center; justify-content:center; height:22px; min-width:22px; border-radius:999px; padding:0 8px; font-size:11px; font-weight:700; }
+    .tab.active { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.2); }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-white relative grid-bg">
+  <!-- Backdrop glows -->
+  <div class="pointer-events-none absolute inset-0">
+    <div class="absolute top-[-10%] right-[-10%] h-[40rem] w-[40rem] rounded-full bg-bug-500/20 blur-3xl"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] h-[40rem] w-[40rem] rounded-full bg-amber-300/20 blur-3xl"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="relative z-10 flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="sidebar w-[300px] shrink-0 border-r border-white/10 bg-white/5 backdrop-blur-xl hidden lg:block">
+      <div class="p-5 flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-black shadow-glow">
+          <img src="/img/blackbug.svg" alt="BUGENCE" class="h-6 w-6"/>
+        </span>
+        <span class="text-xl font-extrabold tracking-tight">BUGENCE</span>
+      </div>
+      <div class="mb-3 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+          <i class="fa-solid fa-magnifying-glass text-white/60"></i>
+          <input id="navSearch" class="bg-transparent outline-none text-sm w-full placeholder:text-white/40" placeholder="Search navigation…" />
+        </div>
+      <nav class="px-4 pb-6 text-sm space-y-6">
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Main</div>
+            <a href="/languages.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Languages</a>
+            <a href="/translation.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Translation</a>
+            <a href="/urlreroute.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">URL rewrite & rerouting</a>
+            <a href="/systemproperties.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">System Properties</a>
+            <a href="/erroemanagment.html" class="block rounded-xl border border-white/10 px-3 py-2 bg-white/10">Errors Management</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Data Sources</div>
+          <a href="/datasources.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Database Sources</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">API Sources</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Stored Procedures</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Content</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">HTML Templates</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Master Pages / Pages</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Site / Logical Hierarchy</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Workflow</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Workflows</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Actions Management</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Engine Status</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Form Builder</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Form Builder</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Form Templates / Views</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Data Type Templates</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">File Groups</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Permission Profiles</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Access</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Users / Groups</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Page Permissions</a>
+        </div>
+        <div>
+          <div class="px-3 py-2 text-white/50 uppercase tracking-wide text-[11px]">Primary — Modules</div>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Modules</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Components Library</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Site Assemblies</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">React Components</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">File Includes / Permission Profiles</a>
+          <a href="#" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">Authentication Services</a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main area -->
+    <section class="flex-1 min-w-0">
+      <!-- Top Bar -->
+      <div class="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
+        <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h1 class="text-xl sm:text-2xl font-extrabold">Errors Management</h1>
+            <span class="badge bg-white/10 border border-white/15">Admin</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="hidden sm:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs">
+              <span class="h-2 w-2 rounded-full bg-green-400"></span> Engine <span class="font-semibold">Online</span>
+            </div>
+            <img src="https://i.pravatar.cc/64?img=20" class="h-9 w-9 rounded-full" alt="user"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Banner -->
+      <div id="banner" class="mx-auto max-w-7xl px-6 pt-4 hidden"></div>
+
+      <!-- Content Shell -->
+      <div class="mx-auto max-w-7xl px-6 py-6 space-y-6">
+        <!-- List View -->
+        <div id="view-list" class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="flex items-center gap-2 text-xs">
+            <button class="tab active rounded-full border border-white/10 px-3 py-1.5" data-filter="all">All</button>
+            <button class="tab rounded-full border border-white/10 px-3 py-1.5" data-filter="workflow">Workflow Errors</button>
+            <button class="tab rounded-full border border-white/10 px-3 py-1.5" data-filter="application">Application Errors</button>
+            <button class="tab rounded-full border border-white/10 px-3 py-1.5" data-filter="portlets">Portlets Errors</button>
+            <button class="tab rounded-full border border-white/10 px-3 py-1.5" data-filter="portal">Portal Errors</button>
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
+              <i class="fa-solid fa-magnifying-glass text-white/60"></i>
+              <input id="search" class="bg-transparent outline-none text-sm w-60 placeholder:text-white/50" placeholder="Search errors…" />
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <label class="text-white/60">Attended</label>
+              <select id="attendedFilter" class="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm outline-none">
+                <option value="all">All</option>
+                <option value="true">Only attended</option>
+                <option value="false">Only unattended</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-4 overflow-x-auto rounded-2xl border border-white/10">
+            <table class="min-w-full text-sm">
+              <thead class="bg-white/10 text-left text-white/70">
+                <tr>
+                  <th class="px-4 py-2">ID</th>
+                  <th class="px-4 py-2">Caption</th>
+                  <th class="px-4 py-2">Portlet ID</th>
+                  <th class="px-4 py-2">Page ID</th>
+                  <th class="px-4 py-2">Current User</th>
+                  <th class="px-4 py-2">Occurred On</th>
+                  <th class="px-4 py-2">Attended</th>
+                  <th class="px-4 py-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody" class="divide-y divide-white/10"></tbody>
+            </table>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between text-sm">
+            <div class="text-white/60" id="pageInfo"></div>
+            <div class="flex items-center gap-2">
+              <button id="prev" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">Previous</button>
+              <button id="next" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit View -->
+        <div id="view-edit" class="hidden rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 class="text-lg font-semibold">Error Detail</h2>
+              <p class="text-xs text-white/60">Investigate and mark as attended.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnView" class="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm">View</button>
+              <button id="btnSave" class="rounded-2xl bg-black px-4 py-2 text-sm font-semibold">Save</button>
+              <button id="btnDelete" class="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">Delete</button>
+              <button id="btnList" class="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm">List</button>
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-4">
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-white/70">ID *</label>
+                <input id="f_id" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" disabled />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-white/70">Caption *</label>
+                <textarea id="f_caption" rows="6" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm outline-none" placeholder="Error message"></textarea>
+                <p id="err_caption" class="mt-1 hidden rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800">Required</p>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="mb-1 block text-xs font-semibold text-white/70">Portlet ID</label>
+                  <input id="f_portlet" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="Template Viewer" />
+                </div>
+                <div>
+                  <label class="mb-1 block text-xs font-semibold text-white/70">Page ID</label>
+                  <input id="f_page" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="Dashboard UAT" />
+                </div>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-white/70">URL</label>
+                <input id="f_url" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="/portal/page/168" />
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="mb-1 block text-xs font-semibold text-white/70">Current User</label>
+                  <input id="f_user" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" placeholder="21" />
+                </div>
+                <div>
+                  <label class="mb-1 block text-xs font-semibold text-white/70">Occurred On</label>
+                  <input id="f_date" type="datetime-local" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm outline-none" />
+                </div>
+              </div>
+              <label class="inline-flex items-center gap-2 text-sm">
+                <input id="f_attended" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/10"/>
+                Mark as attended
+              </label>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="mb-1 block text-xs font-semibold text-white/70">Stack Trace</label>
+                <textarea id="f_stack" rows="10" class="glow w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm outline-none" placeholder="at Namespace.Class.Method()\n at ..."></textarea>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-sm font-semibold">Audit Info</div>
+                <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div class="text-white/60">Create User</div>
+                    <div id="f_create_user" class="font-semibold">—</div>
+                  </div>
+                  <div>
+                    <div class="text-white/60">Create Date</div>
+                    <div id="f_create_date" class="font-semibold">—</div>
+                  </div>
+                  <div>
+                    <div class="text-white/60">Update User</div>
+                    <div id="f_update_user" class="font-semibold">—</div>
+                  </div>
+                  <div>
+                    <div class="text-white/60">DGUID</div>
+                    <div id="f_dguid" class="font-semibold">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- Confirm modal -->
+  <div id="confirm" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-4">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-5">
+      <div class="text-lg font-semibold">Delete error?</div>
+      <p class="mt-2 text-sm text-white/70">This action cannot be undone.</p>
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <button id="cCancel" class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm">Cancel</button>
+        <button id="cOk" class="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-sm text-red-200">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Demo error data
+    let rows = [
+      { id:1142, caption:'Repeater "1132" caused an error while opening...', portlet:'Template Viewer', page:'Dashboard UAT', user:2, occurred:'2024-04-25T07:49:28', attended:false, url:'/portal/page/168', stack:'at DCXPlatform.Classes...'},
+      { id:1141, caption:'Repeater "1284" caused an error while opening...', portlet:'Template Viewer', page:'HomeV1', user:21, occurred:'2024-04-23T13:16:22', attended:false, url:'/portal/page/10', stack:''},
+      { id:1140, caption:'Repeater "1284" caused an error while opening...', portlet:'Template Viewer', page:'HomeV1', user:21, occurred:'2024-04-23T13:16:19', attended:false, url:'/portal/page/11', stack:''},
+    ];
+
+    let page=1; const pageSize=10; let editingId=null; let filtered=[...rows]; let typeFilter='all'; let attendedFilter='all';
+
+    const tbody=document.getElementById('tbody');
+    const pageInfo=document.getElementById('pageInfo');
+    const search=document.getElementById('search');
+
+    const listView=document.getElementById('view-list');
+    const editView=document.getElementById('view-edit');
+
+    const banner=document.getElementById('banner');
+    function showBanner(type,title,message){
+      banner.innerHTML='';
+      const div=document.createElement('div');
+      div.className='rounded-2xl border px-4 py-3 text-sm flex items-start gap-3 '+(type==='success'?'border-green-200 bg-green-50 text-green-800':type==='error'?'border-red-200 bg-red-50 text-red-800':'border-blue-200 bg-blue-50 text-blue-800');
+      div.innerHTML=`<i class="${type==='success'?'fa-solid fa-circle-check':type==='error'?'fa-solid fa-triangle-exclamation':'fa-solid fa-circle-info'} mt-0.5"></i><div><div class='font-semibold'>${title}</div><div>${message}</div></div>`;
+      banner.appendChild(div); banner.classList.remove('hidden');
+      setTimeout(()=>banner.classList.add('hidden'),3500);
+    }
+
+    function renderTable(){
+      const start=(page-1)*pageSize; const end=start+pageSize; const slice=filtered.slice(start,end);
+      tbody.innerHTML='';
+      slice.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td class='px-4 py-2'>${r.id}</td>
+          <td class='px-4 py-2 max-w-[60ch] truncate' title='${r.caption}'>${r.caption}</td>
+          <td class='px-4 py-2'>${r.portlet}</td>
+          <td class='px-4 py-2'>${r.page}</td>
+          <td class='px-4 py-2'>${r.user}</td>
+          <td class='px-4 py-2 text-white/70'>${new Date(r.occurred).toLocaleString()}</td>
+          <td class='px-4 py-2'>${r.attended?'<span class="badge bg-green-500/20 border border-green-400/40">Yes</span>':'<span class="badge bg-white/10 border border-white/20">No</span>'}</td>
+          <td class='px-4 py-2 text-right'>
+            <button class='rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-xs me-2' data-edit='${r.id}'>Open</button>
+            <button class='rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-200' data-del='${r.id}'>Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      pageInfo.textContent=`Showing ${slice.length} of ${filtered.length}`;
+    }
+
+    function toList(){ editView.classList.add('hidden'); listView.classList.remove('hidden'); }
+    function toEdit(){ listView.classList.add('hidden'); editView.classList.remove('hidden'); }
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        typeFilter=btn.dataset.filter; applyFilters();
+      });
+    });
+
+    // Filters
+    document.getElementById('attendedFilter').addEventListener('change',(e)=>{ attendedFilter=e.target.value; applyFilters(); });
+    search.addEventListener('input', applyFilters);
+    function applyFilters(){
+      const q=search.value.toLowerCase();
+      filtered=rows.filter(r=>{
+        const textMatch = `${r.id} ${r.caption} ${r.portlet} ${r.page}`.toLowerCase().includes(q);
+        const typeMatch = typeFilter==='all' || r.type===typeFilter || !r.type; // demo
+        const attMatch = attendedFilter==='all' || String(r.attended)===attendedFilter;
+        return textMatch && typeMatch && attMatch;
+      });
+      page=1; renderTable();
+    }
+
+    // Pagination
+    document.getElementById('prev').addEventListener('click',()=>{ if(page>1){ page--; renderTable(); }});
+    document.getElementById('next').addEventListener('click',()=>{ if(page*pageSize<filtered.length){ page++; renderTable(); }});
+
+    // Row actions
+    tbody.addEventListener('click',(e)=>{
+      const editId=e.target.getAttribute('data-edit');
+      const delId=e.target.getAttribute('data-del');
+      if(editId){ const item=rows.find(r=>r.id===Number(editId)); editingId=item.id; fillForm(item); toEdit(); }
+      if(delId){ pendingDelete=Number(delId); openConfirm(); }
+    });
+
+    // Form refs
+    const f_id=document.getElementById('f_id');
+    const f_caption=document.getElementById('f_caption');
+    const f_portlet=document.getElementById('f_portlet');
+    const f_page=document.getElementById('f_page');
+    const f_user=document.getElementById('f_user');
+    const f_date=document.getElementById('f_date');
+    const f_attended=document.getElementById('f_attended');
+    const f_url=document.getElementById('f_url');
+    const f_stack=document.getElementById('f_stack');
+
+    function fillForm(r){
+      f_id.value=r.id;
+      f_caption.value=r.caption||'';
+      f_portlet.value=r.portlet||'';
+      f_page.value=r.page||'';
+      f_user.value=r.user||'';
+      f_date.value=r.occurred? r.occurred.slice(0,16):'';
+      f_attended.checked=!!r.attended;
+      f_url.value=r.url||'';
+      f_stack.value=r.stack||'';
+      document.getElementById('f_create_user').textContent=r.createUser||'Mohammed Dwailk';
+      document.getElementById('f_create_date').textContent=r.createDate? new Date(r.createDate).toLocaleString() : new Date(r.occurred).toLocaleString();
+      document.getElementById('f_update_user').textContent=r.updateUser||'Mohammed Dwailk';
+      document.getElementById('f_dguid').textContent=r.dguid||'23e903bd-702a-488a-891a-4bded2c45d34';
+    }
+
+    function validateForm(){
+      let ok=true; const ec=document.getElementById('err_caption'); ec.classList.add('hidden'); if(!f_caption.value.trim()){ ec.classList.remove('hidden'); ok=false; } return ok;
+    }
+
+    document.getElementById('btnList').addEventListener('click',()=>toList());
+    document.getElementById('btnView').addEventListener('click',()=>showBanner('info','Read-only','Viewing error in read-only mode (demo).'));
+
+    document.getElementById('btnSave').addEventListener('click',()=>{
+      if(!validateForm()){ showBanner('error','Validation','Caption is required.'); return; }
+      const now=new Date().toISOString();
+      if(editingId==null){
+        const newId=rows.length?Math.max(...rows.map(r=>r.id))+1:1;
+        rows.unshift({ id:newId, caption:f_caption.value.trim(), portlet:f_portlet.value.trim(), page:f_page.value.trim(), user:Number(f_user.value.trim()||0), occurred:f_date.value?f_date.value:now, attended:f_attended.checked, url:f_url.value.trim(), stack:f_stack.value.trim() });
+        showBanner('success','Created','Error added (demo).');
+      } else {
+        const idx=rows.findIndex(r=>r.id===editingId);
+        rows[idx]={ id:editingId, caption:f_caption.value.trim(), portlet:f_portlet.value.trim(), page:f_page.value.trim(), user:Number(f_user.value.trim()||0), occurred:f_date.value?f_date.value:rows[idx].occurred, attended:f_attended.checked, url:f_url.value.trim(), stack:f_stack.value.trim() };
+        showBanner('success','Saved','Error updated (demo).');
+      }
+      applyFilters(); toList();
+    });
+
+    // Delete flow
+    let pendingDelete=null; const modal=document.getElementById('confirm');
+    function openConfirm(){ modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    function closeConfirm(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    document.getElementById('cCancel').addEventListener('click',()=>{ pendingDelete=null; closeConfirm(); });
+    document.getElementById('cOk').addEventListener('click',()=>{ if(pendingDelete!=null){ rows=rows.filter(r=>r.id!==pendingDelete); showBanner('success','Deleted','Error entry removed.'); applyFilters(); } pendingDelete=null; closeConfirm(); });
+
+    // Init
+    applyFilters();
+  </script>
+   <script>
+    // Sidebar primary toggles
+    document.querySelectorAll('[data-prim]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-prim');
+        const panel = document.querySelector(`[data-sub="${key}"]`);
+        panel.classList.toggle('hidden');
+        btn.classList.toggle('active');
+      });
+    });
+
+    // Active link styling
+    const links = document.querySelectorAll('aside a[href^="#panel-"]');
+    links.forEach(a => a.addEventListener('click', () => {
+      links.forEach(l => l.classList.remove('active'));
+      a.classList.add('active');
+    }));
+
+    // Nav search filter
+    const navSearch = document.getElementById('navSearch');
+    navSearch.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('aside [data-sub] a').forEach(link => {
+        const show = link.textContent.toLowerCase().includes(q);
+        link.style.display = show ? '' : 'none';
+      });
+    });
+
+    // Banner helper
+    const bannerHost = document.getElementById('banner');
+    function showBanner(type, title, message) {
+      bannerHost.innerHTML = '';
+      const tpl = document.getElementById('bannerTpl').content.cloneNode(true);
+      const wrap = document.createElement('div');
+      wrap.className = 'alert';
+      const base = tpl.querySelector('div');
+      if(type==='success'){ base.classList.add('border-green-200','bg-green-50','text-green-800'); base.querySelector('i').className='fa-solid fa-circle-check mt-0.5'; }
+      else if(type==='error'){ base.classList.add('border-red-200','bg-red-50','text-red-800'); base.querySelector('i').className='fa-solid fa-triangle-exclamation mt-0.5'; }
+      else { base.classList.add('border-blue-200','bg-blue-50','text-blue-800'); }
+      base.querySelector('#bTitle').textContent = title;
+      base.querySelector('#bMsg').textContent = message;
+      wrap.appendChild(base);
+      bannerHost.appendChild(wrap);
+      bannerHost.classList.remove('hidden');
+      setTimeout(()=> bannerHost.classList.add('hidden'), 4000);
+    }
+
+    // Sample notification
+    document.getElementById('notifyTest').addEventListener('click', () => {
+      showBanner('success','Deployment finished','v2.14.3 was deployed successfully.');
+    });
+
+    // Chart.js demo
+    window.addEventListener('load', () => {
+      const ctx = document.getElementById('chartRequests');
+      if(!ctx) return;
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+          datasets: [
+            { label:'Requests', data:[900,1100,1050,1300,1250,1400,1500], borderWidth:2, tension:.35 },
+            { label:'Errors', data:[4,7,5,9,6,5,3], borderWidth:2, tension:.35 }
+          ]
+        },
+        options: {
+          responsive:true,
+          plugins:{ legend:{ labels:{ color:'#e5e7eb' } } },
+          scales:{ x:{ ticks:{ color:'#9ca3af' }, grid:{ color:'rgba(255,255,255,.08)' } }, y:{ ticks:{ color:'#9ca3af' }, grid:{ color:'rgba(255,255,255,.08)' } } }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

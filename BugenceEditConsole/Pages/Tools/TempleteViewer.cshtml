@@ -517,6 +517,21 @@
             flex-direction:column;
             gap:9px;
         }
+        .token-meta {
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+        }
+        .token-pill {
+            padding:4px 8px;
+            border-radius:999px;
+            border:1px solid rgba(255,255,255,0.14);
+            background:rgba(255,255,255,0.03);
+            font-size:0.67rem;
+            letter-spacing:0.04em;
+            color:#d9d9d9;
+        }
+        .token-pill strong { color:#fef3d4; font-weight:700; }
         .tab-row { display:flex; gap:6px; flex-wrap:wrap; }
         .tab-btn {
             border:1px solid rgba(255,255,255,0.2);
@@ -650,6 +665,7 @@
                         <button type="button" class="tab-btn" data-category="fields">Fields</button>
                         <button type="button" class="tab-btn" data-category="shortcodes">Shortcodes</button>
                     </div>
+                    <div class="token-meta" id="tokenMeta"></div>
                     <input class="sidebar-search" id="repeaterSearch" placeholder="Filter tokens..." />
                 </div>
                 <div class="sidebar-body" id="repeaterList"></div>
@@ -674,6 +690,7 @@
             const repeaterList = doc.getElementById('repeaterList');
             const repeaterSearch = doc.getElementById('repeaterSearch');
             const repeaterTabs = Array.from(doc.querySelectorAll('#repeaterTabs .tab-btn'));
+            const tokenMeta = doc.getElementById('tokenMeta');
 
             const loadCss = (href) => new Promise((resolve) => {
                 const link = doc.createElement('link');
@@ -733,13 +750,22 @@
                 if (!repeaterList) return;
                 const term = (repeaterSearch?.value || '').trim().toLowerCase();
                 const nodes = repeaterList.querySelectorAll('[data-category]');
+                let visibleCount = 0;
                 nodes.forEach((node) => {
                     const category = (node.getAttribute('data-category') || 'all').toLowerCase();
                     const text = (node.textContent || '').toLowerCase();
                     const showCategory = activeCategory === 'all' || category === activeCategory;
                     const showText = !term || text.includes(term);
                     node.style.display = showCategory && showText ? '' : 'none';
+                    if (showCategory && showText) visibleCount += 1;
                 });
+                if (tokenMeta) {
+                    tokenMeta.innerHTML = `
+                        <span class="token-pill">Category: <strong>${activeCategory.toUpperCase()}</strong></span>
+                        <span class="token-pill">Visible: <strong>${visibleCount}</strong></span>
+                        <span class="token-pill">Filter: <strong>${term ? 'ON' : 'OFF'}</strong></span>
+                    `;
+                }
             };
             repeaterTabs.forEach((btn) => {
                 btn.addEventListener('click', () => {

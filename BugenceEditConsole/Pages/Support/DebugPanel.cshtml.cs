@@ -90,7 +90,7 @@ ORDER BY CreatedAtUtc DESC";
         await using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            list.Add(new DebugErrorRow
+            var row = new DebugErrorRow
             {
                 Id = reader.GetInt32(0),
                 Source = reader.IsDBNull(1) ? "Unknown" : reader.GetString(1),
@@ -99,10 +99,26 @@ ORDER BY CreatedAtUtc DESC";
                 Path = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
                 CreatedAtUtc = isSqlite ? DateTime.Parse(reader.GetString(5)) : reader.GetDateTime(5),
                 OwnerUserId = reader.IsDBNull(6) ? null : reader.GetString(6)
-            });
+            };
+
+            if (list.Count > 0 && AreSameDisplayedError(list[^1], row))
+            {
+                list[^1].ErrorCount++;
+                continue;
+            }
+
+            list.Add(row);
         }
 
         return list;
+    }
+
+    private static bool AreSameDisplayedError(DebugErrorRow current, DebugErrorRow next)
+    {
+        return string.Equals(current.Source, next.Source, StringComparison.Ordinal) &&
+               string.Equals(current.ShortDescription, next.ShortDescription, StringComparison.Ordinal) &&
+               string.Equals(current.LongDescription, next.LongDescription, StringComparison.Ordinal) &&
+               string.Equals(current.Path, next.Path, StringComparison.Ordinal);
     }
 
     private async Task<AccessContext?> GetAccessContextAsync()
@@ -162,5 +178,6 @@ ORDER BY CreatedAtUtc DESC";
         public string Path { get; set; } = string.Empty;
         public DateTime CreatedAtUtc { get; set; }
         public string? OwnerUserId { get; set; }
+        public int ErrorCount { get; set; } = 1;
     }
 }

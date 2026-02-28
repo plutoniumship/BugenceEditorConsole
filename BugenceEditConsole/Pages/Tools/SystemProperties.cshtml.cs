@@ -6,11 +6,13 @@ using System.Text.Json.Serialization;
 using BugenceEditConsole.Data;
 using BugenceEditConsole.Models;
 using BugenceEditConsole.Services;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace BugenceEditConsole.Pages.Tools;
 
@@ -21,17 +23,20 @@ public class SystemPropertiesModel : PageModel
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly DebugPanelLogService _debugLogService;
     private readonly ISensitiveDataProtector _protector;
+    private readonly IOptionsMonitorCache<OAuthOptions> _oauthOptionsCache;
 
     public SystemPropertiesModel(
         ApplicationDbContext db,
         UserManager<ApplicationUser> userManager,
         DebugPanelLogService debugLogService,
-        ISensitiveDataProtector protector)
+        ISensitiveDataProtector protector,
+        IOptionsMonitorCache<OAuthOptions> oauthOptionsCache)
     {
         _db = db;
         _userManager = userManager;
         _debugLogService = debugLogService;
         _protector = protector;
+        _oauthOptionsCache = oauthOptionsCache;
     }
 
     public string UserName { get; private set; } = "Administrator";
@@ -60,8 +65,8 @@ public class SystemPropertiesModel : PageModel
         CanManage = context.CanManage;
 
         await EnsureTableAsync();
-        await EnsureDguidValuesAsync(context.OwnerUserId, context.User.Id);
-        Properties = await LoadPropertiesAsync(context.OwnerUserId, context.User.Id);
+        await EnsureDguidValuesAsync(context.OwnerUserId, context.User.Id, context.CompanyId);
+        Properties = await LoadPropertiesAsync(context.OwnerUserId, context.User.Id, context.CompanyId);
         for (var i = 0; i < Properties.Count; i++)
         {
             Properties[i].DisplayId = i + 1;
@@ -95,9 +100,10 @@ public class SystemPropertiesModel : PageModel
             }
 
             await using var command = connection.CreateCommand();
-            command.CommandText = "SELECT MAX(Id) FROM SystemProperties WHERE (OwnerUserId = @owner OR OwnerUserId = @currentUser)";
+            command.CommandText = "SELECT MAX(Id) FROM SystemProperties WHERE (OwnerUserId = @owner OR OwnerUserId = @currentUser OR (@company IS NOT NULL AND CompanyId = @company) OR CompanyId IS NULL)";
             AddParameter(command, "@owner", context.OwnerUserId);
             AddParameter(command, "@currentUser", context.User.Id);
+            AddCompanyParameter(command, context.CompanyId);
             var result = await command.ExecuteScalarAsync();
             var nextId = result == null || result is DBNull ? 1 : Convert.ToInt32(result) + 1;
 
@@ -171,6 +177,7 @@ VALUES (@owner, @company, @dguid, @name, @category, @username, @password, @host,
                 return new JsonResult(new { success = false, message = "Unable to create record." }) { StatusCode = 500 };
             }
 
+            InvalidateOAuthCacheIfNeeded(payload.Category);
             return new JsonResult(new { success = true, message = "Record created." });
         }
         catch (Exception ex)
@@ -224,7 +231,7 @@ SET Name = @name,
     RouteUrl = @route,
     Notes = @notes,
     UpdatedAtUtc = @updated
-WHERE Id = @id AND (OwnerUserId = @owner OR OwnerUserId = @currentUser)";
+WHERE Id = @id AND (OwnerUserId = @owner OR OwnerUserId = @currentUser OR (@company IS NOT NULL AND CompanyId = @company) OR CompanyId IS NULL)";
             AddParameter(command, "@name", payload.Name.Trim());
             AddParameter(command, "@category", payload.Category.Trim());
             AddParameter(command, "@username", payload.Username?.Trim() ?? string.Empty);
@@ -237,12 +244,14 @@ WHERE Id = @id AND (OwnerUserId = @owner OR OwnerUserId = @currentUser)";
             AddParameter(command, "@id", payload.Id);
             AddParameter(command, "@owner", context.OwnerUserId);
             AddParameter(command, "@currentUser", context.User.Id);
+            AddCompanyParameter(command, context.CompanyId);
             var updated = await command.ExecuteNonQueryAsync();
             if (updated <= 0)
             {
                 return new JsonResult(new { success = false, message = "Record not found or not updated." }) { StatusCode = 404 };
             }
 
+            InvalidateOAuthCacheIfNeeded(payload.Category);
             return new JsonResult(new { success = true, message = "Record updated." });
         }
         catch (Exception ex)
@@ -280,12 +289,14 @@ WHERE Id = @id AND (OwnerUserId = @owner OR OwnerUserId = @currentUser)";
             }
 
             await using var command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM SystemProperties WHERE Id = @id AND (OwnerUserId = @owner OR OwnerUserId = @currentUser)";
+            command.CommandText = "DELETE FROM SystemProperties WHERE Id = @id AND (OwnerUserId = @owner OR OwnerUserId = @currentUser OR (@company IS NOT NULL AND CompanyId = @company) OR CompanyId IS NULL)";
             AddParameter(command, "@id", payload.Id);
             AddParameter(command, "@owner", context.OwnerUserId);
             AddParameter(command, "@currentUser", context.User.Id);
+            AddCompanyParameter(command, context.CompanyId);
             await command.ExecuteNonQueryAsync();
 
+            _oauthOptionsCache.TryRemove("Google");
             return new JsonResult(new { success = true, message = "Record deleted." });
         }
         catch (Exception ex)
@@ -317,13 +328,14 @@ WHERE Id = @id AND (OwnerUserId = @owner OR OwnerUserId = @currentUser)";
 SET OwnerUserId = @owner,
     CompanyId = @company,
     UpdatedAtUtc = @updated
-WHERE OwnerUserId = @owner OR OwnerUserId = @currentUser";
+WHERE OwnerUserId = @owner OR OwnerUserId = @currentUser OR (@company IS NOT NULL AND CompanyId = @company) OR CompanyId IS NULL";
             AddParameter(command, "@owner", context.OwnerUserId);
             AddParameter(command, "@currentUser", context.User.Id);
             AddCompanyParameter(command, context.CompanyId);
             AddParameter(command, "@updated", DateTime.UtcNow);
             var repaired = await command.ExecuteNonQueryAsync();
 
+            _oauthOptionsCache.TryRemove("Google");
             return new JsonResult(new { success = true, message = $"Database synced. {repaired} record(s) repaired." });
         }
         catch (Exception ex)
@@ -333,7 +345,7 @@ WHERE OwnerUserId = @owner OR OwnerUserId = @currentUser";
         }
     }
 
-    private async Task<List<SystemPropertyRow>> LoadPropertiesAsync(string ownerUserId, string currentUserId)
+    private async Task<List<SystemPropertyRow>> LoadPropertiesAsync(string ownerUserId, string currentUserId, Guid? companyId)
     {
         var list = new List<SystemPropertyRow>();
         using var connection = _db.Database.GetDbConnection();
@@ -348,10 +360,11 @@ WHERE OwnerUserId = @owner OR OwnerUserId = @currentUser";
         await using var command = connection.CreateCommand();
 command.CommandText = @"SELECT Id, CompanyId, DGUID, Name, Category, Username, PasswordEncrypted, Host, Port, RouteUrl, Notes, CreatedAtUtc, UpdatedAtUtc
 FROM SystemProperties
-WHERE (OwnerUserId = @owner OR OwnerUserId = @currentUser)
+WHERE (OwnerUserId = @owner OR OwnerUserId = @currentUser OR (@company IS NOT NULL AND CompanyId = @company) OR CompanyId IS NULL)
 ORDER BY CreatedAtUtc DESC";
         AddParameter(command, "@owner", ownerUserId);
         AddParameter(command, "@currentUser", currentUserId);
+        AddCompanyParameter(command, companyId);
 
         await using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -448,7 +461,7 @@ AND NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'CompanyId' AND Object_I
 ALTER TABLE SystemProperties ADD CompanyId UNIQUEIDENTIFIER NULL;");
     }
 
-    private async Task EnsureDguidValuesAsync(string ownerUserId, string currentUserId)
+    private async Task EnsureDguidValuesAsync(string ownerUserId, string currentUserId, Guid? companyId)
     {
         using var connection = _db.Database.GetDbConnection();
         if (connection.State != ConnectionState.Open)
@@ -461,15 +474,16 @@ ALTER TABLE SystemProperties ADD CompanyId UNIQUEIDENTIFIER NULL;");
         await using var command = connection.CreateCommand();
         if (isSqlite)
         {
-            command.CommandText = "UPDATE SystemProperties SET DGUID = lower(hex(randomblob(16))) WHERE (OwnerUserId = @owner OR OwnerUserId = @currentUser) AND (DGUID IS NULL OR DGUID = '')";
+            command.CommandText = "UPDATE SystemProperties SET DGUID = lower(hex(randomblob(16))) WHERE (OwnerUserId = @owner OR OwnerUserId = @currentUser OR (@company IS NOT NULL AND CompanyId = @company) OR CompanyId IS NULL) AND (DGUID IS NULL OR DGUID = '')";
         }
         else
         {
-            command.CommandText = "UPDATE SystemProperties SET DGUID = NEWID() WHERE (OwnerUserId = @owner OR OwnerUserId = @currentUser) AND (DGUID IS NULL OR DGUID = '00000000-0000-0000-0000-000000000000')";
+            command.CommandText = "UPDATE SystemProperties SET DGUID = NEWID() WHERE (OwnerUserId = @owner OR OwnerUserId = @currentUser OR (@company IS NOT NULL AND CompanyId = @company) OR CompanyId IS NULL) AND (DGUID IS NULL OR DGUID = '00000000-0000-0000-0000-000000000000')";
         }
 
         AddParameter(command, "@owner", ownerUserId);
         AddParameter(command, "@currentUser", currentUserId);
+        AddCompanyParameter(command, companyId);
         await command.ExecuteNonQueryAsync();
     }
 
@@ -599,6 +613,14 @@ ALTER TABLE SystemProperties ADD CompanyId UNIQUEIDENTIFIER NULL;");
         catch
         {
             return string.Empty;
+        }
+    }
+
+    private void InvalidateOAuthCacheIfNeeded(string? category)
+    {
+        if (string.Equals(category?.Trim(), "OAuthGoogle", StringComparison.OrdinalIgnoreCase))
+        {
+            _oauthOptionsCache.TryRemove("Google");
         }
     }
 

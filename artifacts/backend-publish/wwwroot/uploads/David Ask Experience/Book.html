@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE BOOK | DAVID ASK EXPERIENCE</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700&family=Playfair+Display:ital,wght@0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --dark: #050505;
+            --soft-white: #f5f5f5;
+            --primary-gold: #c5a059;
+            --dark-bg: #0a0a0a;
+        }
+
+        /* --- CUSTOM SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: var(--gold); }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            cursor: none;
+        }
+
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        .text-gold { color: var(--gold); }
+
+        /* --- LUXURY CUSTOM CURSOR --- */
+        #cursor { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; position: fixed; pointer-events: none; z-index: 10000; }
+        #cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transition: all 0.1s ease-out; }
+
+        /* --- BUTTON DESIGN --- */
+        .magnetic-wrap { display: inline-flex; align-items: center; justify-content: center; position: relative; padding: 10px; }
+        .btn-luxury {
+            background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 18px 45px;
+            text-transform: uppercase; letter-spacing: 4px; font-size: 0.7rem; font-weight: 600;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); position: relative; z-index: 1; overflow: hidden; display: inline-block; text-decoration: none !important;
+        }
+        .btn-luxury:hover { color: black !important; border-color: var(--gold); }
+        .btn-luxury::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gold); transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); z-index: -1; }
+        .btn-luxury:hover::before { left: 0; }
+        .btn-luxury-gold { background: var(--gold); color: black !important; border-color: var(--gold); }
+
+        /* --- HERO TEXT MASKING --- */
+        .text-reveal {
+            background: linear-gradient(to right, #fff 50%, #444 50%);
+            background-size: 200% 100%;
+            background-position: 100% 0;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: background-position 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .hero-container:hover .text-reveal { background-position: 0 0; }
+
+        /* --- SECTION 2: OVERVIEW --- */
+        .overview-canvas { background-color: #000; padding: 200px 0; position: relative; overflow: hidden; }
+        .overview-title-reveal { font-size: clamp(3rem, 7vw, 7rem); line-height: 0.9; letter-spacing: -0.05em; margin-bottom: 4rem; }
+        .gold-beam { position: absolute; left: 0; top: 0; width: 2px; height: 100%; background: linear-gradient(to bottom, transparent, var(--gold), transparent); box-shadow: 0 0 20px var(--gold); }
+
+        /* --- SECTION 3: AUDIENCE EDITORIAL --- */
+        .audience-editorial { background-color: #000; padding: 160px 0; position: relative; }
+        .sticky-title-wrap { position: sticky; top: 200px; height: fit-content; }
+        .vertical-title { font-size: 12vw; line-height: 0.8; font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.05); text-transform: uppercase; }
+        .audience-item { margin-bottom: 150px; position: relative; z-index: 2; }
+        .audience-frame { position: relative; width: 100%; height: 500px; overflow: hidden; border: 1px solid rgba(212, 175, 55, 0.1); background: #0a0a0a; }
+        .audience-frame img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) brightness(0.4); transition: all 1s cubic-bezier(0.19, 1, 0.22, 1); transform: scale(1.1); }
+        .audience-item:hover .audience-frame img { filter: grayscale(0) brightness(0.6); transform: scale(1); }
+        .audience-text-overlay { margin-top: -60px; margin-left: 40px; position: relative; z-index: 10; max-width: 500px; }
+        .audience-number { font-family: 'Playfair Display', serif; font-size: 4rem; color: var(--gold); line-height: 1; margin-bottom: 10px; display: block; }
+        .audience-copy { font-size: 1.8rem; font-weight: 200; line-height: 1.3; color: #fff; }
+
+        /* --- REDESIGNED SECTION 4: STAGGERED NARRATIVE --- */
+        .book-insight-section {
+            background-color: #050505;
+            padding: 180px 0;
+            position: relative;
+        }
+        .insight-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .insight-vertical-line {
+            position: absolute;
+            left: 0; top: 0;
+            width: 1px; height: 100%;
+            background: rgba(255,255,255,0.05);
+        }
+        .insight-progress-line {
+            position: absolute;
+            left: 0; top: 0;
+            width: 1px; height: 0%;
+            background: var(--gold);
+            box-shadow: 0 0 15px var(--gold);
+            z-index: 2;
+        }
+        .insight-row {
+            padding: 80px 0 80px 80px;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+        .insight-row::before {
+            content: '';
+            position: absolute;
+            left: -5px; top: 95px;
+            width: 11px; height: 11px;
+            background: #000;
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            z-index: 3;
+            transition: background 0.4s ease;
+        }
+        .insight-row:hover::before { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+        
+        .insight-ghost {
+            position: absolute;
+            left: 100px; top: -20px;
+            font-size: 10rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-style: italic;
+            color: rgba(212, 175, 55, 0.03);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .insight-content { position: relative; z-index: 1; }
+        .insight-text { font-size: clamp(1.5rem, 3vw, 3rem); line-height: 1.2; font-weight: 200; color: rgba(255,255,255,0.7); transition: color 0.4s ease; }
+        .insight-row:hover .insight-text { color: #fff; }
+
+        /* --- GLOBAL UTILS --- */
+        .nav-link-custom { color: rgba(255, 255, 255, 0.6); text-decoration: none; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3em; transition: all 0.4s ease; }
+        .nav-link-custom:hover { color: var(--gold); }
+        .nav-scrolled { background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(20px); padding: 1.2rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .optin-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding: 20px 0; color: #fff; font-size: 1.25rem; text-align: center; transition: border-color 0.6s ease; }
+        .optin-input:focus { outline: none; border-color: var(--gold); }
+    </style>
+</head>
+
+<body class="bg-[#050505]">
+
+    <div id="cursor"></div>
+    <div id="cursor-outline"></div>
+
+    <nav id="main-nav" class="fixed top-0 w-full z-[100] px-12 py-10 flex justify-between items-center mix-blend-difference transition-all duration-500">
+        <a href="index.html" class="text-white no-underline tracking-[0.5em] uppercase serif text-xl font-bold">
+            David <span class="text-[#D4AF37]">Ask</span>
+        </a>
+        <div class="hidden lg:flex items-center gap-12">
+            <ul class="flex gap-10 mb-0 list-none">
+                <li><a href="/index.html" class="nav-link-custom">Home</a></li>
+                <li><a href="/Podcast.html" class="nav-link-custom">Podcast</a></li>
+                <li><a href="/Book.html" class="nav-link-custom" target="_blank">Book</a></li>
+                <li><a href="/Music.html" class="nav-link-custom">Music</a></li>
+            </ul>
+            <div class="magnetic-wrap">
+                <a href="#optin" class="btn-luxury !py-2 !px-8 text-[0.6rem]">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="h-screen relative flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=1600" class="w-full h-full object-cover opacity-20 scale-110 grayscale" alt="Guardians of Grit">
+        </div>
+        <div class="relative z-10 text-center container px-6">
+            <h4 class="text-gold uppercase tracking-[0.6em] text-[0.65rem] mb-8" data-aos="fade-up">Coming Soon in 2026</h4>
+            <h1 class="serif italic mb-8" style="font-size: clamp(3.5rem, 8vw, 9rem); line-height: 0.9;">Guardians of Grit</h1>
+            <p class="max-w-3xl mx-auto text-xl md:text-2xl text-white/40 font-light leading-relaxed mb-16" data-aos="fade-up" data-aos-delay="200">
+                A book for fathers who want to raise strong, kind sons and change the story for the next generation.
+            </p>
+            <div class="magnetic-wrap" data-aos="fade-up" data-aos-delay="400">
+                <a href="#optin" class="btn-luxury btn-luxury-gold">Get Book Updates</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="overview-canvas">
+        <div class="container mx-auto px-6">
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <h2 class="overview-title-reveal serif italic" data-aos="fade-up">
+                        A Guide for Fathers Who <br>Want to Show Up With Intention
+                    </h2>
+                    <div class="row g-5 align-items-center mt-20">
+                        <div class="col-lg-7" data-aos="fade-right">
+                            <p class="text-3xl md:text-4xl text-white/80 font-light leading-tight">
+                                Guardians of Grit is a book for dads who didn’t get a clear model of what healthy fatherhood looks like—but who are determined to raise their sons with strength, presence, and compassion. 
+                            </p>
+                        </div>
+                        <div class="col-lg-4 offset-lg-1" data-aos="fade-left">
+                            <div class="relative py-10 px-12">
+                                <div class="gold-beam"></div>
+                                <p class="text-xl text-white/40 italic serif leading-relaxed">
+                                    Through stories, questions, and practical guidance, this book helps you build the kind of relationship your son can stand on for the rest of his life.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="audience-editorial">
+        <div class="container mx-auto px-6">
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="sticky-title-wrap">
+                        <p class="text-gold uppercase tracking-[0.8em] text-[0.7rem] mb-12">The Audience</p>
+                        <h2 class="vertical-title">Who It’s For</h2>
+                        <div class="w-12 h-[2px] bg-gold mt-20"></div>
+                    </div>
+                </div>
+                <div class="col-lg-6 offset-lg-1">
+                    <div class="audience-item" data-aos="fade-up">
+                        <div class="audience-frame"><img src="https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&q=80&w=1200" alt=""></div>
+                        <div class="audience-text-overlay">
+                            <span class="audience-number">01</span>
+                            <p class="audience-copy serif italic">Fathers who want to parent differently than they were parented.</p>
+                        </div>
+                    </div>
+                    <div class="audience-item" data-aos="fade-up">
+                        <div class="audience-frame"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=1200" alt=""></div>
+                        <div class="audience-text-overlay">
+                            <span class="audience-number">02</span>
+                            <p class="audience-copy serif italic">Dads who feel strong in their career but unsure at home.</p>
+                        </div>
+                    </div>
+                    <div class="audience-item" data-aos="fade-up">
+                        <div class="audience-frame"><img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=1200" alt=""></div>
+                        <div class="audience-text-overlay">
+                            <span class="audience-number">03</span>
+                            <p class="audience-copy serif italic">Men who want deeper conversations, not bigger speeches.</p>
+                        </div>
+                    </div>
+                    <div class="audience-item" data-aos="fade-up">
+                        <div class="audience-frame"><img src="https://images.unsplash.com/photo-1475721027187-4024733923f0?auto=format&fit=crop&q=80&w=1200" alt=""></div>
+                        <div class="audience-text-overlay">
+                            <span class="audience-number">04</span>
+                            <p class="audience-copy serif italic">Fathers raising sons in a world that feels loud, fast, and demanding.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="book-insight-section">
+        <div class="container mx-auto px-6">
+            <div class="mb-40" data-aos="fade-right">
+                <p class="text-gold uppercase tracking-[0.8em] text-[0.7rem] mb-6">Discovery</p>
+                <h2 class="text-7xl md:text-8xl serif italic">Inside the Book</h2>
+            </div>
+
+            <div class="insight-container">
+                <div class="insight-vertical-line"></div>
+                <div class="insight-progress-line"></div>
+
+                <div class="insight-row group" data-aos="fade-up">
+                    <span class="insight-ghost">01</span>
+                    <div class="insight-content">
+                        <p class="insight-text serif italic">Simple frameworks that help you connect without pressure.</p>
+                    </div>
+                </div>
+
+                <div class="insight-row group" data-aos="fade-up" data-aos-delay="100">
+                    <span class="insight-ghost">02</span>
+                    <div class="insight-content">
+                        <p class="insight-text serif italic">Practical questions for every stage of your son’s development.</p>
+                    </div>
+                </div>
+
+                <div class="insight-row group" data-aos="fade-up" data-aos-delay="200">
+                    <span class="insight-ghost">03</span>
+                    <div class="insight-content">
+                        <p class="insight-text serif italic">Ways to build grit with grace.</p>
+                    </div>
+                </div>
+
+                <div class="insight-row group" data-aos="fade-up" data-aos-delay="300">
+                    <span class="insight-ghost">04</span>
+                    <div class="insight-content">
+                        <p class="insight-text serif italic">Stories from fathers who transformed their family legacy.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="optin" class="py-40 bg-black text-center relative overflow-hidden">
+        <div class="container relative z-10 px-6">
+            <h4 class="text-gold uppercase tracking-[0.6em] text-[0.6rem] mb-12" data-aos="fade-up">Early Access</h4>
+            <h2 class="serif italic mb-8" style="font-size: clamp(3rem, 6vw, 6rem);">Be First to Read It</h2>
+            <p class="text-xl text-white/40 font-light mb-20 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up">
+                Join the early interest list for sample chapters, behind-the-scenes updates, and early invitations.
+            </p>
+            <div class="max-w-[600px] mx-auto" data-aos="fade-up">
+                <form action="#" class="flex flex-col gap-12">
+                    <input type="email" placeholder="ENTER YOUR EMAIL ADDRESS" class="optin-input" required>
+                    <div class="magnetic-wrap mx-auto">
+                        <button type="submit" class="btn-luxury btn-luxury-gold !px-20">Join the Preview List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="pt-40 pb-20 bg-black border-t border-white/5">
+        <div class="container mx-auto px-10 text-center">
+            <h2 class="text-3xl serif italic mb-8">David Ask.</h2>
+            <div class="flex flex-wrap justify-center gap-10 mb-12">
+                <a href="podcast.html" class="nav-link-custom text-[0.65rem]">Podcast</a>
+                <a href="https://davidaskmusic.com/" class="nav-link-custom text-[0.65rem]">Music</a>
+                <a href="book.html" class="nav-link-custom text-[0.65rem] text-gold">The Book</a>
+                <a href="index.html#speaking" class="nav-link-custom text-[0.65rem]">Speaking</a>
+            </div>
+            <p class="text-[0.6rem] text-zinc-700 tracking-[0.4em] uppercase">© 2025 THE ASK EXPERIENCE. ALL RIGHTS RESERVED.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1200, once: true });
+        gsap.registerPlugin(ScrollTrigger);
+
+        const cursor = document.getElementById('cursor');
+        const outline = document.getElementById('cursor-outline');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, {x: e.clientX, y: e.clientY, duration: 0.1});
+            gsap.to(outline, {x: e.clientX - 16, y: e.clientY - 16, duration: 0.2});
+        });
+
+        // Section 4 Logic: Progress Line Drawing
+        gsap.to(".insight-progress-line", {
+            height: "100%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".insight-container",
+                start: "top center",
+                end: "bottom center",
+                scrub: 1
+            }
+        });
+
+        const magnets = document.querySelectorAll('.magnetic-wrap');
+        magnets.forEach(m => {
+            m.addEventListener('mousemove', (e) => {
+                const rect = m.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                gsap.to(m, { x: x * 0.4, y: y * 0.4, duration: 0.3 });
+            });
+            m.addEventListener('mouseleave', () => {
+                gsap.to(m, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+            });
+        });
+
+        const interactive = document.querySelectorAll('a, button, .audience-item, .insight-row');
+        interactive.forEach(l => {
+            l.addEventListener('mouseenter', () => {
+                gsap.to(cursor, { scale: 4, background: 'rgba(212, 175, 55, 0.2)', duration: 0.3 });
+                gsap.to(outline, { opacity: 0, duration: 0.3 });
+            });
+            l.addEventListener('mouseleave', () => {
+                gsap.to(cursor, { scale: 1, background: '#D4AF37', duration: 0.3 });
+                gsap.to(outline, { opacity: 1, duration: 0.3 });
+            });
+        });
+
+        const nav = document.getElementById('main-nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) nav.classList.add('nav-scrolled');
+            else nav.classList.remove('nav-scrolled');
+        });
+    </script>
+</body>
+
+</html>

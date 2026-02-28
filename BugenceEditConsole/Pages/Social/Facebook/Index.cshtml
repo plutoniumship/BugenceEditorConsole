@@ -1,0 +1,828 @@
+@page "/social/facebook"
+@model BugenceEditConsole.Pages.Social.Facebook.IndexModel
+@{
+    ViewData["Title"] = "Facebook Marketing";
+    ViewData["BodyClass"] = "page-social-facebook";
+}
+
+@if (!Model.Enabled)
+{
+    <div class="alert alert-warning">Social Marketing module is disabled by feature flags.</div>
+    return;
+}
+
+<style>
+    :root {
+        --fb-bg: #020202;
+        --fb-panel: rgba(9, 9, 9, 0.94);
+        --fb-panel-strong: rgba(5, 5, 5, 0.98);
+        --fb-border: rgba(255,255,255,0.08);
+        --fb-border-strong: rgba(255,255,255,0.14);
+        --fb-text: #f5f7fa;
+        --fb-muted: #8c95a3;
+        --fb-blue: #6ea8ff;
+        --fb-cyan: #6cecff;
+        --fb-green: #4ade80;
+        --fb-gold: #f6c85f;
+        --fb-red: #fb7185;
+    }
+
+    .fb-shell {
+        max-width: 1700px;
+        margin: 0 auto;
+        display: grid;
+        gap: 18px;
+        padding-bottom: 28px;
+    }
+
+    .fb-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 32px;
+        border: 1px solid var(--fb-border-strong);
+        background:
+            radial-gradient(720px 360px at -5% -10%, rgba(108,236,255,0.18), transparent 56%),
+            radial-gradient(580px 280px at 110% 0%, rgba(110,168,255,0.18), transparent 58%),
+            linear-gradient(140deg, rgba(11,11,11,0.98), rgba(3,3,3,0.98));
+        padding: 28px;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.55);
+    }
+
+    .fb-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+        background-size: 34px 34px;
+        opacity: 0.18;
+        pointer-events: none;
+    }
+
+    .fb-hero-inner {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) 420px;
+        gap: 20px;
+    }
+
+    .fb-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: var(--fb-cyan);
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .fb-title {
+        margin: 14px 0 12px;
+        font-family: "Cabinet Grotesk", sans-serif;
+        font-size: clamp(2rem, 3vw, 3rem);
+        line-height: 1.02;
+        letter-spacing: -0.04em;
+        color: var(--fb-text);
+        max-width: 760px;
+    }
+
+    .fb-subtitle {
+        margin: 0;
+        max-width: 760px;
+        color: var(--fb-muted);
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    .fb-lead {
+        margin: 0 0 10px;
+        max-width: 760px;
+        color: var(--fb-muted);
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    .fb-hero-chips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+    }
+
+    .fb-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.09);
+        background: rgba(255,255,255,0.04);
+        color: #dbe4ee;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .fb-command {
+        border-radius: 26px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(180deg, rgba(16,16,16,0.97), rgba(8,8,8,0.98));
+        padding: 18px;
+        display: grid;
+        gap: 16px;
+        align-content: start;
+    }
+
+    .fb-command-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 900;
+        color: var(--fb-text);
+    }
+
+    .fb-command-sub {
+        margin: 6px 0 0;
+        color: var(--fb-muted);
+        font-size: 0.84rem;
+        line-height: 1.6;
+    }
+
+    .fb-toolbar-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr;
+        gap: 12px;
+    }
+
+    .fb-field {
+        display: grid;
+        gap: 7px;
+    }
+
+    .fb-field label {
+        font-size: 0.72rem;
+        color: #7a8492;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 900;
+    }
+
+    .fb-input,
+    .fb-select {
+        width: 100%;
+        height: 48px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.03);
+        color: var(--fb-text);
+        padding: 0 14px;
+        font-size: 0.92rem;
+    }
+
+    .fb-input:focus,
+    .fb-select:focus {
+        outline: none;
+        border-color: rgba(108,236,255,0.55);
+        box-shadow: 0 0 0 4px rgba(108,236,255,0.08);
+    }
+
+    .fb-command-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .fb-btn,
+    .fb-btn-accent {
+        height: 46px;
+        padding: 0 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.04);
+        color: var(--fb-text);
+        font-size: 0.86rem;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 0.2s ease, filter 0.2s ease, border-color 0.2s ease;
+    }
+
+    .fb-btn-accent {
+        background: linear-gradient(135deg, var(--fb-cyan), var(--fb-blue));
+        color: #031116;
+        border-color: rgba(108,236,255,0.14);
+    }
+
+    .fb-btn:hover,
+    .fb-btn-accent:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.04);
+    }
+
+    .fb-band {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .fb-stat {
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background:
+            radial-gradient(280px 100px at 100% 0%, rgba(255,255,255,0.04), transparent 60%),
+            linear-gradient(180deg, rgba(10,10,10,0.96), rgba(6,6,6,0.96));
+        padding: 18px;
+        min-height: 118px;
+    }
+
+    .fb-stat-label {
+        color: #788394;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-weight: 900;
+    }
+
+    .fb-stat-value {
+        margin-top: 12px;
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--fb-text);
+        letter-spacing: -0.04em;
+    }
+
+    .fb-stat-meta {
+        margin-top: 10px;
+        color: var(--fb-muted);
+        font-size: 0.82rem;
+    }
+
+    .fb-layout {
+        display: grid;
+        grid-template-columns: 310px minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .fb-panel {
+        border-radius: 26px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background:
+            radial-gradient(320px 120px at 100% 0%, rgba(255,255,255,0.04), transparent 60%),
+            linear-gradient(180deg, rgba(9,9,9,0.95), rgba(4,4,4,0.98));
+        box-shadow: 0 18px 46px rgba(0,0,0,0.42);
+        overflow: hidden;
+    }
+
+    .fb-panel-head {
+        padding: 20px 20px 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .fb-panel-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 900;
+        color: var(--fb-text);
+    }
+
+    .fb-panel-sub {
+        margin: 6px 0 0;
+        color: var(--fb-muted);
+        font-size: 0.84rem;
+    }
+
+    .fb-filter-stack {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+    }
+
+    .fb-filter-grid {
+        display: grid;
+        gap: 10px;
+    }
+
+    .fb-health-grid,
+    .fb-kpi-grid {
+        padding: 18px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .fb-health-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .fb-kpi-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .fb-health-chip,
+    .fb-kpi {
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+        padding: 14px;
+    }
+
+    .fb-health-chip .l,
+    .fb-kpi .l {
+        color: #7d8795;
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .fb-health-chip .v,
+    .fb-kpi .v {
+        margin-top: 8px;
+        color: var(--fb-text);
+        font-size: 1.15rem;
+        font-weight: 900;
+    }
+
+    .fb-table-wrap {
+        padding: 0 18px 18px;
+    }
+
+    .fb-table-shell {
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.08);
+        overflow: hidden;
+        background: rgba(255,255,255,0.02);
+    }
+
+    .fb-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .fb-table th,
+    .fb-table td {
+        padding: 14px 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        vertical-align: middle;
+    }
+
+    .fb-table th {
+        background: rgba(255,255,255,0.02);
+        color: #7b8593;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 900;
+        text-align: left;
+    }
+
+    .fb-table td {
+        color: #dfe7f0;
+        font-size: 0.88rem;
+    }
+
+    .fb-table tbody tr:hover {
+        background: rgba(255,255,255,0.03);
+    }
+
+    .fb-link {
+        color: var(--fb-cyan);
+        text-decoration: none;
+        font-weight: 800;
+    }
+
+    .fb-link:hover {
+        color: #c8fbff;
+    }
+
+    .fb-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.04);
+        font-size: 0.74rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .fb-status.active,
+    .fb-status.connected,
+    .fb-status.enabled {
+        color: #86efac;
+        border-color: rgba(74,222,128,0.18);
+    }
+
+    .fb-status.paused,
+    .fb-status.warning {
+        color: #fcd34d;
+        border-color: rgba(246,200,95,0.18);
+    }
+
+    .fb-status.off,
+    .fb-status.error {
+        color: #fecdd3;
+        border-color: rgba(251,113,133,0.18);
+    }
+
+    .fb-empty {
+        text-align: center;
+        padding: 48px 24px;
+        color: var(--fb-muted);
+        font-size: 0.95rem;
+    }
+
+    .fb-inline-stack {
+        display: grid;
+        gap: 2px;
+    }
+
+    @@media (max-width: 1440px) {
+        .fb-hero-inner,
+        .fb-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 1120px) {
+        .fb-band,
+        .fb-health-grid,
+        .fb-kpi-grid,
+        .fb-toolbar-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 760px) {
+        .fb-shell {
+            padding-bottom: 20px;
+        }
+
+        .fb-hero,
+        .fb-panel-head,
+        .fb-filter-stack,
+        .fb-health-grid,
+        .fb-kpi-grid,
+        .fb-table-wrap {
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+
+        .fb-band,
+        .fb-health-grid,
+        .fb-kpi-grid,
+        .fb-toolbar-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="fb-shell">
+    @if (!string.IsNullOrWhiteSpace(Model.LoadError))
+    {
+        <div class="alert alert-danger">@Model.LoadError</div>
+    }
+
+    <section class="fb-hero">
+        <div class="fb-hero-inner">
+            <div>
+                <div class="fb-kicker"><i class="fa-brands fa-facebook"></i> Social Media Marketing</div>
+                <h1 class="fb-title">Facebook Marketing</h1>
+                <p class="fb-lead">Run Facebook lead operations from a surface that actually looks enterprise-grade.</p>
+                <p class="fb-subtitle">
+                    This page is now the operational command center for ad performance, lead velocity, sync health, and automation handoff.
+                    The workflow builder stays lean. Marketing gets a dedicated dark, fast, and purpose-built control layer.
+                </p>
+                <div class="fb-hero-chips">
+                    <span class="fb-chip"><i class="fa-solid fa-bolt"></i> Ads to lead ops</span>
+                    <span class="fb-chip"><i class="fa-solid fa-chart-line"></i> KPI-driven</span>
+                    <span class="fb-chip"><i class="fa-solid fa-shield-halved"></i> Sync health aware</span>
+                </div>
+            </div>
+
+            <aside class="fb-command">
+                <div>
+                    <h2 class="fb-command-title">Control Surface</h2>
+                    <p class="fb-command-sub">Select the connected Meta account, filter the signal, and jump directly into live lead operations.</p>
+                </div>
+                <div class="fb-toolbar-grid">
+                    <div class="fb-field" style="grid-column: span 3;">
+                        <label for="integrationConnectionId">Integration Account</label>
+                        <select id="integrationConnectionId" class="fb-select">
+                            @foreach (var c in Model.Connections)
+                            {
+                                <option value="@c.Id">@c.DisplayName (@c.Status)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="fb-field" style="grid-column: span 2;">
+                        <label for="search">Search</label>
+                        <input id="search" class="fb-input" placeholder="Ad, campaign, ad set, form" />
+                    </div>
+                    <div class="fb-field">
+                        <label for="platform">Platform</label>
+                        <select id="platform" class="fb-select">
+                            <option value="">All</option>
+                            <option value="fb">FB</option>
+                            <option value="ig">IG</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fb-command-actions">
+                    <a class="fb-btn" asp-page="/Settings/Integration"><i class="fa-solid fa-plug-circle-bolt"></i> Manage Integrations</a>
+                    <a class="fb-btn" asp-page="/Social/Facebook/Settings"><i class="fa-solid fa-sliders"></i> Ops Settings</a>
+                    <button class="fb-btn" id="syncAdsBtn" type="button"><i class="fa-solid fa-arrows-rotate"></i> Sync Ads</button>
+                    <button class="fb-btn-accent" id="syncLeadsBtn" type="button"><i class="fa-solid fa-bolt"></i> Sync Leads</button>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="fb-band">
+        <div class="fb-stat">
+            <div class="fb-stat-label">Performance Layer</div>
+            <div class="fb-stat-value" id="kTotal">0</div>
+            <div class="fb-stat-meta">Total leads in current range</div>
+        </div>
+        <div class="fb-stat">
+            <div class="fb-stat-label">Fresh Demand</div>
+            <div class="fb-stat-value" id="kNew">0</div>
+            <div class="fb-stat-meta">New uncontacted lead volume</div>
+        </div>
+        <div class="fb-stat">
+            <div class="fb-stat-label">Qualification</div>
+            <div class="fb-stat-value" id="kQualified">0%</div>
+            <div class="fb-stat-meta">Qualified rate across visible ads</div>
+        </div>
+        <div class="fb-stat">
+            <div class="fb-stat-label">Speed</div>
+            <div class="fb-stat-value" id="kAvg">0m</div>
+            <div class="fb-stat-meta">Average response time</div>
+        </div>
+    </section>
+
+    <div class="fb-layout">
+        <aside class="fb-panel">
+            <div class="fb-panel-head">
+                <div>
+                    <h3 class="fb-panel-title">Signal Filters</h3>
+                    <p class="fb-panel-sub">Cut the noise and isolate the ad sets worth action.</p>
+                </div>
+            </div>
+            <div class="fb-filter-stack">
+                <div class="fb-filter-grid">
+                    <div class="fb-field">
+                        <label for="dateFrom">Date From</label>
+                        <input id="dateFrom" type="date" class="fb-input" />
+                    </div>
+                    <div class="fb-field">
+                        <label for="dateTo">Date To</label>
+                        <input id="dateTo" type="date" class="fb-input" />
+                    </div>
+                    <div class="fb-field">
+                        <label for="campaignId">Campaign</label>
+                        <select id="campaignId" class="fb-select"><option value="">All campaigns</option></select>
+                    </div>
+                    <div class="fb-field">
+                        <label for="adsetId">Ad Set</label>
+                        <select id="adsetId" class="fb-select"><option value="">All ad sets</option></select>
+                    </div>
+                    <div class="fb-field">
+                        <label for="status">Status</label>
+                        <select id="status" class="fb-select">
+                            <option value="">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="paused">Paused</option>
+                        </select>
+                    </div>
+                    <div class="fb-field">
+                        <label for="formId">Lead Form</label>
+                        <input id="formId" class="fb-input" placeholder="Form ID or form name" />
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <section class="fb-panel">
+            <div class="fb-panel-head">
+                <div>
+                    <h3 class="fb-panel-title">Ad Performance Grid</h3>
+                    <p class="fb-panel-sub">Ad-level operational view for lead quality, contact rate, and next action.</p>
+                </div>
+            </div>
+
+            <div class="fb-health-grid">
+                <div class="fb-health-chip"><div class="l">Webhook</div><div class="v" id="hWebhook">-</div></div>
+                <div class="fb-health-chip"><div class="l">Open DLQ</div><div class="v" id="hDlq">0</div></div>
+                <div class="fb-health-chip"><div class="l">SLA Breaches</div><div class="v" id="hSla">0</div></div>
+                <div class="fb-health-chip"><div class="l">Consent Guard</div><div class="v" id="hConsent">Off</div></div>
+            </div>
+
+            <div class="fb-kpi-grid">
+                <div class="fb-kpi"><div class="l">Contacted</div><div class="v" id="kContacted">0%</div></div>
+                <div class="fb-kpi"><div class="l">Booked</div><div class="v" id="kBooked">0%</div></div>
+                <div class="fb-kpi"><div class="l">Campaigns</div><div class="v" id="kCampaigns">0</div></div>
+                <div class="fb-kpi"><div class="l">Ad Sets</div><div class="v" id="kAdsets">0</div></div>
+                <div class="fb-kpi"><div class="l">Visible Ads</div><div class="v" id="kAds">0</div></div>
+                <div class="fb-kpi"><div class="l">Live Mode</div><div class="v" id="kMode">Ops</div></div>
+            </div>
+
+            <div class="fb-table-wrap">
+                <div class="fb-table-shell">
+                    <table class="fb-table">
+                        <thead>
+                            <tr>
+                                <th>Ad</th>
+                                <th>Campaign / Ad Set</th>
+                                <th>Status</th>
+                                <th>Platform</th>
+                                <th>Lead Form</th>
+                                <th>Leads</th>
+                                <th>New</th>
+                                <th>Contacted</th>
+                                <th>Qualified</th>
+                                <th>Booked</th>
+                                <th>Last Lead</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adsRows">
+                            <tr><td colspan="12" class="fb-empty">Select a connected integration to load ads.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+(() => {
+    const q = (id) => document.getElementById(id);
+    const connection = q("integrationConnectionId");
+    const rows = q("adsRows");
+
+    const esc = (value) => (value ?? "")
+        .toString()
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+
+    const readFilters = () => ({
+        integrationConnectionId: connection?.value || "",
+        dateFrom: q("dateFrom").value,
+        dateTo: q("dateTo").value,
+        search: q("search").value.trim(),
+        campaignId: q("campaignId").value,
+        adsetId: q("adsetId").value,
+        status: q("status").value,
+        platform: q("platform").value,
+        formId: q("formId").value.trim()
+    });
+
+    const setStatusClass = (value) => {
+        const text = String(value || "").toLowerCase();
+        if (!text) return "fb-status";
+        if (text.includes("active") || text.includes("connected") || text.includes("enabled")) return "fb-status active";
+        if (text.includes("paused") || text.includes("expiring") || text.includes("warning")) return "fb-status paused";
+        return "fb-status off";
+    };
+
+    function refreshFilterOptions(rowsData) {
+        const fill = (el, values, label) => {
+            const current = el.value;
+            const unique = [...new Set(values.filter(Boolean))].sort();
+            el.innerHTML = `<option value="">${label}</option>` + unique.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+            if (unique.includes(current)) el.value = current;
+        };
+        fill(q("campaignId"), rowsData.map(x => x.campaignId), "All campaigns");
+        fill(q("adsetId"), rowsData.map(x => x.adsetId), "All ad sets");
+        q("kCampaigns").textContent = [...new Set(rowsData.map(x => x.campaignId).filter(Boolean))].length;
+        q("kAdsets").textContent = [...new Set(rowsData.map(x => x.adsetId).filter(Boolean))].length;
+        q("kAds").textContent = rowsData.length;
+    }
+
+    async function refreshHealth() {
+        if (!connection?.value) return;
+        const res = await fetch(`/api/social/facebook/ops/health?integrationConnectionId=${encodeURIComponent(connection.value)}`, { credentials: "same-origin" });
+        const data = await res.json();
+        const h = data.health || {};
+        q("hWebhook").innerHTML = `<span class="${setStatusClass(h.webhookEnabled ? "enabled" : "off")}">${h.webhookEnabled ? "Enabled" : "Disabled"}</span>`;
+        q("hDlq").textContent = h.openDeadLetters ?? 0;
+        q("hSla").textContent = h.slaBreaches ?? 0;
+        q("hConsent").innerHTML = `<span class="${setStatusClass(h.requireConsent ? "warning" : "off")}">${h.requireConsent ? "On" : "Off"}</span>`;
+    }
+
+    const query = (obj) => {
+        const p = new URLSearchParams();
+        Object.entries(obj).forEach(([k, v]) => { if (v) p.append(k, v); });
+        return p.toString();
+    };
+
+    async function refreshStats() {
+        if (!connection?.value) return;
+        const params = query({ integrationConnectionId: connection.value, dateFrom: q("dateFrom").value, dateTo: q("dateTo").value });
+        const res = await fetch(`/api/social/facebook/ads/stats?${params}`, { credentials: "same-origin" });
+        const data = await res.json();
+        q("kTotal").textContent = data.totalLeads ?? 0;
+        q("kNew").textContent = data.newLeads ?? 0;
+        q("kContacted").textContent = `${data.contactedRate ?? 0}%`;
+        q("kQualified").textContent = `${data.qualifiedRate ?? 0}%`;
+        q("kBooked").textContent = `${data.bookedRate ?? 0}%`;
+        q("kAvg").textContent = `${data.avgResponseMinutes ?? 0}m`;
+    }
+
+    async function refreshAds() {
+        if (!connection?.value) return;
+        rows.innerHTML = `<tr><td colspan="12" class="fb-empty">Loading ad inventory...</td></tr>`;
+        const res = await fetch(`/api/social/facebook/ads?${query(readFilters())}`, { credentials: "same-origin" });
+        const data = await res.json();
+        const list = Array.isArray(data.rows) ? data.rows : [];
+        refreshFilterOptions(list);
+        q("kMode").textContent = connection.value ? "Live" : "Ops";
+        if (!list.length) {
+            rows.innerHTML = `<tr><td colspan="12" class="fb-empty">No ads match the current filters.</td></tr>`;
+            return;
+        }
+
+        rows.innerHTML = list.map(r => `
+            <tr>
+                <td>
+                    <div class="fb-inline-stack">
+                        <a class="fb-link" href="/social/facebook/ads/${encodeURIComponent(r.adId)}/leads?integrationConnectionId=${encodeURIComponent(connection.value)}">${esc(r.adName || r.adId)}</a>
+                        <span style="color:#76808d;font-size:.76rem;">${esc(r.adId || "-")}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="fb-inline-stack">
+                        <span>${esc(r.campaignId || "-")}</span>
+                        <span style="color:#76808d;font-size:.76rem;">${esc(r.adsetId || "-")}</span>
+                    </div>
+                </td>
+                <td><span class="${setStatusClass(r.status)}">${esc(r.status || "-")}</span></td>
+                <td>${esc((r.platform || "-").toUpperCase())}</td>
+                <td>${esc(r.leadForm || "-")}</td>
+                <td>${r.leads ?? 0}</td>
+                <td>${r.newLeads ?? 0}</td>
+                <td>${r.contactedRate ?? 0}%</td>
+                <td>${r.qualifiedRate ?? 0}%</td>
+                <td>${r.bookedRate ?? 0}%</td>
+                <td>${r.lastLeadAtUtc ? new Date(r.lastLeadAtUtc).toLocaleString() : "-"}</td>
+                <td><a class="fb-btn" href="/social/facebook/ads/${encodeURIComponent(r.adId)}/leads?integrationConnectionId=${encodeURIComponent(connection.value)}">View Leads</a></td>
+            </tr>
+        `).join("");
+    }
+
+    async function runSync(kind) {
+        if (!connection?.value) return;
+        const body = kind === "ads"
+            ? { integrationConnectionId: connection.value }
+            : { integrationConnectionId: connection.value, lookbackMinutes: 30 };
+        await fetch(`/api/social/facebook/sync/${kind}`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+        await Promise.all([refreshHealth(), refreshStats(), refreshAds()]);
+    }
+
+    async function hydrate() {
+        if (!connection?.value) {
+            rows.innerHTML = `<tr><td colspan="12" class="fb-empty">Connect a Meta account from Integrations to start.</td></tr>`;
+            return;
+        }
+        await Promise.all([refreshHealth(), refreshStats(), refreshAds()]);
+    }
+
+    document.querySelectorAll("#dateFrom,#dateTo,#search,#campaignId,#adsetId,#status,#platform,#formId").forEach(el => {
+        el.addEventListener("change", hydrate);
+        if (el.tagName === "INPUT") el.addEventListener("input", hydrate);
+    });
+
+    connection?.addEventListener("change", hydrate);
+    q("syncAdsBtn")?.addEventListener("click", () => runSync("ads"));
+    q("syncLeadsBtn")?.addEventListener("click", () => runSync("leads"));
+
+    hydrate();
+})();
+</script>

@@ -2,9 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using BugenceEditConsole.Data;
 using BugenceEditConsole.Models;
 using BugenceEditConsole.Services;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
 namespace BugenceEditConsole.Pages.Auth;
@@ -75,6 +77,33 @@ public class LoginModel : PageModel
     public async Task<IActionResult> OnPostExternalLoginAsync(string provider, string? returnUrl = null)
     {
         returnUrl ??= Url.Content("~/Dashboard/Index");
+
+        if (string.Equals(provider, "Google", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                // Force immediate config reload after any SystemProperties OAuth edit.
+                var cache = HttpContext.RequestServices.GetService<IOptionsMonitorCache<OAuthOptions>>();
+                cache?.TryRemove("Google");
+
+                var runtimeConfigResolver = HttpContext.RequestServices.GetService<IGoogleOAuthRuntimeConfigService>();
+                if (runtimeConfigResolver != null)
+                {
+                    var runtimeConfig = await runtimeConfigResolver.ResolveAsync(HttpContext.RequestAborted);
+                    if (!runtimeConfig.IsConfigured)
+                    {
+                        ExternalLoginError = runtimeConfig.Reason ?? "Google sign-in is not configured yet.";
+                        return RedirectToPage(new { returnUrl });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to resolve Google OAuth runtime configuration.");
+                ExternalLoginError = "Google sign-in is temporarily unavailable. Please try again.";
+                return RedirectToPage(new { returnUrl });
+            }
+        }
 
         var schemes = await _signInManager.GetExternalAuthenticationSchemesAsync();
         if (schemes.All(s => s.Name != provider))

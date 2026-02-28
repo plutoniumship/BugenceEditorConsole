@@ -17,9 +17,17 @@ public class AnalyticsPageView
     [Required, MaxLength(1024)]
     public string Path { get; set; } = "/";
 
+    [MaxLength(1024)]
+    public string? PageTitle { get; set; }
+
+    [MaxLength(1024)]
+    public string? LandingPath { get; set; }
+
     public DateTime OccurredAtUtc { get; set; } = DateTime.UtcNow;
 
     public int? DurationMs { get; set; }
+
+    public int? EngagementTimeMs { get; set; }
 
     public bool IsBot { get; set; }
 

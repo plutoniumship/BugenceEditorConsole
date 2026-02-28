@@ -33,134 +33,169 @@ public class PublishedSiteMiddleware
 
     public async Task InvokeAsync(HttpContext context, IDomainRouter router, ApplicationDbContext db, RepeaterTemplateService repeaterService, DebugPanelLogService debugLogService, IAnalyticsIngestService analyticsIngest)
     {
-        var host = context.Request.Host.Host;
-        if (string.IsNullOrWhiteSpace(host))
+        if (ShouldBypassPublishedSite(context.Request.Path))
         {
             await _next(context);
             return;
         }
 
-        var route = await router.ResolveAsync(host, context.RequestAborted);
-        if (route is null)
+        try
         {
-            await _next(context);
-            return;
-        }
-
-        if (IsAnalyticsCollectPath(context.Request.Path))
-        {
-            await HandleAnalyticsCollectAsync(context, db, analyticsIngest, route.ProjectId, host);
-            return;
-        }
-
-        if (IsAnalyticsEventPath(context.Request.Path))
-        {
-            await HandleAnalyticsEventAsync(context, db, analyticsIngest, route.ProjectId, host);
-            return;
-        }
-
-        var publishRoot = string.IsNullOrWhiteSpace(_options.PublishRoot)
-            ? "Published"
-            : _options.PublishRoot.Trim('\\', '/', ' ');
-        var relative = route.PublishStoragePath;
-        if (string.IsNullOrWhiteSpace(relative))
-        {
-            relative = Path.Combine(publishRoot, "slugs", route.Slug);
-        }
-
-        var normalizedRelative = relative
-            .Replace('/', Path.DirectorySeparatorChar)
-            .TrimStart(Path.DirectorySeparatorChar);
-        var physicalRoot = Path.Combine(_webRoot, normalizedRelative);
-        if (!Directory.Exists(physicalRoot))
-        {
-            _logger.LogWarning("Published path {Path} missing for host {Host}", physicalRoot, host);
-            context.Response.StatusCode = StatusCodes.Status404NotFound;
-            await context.Response.WriteAsync("Site not published.");
-            return;
-        }
-
-        if (context.Request.Path.Equals("/robots.txt", StringComparison.OrdinalIgnoreCase))
-        {
-            await WriteRobotsAsync(context, host);
-            return;
-        }
-
-        if (context.Request.Path.Equals("/sitemap.xml", StringComparison.OrdinalIgnoreCase))
-        {
-            await WriteSitemapAsync(context, host, physicalRoot);
-            return;
-        }
-
-        var requestPath = context.Request.Path.HasValue && context.Request.Path != "/"
-            ? context.Request.Path.Value!
-            : "/index.html";
-        var cleanPath = requestPath.TrimStart('/');
-        var physicalFile = Path.Combine(physicalRoot, cleanPath.Replace('/', Path.DirectorySeparatorChar));
-        if (!File.Exists(physicalFile))
-        {
-            var requestedExt = Path.GetExtension(requestPath);
-            if (!string.IsNullOrWhiteSpace(requestedExt))
-            {
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                return;
-            }
-
-            physicalFile = Path.Combine(physicalRoot, "index.html");
-            if (!File.Exists(physicalFile))
+            var host = context.Request.Host.Host;
+            if (string.IsNullOrWhiteSpace(host))
             {
                 await _next(context);
                 return;
             }
-        }
 
-        if (!_contentTypes.TryGetContentType(physicalFile, out var contentType))
-        {
-            contentType = "application/octet-stream";
-        }
-
-        if (contentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase))
-        {
-            var html = await File.ReadAllTextAsync(physicalFile, context.RequestAborted);
-            var projectOwner = await db.UploadedProjects
-                .AsNoTracking()
-                .Where(p => p.Id == route.ProjectId)
-                .Select(p => new { p.UserId, p.CompanyId })
-                .FirstOrDefaultAsync(context.RequestAborted);
-
-            if (html.Contains("<Repeater-", StringComparison.OrdinalIgnoreCase) ||
-                html.Contains("<SubTemplete-", StringComparison.OrdinalIgnoreCase) ||
-                html.Contains("<Workflow-", StringComparison.OrdinalIgnoreCase))
+            var route = await router.ResolveAsync(host, context.RequestAborted);
+            if (route is null)
             {
-                if (!string.IsNullOrWhiteSpace(projectOwner?.UserId))
+                await _next(context);
+                return;
+            }
+
+            if (IsAnalyticsCollectPath(context.Request.Path))
+            {
+                await HandleAnalyticsCollectAsync(context, db, analyticsIngest, route.ProjectId, host);
+                return;
+            }
+
+            if (IsAnalyticsEventPath(context.Request.Path))
+            {
+                await HandleAnalyticsEventAsync(context, db, analyticsIngest, route.ProjectId, host);
+                return;
+            }
+
+            var projectDetails = await db.UploadedProjects
+                .AsNoTracking()
+                .Where(project => project.Id == route.ProjectId)
+                .Select(project => new
                 {
-                    try
-                    {
-                        html = await repeaterService.RenderAsync(html, projectOwner.UserId, context.RequestAborted);
-                    }
-                    catch (Exception ex)
-                    {
-                        await debugLogService.LogErrorAsync(
-                            source: "PublishedSiteMiddleware.RepeaterRender",
-                            shortDescription: ex.Message,
-                            longDescription: ex.ToString(),
-                            ownerUserId: projectOwner.UserId,
-                            path: context.Request.Path,
-                            cancellationToken: context.RequestAborted);
-                    }
+                    project.UserId,
+                    project.CompanyId,
+                    project.LocalPreviewPath,
+                    project.PageRouteOverridesJson
+                })
+                .FirstOrDefaultAsync(context.RequestAborted);
+            var aliases = ProjectRoutingSettings.ParseAliases(projectDetails?.PageRouteOverridesJson);
+
+            var publishRoot = string.IsNullOrWhiteSpace(_options.PublishRoot)
+                ? "Published"
+                : _options.PublishRoot.Trim('\\', '/', ' ');
+            var relative = route.PublishStoragePath;
+            if (string.IsNullOrWhiteSpace(relative))
+            {
+                relative = Path.Combine(publishRoot, "slugs", route.Slug);
+            }
+
+            var normalizedRelative = relative
+                .Replace('/', Path.DirectorySeparatorChar)
+                .TrimStart(Path.DirectorySeparatorChar);
+            var physicalRoot = Path.Combine(_webRoot, normalizedRelative);
+            if (!Directory.Exists(physicalRoot))
+            {
+                _logger.LogWarning("Published path {Path} missing for host {Host}", physicalRoot, host);
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                await context.Response.WriteAsync("Site not published.");
+                return;
+            }
+
+            if (context.Request.Path.Equals("/robots.txt", StringComparison.OrdinalIgnoreCase))
+            {
+                await WriteRobotsAsync(context, host);
+                return;
+            }
+
+            if (context.Request.Path.Equals("/sitemap.xml", StringComparison.OrdinalIgnoreCase))
+            {
+                await WriteSitemapAsync(context, host, physicalRoot, projectDetails?.LocalPreviewPath, aliases);
+                return;
+            }
+            var resolvedRoutePath = ProjectRoutingSettings.ResolveIncomingPath(
+                context.Request.Path.HasValue ? context.Request.Path.Value : string.Empty,
+                projectDetails?.LocalPreviewPath,
+                aliases);
+
+            var requestPath = string.IsNullOrWhiteSpace(resolvedRoutePath)
+                ? (context.Request.Path.HasValue && context.Request.Path != "/"
+                    ? context.Request.Path.Value!
+                    : "/index.html")
+                : "/" + resolvedRoutePath.TrimStart('/');
+            var cleanPath = requestPath.TrimStart('/');
+            var physicalFile = Path.Combine(physicalRoot, cleanPath.Replace('/', Path.DirectorySeparatorChar));
+            if (!File.Exists(physicalFile))
+            {
+                var requestedExt = Path.GetExtension(requestPath);
+                if (!string.IsNullOrWhiteSpace(requestedExt))
+                {
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
+                    return;
+                }
+
+                physicalFile = Path.Combine(physicalRoot, "index.html");
+                if (!File.Exists(physicalFile))
+                {
+                    await _next(context);
+                    return;
                 }
             }
-            html = EnsureWorkflowRunnerScript(html);
-            html = EnsureAnalyticsTrackerScript(html);
-            context.Response.ContentType = "text/html";
-            context.Response.Headers["Cache-Control"] = "public,max-age=60";
-            await context.Response.WriteAsync(html, context.RequestAborted);
-            return;
-        }
 
-        context.Response.ContentType = contentType;
-        context.Response.Headers["Cache-Control"] = "public,max-age=60";
-        await context.Response.SendFileAsync(physicalFile, context.RequestAborted);
+            if (!_contentTypes.TryGetContentType(physicalFile, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+
+            if (contentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase))
+            {
+                var html = await File.ReadAllTextAsync(physicalFile, context.RequestAborted);
+                var projectOwner = projectDetails;
+
+                if (html.Contains("<Repeater-", StringComparison.OrdinalIgnoreCase) ||
+                    html.Contains("<SubTemplete-", StringComparison.OrdinalIgnoreCase) ||
+                    html.Contains("<Workflow-", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!string.IsNullOrWhiteSpace(projectOwner?.UserId))
+                    {
+                        try
+                        {
+                            html = await repeaterService.RenderAsync(html, projectOwner.UserId, context.RequestAborted);
+                        }
+                        catch (Exception ex)
+                        {
+                            await debugLogService.LogErrorAsync(
+                                source: "PublishedSiteMiddleware.RepeaterRender",
+                                shortDescription: ex.Message,
+                                longDescription: ex.ToString(),
+                                ownerUserId: projectOwner.UserId,
+                                path: context.Request.Path,
+                                cancellationToken: context.RequestAborted);
+                        }
+                    }
+                }
+                html = EnsureWorkflowRunnerScript(html);
+                html = EnsureAnalyticsTrackerScript(html);
+                context.Response.ContentType = "text/html";
+                context.Response.Headers["Cache-Control"] = "public,max-age=60";
+                await context.Response.WriteAsync(html, context.RequestAborted);
+                return;
+            }
+
+            context.Response.ContentType = contentType;
+            context.Response.Headers["Cache-Control"] = "public,max-age=60";
+            await context.Response.SendFileAsync(physicalFile, context.RequestAborted);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Published site middleware failed for {Host}{Path}. Falling back to platform pipeline.", context.Request.Host.Host, context.Request.Path);
+            if (context.Response.HasStarted)
+            {
+                throw;
+            }
+
+            context.Response.Clear();
+            await _next(context);
+        }
     }
 
     private static string EnsureWorkflowRunnerScript(string html)
@@ -193,14 +228,19 @@ public class PublishedSiteMiddleware
         await context.Response.WriteAsync(robots, context.RequestAborted);
     }
 
-    private static async Task WriteSitemapAsync(HttpContext context, string host, string physicalRoot)
+    private static async Task WriteSitemapAsync(
+        HttpContext context,
+        string host,
+        string physicalRoot,
+        string? landingPagePath,
+        IReadOnlyDictionary<string, string> aliases)
     {
         var pages = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "/" };
         foreach (var file in Directory.EnumerateFiles(physicalRoot, "*.html", SearchOption.AllDirectories))
         {
-            var relative = Path.GetRelativePath(physicalRoot, file)
+            var relative = ProjectRoutingSettings.NormalizeFilePath(Path.GetRelativePath(physicalRoot, file)
                 .Replace(Path.DirectorySeparatorChar, '/')
-                .TrimStart('/');
+                .TrimStart('/'));
 
             if (string.Equals(relative, "index.html", StringComparison.OrdinalIgnoreCase))
             {
@@ -208,12 +248,30 @@ public class PublishedSiteMiddleware
                 continue;
             }
 
-            if (relative.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+            if (aliases.TryGetValue(relative, out var aliasRoute) && !string.IsNullOrWhiteSpace(aliasRoute))
             {
-                relative = relative[..^5];
+                pages.Add("/" + aliasRoute.Trim('/'));
             }
+            else
+            {
+                var route = ProjectRoutingSettings.NormalizeRoutePath(relative);
+                if (!string.IsNullOrWhiteSpace(route))
+                {
+                    pages.Add("/" + route);
+                }
+            }
+        }
 
-            pages.Add("/" + relative);
+        var landingRoute = ProjectRoutingSettings.ResolveIncomingPath("/", landingPagePath, aliases);
+        if (!string.IsNullOrWhiteSpace(landingRoute) && !string.Equals(landingRoute, "index.html", StringComparison.OrdinalIgnoreCase))
+        {
+            var landingAlias = aliases.TryGetValue(landingRoute, out var aliasRoute)
+                ? aliasRoute
+                : ProjectRoutingSettings.NormalizeRoutePath(landingRoute);
+            if (!string.IsNullOrWhiteSpace(landingAlias))
+            {
+                pages.Add("/" + landingAlias.Trim('/'));
+            }
         }
 
         var now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
@@ -353,6 +411,48 @@ public class PublishedSiteMiddleware
         return path.Equals("/__bgx/collect", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool ShouldBypassPublishedSite(PathString path)
+    {
+        if (!path.HasValue)
+        {
+            return false;
+        }
+
+        if (path.Equals("/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // Always let platform application routes execute through Razor/API pipeline.
+        // This prevents published-site resolution from intercepting login/admin paths.
+        if (path.StartsWithSegments("/Auth", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/app", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Error", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Dashboard", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Overview", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Projects", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Analytics", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Tools", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Support", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Workflow", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/WorkFlow", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/DynamicVE", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Application", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Editor", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/ProjectHub", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Insights", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Permissions", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Workflows", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/js", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/css", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/lib", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsAnalyticsEventPath(PathString path)
     {
         return path.Equals("/__bgx/event", StringComparison.OrdinalIgnoreCase);
@@ -489,10 +589,17 @@ public class PublishedSiteMiddleware
             EventType: string.IsNullOrWhiteSpace(eventType) ? "form_submit" : eventType,
             EventName: string.IsNullOrWhiteSpace(eventName) ? "contact_form_submit" : eventName,
             Path: string.IsNullOrWhiteSpace(path) ? "/" : path,
+            PageTitle: null,
             CountryCode: countryCode ?? string.Empty,
             DeviceType: deviceType,
+            Language: null,
             ReferrerHost: referrerHost,
             MetadataJson: null,
+            UtmSource: null,
+            UtmMedium: null,
+            UtmCampaign: null,
+            UtmTerm: null,
+            UtmContent: null,
             OccurredAtUtc: DateTime.UtcNow,
             OwnerUserId: projectOwner?.UserId,
             CompanyId: projectOwner?.CompanyId), context.RequestAborted);
@@ -560,6 +667,16 @@ public class PublishedSiteMiddleware
                 referrerHost = refUri.Host;
             }
 
+            var language = context.Request.Headers.AcceptLanguage.ToString();
+            if (!string.IsNullOrWhiteSpace(language))
+            {
+                var idx = language.IndexOf(',');
+                if (idx >= 0)
+                {
+                    language = language[..idx];
+                }
+            }
+
             await analyticsIngest.TrackPageViewAsync(new AnalyticsIngestContext(
                 ProjectId: projectId,
                 Host: host,
@@ -567,7 +684,17 @@ public class PublishedSiteMiddleware
                 SessionId: sessionId,
                 CountryCode: country,
                 DeviceType: deviceTypeOverride,
+                City: null,
+                Language: language,
                 ReferrerHost: referrerHost,
+                PageTitle: null,
+                LandingPath: path,
+                EngagementTimeMs: null,
+                UtmSource: context.Request.Query["utm_source"].FirstOrDefault(),
+                UtmMedium: context.Request.Query["utm_medium"].FirstOrDefault(),
+                UtmCampaign: context.Request.Query["utm_campaign"].FirstOrDefault(),
+                UtmTerm: context.Request.Query["utm_term"].FirstOrDefault(),
+                UtmContent: context.Request.Query["utm_content"].FirstOrDefault(),
                 UserAgent: userAgent,
                 IsBot: false,
                 OccurredAtUtc: DateTime.UtcNow,

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>David Ask | The Journey</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+    
+    <style>
+        body { margin: 0; background: #050505; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        #webgl-canvas { position: fixed; top: 0; left: 0; outline: none; z-index: -1; }
+        
+        section { height: 100vh; display: flex; align-items: center; padding: 0 10%; position: relative; }
+        .content { max-width: 600px; opacity: 0; transform: translateY(50px); }
+        
+        .hero { justify-content: center; text-align: center; }
+        .hero h1 { font-size: 8vw; letter-spacing: -2px; font-family: 'Playfair Display', serif; }
+    </style>
+</head>
+<body>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <section class="hero">
+        <div class="content hero-content">
+            <h1>DAVID ASK</h1>
+            <p>Vocalist • Innovator • Storyteller</p>
+        </div>
+    </section>
+
+    <section class="artistry">
+        <div class="content">
+            <h2>The Voice</h2>
+            <p>Classical-pop fusion that echoes Andrea Bocelli and Josh Groban. An interpreter of emotion.</p>
+        </div>
+    </section>
+
+    <section class="innovation">
+        <div class="content">
+            <h2>The Innovation</h2>
+            <p>Founder of StatGuardPlus and LockBoxPro. Bridging the gap between creative soul and business grit.</p>
+        </div>
+    </section>
+
+    <script>
+        // --- 1. SETUP THREE.JS SCENE ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#webgl-canvas'), antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Add 3D "Dust" or "Particles" to represent the journey
+        const particlesGeometry = new THREE.BufferGeometry();
+        const count = 5000;
+        const positions = new Float32Array(count * 3);
+        for(let i=0; i<count*3; i++) { positions[i] = (Math.random() - 0.5) * 10; }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particlesMaterial = new THREE.PointsMaterial({ size: 0.005, color: 0xC5A059 });
+        const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particles);
+
+        camera.position.z = 5;
+
+        // --- 2. GSAP SCROLL ANIMATION ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Smooth Scroll (Lenis)
+        const lenis = new Lenis();
+        lenis.on('scroll', ScrollTrigger.update);
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        // Move Camera and Particles on Scroll (The Scrub Effect)
+        gsap.to(camera.position, {
+            z: 0,
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1
+            }
+        });
+
+        gsap.to(particles.rotation, {
+            y: Math.PI * 2,
+            scrollTrigger: { trigger: "body", scrub: 2 }
+        });
+
+        // Content Reveal (Parallax Depth)
+        gsap.utils.toArray(".content").forEach(content => {
+            gsap.to(content, {
+                opacity: 1,
+                y: 0,
+                scrollTrigger: {
+                    trigger: content,
+                    start: "top 80%",
+                    end: "top 30%",
+                    scrub: true
+                }
+            });
+        });
+
+        // Render Loop
+        function animate() {
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>

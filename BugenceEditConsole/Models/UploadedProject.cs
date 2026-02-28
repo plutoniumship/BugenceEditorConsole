@@ -21,6 +21,19 @@ public class UploadedProject
     [MaxLength(2000)]
     public string? Description { get; set; }
 
+    [MaxLength(1024)]
+    public string? LocalPreviewPath { get; set; }
+
+    public string? PageRouteOverridesJson { get; set; }
+
+    public bool AutoDeployOnPush { get; set; } = true;
+
+    public bool EnablePreviewDeploys { get; set; }
+
+    public bool EnforceHttps { get; set; } = true;
+
+    public bool EnableContentSecurityPolicy { get; set; }
+
     [MaxLength(450)]
     public string? UserId { get; set; }
 

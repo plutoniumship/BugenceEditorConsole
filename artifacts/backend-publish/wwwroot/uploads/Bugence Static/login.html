@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- =================== SEO =================== -->
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Bugence — Access</title>
+  <meta name="description" content="Awwwards-grade Bugence Access: elegant Login + a premium promo panel with kinetic micro-interactions, cursor magic, and WCAG-AA UX."/>
+  <meta property="og:title" content="Bugence — Access"/>
+  <meta property="og:description" content="Premium, accessible auth with kinetic motion and refined details."/>
+  <meta property="og:type" content="website"/>
+  <meta name="theme-color" content="#0a0c12"/>
+  <!-- Inline favicon -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23000'/%3E%3Ctext x='24' y='28' text-anchor='middle' font-family='system-ui' font-size='18' fill='%23fff'%3EB%3C/text%3E%3C/svg%3E"/>
+
+  <!-- ============= Tailwind CDN + Tokens ============= -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: "#0a0c12",
+            card: "#ffffff",
+            ink: "#0b0f19",
+            accent: "#60a5fa",   // blue
+            glow: "#5eead4",     // teal
+            ember: "#f59e0b",    // amber
+          },
+          boxShadow: {
+            soft: "0 18px 60px rgba(0,0,0,.35)",
+            ring: "0 0 0 8px rgba(96,165,250,.20)"
+          },
+          keyframes: {
+            fadeUp: { "0%": {opacity:0, transform:"translateY(14px)"}, "100%": {opacity:1, transform:"translateY(0)"} },
+            float:  { "0%,100%": {transform:"translateY(0)"}, "50%": {transform:"translateY(-8px)"} },
+            arrow:  { "0%,100%": {transform:"translateX(0)"}, "50%": {transform:"translateX(6px)"} }
+          },
+          animation: {
+            fadeUp: "fadeUp .6s ease-out both",
+            float: "float 8s ease-in-out infinite",
+            arrow: "arrow 1.2s ease-in-out infinite"
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- ============= Tiny CSS: background/mesh/cursor/ripple/tilt/fancy border ============= -->
+  <style>
+    /* Dark gradient mesh + vignette */
+    .mesh {
+      background:
+        radial-gradient(60rem 40rem at 10% 10%, rgba(96,165,250,.10), transparent 60%),
+        radial-gradient(55rem 35rem at 90% 25%, rgba(94,234,212,.09), transparent 65%),
+        radial-gradient(50rem 30rem at 80% 80%, rgba(245,158,11,.08), transparent 70%);
+    }
+    .vignette { box-shadow: inset 0 0 180px rgba(0,0,0,.46); }
+
+    /* 3D tilt + interactive shine */
+    .tilt {
+      transform-style: preserve-3d;
+      transition: transform .18s ease, box-shadow .25s ease, filter .25s ease;
+      will-change: transform;
+      position: relative;
+      overflow: hidden;
+    }
+    .tilt .shine {
+      position: absolute; inset: -1px;
+      background: radial-gradient(650px 650px at var(--mx,50%) var(--my,50%), rgba(96,165,250,.18), transparent 60%);
+      pointer-events: none; border-radius: 1.5rem; opacity: .0; transition: opacity .18s ease;
+    }
+    .tilt:hover .shine { opacity: .55; }
+
+    /* Cursor dot (black default; auto inverts on white zones) */
+    .cursor-dot {
+      position: fixed; left: 0; top: 0; width: 14px; height: 14px; border-radius: 999px;
+      background:#000; pointer-events:none; z-index:70; transform: translate(-50%,-50%);
+      transition: width .18s ease, height .18s ease, background-color .2s ease, opacity .2s ease, filter .2s ease;
+      opacity:.9; mix-blend-mode: normal;
+    }
+    .cursor-dot.grow { width: 40px; height: 40px; }
+    .cursor-dot.big { width: 56px; height: 56px; } /* bigger on special hover zones */
+    .cursor-dot.invert { background:#fff; mix-blend-mode:difference; }
+    .cursor-dot.hide { opacity:0; }
+
+    /* Ripple (for buttons with .ripple) */
+    .ripple { position: relative; overflow: hidden; }
+    .ripple::after{
+      content:""; position:absolute; inset:auto; width:10px; height:10px; border-radius:9999px; background:rgba(255,255,255,.35);
+      transform: translate(-50%, -50%) scale(0); opacity:0; pointer-events:none;
+    }
+
+    /* Conic glow border wrapper (for the promo article) */
+    .fancy {
+      position: relative;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .fancy::before {
+      content:"";
+      position:absolute; inset:-2px; border-radius:inherit;
+      background: conic-gradient(from 0deg, rgba(94,234,212,.45), rgba(96,165,250,.45), rgba(245,158,11,.45), rgba(94,234,212,.45));
+      filter: blur(22px);
+      opacity:.7;
+      z-index:0;
+    }
+    .fancy::after {
+      content:"";
+      position:absolute; inset:0; border-radius:inherit; z-index:0;
+      background:
+        radial-gradient(220px 180px at var(--mx,60%) var(--my,30%), rgba(0,0,0,.07), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.9));
+    }
+    .fancy > * { position:relative; z-index:1; }
+
+    /* Floating blob animation base (re-usable) */
+    .float-shape { animation: float 9s ease-in-out infinite; }
+    @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-10px) } }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .animate-float,.animate-arrow,.float-shape { animation: none !important; }
+      .transition,*[class*="duration-"] { transition: none !important; }
+    }
+  </style>
+</head>
+
+<!-- =========================================================
+  data-api-base="${BUGENCE_API_BASE}"
+  Replace via server/template. No secrets; no real calls in this static demo.
+========================================================= -->
+<body class="min-h-screen bg-canvas text-white antialiased selection:bg-white/10 selection:text-white overflow-x-hidden">
+
+  <!-- Background -->
+  <div class="fixed inset-0 mesh"></div>
+  <div class="fixed inset-0 vignette"></div>
+
+  <!-- Cursor -->
+  <div id="cursor" class="cursor-dot"></div>
+
+  <!-- Header -->
+  <header class="relative z-10 mx-auto max-w-7xl px-6 pt-8">
+    <a href="#" class="inline-flex items-center gap-3 group" aria-label="Bugence home">
+      <span class="grid h-10 w-10 place-items-center rounded-2xl bg-black text-white font-bold ring-1 ring-white/10 transition group-hover:scale-105 group-hover:shadow-2xl">B</span>
+      <div class="leading-tight">
+        <h1 class="text-2xl font-extrabold tracking-wide">Bugence</h1>
+        <p class="text-xs text-white/70">Access Portal</p>
+      </div>
+    </a>
+  </header>
+
+  <!-- =================== MAIN =================== -->
+  <main class="relative z-10 mx-auto max-w-7xl px-6 py-10 md:py-14 lg:py-18">
+    <div class="grid items-stretch gap-10 md:grid-cols-2">
+
+      <!-- ========== Left: Hero / Selling Panel ========== -->
+      <section class="tilt rounded-3xl border border-white/10 bg-white/[0.03] p-8 md:p-10 backdrop-blur-lg shadow-soft animate-fadeUp">
+        <div class="shine rounded-3xl"></div>
+        <div class="relative z-10">
+          <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold ring-1 ring-white/10">
+            <span class="h-2 w-2 rounded-full bg-glow"></span> Secure by design
+          </div>
+          <h2 class="mt-5 text-3xl md:text-4xl font-black tracking-tight">
+            Elegant&nbsp;<span class="bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/70">Access</span><br/>
+            <span class="text-white/70">built for speed & trust.</span>
+          </h2>
+          <ul class="mt-6 space-y-3 text-white/80">
+            <li class="flex items-start gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-accent/80"></span><span>Kinetic micro-interactions that feel alive.</span></li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-glow/80"></span><span>WCAG-AA forms with inline feedback.</span></li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-ember/80"></span><span>Hardened UX: keyboard, focus, escape flows.</span></li>
+          </ul>
+
+          <div aria-hidden="true" class="pointer-events-none absolute -right-12 bottom-6 h-40 w-40 rounded-full bg-gradient-to-br from-accent/25 via-white/5 to-transparent blur-2xl animate-float"></div>
+          <p class="mt-8 text-xs text-white/60">Tip: hover cards to see parallax; the cursor dot grows on interactive elements and auto-inverts on white.</p>
+        </div>
+      </section>
+
+      <!-- ========== Right: Auth Deck (Login + Promo Article) ========== -->
+      <section class="relative grid gap-8">
+        <!-- LOGIN CARD -->
+        <article class="on-white tilt rounded-3xl bg-card text-ink shadow-2xl ring-1 ring-black/5 animate-fadeUp"
+                 role="region" aria-labelledby="loginTitle"
+                 data-api-base="${BUGENCE_API_BASE}">
+          <div class="shine rounded-3xl"></div>
+
+          <div class="relative p-8 md:p-10 min-h-[720px]">
+            <div class="mb-6 flex items-center justify-between">
+              <h3 id="loginTitle" class="text-xl font-extrabold tracking-wide">Sign in</h3>
+              <button type="button"
+                class="cursor-magnet ripple inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-black shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black/60 focus-visible:ring-offset-white transition"
+                aria-label="Continue with Google (placeholder)">
+                <!-- Google icon (inline SVG) -->
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.4H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12S17.4 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 5.6 29.6 4 24 4 16 4 9.1 8.1 6.3 14.7z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 5.6 29.6 4 24 4 16 4 9.1 8.1 6.3 14.7z"/><path fill="#4CAF50" d="M24 48c5.2 0 10-2 13.6-5.2l-6.3-5.2C29.3 36 24.9 38 20 38c-5.2 0-9.7-3.1-11.7-7.6l-6.6 5.1C4.6 43.9 13.6 48 24 48z"/><path fill="#1976D2" d="M45.6 26.4c.4-1.8.6-3.6.6-5.4 0-1.8-.2-3.6-.6-5.4H24v10h12.7c-.6 3.2-2.4 5.9-4.9 7.8l6.3 5.2c3.7-3.4 6.1-8.3 6.1-14.2z"/></svg>
+                <span>Continue</span>
+              </button>
+            </div>
+
+            <form id="loginForm" class="relative pr-32" novalidate aria-describedby="loginNote">
+              <!-- email -->
+              <div class="mb-4">
+                <label for="loginEmail" class="mb-2 block text-sm font-semibold">Email</label>
+                <input id="loginEmail" name="email" type="email" inputmode="email" autocomplete="email" required
+                       class="cursor-magnet w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-black placeholder:text-black/40 outline-none focus-visible:border-black/20 focus-visible:ring-2 focus-visible:ring-black/10 transition"
+                       placeholder="you@company.com" aria-invalid="false" aria-describedby="loginEmailErr"/>
+                <p id="loginEmailErr" class="mt-2 text-xs text-red-600 min-h-[1.25rem]" aria-live="polite"></p>
+              </div>
+
+              <!-- password -->
+              <div class="mb-4">
+                <div class="mb-2 flex items-center justify-between">
+                  <label for="loginPassword" class="block text-sm font-semibold">Password</label>
+                  <button type="button" id="toggleLoginPw"
+                          class="cursor-magnet text-xs font-semibold text-black/70 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black/50 focus-visible:ring-offset-white rounded px-2 py-1 transition"
+                          aria-controls="loginPassword" aria-pressed="false">Show</button>
+                </div>
+                <input id="loginPassword" name="password" type="password" autocomplete="current-password" required
+                       class="cursor-magnet w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-black placeholder:text-black/40 outline-none focus-visible:border-black/20 focus-visible:ring-2 focus-visible:ring-black/10 transition"
+                       placeholder="••••••••" aria-invalid="false" aria-describedby="loginPwErr loginPwStrength"/>
+                <p id="loginPwErr" class="mt-2 text-xs text-red-600 min-h-[1.25rem]" aria-live="polite"></p>
+                <div class="mt-1.5 flex items-center gap-2">
+                  <div class="flex gap-1">
+                    <span id="lbar1" class="h-1.5 w-8 rounded-full bg-black/10"></span>
+                    <span id="lbar2" class="h-1.5 w-8 rounded-full bg-black/10"></span>
+                    <span id="lbar3" class="h-1.5 w-8 rounded-full bg-black/10"></span>
+                    <span id="lbar4" class="h-1.5 w-8 rounded-full bg-black/10"></span>
+                  </div>
+                  <span id="loginPwStrength" class="text-xs text-black/60">Strength</span>
+                </div>
+              </div>
+
+              <div class="mb-6 flex items-center justify-between">
+                <label class="cursor-magnet inline-flex items-center gap-2 text-sm">
+                  <input id="remember" type="checkbox" class="h-4 w-4 rounded border-black/20 text-black focus:ring-black/40"/>
+                  <span>Remember me</span>
+                </label>
+                <a href="#" class="cursor-magnet text-sm font-semibold text-black/70 hover:text-black underline underline-offset-4">Forgot password?</a>
+              </div>
+
+              <p id="loginNote" class="sr-only">Fill email and an 8+ character password to enable Sign in.</p>
+
+              <!-- BIG BLACK CIRCLE CTA -->
+              <div class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 pr-1 sm:pr-2 md:pr-3">
+                <button id="loginSubmit" type="submit"
+                  class="cursor-magnet ripple pointer-events-auto grid aspect-square w-28 place-items-center rounded-full bg-black text-white shadow-xl transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-2xl hover:scale-[1.06] focus-visible:outline-none focus-visible:shadow-ring active:scale-[.98]"
+                  aria-label="Sign in" disabled>
+                  <div class="flex flex-col items-center leading-none">
+                    <svg aria-hidden="true" class="h-8 w-8 animate-arrow" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="mt-1 text-[10px] font-bold tracking-wider uppercase">Sign in</span>
+                  </div>
+                </button>
+              </div>
+
+              <div class="mt-12 text-center">
+                <span class="text-sm text-black/60">New to Bugence?</span>
+                <a href="#promo" class="cursor-magnet ml-2 text-sm font-semibold text-black hover:underline underline-offset-4">Explore benefits</a>
+              </div>
+            </form>
+          </div>
+        </article>
+
+        <!-- ===== PROMO ARTICLE (replaces Create Account form) ===== -->
+        <article id="promo"
+                 class="on-white tilt fancy cursor-big rounded-3xl shadow-2xl ring-1 ring-black/5 animate-fadeUp">
+          <div class="shine rounded-3xl"></div>
+
+          <!-- floating shapes -->
+          <div class="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-[rgba(94,234,212,.25)] blur-2xl float-shape"></div>
+          <div class="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-[rgba(245,158,11,.25)] blur-2xl float-shape" style="animation-delay: -2s"></div>
+
+          <div class="relative p-8 sm:p-10">
+            <div class="mb-3 inline-flex items-center gap-2 rounded-full bg-black/5 px-3 py-1 text-[11px] font-semibold text-black/70 ring-1 ring-black/10">
+              <span class="h-2 w-2 rounded-full bg-black/70"></span> New to the portal?
+            </div>
+
+            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-black">Your team’s control room.</h2>
+            <p class="mt-2 text-black/70 max-w-prose">
+              Create your <strong>BUGENCE</strong> account to access your dashboard, manage projects, and collaborate with your team.
+            </p>
+
+            <ul class="mt-6 space-y-3 text-black/80">
+              <li class="flex items-center gap-3">
+                <!-- shield -->
+                <svg aria-hidden="true" class="h-5 w-5 text-black/70" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3l7 3v6a10 10 0 01-7 9 10 10 0 01-7-9V6l7-3z" stroke="currentColor" stroke-width="2" fill="none"/>
+                </svg>
+                <span>Secure, SSO-ready authentication</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <!-- bolt -->
+                <svg aria-hidden="true" class="h-5 w-5 text-black/70" viewBox="0 0 24 24" fill="none">
+                  <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
+                </svg>
+                <span>Lightning-fast access & smart session memory</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <!-- wand -->
+                <svg aria-hidden="true" class="h-5 w-5 text-black/70" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 18L18 6M4 7l3-1M7 4l1-3M16 20l1 3M20 16l3 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Polished UI with delightful micro-interactions</span>
+              </li>
+            </ul>
+
+            <div class="mt-8 flex flex-wrap items-center gap-4">
+              <a id="goToSignUp" href="createaccount.html"
+                 class="ripple inline-flex items-center justify-center rounded-full bg-black px-6 py-3 text-white font-semibold shadow-lg shadow-black/20 hover:translate-y-[-1px] hover:shadow-xl active:translate-y-[0] transition">
+                Create Account
+                <!-- arrow-right -->
+                <svg aria-hidden="true" class="ml-3 h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+              <a href="Dashboard.html"
+                 class="ripple inline-flex items-center justify-center rounded-full border border-black/15 px-5 py-3 text-sm font-medium hover:bg-black/5 transition">
+                Peek inside
+              </a>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <!-- Live region for announcements -->
+    <div id="toast" class="sr-only" aria-live="polite"></div>
+  </main>
+
+  <!-- =================== INTERACTIVITY =================== -->
+  <script>
+    // ---------- Helpers
+    const $ = (s, c=document) => c.querySelector(s);
+    const $$ = (s, c=document) => Array.from(c.querySelectorAll(s));
+    const announce = (m) => { const t=$("#toast"); t.textContent=m; };
+
+    // ---------- Cursor dot (grow on interactive, auto invert on white, bigger on promo)
+    const cursor = $("#cursor");
+    let cx = innerWidth/2, cy = innerHeight/2, tx = cx, ty = cy, raf;
+    function follow(){
+      cx += (tx - cx) * 0.18; cy += (ty - cy) * 0.18;
+      cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%,-50%)`;
+      raf = requestAnimationFrame(follow);
+    }
+    addEventListener("mousemove", e => { tx=e.clientX; ty=e.clientY; if(!raf) raf=requestAnimationFrame(follow); cursor.classList.remove("hide"); }, {passive:true});
+    addEventListener("mouseleave", () => { cursor.classList.add("hide"); cancelAnimationFrame(raf); raf=null; }, {passive:true});
+
+    const magnetSel = ".cursor-magnet, a, button, input, label, [role='button']";
+    document.addEventListener("mouseover", e => { if(e.target.closest(magnetSel)) cursor.classList.add("grow"); });
+    document.addEventListener("mouseout",  e => { if(e.target.closest(magnetSel)) cursor.classList.remove("grow"); });
+
+    // Invert on white cards
+    document.addEventListener("mouseover", e => { if(e.target.closest(".on-white")) cursor.classList.add("invert"); });
+    document.addEventListener("mouseout",  e => { if(e.target.closest(".on-white")) cursor.classList.remove("invert"); });
+
+    // Bigger dot on the promo article area
+    const promo = $("#promo");
+    if (promo) {
+      promo.addEventListener("mouseenter", () => cursor.classList.add("big"));
+      promo.addEventListener("mouseleave", () => cursor.classList.remove("big"));
+      // Spotlight tracking for the conic glow card
+      const updateSpot = (ev) => {
+        const r = promo.getBoundingClientRect();
+        const x = ((ev.clientX - r.left) / r.width) * 100;
+        const y = ((ev.clientY - r.top) / r.height) * 100;
+        promo.style.setProperty("--mx", x + "%");
+        promo.style.setProperty("--my", y + "%");
+      };
+      promo.addEventListener("mousemove", updateSpot);
+      // Initialize center
+      promo.style.setProperty("--mx", "60%");
+      promo.style.setProperty("--my", "30%");
+    }
+
+    // ---------- 3D Tilt + pointer shine (both interactive cards + hero)
+    $$(".tilt").forEach(card => {
+      const rect = () => card.getBoundingClientRect();
+      function move(e){
+        const r = rect();
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        const rx = ((y / r.height) - .5) * -10; // rotateX
+        const ry = ((x / r.width)  - .5) *  10; // rotateY
+        card.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`;
+        card.style.filter = "saturate(1.03)";
+        card.style.boxShadow = "0 38px 100px rgba(0,0,0,.36)";
+        card.style.setProperty("--mx", `${(x/r.width)*100}%`);
+        card.style.setProperty("--my", `${(y/r.height)*100}%`);
+      }
+      function leave(){
+        card.style.transform = "";
+        card.style.filter = "";
+        card.style.boxShadow = "";
+      }
+      card.addEventListener("mousemove", move);
+      card.addEventListener("mouseleave", leave);
+    });
+
+    // ---------- Button ripple (pure JS bubble)
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest(".ripple");
+      if(!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const bubble = document.createElement("span");
+      bubble.style.position = "absolute";
+      bubble.style.left = x + "px";
+      bubble.style.top = y + "px";
+      bubble.style.transform = "translate(-50%,-50%)";
+      bubble.style.width = bubble.style.height = Math.max(rect.width, rect.height) * 1.25 + "px";
+      bubble.style.borderRadius = "9999px";
+      bubble.style.background = "rgba(255,255,255,.35)";
+      bubble.style.pointerEvents = "none";
+      bubble.style.opacity = "0.7";
+      bubble.style.transition = "opacity .6s ease, transform .6s ease";
+      btn.appendChild(bubble);
+      requestAnimationFrame(()=>{ bubble.style.opacity="0"; bubble.style.transform="translate(-50%,-50%) scale(1.15)"; });
+      setTimeout(()=>bubble.remove(), 600);
+    });
+
+    // ---------- Validation & strength (Login only)
+    const emailOk = v => /\S+@\S+\.\S+/.test(v);
+    const score = v => { let s=0; if(v.length>=8)s++; if(v.length>=12)s++; if(/[A-Z]/.test(v)&&/[a-z]/.test(v))s++; if(/\d/.test(v))s++; if(/[^A-Za-z0-9]/.test(v))s++; return Math.min(s,4); };
+    const setBars = (ids, sc) => { ids.forEach((id,i)=>{ const el=$("#"+id); if(!el)return; el.style.backgroundColor = i<sc ? "rgb(0 0 0 / .9)" : "rgb(0 0 0 / .12)"; }); };
+
+    const lForm=$("#loginForm"), lEmail=$("#loginEmail"), lPw=$("#loginPassword"),
+          lEmailErr=$("#loginEmailErr"), lPwErr=$("#loginPwErr"),
+          lSubmit=$("#loginSubmit"), lStrength=$("#loginPwStrength");
+    const lBars=["lbar1","lbar2","lbar3","lbar4"];
+
+    function validateLogin(){
+      const eOk=emailOk(lEmail.value.trim());
+      const pOk=lPw.value.length>=8;
+      lEmail.setAttribute("aria-invalid", eOk?"false":"true");
+      lPw.setAttribute("aria-invalid", pOk?"false":"true");
+      lEmailErr.textContent = eOk? "" : "Enter a valid email address.";
+      lPwErr.textContent    = pOk? "" : "Password must be at least 8 characters.";
+      const sc=score(lPw.value); setBars(lBars, sc);
+      lStrength.textContent = "Strength: " + ["Very weak","Weak","Okay","Good","Strong"][sc];
+      lSubmit.disabled = !(eOk && pOk);
+    }
+    lEmail.addEventListener("input", validateLogin);
+    lPw.addEventListener("input", validateLogin);
+    $("#toggleLoginPw").addEventListener("click", () => {
+      const isPw = lPw.type === "password"; lPw.type = isPw ? "text":"password";
+      $("#toggleLoginPw").textContent = isPw ? "Hide" : "Show";
+      $("#toggleLoginPw").setAttribute("aria-pressed", String(isPw));
+      lPw.focus();
+    });
+    lForm.addEventListener("submit", e => {
+      e.preventDefault(); validateLogin(); if(lSubmit.disabled) return;
+      const api = lForm.closest("[data-api-base]")?.getAttribute("data-api-base") || "${BUGENCE_API_BASE}";
+      announce("Signing you in…");
+      lSubmit.classList.add("animate-[pulse_0.9s_ease-in-out_infinite]");
+      setTimeout(()=>{ lSubmit.classList.remove("animate-[pulse_0.9s_ease-in-out_infinite]"); announce("Success! Redirecting…"); location.hash="#/dashboard"; }, 950);
+    });
+    validateLogin();
+  </script>
+</body>
+</html>

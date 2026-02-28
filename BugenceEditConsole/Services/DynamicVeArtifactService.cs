@@ -32,6 +32,8 @@ public sealed class DynamicVeArtifactService : IDynamicVeArtifactService
         ApplicationDbContext db,
         CancellationToken cancellationToken = default)
     {
+        await DynamicVeSchemaService.EnsureActionBindingColumnsAsync(db);
+
         var rules = await db.DynamicVePatchRules
             .AsNoTracking()
             .Where(x => x.RevisionId == revision.Id)
@@ -135,7 +137,11 @@ public sealed class DynamicVeArtifactService : IDynamicVeArtifactService
                 fallbackSelectors = MapFallbacks(x.ElementKey),
                 x.ActionType,
                 x.WorkflowId,
+                x.WorkflowDguid,
+                x.WorkflowNameSnapshot,
                 x.NavigateUrl,
+                x.TriggerEvent,
+                x.ValidationJson,
                 x.BehaviorJson
             })
         };

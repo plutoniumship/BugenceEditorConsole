@@ -1,15 +1,18 @@
 @page
 @model BugenceEditConsole.Pages.Tools.ReactBuilderModel
 @{
-    ViewData["Title"] = "ReactBuilder";
+    ViewData["Title"] = "React Builder";
     ViewData["BodyClass"] = "page-tools-reactbuilder-custom";
 
     var canManage = Model.CanManage;
+    var builderCount = Model.ReactBuilders.Count;
+    var activeCount = Model.ReactBuilders.Count(x => x.IsActive);
+    var linkedPages = Model.ReactBuilders.Sum(x => x.LinkedPagesCount);
 }
 
 @section Head {
 <style>
-    :root { --bg:#050505; --surface:#0b0d10; --border:rgba(148,163,184,.18); --text:#f8fafc; --muted:#94a3b8; --accent:#22d3ee; --danger:#ef4444; }
+    :root { --bg:#020202; --surface:#0a0a0a; --surface-2:#111111; --border:rgba(255,255,255,.09); --text:#f8fafc; --muted:#94a3b8; --accent:#6ee7ff; --danger:#ef4444; }
     * { box-sizing:border-box; }
     body { margin:0; background: radial-gradient(circle at 0% 0%, rgba(34,211,238,.08), transparent 34%), var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
     .shell { display:flex; width:100%; }
@@ -21,16 +24,27 @@
     .nav-item.active { background:rgba(34,211,238,.14); color:var(--accent); }
     .profile { margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.08); }
     main { flex:1; overflow:auto; padding:34px; }
-    .header { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
-    .header h1 { margin:0; font-family:'Cabinet Grotesk',sans-serif; font-size:2.3rem; }
-    .header p { margin:6px 0 0; color:var(--muted); }
+    .hero { position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.11); border-radius:28px; padding:26px; background:radial-gradient(620px 260px at -5% -10%, rgba(110,231,255,.15), transparent 56%), radial-gradient(560px 240px at 110% 0%, rgba(255,255,255,.08), transparent 58%), linear-gradient(140deg, rgba(12,12,12,.98), rgba(4,4,4,.98)); box-shadow:0 36px 90px rgba(0,0,0,.5); margin-bottom:18px; }
+    .hero::after { content:""; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px); background-size:32px 32px; opacity:.18; pointer-events:none; }
+    .hero-inner { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.1fr) 360px; gap:18px; align-items:start; }
+    .header h1 { margin:12px 0 12px; font-family:'Cabinet Grotesk',sans-serif; font-size:clamp(2rem,3vw,2.8rem); line-height:1.02; letter-spacing:-.04em; }
+    .header p { margin:0; color:var(--muted); max-width:720px; line-height:1.7; }
+    .hero-lead { font-size:1rem; margin-bottom:10px !important; }
+    .hero-kicker { display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); color:var(--accent); text-transform:uppercase; letter-spacing:.16em; font-size:.72rem; font-weight:900; }
+    .hero-actions { border-radius:22px; border:1px solid rgba(255,255,255,.1); background:linear-gradient(180deg, rgba(15,15,15,.96), rgba(7,7,7,.98)); padding:18px; display:grid; gap:14px; }
+    .hero-actions h3 { margin:0; font-size:1rem; font-weight:900; }
+    .hero-actions p { margin:0; color:var(--muted); font-size:.84rem; }
+    .hero-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:18px; }
+    .hero-stat { border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(255,255,255,.03); padding:15px; }
+    .hero-stat .l { color:#7c8795; font-size:.72rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+    .hero-stat .v { margin-top:10px; font-size:1.65rem; font-weight:900; }
     .btn { border:1px solid var(--border); background:rgba(255,255,255,.04); color:#e2e8f0; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; }
     .btn:hover { border-color:#67e8f9; color:#fff; }
     .btn.primary { background:linear-gradient(135deg,#06b6d4,#22d3ee); color:#052026; border:none; }
     .btn.primary:hover { filter:brightness(1.04); }
-    .toolbar { margin:18px 0; display:flex; justify-content:space-between; gap:10px; }
-    .search { width:min(360px,100%); background:#080b10; border:1px solid var(--border); color:#e2e8f0; border-radius:10px; padding:10px 12px; }
-    .table-wrap { border:1px solid var(--border); border-radius:16px; overflow:hidden; background:linear-gradient(180deg,rgba(8,11,15,.98),rgba(4,6,10,.98)); }
+    .toolbar { margin:18px 0; display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; }
+    .search { width:min(420px,100%); background:#080b10; border:1px solid var(--border); color:#e2e8f0; border-radius:14px; padding:12px 14px; }
+    .table-wrap { border:1px solid var(--border); border-radius:24px; overflow:hidden; background:linear-gradient(180deg,rgba(8,11,15,.98),rgba(4,6,10,.98)); box-shadow:0 20px 46px rgba(0,0,0,.42); }
     table { width:100%; border-collapse:collapse; }
     th { text-align:left; font-size:.72rem; text-transform:uppercase; color:#94a3b8; letter-spacing:1px; padding:14px; border-bottom:1px solid var(--border); }
     td { padding:14px; border-bottom:1px solid rgba(148,163,184,.14); }
@@ -65,20 +79,37 @@
     .confirm-card { width:min(420px,92vw); background:#0b0e14; border:1px solid rgba(148,163,184,.2); border-radius:16px; padding:20px; box-shadow:0 30px 60px rgba(0,0,0,.5); }
     .confirm-card h4 { margin:0 0 6px; font-family:'Cabinet Grotesk',sans-serif; }
     .confirm-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+    @@media (max-width:1100px){ .hero-inner,.hero-stats{grid-template-columns:1fr;} }
     @@media (max-width:900px){ aside{display:none;} main{padding:18px;} }
 </style>
 }
 
-<div class="header">
-    <div>
-        <h1>React Builder</h1>
-        <p>Build modular React experiences and map slots for portal page rendering.</p>
+<section class="hero">
+    <div class="hero-inner">
+        <div class="header">
+            <div class="hero-kicker"><i class="fa-brands fa-react"></i> React Platform</div>
+            <h1>React Builder</h1>
+            <p class="hero-lead">Design, import, connect, and operationalize React workspaces from one black-theme control layer.</p>
+            <p>React Builder now acts like a serious workspace manager instead of a flat table. Create builders, open the editor, import local structures, and export the full workspace as a single package.</p>
+            <div class="hero-stats">
+                <div class="hero-stat"><div class="l">Builders</div><div class="v">@builderCount</div></div>
+                <div class="hero-stat"><div class="l">Active</div><div class="v">@activeCount</div></div>
+                <div class="hero-stat"><div class="l">Linked Pages</div><div class="v">@linkedPages</div></div>
+            </div>
+        </div>
+        <aside class="hero-actions">
+            <div>
+                <h3>Builder Actions</h3>
+                <p>Spin up a workspace, jump into the editor, then bind it into portal page slots.</p>
+            </div>
+            @if (canManage)
+            {
+                <button class="btn primary" id="openDrawer"><i class="fa-solid fa-plus"></i> New Builder</button>
+            }
+            <a class="btn" href="/Tools/ReactBuilder?connect=1"><i class="fa-solid fa-link"></i> Manage Connections</a>
+        </aside>
     </div>
-    @if (canManage)
-    {
-        <button class="btn primary" id="openDrawer"><i class="fa-solid fa-plus"></i> New Builder</button>
-    }
-</div>
+</section>
 
 <div class="toolbar">
     <input class="search" id="search" placeholder="Search by name, id, dguid..." />
@@ -119,6 +150,7 @@
                         @if (canManage)
                         {
                             <div class="actions">
+                                <a class="icon-btn" href="/Tools/ReactBuilderEditor?id=@b.Id&handler=DownloadWorkspace" title="Export workspace"><i class="fa-solid fa-file-arrow-down"></i></a>
                                 <button class="icon-btn edit" type="button" data-id="@b.Id" title="Edit"><i class="fa-solid fa-pen"></i></button>
                                 <button class="icon-btn delete" type="button" data-id="@b.Id" title="Delete"><i class="fa-solid fa-trash"></i></button>
                             </div>
@@ -395,6 +427,7 @@
           <td>
             ${canManage ? `
               <div class="actions">
+                <a class="icon-btn" href="/Tools/ReactBuilderEditor?id=${b.id}&handler=DownloadWorkspace" title="Export workspace"><i class="fa-solid fa-file-arrow-down"></i></a>
                 <button class="icon-btn edit" data-id="${b.id}" title="Edit"><i class="fa-solid fa-pen"></i></button>
                 <button class="icon-btn delete" data-id="${b.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
               </div>` : ""}

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUGENCE — Peek Inside</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bug: { 50:'#f5f7ff',100:'#e9edff',200:'#cdd7ff',300:'#a7b5ff',400:'#7b89ff',500:'#5663ff',600:'#3f49e6',700:'#3239b3',800:'#2a2f8c',900:'#23276f' }
+          },
+          boxShadow: { glow: '0 10px 30px -10px rgba(86,99,255,.55), 0 2px 10px rgba(0,0,0,.35)'}
+        }
+      }
+    }
+  </script>
+
+  <!-- Icons & fonts -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js (for preview charts) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; }
+    .grid-bg { background:
+      linear-gradient(transparent,transparent),
+      linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px),
+      linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px; }
+    .glow:focus { box-shadow: 0 0 0 4px rgba(86,99,255,.25); }
+    .sidebar a.active { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
+    .badge { display:inline-flex; align-items:center; justify-content:center; height:22px; min-width:22px; border-radius:999px; padding:0 8px; font-size:11px; font-weight:700; }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-white relative grid-bg">
+  <!-- Backdrop glows -->
+  <div class="pointer-events-none absolute inset-0">
+    <div class="absolute top-[-10%] right-[-10%] h-[40rem] w-[40rem] rounded-full bg-bug-500/20 blur-3xl"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] h-[40rem] w-[40rem] rounded-full bg-amber-300/20 blur-3xl"></div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="relative z-10 flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="sidebar w-[320px] shrink-0 border-r border-white/10 bg-white/5 backdrop-blur-xl">
+      <div class="p-5 flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-black shadow-glow">
+          <img src="/img/blackbug.svg" alt="BUGENCE" class="h-6 w-6"/>
+        </span>
+        <span class="text-xl font-extrabold tracking-tight">BUGENCE</span>
+      </div>
+      <div class="px-4 pb-6">
+        <div class="mb-3 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+          <i class="fa-solid fa-magnifying-glass text-white/60"></i>
+          <input id="navSearch" class="bg-transparent outline-none text-sm w-full placeholder:text-white/40" placeholder="Search navigation…" />
+        </div>
+        <nav id="nav" class="space-y-6 text-sm">
+          <!-- Primary: Main -->
+          <div class="group">
+            <button data-prim="main" class="w-full flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 hover:bg-white/5">
+              <span class="flex items-center gap-3"><i class="fa-solid fa-gauge-high"></i> Main</span>
+              <i class="fa-solid fa-chevron-down text-white/50"></i>
+            </button>
+            <div class="mt-2 hidden space-y-1" data-sub="main">
+              <a href="/languages.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">1. Languages</a>
+              <a href="/translation.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">2. Translation</a>
+              <a href="/urlreroute.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">3. URL rewrite & rerouting</a>
+              <a href="/systemproperties.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">4. System Properties</a>
+              <a href="/erroemanagment.html" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">5. Errors Management</a>
+            </div>
+          </div>
+
+          <!-- Primary: Data Sources -->
+          <div class="group">
+            <button data-prim="sources" class="w-full flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 hover:bg-white/5">
+              <span class="flex items-center gap-3"><i class="fa-solid fa-database"></i> Data Sources</span>
+              <i class="fa-solid fa-chevron-down text-white/50"></i>
+            </button>
+            <div class="mt-2 hidden space-y-1" data-sub="sources">
+              <a href="#panel-db" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">1. Database Sources</a>
+              <a href="#panel-api" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">2. API Sources</a>
+              <a href="#panel-sp" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">3. Stored Procedures</a>
+            </div>
+          </div>
+
+          <!-- Primary: Content Management -->
+          <div class="group">
+            <button data-prim="content" class="w-full flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 hover:bg-white/5">
+              <span class="flex items-center gap-3"><i class="fa-solid fa-file-code"></i> Content Management</span>
+              <i class="fa-solid fa-chevron-down text-white/50"></i>
+            </button>
+            <div class="mt-2 hidden space-y-1" data-sub="content">
+              <a href="#panel-templates" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">1. HTML Templates</a>
+              <a href="#panel-master" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">2. Master Pages / Pages</a>
+              <a href="#panel-hierarchy" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">3. Site Hierarchy / Logical Hierarchy</a>
+            </div>
+          </div>
+
+          <!-- Primary: Workflow -->
+          <div class="group">
+            <button data-prim="workflow" class="w-full flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 hover:bg-white/5">
+              <span class="flex items-center gap-3"><i class="fa-solid fa-diagram-project"></i>Workflow</span>
+              <i class="fa-solid fa-chevron-down text-white/50"></i>
+            </button>
+            <div class="mt-2 hidden space-y-1" data-sub="workflow">
+              <a href="#panel-workflows" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">1. Workflows</a>
+              <a href="#panel-actions" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">2. Actions Management</a>
+              <a href="#panel-engine" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">3. Engine Status</a>
+            </div>
+          </div>
+
+          <!-- Primary: Form Builder -->
+          <div class="group">
+            <button data-prim="forms" class="w-full flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 hover:bg-white/5">
+              <span class="flex items-center gap-3"><i class="fa-solid fa-pen-ruler"></i> Form Builder</span>
+              <i class="fa-solid fa-chevron-down text-white/50"></i>
+            </button>
+            <div class="mt-2 hidden space-y-1" data-sub="forms">
+              <a href="#panel-formbuilder" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">1. Form Builder</a>
+              <a href="#panel-formtemplates" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">2. Form Templates / Application Views</a>
+              <a href="#panel-datatypes" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">3. Data Type Templates / Forms Design System</a>
+              <a href="#panel-filegroups" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">4. File Groups</a>
+              <a href="#panel-permissionsprofiles" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">5. Application Permission Profiles</a>
+            </div>
+          </div>
+
+          <!-- Primary: Permission & User Access -->
+          <div class="group">
+            <button data-prim="access" class="w-full flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 hover:bg-white/5">
+              <span class="flex items-center gap-3"><i class="fa-solid fa-user-shield"></i>Permission & User Access</span>
+              <i class="fa-solid fa-chevron-down text-white/50"></i>
+            </button>
+            <div class="mt-2 hidden space-y-1" data-sub="access">
+              <a href="#panel-users" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">1. Users / Groups</a>
+              <a href="#panel-pageperms" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">2. Page Permissions</a>
+            </div>
+          </div>
+
+          <!-- Primary: Modules -->
+          <div class="group">
+            <button data-prim="modules" class="w-full flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 hover:bg-white/5">
+              <span class="flex items-center gap-3"><i class="fa-solid fa-cubes"></i> Modules</span>
+              <i class="fa-solid fa-chevron-down text-white/50"></i>
+            </button>
+            <div class="mt-2 hidden space-y-1" data-sub="modules">
+              <a href="#panel-modules" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">1. Modules</a>
+              <a href="#panel-components" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">2. Components Library</a>
+              <a href="#panel-assemblies" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">3. Site Assemblies</a>
+              <a href="#panel-react" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">4. React Components</a>
+              <a href="#panel-includes" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">5. File Includes / Application Permission Profiles</a>
+              <a href="#panel-auth" class="block rounded-xl border border-white/10 px-3 py-2 hover:bg-white/10">6. Authentication Services</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <section class="flex-1 min-w-0">
+      <!-- Top Bar -->
+      <div class="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
+        <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h1 class="text-xl sm:text-2xl font-extrabold">Peek Inside — Admin Dashboard</h1>
+            <span class="badge bg-white/10 border border-white/15">Preview</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="notifyTest" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10"><i class="fa-solid fa-bell"></i></button>
+            <div class="hidden sm:flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs">
+              <span class="h-2 w-2 rounded-full bg-green-400"></span> Engine: <span class="font-semibold">Online</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <img src="https://i.pravatar.cc/64?img=5" class="h-9 w-9 rounded-full" alt="user"/>
+              <div class="text-left leading-tight hidden sm:block">
+                <div class="text-sm font-semibold">Alex Admin</div>
+                <div class="text-xs text-white/60">Superuser</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div id="banner" class="mx-auto max-w-7xl px-6 pt-4 hidden"></div>
+
+      <!-- Hero KPIs -->
+      <div class="mx-auto max-w-7xl px-6 py-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="text-white/70 text-sm">Active Workflows</div>
+          <div class="mt-2 text-3xl font-extrabold">32</div>
+          <div class="mt-3 text-xs text-white/60">+5 in last 7 days</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="text-white/70 text-sm">Queued Actions</div>
+          <div class="mt-2 text-3xl font-extrabold">148</div>
+          <div class="mt-3 text-xs text-white/60">−12 vs yesterday</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="text-white/70 text-sm">Error Rate</div>
+          <div class="mt-2 text-3xl font-extrabold">0.23%</div>
+          <div class="mt-3 text-xs text-white/60">target < 0.5%</div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="text-white/70 text-sm">Uptime</div>
+          <div class="mt-2 text-3xl font-extrabold">99.98%</div>
+          <div class="mt-3 text-xs text-white/60">past 30 days</div>
+        </div>
+      </div>
+
+      <!-- Charts + Activity -->
+      <div class="mx-auto max-w-7xl px-6 pb-6 grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="xl:col-span-2 rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold">Requests / Errors</h2>
+            <div class="text-xs text-white/70">Last 7 days</div>
+          </div>
+          <canvas id="chartRequests" class="mt-4"></canvas>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <h2 class="font-semibold">Recent Activity</h2>
+          <ul class="mt-4 space-y-3 text-sm">
+            <li class="flex items-start gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-green-400"></span> Deployment <span class="font-semibold">v2.14.3</span> finished successfully.</li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-yellow-300"></span> Engine autoscaled to 6 replicas.</li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-red-400"></span> 3 errors occurred in <span class="font-semibold">/api/sitemap</span>.</li>
+            <li class="flex items-start gap-3"><span class="mt-1 h-2 w-2 rounded-full bg-blue-400"></span> User <span class="font-semibold">mira@acme.co</span> added to group <span class="font-semibold">Editors</span>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Data Table & Quick Actions -->
+      <div class="mx-auto max-w-7xl px-6 pb-10 grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="xl:col-span-2 rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold">Content Pages</h2>
+            <div class="flex items-center gap-2">
+              <input class="glow rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-xs outline-none placeholder:text-white/50" placeholder="Filter…"/>
+              <button class="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"><i class="fa-solid fa-download"></i></button>
+            </div>
+          </div>
+          <div class="mt-4 overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="text-left text-white/70">
+                <tr>
+                  <th class="py-2 pr-4">Title</th>
+                  <th class="py-2 pr-4">Path</th>
+                  <th class="py-2 pr-4">Template</th>
+                  <th class="py-2 pr-4">Status</th>
+                  <th class="py-2 pr-4 text-right">Updated</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/10">
+                <tr>
+                  <td class="py-3 pr-4">Home</td>
+                  <td class="py-3 pr-4 text-white/70">/</td>
+                  <td class="py-3 pr-4">master-home</td>
+                  <td class="py-3 pr-4"><span class="badge bg-green-500/20 text-green-200 border border-green-500/30">Published</span></td>
+                  <td class="py-3 pr-4 text-right text-white/70">2h ago</td>
+                </tr>
+                <tr>
+                  <td class="py-3 pr-4">Pricing</td>
+                  <td class="py-3 pr-4 text-white/70">/pricing</td>
+                  <td class="py-3 pr-4">marketing</td>
+                  <td class="py-3 pr-4"><span class="badge bg-yellow-500/20 text-yellow-200 border border-yellow-500/30">Draft</span></td>
+                  <td class="py-3 pr-4 text-right text-white/70">1d ago</td>
+                </tr>
+                <tr>
+                  <td class="py-3 pr-4">Docs — Getting started</td>
+                  <td class="py-3 pr-4 text-white/70">/docs/start</td>
+                  <td class="py-3 pr-4">docs</td>
+                  <td class="py-3 pr-4"><span class="badge bg-red-500/20 text-red-200 border border-red-500/30">Needs review</span></td>
+                  <td class="py-3 pr-4 text-right text-white/70">3d ago</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <h2 class="font-semibold">Quick Actions</h2>
+          <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <button class="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-left hover:bg-white/15"><i class="fa-solid fa-plus"></i> New Page</button>
+            <button class="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-left hover:bg-white/15"><i class="fa-solid fa-code-branch"></i> New Workflow</button>
+            <button class="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-left hover:bg-white/15"><i class="fa-solid fa-shield-halved"></i> New Role</button>
+            <button class="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-left hover:bg-white/15"><i class="fa-solid fa-database"></i> Add Source</button>
+          </div>
+          <div class="mt-4 text-xs text-white/60">Tip: Use the left navigation to open specific modules.</div>
+        </div>
+      </div>
+
+      <!-- Panels (anchors for each submenu) -->
+      <div id="panels" class="mx-auto max-w-7xl px-6 pb-20 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div id="panel-languages" class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <h3 class="font-semibold">Languages / Translations</h3>
+          <p class="mt-2 text-sm text-white/70">Manage locales, translation keys, and pluralization rules.</p>
+          <div class="mt-3 flex gap-2">
+            <button class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-xs">+ Add Locale</button>
+            <button class="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-xs">Export CSV</button>
+          </div>
+        </div>
+        <div id="panel-url" class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <h3 class="font-semibold">URL rewrite & rerouting</h3>
+          <p class="mt-2 text-sm text-white/70">Define rewrite rules, redirects, and canonicalization.</p>
+          <div class="mt-3 text-xs text-white/70">Sample: <code class="bg-black/40 px-1 rounded">/blog/:slug → /articles/:slug</code></div>
+        </div>
+        <div id="panel-system" class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <h3 class="font-semibold">System Properties</h3>
+          <p class="mt-2 text-sm text-white/70">Feature flags, environment variables, and advanced toggles.</p>
+        </div>
+        <div id="panel-errors" class="rounded-3xl border border-white/10 bg-white/5 p-5">
+          <h3 class="font-semibold">Errors Management</h3>
+          <p class="mt-2 text-sm text-white/70">Monitor and triage errors with suppression windows and alerts.</p>
+        </div>
+
+        <div id="panel-db" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Database Sources</h3><p class="mt-2 text-sm text-white/70">Connect Postgres, MySQL, MSSQL, and more.</p></div>
+        <div id="panel-api" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">API Sources</h3><p class="mt-2 text-sm text-white/70">Ingest REST/GraphQL data with auth headers and caching.</p></div>
+        <div id="panel-sp" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Stored Procedures</h3><p class="mt-2 text-sm text-white/70">Register and execute parameterized procedures safely.</p></div>
+
+        <div id="panel-templates" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">HTML Templates</h3><p class="mt-2 text-sm text-white/70">Versioned templates with preview and rollback.</p></div>
+        <div id="panel-master" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Master Pages / Pages</h3><p class="mt-2 text-sm text-white/70">Define layout shells and content pages.</p></div>
+        <div id="panel-hierarchy" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Site Hierarchy / Logical Hierarchy</h3><p class="mt-2 text-sm text-white/70">Tree-based navigation and sitemap management.</p></div>
+
+        <div id="panel-workflows" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Workflows</h3><p class="mt-2 text-sm text-white/70">Visual pipelines with triggers and steps.</p></div>
+        <div id="panel-actions" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Actions Management</h3><p class="mt-2 text-sm text-white/70">Rate limits, retries, and dead-letter queues.</p></div>
+        <div id="panel-engine" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Engine Status</h3><p class="mt-2 text-sm text-white/70">Health checks, replica counts, and CPU/mem charts.</p></div>
+
+        <div id="panel-formbuilder" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Form Builder</h3><p class="mt-2 text-sm text-white/70">Drag-and-drop fields with validations and themes.</p></div>
+        <div id="panel-formtemplates" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Form Templates / Application Views</h3></div>
+        <div id="panel-datatypes" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Data Type Templates / Forms Design System</h3></div>
+        <div id="panel-filegroups" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">File Groups</h3></div>
+        <div id="panel-permissionsprofiles" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Application Permission Profiles</h3></div>
+
+        <div id="panel-users" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Users / Groups</h3><p class="mt-2 text-sm text-white/70">SSO, SCIM sync, roles, and groups.</p></div>
+        <div id="panel-pageperms" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Page Permissions</h3></div>
+
+        <div id="panel-modules" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Modules</h3></div>
+        <div id="panel-components" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Components Library</h3></div>
+        <div id="panel-assemblies" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Site Assemblies</h3></div>
+        <div id="panel-react" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">React Components</h3></div>
+        <div id="panel-includes" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">File Includes / Application Permission Profiles</h3></div>
+        <div id="panel-auth" class="rounded-3xl border border-white/10 bg-white/5 p-5"><h3 class="font-semibold">Authentication Services</h3></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast/banner template -->
+  <template id="bannerTpl">
+    <div class="rounded-2xl border px-4 py-3 text-sm flex items-start gap-3">
+      <i class="fa-solid fa-circle-info mt-0.5"></i>
+      <div>
+        <div class="font-semibold" id="bTitle">Info</div>
+        <div id="bMsg">Message</div>
+      </div>
+      <button class="ml-auto text-xs bg-white/10 px-2 py-1 rounded" onclick="this.closest('.alert').remove()">Dismiss</button>
+    </div>
+  </template>
+
+  <script>
+    // Sidebar primary toggles
+    document.querySelectorAll('[data-prim]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-prim');
+        const panel = document.querySelector(`[data-sub="${key}"]`);
+        panel.classList.toggle('hidden');
+        btn.classList.toggle('active');
+      });
+    });
+
+    // Active link styling
+    const links = document.querySelectorAll('aside a[href^="#panel-"]');
+    links.forEach(a => a.addEventListener('click', () => {
+      links.forEach(l => l.classList.remove('active'));
+      a.classList.add('active');
+    }));
+
+    // Nav search filter
+    const navSearch = document.getElementById('navSearch');
+    navSearch.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('aside [data-sub] a').forEach(link => {
+        const show = link.textContent.toLowerCase().includes(q);
+        link.style.display = show ? '' : 'none';
+      });
+    });
+
+    // Banner helper
+    const bannerHost = document.getElementById('banner');
+    function showBanner(type, title, message) {
+      bannerHost.innerHTML = '';
+      const tpl = document.getElementById('bannerTpl').content.cloneNode(true);
+      const wrap = document.createElement('div');
+      wrap.className = 'alert';
+      const base = tpl.querySelector('div');
+      if(type==='success'){ base.classList.add('border-green-200','bg-green-50','text-green-800'); base.querySelector('i').className='fa-solid fa-circle-check mt-0.5'; }
+      else if(type==='error'){ base.classList.add('border-red-200','bg-red-50','text-red-800'); base.querySelector('i').className='fa-solid fa-triangle-exclamation mt-0.5'; }
+      else { base.classList.add('border-blue-200','bg-blue-50','text-blue-800'); }
+      base.querySelector('#bTitle').textContent = title;
+      base.querySelector('#bMsg').textContent = message;
+      wrap.appendChild(base);
+      bannerHost.appendChild(wrap);
+      bannerHost.classList.remove('hidden');
+      setTimeout(()=> bannerHost.classList.add('hidden'), 4000);
+    }
+
+    // Sample notification
+    document.getElementById('notifyTest').addEventListener('click', () => {
+      showBanner('success','Deployment finished','v2.14.3 was deployed successfully.');
+    });
+
+    // Chart.js demo
+    window.addEventListener('load', () => {
+      const ctx = document.getElementById('chartRequests');
+      if(!ctx) return;
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+          datasets: [
+            { label:'Requests', data:[900,1100,1050,1300,1250,1400,1500], borderWidth:2, tension:.35 },
+            { label:'Errors', data:[4,7,5,9,6,5,3], borderWidth:2, tension:.35 }
+          ]
+        },
+        options: {
+          responsive:true,
+          plugins:{ legend:{ labels:{ color:'#e5e7eb' } } },
+          scales:{ x:{ ticks:{ color:'#9ca3af' }, grid:{ color:'rgba(255,255,255,.08)' } }, y:{ ticks:{ color:'#9ca3af' }, grid:{ color:'rgba(255,255,255,.08)' } } }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

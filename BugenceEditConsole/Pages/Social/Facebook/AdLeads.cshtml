@@ -1,0 +1,357 @@
+
+@page "/social/facebook/ads/{adId}/leads"
+@model BugenceEditConsole.Pages.Social.Facebook.AdLeadsModel
+@{
+    ViewData["Title"] = "Ad Leads";
+    ViewData["BodyClass"] = "page-social-facebook-leads";
+}
+
+@if (!Model.Enabled)
+{
+    <div class="alert alert-warning">Social Marketing module is disabled by feature flags.</div>
+    return;
+}
+
+<style>
+    :root {
+        --fb-text: #f5f7fa;
+        --fb-muted: #8993a4;
+        --fb-cyan: #6cecff;
+        --fb-blue: #6ea8ff;
+        --fb-green: #4ade80;
+        --fb-gold: #f6c85f;
+        --fb-red: #fb7185;
+        --fb-border: rgba(255,255,255,0.08);
+        --fb-border-strong: rgba(255,255,255,0.14);
+    }
+
+    .fb-leads-shell { max-width: 1720px; margin: 0 auto; display: grid; gap: 18px; padding-bottom: 34px; }
+    .fb-leads-hero {
+        position: relative; overflow: hidden; border-radius: 32px; border: 1px solid var(--fb-border-strong);
+        background: radial-gradient(820px 320px at -8% -18%, rgba(108,236,255,0.16), transparent 56%), radial-gradient(720px 260px at 108% 0%, rgba(110,168,255,0.18), transparent 58%), linear-gradient(140deg, rgba(10,10,10,0.985), rgba(3,3,3,0.99));
+        padding: 28px; box-shadow: 0 40px 100px rgba(0,0,0,0.56);
+    }
+    .fb-leads-hero::after {
+        content: ""; position: absolute; inset: 0;
+        background-image: linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+        background-size: 32px 32px; opacity: 0.17; pointer-events: none;
+    }
+    .fb-leads-hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.18fr) 420px; gap: 18px; }
+    .fb-kicker {
+        display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: var(--fb-cyan);
+        font-size: 0.72rem; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .fb-title {
+        margin: 14px 0 10px; color: var(--fb-text); font-family: "Cabinet Grotesk", sans-serif;
+        font-size: clamp(2rem, 3.6vw, 4rem); line-height: 0.92; letter-spacing: -0.05em;
+    }
+    .fb-subtitle { margin: 0; color: var(--fb-muted); font-size: 1rem; line-height: 1.7; max-width: 760px; }
+    .fb-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+    .fb-meta-tile {
+        border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); padding: 14px;
+    }
+    .fb-meta-label { color: #7d8798; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+    .fb-meta-value { margin-top: 8px; color: var(--fb-text); font-size: 1rem; font-weight: 800; }
+    .fb-side-panel {
+        border-radius: 26px; border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(180deg, rgba(15,15,15,0.97), rgba(7,7,7,0.985)); padding: 18px; display: grid; gap: 16px;
+    }
+    .fb-side-title { margin: 0; color: var(--fb-text); font-size: 1rem; font-weight: 900; }
+    .fb-side-copy { margin: 0; color: var(--fb-muted); font-size: 0.84rem; line-height: 1.6; }
+    .fb-chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .fb-chip {
+        display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #dbe4ee; font-size: 0.76rem; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .fb-chip.success { color: #b6ffd2; background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.22); }
+    .fb-chip.warn { color: #ffe6a7; background: rgba(246,200,95,0.12); border-color: rgba(246,200,95,0.22); }
+    .fb-chip.danger { color: #ffd3da; background: rgba(251,113,133,0.12); border-color: rgba(251,113,133,0.22); }
+    .fb-band { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+    .fb-stat {
+        min-height: 118px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.08);
+        background: radial-gradient(260px 100px at 100% 0%, rgba(255,255,255,0.04), transparent 60%), linear-gradient(180deg, rgba(10,10,10,0.96), rgba(6,6,6,0.96));
+        padding: 18px;
+    }
+    .fb-stat-label { color: #788394; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 900; }
+    .fb-stat-value { margin-top: 12px; color: var(--fb-text); font-size: 2rem; font-weight: 900; letter-spacing: -0.05em; }
+    .fb-stat-meta { margin-top: 10px; color: var(--fb-muted); font-size: 0.82rem; }
+    .fb-panel {
+        border-radius: 28px; border: 1px solid rgba(255,255,255,0.09);
+        background: radial-gradient(600px 220px at 100% 0%, rgba(108,236,255,0.05), transparent 58%), linear-gradient(180deg, rgba(10,10,10,0.965), rgba(5,5,5,0.985));
+        padding: 22px; box-shadow: 0 24px 70px rgba(0,0,0,0.42);
+    }
+    .fb-panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+    .fb-panel-kicker {
+        display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.035); color: var(--fb-cyan);
+        font-size: 0.68rem; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .fb-panel-title { margin: 10px 0 6px; color: var(--fb-text); font-family: "Cabinet Grotesk", sans-serif; font-size: clamp(1.3rem, 2vw, 2rem); line-height: 1; letter-spacing: -0.04em; }
+    .fb-panel-copy { margin: 0; color: var(--fb-muted); font-size: 0.9rem; line-height: 1.65; max-width: 760px; }
+    .fb-filter-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+    .fb-field { display: grid; gap: 7px; }
+    .fb-field label { color: #7a8492; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+    .fb-input, .fb-select, .fb-textarea {
+        width: 100%; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); color: var(--fb-text); border-radius: 16px; padding: 0 14px; font-size: 0.92rem;
+    }
+    .fb-input, .fb-select { height: 48px; }
+    .fb-textarea { min-height: 120px; padding: 14px; resize: vertical; }
+    .fb-input:focus, .fb-select:focus, .fb-textarea:focus { outline: none; border-color: rgba(108,236,255,0.55); box-shadow: 0 0 0 4px rgba(108,236,255,0.08); }
+    .fb-table-shell { overflow: hidden; border-radius: 22px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); }
+    .fb-table-wrap { overflow: auto; }
+    .fb-table { width: 100%; border-collapse: collapse; }
+    .fb-table thead { background: rgba(255,255,255,0.02); }
+    .fb-table th, .fb-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+    .fb-table th { color: #7d8798; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+    .fb-table td { color: #e5ebf3; font-size: 0.88rem; }
+    .fb-table tbody tr:hover { background: rgba(255,255,255,0.025); }
+    .fb-name { font-size: 0.98rem; font-weight: 800; color: var(--fb-text); }
+    .fb-sub { color: var(--fb-muted); font-size: 0.8rem; margin-top: 4px; }
+    .fb-btn, .fb-btn-accent {
+        height: 44px; padding: 0 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.12); display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.84rem; font-weight: 900; cursor: pointer; text-decoration: none; transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    .fb-btn { background: rgba(255,255,255,0.04); color: var(--fb-text); }
+    .fb-btn-accent { background: linear-gradient(135deg, var(--fb-cyan), var(--fb-blue)); color: #031116; border-color: rgba(108,236,255,0.18); }
+    .fb-btn:hover, .fb-btn-accent:hover { transform: translateY(-1px); filter: brightness(1.04); }
+    .drawer-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.62); backdrop-filter: blur(8px); display: none; z-index: 200; }
+    .drawer {
+        position: fixed; top: 0; right: 0; width: min(620px, 96vw); height: 100vh; display: none; overflow: auto; z-index: 210;
+        border-left: 1px solid rgba(255,255,255,0.08);
+        background: radial-gradient(420px 180px at 100% 0%, rgba(108,236,255,0.08), transparent 60%), linear-gradient(180deg, rgba(9,9,9,0.985), rgba(3,3,3,0.995));
+        box-shadow: -30px 0 80px rgba(0,0,0,0.55);
+        padding: 22px;
+    }
+    .drawer.show, .drawer-mask.show { display: block; }
+    .drawer-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .drawer-title-group { display: grid; gap: 6px; }
+    .drawer-kicker { color: var(--fb-cyan); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; }
+    .drawer-title { color: var(--fb-text); font-family: "Cabinet Grotesk", sans-serif; font-size: 2rem; line-height: 0.94; letter-spacing: -0.04em; }
+    .drawer-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .drawer-tab {
+        border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 8px 12px; font-size: 0.76rem; color: #cad3df; cursor: pointer; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; background: rgba(255,255,255,0.03);
+    }
+    .drawer-tab.active { border-color: rgba(108,236,255,0.4); background: rgba(108,236,255,0.12); color: var(--fb-cyan); }
+    .drawer-pane { display: none; }
+    .drawer-pane.active { display: block; }
+    .drawer-section {
+        border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.025); padding: 16px; margin-bottom: 14px;
+    }
+    .drawer-section-title { color: var(--fb-text); font-size: 1rem; font-weight: 900; margin-bottom: 10px; }
+    .drawer-grid { display: grid; gap: 12px; }
+    .drawer-answers {
+        white-space: pre-wrap; color: #d8e2ef; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08); padding: 14px; border-radius: 16px; font-family: Consolas, "SFMono-Regular", monospace; font-size: 0.82rem;
+    }
+    .timeline-item { border-bottom: 1px solid rgba(255,255,255,0.08); padding: 12px 0; }
+    .timeline-item:last-child { border-bottom: 0; }
+    .timeline-type { color: var(--fb-text); font-weight: 800; }
+    .timeline-time { color: var(--fb-muted); font-size: 0.78rem; margin-top: 4px; }
+    .empty { color: var(--fb-muted); text-align: center; padding: 30px 0; }
+
+    @@media (max-width: 1400px) {
+        .fb-band { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .fb-leads-hero-inner { grid-template-columns: 1fr; }
+    }
+    @@media (max-width: 1100px) {
+        .fb-filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @@media (max-width: 760px) {
+        .fb-meta-grid, .fb-band, .fb-filter-grid { grid-template-columns: 1fr; }
+        .fb-leads-hero, .fb-panel, .drawer { padding: 18px; border-radius: 24px; }
+    }
+</style>
+
+<div class="fb-leads-shell">
+    <section class="fb-leads-hero">
+        <div class="fb-leads-hero-inner">
+            <div>
+                <span class="fb-kicker">Lead Operations Workspace</span>
+                <h1 class="fb-title">@(Model.Ad?.Name ?? $"Ad {Model.AdId}")</h1>
+                <p class="fb-subtitle">Handle captured demand with the right amount of speed and structure. Review submissions, trigger follow-up, assign owners, and run reusable automations without losing attribution context.</p>
+                <div class="fb-meta-grid">
+                    <div class="fb-meta-tile"><div class="fb-meta-label">Campaign</div><div class="fb-meta-value">@(Model.Ad?.CampaignId ?? "-")</div></div>
+                    <div class="fb-meta-tile"><div class="fb-meta-label">Ad Set</div><div class="fb-meta-value">@(Model.Ad?.AdsetId ?? "-")</div></div>
+                    <div class="fb-meta-tile"><div class="fb-meta-label">Lead Form</div><div class="fb-meta-value">@(Model.Ad?.FormId ?? "-")</div></div>
+                    <div class="fb-meta-tile"><div class="fb-meta-label">Ad Identifier</div><div class="fb-meta-value">@Model.AdId</div></div>
+                </div>
+            </div>
+
+            <aside class="fb-side-panel">
+                <div>
+                    <h2 class="fb-side-title">Response posture</h2>
+                    <p class="fb-side-copy">This workspace is tuned for agent speed, attribution clarity, and immediate operational action on every incoming lead.</p>
+                </div>
+                <div class="fb-chip-row">
+                    <span class="fb-chip success">Fast action</span>
+                    <span class="fb-chip">Timeline visible</span>
+                    <span class="fb-chip warn">SLA watch</span>
+                    <span class="fb-chip">Automation ready</span>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="fb-band">
+        <article class="fb-stat"><div class="fb-stat-label">New Leads</div><div class="fb-stat-value" id="sNew">0</div><div class="fb-stat-meta">Fresh submissions waiting for first touch.</div></article>
+        <article class="fb-stat"><div class="fb-stat-label">Contacted</div><div class="fb-stat-value" id="sContacted">0</div><div class="fb-stat-meta">Leads with at least one outbound action.</div></article>
+        <article class="fb-stat"><div class="fb-stat-label">Responded</div><div class="fb-stat-value" id="sResponded">0</div><div class="fb-stat-meta">Two-way engagement captured in the lead journey.</div></article>
+        <article class="fb-stat"><div class="fb-stat-label">Qualified</div><div class="fb-stat-value" id="sQualified">0</div><div class="fb-stat-meta">Submissions promoted into meaningful demand.</div></article>
+        <article class="fb-stat"><div class="fb-stat-label">Booked</div><div class="fb-stat-value" id="sBooked">0</div><div class="fb-stat-meta">Leads that progressed to booked conversations.</div></article>
+        <article class="fb-stat"><div class="fb-stat-label">SLA Breached</div><div class="fb-stat-value" id="sBreach">0</div><div class="fb-stat-meta">Unworked leads that need operator attention now.</div></article>
+    </section>
+
+    <section class="fb-panel">
+        <div class="fb-panel-head"><div><span class="fb-panel-kicker">Filter and Triage</span><h2 class="fb-panel-title">Lead queue</h2><p class="fb-panel-copy">Filter by stage, owner, duplicates, and timeframe to isolate the exact cohort your team needs to act on.</p></div></div>
+        <div class="fb-filter-grid">
+            <div class="fb-field"><label for="status">Status</label><select id="status" class="fb-select"><option value="">All statuses</option><option>new</option><option>contacted</option><option>responded</option><option>qualified</option><option>booked</option><option>disqualified</option><option>needs_enrichment</option></select></div>
+            <div class="fb-field"><label for="owner">Owner</label><input id="owner" class="fb-input" placeholder="Owner User ID" /></div>
+            <div class="fb-field"><label for="search">Search</label><input id="search" class="fb-input" placeholder="Search name, phone, email" /></div>
+            <div class="fb-field"><label for="dateFrom">From</label><input id="dateFrom" class="fb-input" type="date" /></div>
+            <div class="fb-field"><label for="dateTo">To</label><input id="dateTo" class="fb-input" type="date" /></div>
+            <div class="fb-field"><label for="onlyDuplicates">Duplicates</label><select id="onlyDuplicates" class="fb-select"><option value="">All leads</option><option value="true">Only duplicates</option></select></div>
+        </div>
+    </section>
+
+    <section class="fb-panel">
+        <div class="fb-panel-head"><div><span class="fb-panel-kicker">Execution Surface</span><h2 class="fb-panel-title">Leads table</h2><p class="fb-panel-copy">Every row gives operators immediate context and a direct path into the action drawer.</p></div></div>
+        <div class="fb-table-shell"><div class="fb-table-wrap"><table class="fb-table"><thead><tr><th>Name</th><th>Phone / Email</th><th>City / Country</th><th>Submitted At</th><th>Status</th><th>Assigned To</th><th>Last Action</th><th>Score</th><th>Take Action</th></tr></thead><tbody id="leadRows"><tr><td colspan="9" class="empty">Loading leads...</td></tr></tbody></table></div></div>
+    </section>
+</div>
+<div class="drawer-mask" id="drawerMask"></div>
+<aside class="drawer" id="leadDrawer">
+    <div class="drawer-head">
+        <div class="drawer-title-group">
+            <div class="drawer-kicker">Lead Command Drawer</div>
+            <div class="drawer-title" id="drawerTitle">Lead</div>
+        </div>
+        <button class="fb-btn" id="drawerClose" type="button">Close</button>
+    </div>
+    <div class="drawer-tabs" id="drawerTabs">
+        <span class="drawer-tab active" data-tab="overview">Overview</span>
+        <span class="drawer-tab" data-tab="answers">Form Answers</span>
+        <span class="drawer-tab" data-tab="actions">Actions</span>
+        <span class="drawer-tab" data-tab="timeline">Timeline</span>
+        <span class="drawer-tab" data-tab="automation">Automation</span>
+    </div>
+    <div class="drawer-pane active" data-pane="overview" id="paneOverview"></div>
+    <div class="drawer-pane" data-pane="answers" id="paneAnswers"></div>
+    <div class="drawer-pane" data-pane="actions" id="paneActions"></div>
+    <div class="drawer-pane" data-pane="timeline" id="paneTimeline"></div>
+    <div class="drawer-pane" data-pane="automation" id="paneAutomation"></div>
+</aside>
+
+<script>
+(() => {
+    const adId = "@Model.AdId";
+    const integrationConnectionId = "@Model.IntegrationConnectionId";
+    const leadRows = document.getElementById("leadRows");
+    const q = (id) => document.getElementById(id);
+    let activeLead = null;
+    const workflows = [
+        @Html.Raw(string.Join(",", Model.Workflows.Select(w => $"{{ id: '{w.Id}', name: '{System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode((w.Caption ?? w.Name) ?? string.Empty)}' }}")))
+    ];
+
+    const params = () => {
+        const p = new URLSearchParams({ integrationConnectionId });
+        ["status","owner","search","dateFrom","dateTo"].forEach(id => { const v = q(id).value.trim(); if (v) p.append(id, v); });
+        if (q("onlyDuplicates").value) p.append("onlyDuplicates", "true");
+        return p.toString();
+    };
+
+    const esc = (v) => (v ?? "").toString().replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "'":"&#39;" }[c]));
+
+    async function loadLeads() {
+        leadRows.innerHTML = `<tr><td colspan="9" class="empty">Loading leads...</td></tr>`;
+        const res = await fetch(`/api/social/facebook/ads/${encodeURIComponent(adId)}/leads?${params()}`, { credentials: "same-origin" });
+        const data = await res.json();
+        const rows = Array.isArray(data.rows) ? data.rows : [];
+        q("sNew").textContent = rows.filter(x => x.status === "new").length;
+        q("sContacted").textContent = rows.filter(x => x.status === "contacted").length;
+        q("sResponded").textContent = rows.filter(x => x.status === "responded").length;
+        q("sQualified").textContent = rows.filter(x => x.status === "qualified").length;
+        q("sBooked").textContent = rows.filter(x => x.status === "booked").length;
+        q("sBreach").textContent = rows.filter(x => !x.lastActionAt && x.status === "new").length;
+        if (!rows.length) {
+            leadRows.innerHTML = `<tr><td colspan="9" class="empty">No leads found.</td></tr>`;
+            return;
+        }
+        leadRows.innerHTML = rows.map(r => `
+            <tr>
+                <td><div class="fb-name">${esc(r.name || "-")}</div><div class="fb-sub">Lead ID ${esc(r.leadPkId || "-")}</div></td>
+                <td><div>${esc(r.phone || "-")}</div><div class="fb-sub">${esc(r.email || "-")}</div></td>
+                <td>${esc(r.city || "-")} / ${esc(r.country || "-")}</td>
+                <td>${r.submittedAt ? new Date(r.submittedAt).toLocaleString() : "-"}</td>
+                <td><span class="fb-chip ${r.status === "booked" || r.status === "qualified" ? "success" : r.status === "needs_enrichment" || r.status === "disqualified" ? "danger" : ""}">${esc(r.status || "-")}</span></td>
+                <td>${esc(r.assignedTo || "-")}</td>
+                <td>${r.lastActionAt ? new Date(r.lastActionAt).toLocaleString() : "-"}</td>
+                <td>${r.score ?? "-"}</td>
+                <td><button class="fb-btn-accent" type="button" data-lead="${r.leadPkId}">Take Action</button></td>
+            </tr>
+        `).join("");
+        leadRows.querySelectorAll("button[data-lead]").forEach(btn => btn.addEventListener("click", () => openDrawer(btn.getAttribute("data-lead"))));
+    }
+
+    async function apiPost(url, body) {
+        const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin", body: JSON.stringify(body || {}) });
+        return res.json();
+    }
+
+    async function openDrawer(leadPkId) {
+        const leadRes = await fetch(`/api/social/facebook/leads/${encodeURIComponent(leadPkId)}`, { credentials: "same-origin" });
+        const leadData = await leadRes.json();
+        activeLead = leadData.lead;
+        q("drawerTitle").textContent = activeLead?.normalizedName || "Lead";
+        q("paneOverview").innerHTML = `
+            <div class="drawer-section"><div class="drawer-section-title">Lead Ownership</div><div class="drawer-grid"><div class="fb-field"><label>Status</label><input class="fb-input" id="ovStatus" value="${esc(activeLead.status || "new")}" /></div><div class="fb-field"><label>Assigned User</label><input class="fb-input" id="ovAssign" value="${esc(activeLead.assignedUserId || "")}" /></div><button class="fb-btn-accent" id="ovSave" type="button">Save Lead State</button></div></div>
+        `;
+        q("ovSave").addEventListener("click", async () => { await apiPost(`/api/social/facebook/leads/${activeLead.id}/status`, { status: q("ovStatus").value }); await apiPost(`/api/social/facebook/leads/${activeLead.id}/assign`, { assignedUserId: q("ovAssign").value }); await loadLeads(); await loadTimeline(); });
+
+        q("paneAnswers").innerHTML = `<div class="drawer-section"><div class="drawer-section-title">Normalized Form Answers</div><div class="drawer-answers">${esc(JSON.stringify(leadData.leadContext?.lead?.answers || [], null, 2))}</div></div>`;
+
+        q("paneActions").innerHTML = `
+            <div class="drawer-section"><div class="drawer-section-title">Note and Outreach</div><div class="drawer-grid"><div class="fb-field"><label>Note</label><textarea class="fb-textarea" id="acNote"></textarea></div><button class="fb-btn" id="acNoteBtn" type="button">Add Note</button></div></div>
+            <div class="drawer-section"><div class="drawer-section-title">Email Action</div><div class="drawer-grid"><div class="fb-field"><label>Email Subject</label><input class="fb-input" id="acSubject" /></div><div class="fb-field"><label>Email HTML</label><textarea class="fb-textarea" id="acBody"></textarea></div><button class="fb-btn" id="acEmailBtn" type="button">Send Email</button></div></div>
+            <div class="drawer-section"><div class="drawer-section-title">WhatsApp Action</div><div class="drawer-grid"><div class="fb-field"><label>WhatsApp Message</label><textarea class="fb-textarea" id="acWa"></textarea></div><button class="fb-btn" id="acWaBtn" type="button">Send WhatsApp</button></div></div>
+            <div class="drawer-section"><div class="drawer-section-title">Task Creation</div><div class="drawer-grid"><div class="fb-field"><label>Task Title</label><input class="fb-input" id="acTaskTitle" /></div><button class="fb-btn" id="acTaskBtn" type="button">Create Task</button></div></div>
+        `;
+        q("acNoteBtn").addEventListener("click", async () => { await apiPost(`/api/social/facebook/leads/${activeLead.id}/note`, { text: q("acNote").value }); await loadTimeline(); await loadLeads(); });
+        q("acEmailBtn").addEventListener("click", async () => { await apiPost(`/api/social/facebook/leads/${activeLead.id}/send/email`, { subject: q("acSubject").value, htmlBody: q("acBody").value }); await loadTimeline(); });
+        q("acWaBtn").addEventListener("click", async () => { await apiPost(`/api/social/facebook/leads/${activeLead.id}/send/whatsapp`, { messageText: q("acWa").value }); await loadTimeline(); });
+        q("acTaskBtn").addEventListener("click", async () => { await apiPost(`/api/social/facebook/leads/${activeLead.id}/task`, { title: q("acTaskTitle").value }); await loadTimeline(); });
+
+        q("paneAutomation").innerHTML = `
+            <div class="drawer-section"><div class="drawer-section-title">Run Automation</div><div class="drawer-grid"><div class="fb-field"><label>Workflow</label><select class="fb-select" id="auWorkflowId"><option value="">Select workflow</option>${workflows.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join("")}</select></div><button class="fb-btn-accent" id="auRun" type="button">Run Automation</button><div id="auResult" style="color:#9ed9ff;font-weight:700;"></div></div></div>
+        `;
+        q("auRun").addEventListener("click", async () => {
+            const result = await apiPost(`/api/social/facebook/leads/${activeLead.id}/run-workflow`, { workflowId: q("auWorkflowId").value });
+            q("auResult").textContent = result.workflowRunId ? `Run started: ${result.workflowRunId}` : (result.error || "Failed");
+            await loadTimeline();
+        });
+
+        await loadTimeline();
+        q("drawerMask").classList.add("show");
+        q("leadDrawer").classList.add("show");
+    }
+
+    async function loadTimeline() {
+        if (!activeLead) return;
+        const res = await fetch(`/api/social/facebook/leads/${activeLead.id}/activities`, { credentials: "same-origin" });
+        const data = await res.json();
+        const activities = Array.isArray(data.activities) ? data.activities : [];
+        q("paneTimeline").innerHTML = activities.length
+            ? `<div class="drawer-section"><div class="drawer-section-title">Activity Timeline</div>${activities.map(a => `<div class="timeline-item"><div class="timeline-type">${esc(a.type)}</div><div class="timeline-time">${new Date(a.createdAt).toLocaleString()}</div></div>`).join("")}</div>`
+            : `<div class="drawer-section"><div class="empty">No timeline events yet.</div></div>`;
+    }
+
+    q("drawerClose").addEventListener("click", () => { q("drawerMask").classList.remove("show"); q("leadDrawer").classList.remove("show"); });
+    q("drawerMask").addEventListener("click", () => { q("drawerMask").classList.remove("show"); q("leadDrawer").classList.remove("show"); });
+    document.querySelectorAll("#drawerTabs .drawer-tab").forEach(tab => tab.addEventListener("click", () => {
+        document.querySelectorAll("#drawerTabs .drawer-tab").forEach(x => x.classList.remove("active"));
+        document.querySelectorAll(".drawer-pane").forEach(x => x.classList.remove("active"));
+        tab.classList.add("active");
+        document.querySelector(`.drawer-pane[data-pane='${tab.dataset.tab}']`)?.classList.add("active");
+    }));
+
+    ["status","owner","search","dateFrom","dateTo","onlyDuplicates"].forEach(id => q(id).addEventListener("change", loadLeads));
+    loadLeads();
+})();
+</script>

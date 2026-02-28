@@ -155,6 +155,38 @@ public class IndexModel : PageModel
         return new JsonResult(workflows);
     }
 
+    public async Task<IActionResult> OnGetArchivedAsync()
+    {
+        await EnsureWorkflowSchemaAsync();
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return new JsonResult(new { success = false, message = "Please sign in." }) { StatusCode = 401 };
+        }
+
+        IQueryable<Workflow> query = _db.Workflows
+            .Where(w => w.OwnerUserId == user.Id);
+        query = user.CompanyId.HasValue
+            ? query.Where(w => w.CompanyId == user.CompanyId)
+            : query.Where(w => w.CompanyId == null);
+
+        var archived = await query
+            .Where(w => w.Status == "Archived")
+            .OrderByDescending(w => w.UpdatedAtUtc)
+            .Select(w => new
+            {
+                id = w.Id,
+                displayId = w.DisplayId,
+                name = w.Caption ?? w.Name,
+                status = w.Status,
+                triggerType = w.TriggerType,
+                updatedAtUtc = w.UpdatedAtUtc
+            })
+            .ToListAsync();
+
+        return new JsonResult(new { success = true, archived });
+    }
+
     public async Task<IActionResult> OnPostCreateAsync([FromBody] CreateWorkflowPayload? payload)
     {
         await EnsureWorkflowSchemaAsync();
@@ -341,31 +373,39 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostArchiveAsync([FromBody] WorkflowActionPayload payload)
     {
-        await EnsureWorkflowSchemaAsync();
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        try
         {
-            return new JsonResult(new { success = false, message = "Please sign in to archive workflows." }) { StatusCode = 401 };
-        }
+            await EnsureWorkflowSchemaAsync();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return new JsonResult(new { success = false, message = "Please sign in to archive workflows." }) { StatusCode = 401 };
+            }
 
-        if (!ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                return new JsonResult(new { success = false, message = "Invalid workflow request." }) { StatusCode = 400 };
+            }
+
+            var workflow = await _db.Workflows.FirstOrDefaultAsync(w => w.Id == payload.Id
+                && w.OwnerUserId == user.Id
+                && (user.CompanyId.HasValue ? w.CompanyId == user.CompanyId : w.CompanyId == null));
+            if (workflow == null)
+            {
+                return new JsonResult(new { success = false, message = "Workflow not found." }) { StatusCode = 404 };
+            }
+
+            workflow.Status = "Archived";
+            workflow.UpdatedAtUtc = DateTime.UtcNow;
+            await DisconnectWorkflowBindingsAsync(workflow);
+            await _db.SaveChangesAsync();
+
+            return new JsonResult(new { success = true });
+        }
+        catch (Exception ex)
         {
-            return new JsonResult(new { success = false, message = "Invalid workflow request." }) { StatusCode = 400 };
+            return new JsonResult(new { success = false, message = $"Archive failed: {ex.GetBaseException().Message}" }) { StatusCode = 500 };
         }
-
-        var workflow = await _db.Workflows.FirstOrDefaultAsync(w => w.Id == payload.Id
-            && w.OwnerUserId == user.Id
-            && (user.CompanyId.HasValue ? w.CompanyId == user.CompanyId : w.CompanyId == null));
-        if (workflow == null)
-        {
-            return new JsonResult(new { success = false, message = "Workflow not found." }) { StatusCode = 404 };
-        }
-
-        workflow.Status = "Archived";
-        workflow.UpdatedAtUtc = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
-
-        return new JsonResult(new { success = true });
     }
 
     public async Task<IActionResult> OnPostUnarchiveAsync([FromBody] WorkflowActionPayload payload)
@@ -399,31 +439,39 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostDeleteAsync([FromBody] WorkflowActionPayload payload)
     {
-        await EnsureWorkflowSchemaAsync();
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        try
         {
-            return new JsonResult(new { success = false, message = "Please sign in to delete workflows." }) { StatusCode = 401 };
-        }
+            await EnsureWorkflowSchemaAsync();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return new JsonResult(new { success = false, message = "Please sign in to delete workflows." }) { StatusCode = 401 };
+            }
 
-        if (!ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                return new JsonResult(new { success = false, message = "Invalid workflow request." }) { StatusCode = 400 };
+            }
+
+            var workflow = await _db.Workflows.FirstOrDefaultAsync(w => w.Id == payload.Id
+                && w.OwnerUserId == user.Id
+                && (user.CompanyId.HasValue ? w.CompanyId == user.CompanyId : w.CompanyId == null));
+            if (workflow == null)
+            {
+                return new JsonResult(new { success = false, message = "Workflow not found." }) { StatusCode = 404 };
+            }
+
+            workflow.Status = "Deleted";
+            workflow.UpdatedAtUtc = DateTime.UtcNow;
+            await DisconnectWorkflowBindingsAsync(workflow);
+            await _db.SaveChangesAsync();
+
+            return new JsonResult(new { success = true });
+        }
+        catch (Exception ex)
         {
-            return new JsonResult(new { success = false, message = "Invalid workflow request." }) { StatusCode = 400 };
+            return new JsonResult(new { success = false, message = $"Delete failed: {ex.GetBaseException().Message}" }) { StatusCode = 500 };
         }
-
-        var workflow = await _db.Workflows.FirstOrDefaultAsync(w => w.Id == payload.Id
-            && w.OwnerUserId == user.Id
-            && (user.CompanyId.HasValue ? w.CompanyId == user.CompanyId : w.CompanyId == null));
-        if (workflow == null)
-        {
-            return new JsonResult(new { success = false, message = "Workflow not found." }) { StatusCode = 404 };
-        }
-
-        workflow.Status = "Deleted";
-        workflow.UpdatedAtUtc = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
-
-        return new JsonResult(new { success = true });
     }
 
     public async Task<IActionResult> OnPostDatabaseSyncAsync()
@@ -553,4 +601,51 @@ public class IndexModel : PageModel
         return message.Contains("Workflows.OwnerUserId, Workflows.DisplayId", StringComparison.OrdinalIgnoreCase)
             || message.Contains("IX_Workflows_OwnerUserId_DisplayId", StringComparison.OrdinalIgnoreCase);
     }
+
+    private async Task DisconnectWorkflowBindingsAsync(Workflow workflow)
+    {
+        var normalizedDguid = NormalizeDguid(workflow.Dguid);
+        var bindingsById = await _db.DynamicVeActionBindings
+            .Where(b => b.WorkflowId.HasValue && b.WorkflowId == workflow.Id)
+            .ToListAsync();
+
+        var bindingsByDguid = new List<DynamicVeActionBinding>();
+        if (!string.IsNullOrWhiteSpace(normalizedDguid))
+        {
+            var dguidCandidates = await _db.DynamicVeActionBindings
+                .Where(b => b.WorkflowDguid != null && b.WorkflowDguid != string.Empty)
+                .ToListAsync();
+            bindingsByDguid = dguidCandidates
+                .Where(b => NormalizeDguid(b.WorkflowDguid) == normalizedDguid)
+                .ToList();
+        }
+
+        var bindings = bindingsById
+            .Concat(bindingsByDguid)
+            .GroupBy(b => b.Id)
+            .Select(g => g.First())
+            .ToList();
+
+        foreach (var binding in bindings)
+        {
+            binding.WorkflowId = null;
+            binding.WorkflowDguid = null;
+            binding.WorkflowNameSnapshot = null;
+
+            // Once archived/deleted, this binding should not trigger workflow execution.
+            if (string.Equals(binding.ActionType, "workflow", StringComparison.OrdinalIgnoreCase))
+            {
+                binding.ActionType = "navigate";
+            }
+            else if (string.Equals(binding.ActionType, "hybrid", StringComparison.OrdinalIgnoreCase))
+            {
+                binding.ActionType = "navigate";
+            }
+        }
+    }
+
+    private static string NormalizeDguid(string? value)
+        => string.IsNullOrWhiteSpace(value)
+            ? string.Empty
+            : value.Replace("-", string.Empty, StringComparison.Ordinal).Trim().ToLowerInvariant();
 }

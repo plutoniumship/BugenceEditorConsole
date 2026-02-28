@@ -17,15 +17,15 @@
         .search-input:focus { border-color:var(--accent); }
         .toolbar-right { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:0.82rem; }
         .page-size-select { background:#0b0b0b; border:1px solid rgba(148,163,184,0.2); color:#e2e8f0; border-radius:8px; padding:8px 10px; font-size:0.82rem; }
-        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow-x:auto; overflow-y:hidden; }
-        table { width:100%; min-width:1400px; border-collapse:collapse; table-layout:auto; }
+        .table-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow-x:auto; overflow-y:hidden; width:100%; }
+        table { width:100%; border-collapse:collapse; table-layout:fixed; }
         th { text-align:left; padding:16px 18px; background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border); color:var(--muted); font-size:0.74rem; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
-        td { padding:16px 18px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); font-size:0.9rem; overflow-wrap:anywhere; word-break:break-word; }
+        td { padding:16px 18px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); font-size:0.9rem; overflow-wrap:anywhere; word-break:break-word; white-space:normal; }
         tr:last-child td { border-bottom:none; }
         tr:hover td { background:rgba(255,255,255,0.03); }
         .muted { color:var(--muted); font-size:0.85rem; }
         .short { color:#f8fafc; font-weight:600; line-height:1.35; }
-        .long-desc { color:#cbd5e1; max-height:54px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.35; }
+        .long-desc { color:#cbd5e1; line-height:1.45; white-space:normal; overflow-wrap:anywhere; }
         .source-pill { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(148,163,184,0.25); border-radius:999px; padding:4px 10px; font-size:0.78rem; color:#cbd5e1; }
         .empty-state { padding:40px; text-align:center; color:var(--muted); }
         .pagination { display:flex; align-items:center; gap:8px; margin-top:16px; justify-content:flex-end; }
@@ -59,10 +59,11 @@
                     <thead>
                         <tr>
                             <th style="width:7%;">ID</th>
-                            <th style="width:15%;">Timestamp</th>
-                            <th style="width:14%;">Source</th>
-                            <th style="width:22%;">Short Description</th>
-                            <th style="width:30%;">Long Description</th>
+                            <th style="width:14%;">Timestamp</th>
+                            <th style="width:15%;">Source</th>
+                            <th style="width:8%;">Error Count</th>
+                            <th style="width:20%;">Short Description</th>
+                            <th style="width:24%;">Long Description</th>
                             <th style="width:12%;">Path</th>
                         </tr>
                     </thead>
@@ -70,7 +71,7 @@
                         @if (Model.Errors.Count == 0)
                         {
                             <tr>
-                                <td colspan="6" class="empty-state">No errors logged yet.</td>
+                                <td colspan="7" class="empty-state">No errors logged yet.</td>
                             </tr>
                         }
                         else
@@ -81,6 +82,7 @@
                                     <td><strong>#@error.Id</strong></td>
                                     <td class="muted">@error.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy HH:mm:ss")</td>
                                     <td><span class="source-pill"><i class="fa-solid fa-circle-exclamation" style="color:var(--danger)"></i> @error.Source</span></td>
+                                    <td class="muted">@error.ErrorCount</td>
                                     <td class="short" title="@error.ShortDescription">@error.ShortDescription</td>
                                     <td><div class="long-desc" title="@error.LongDescription">@error.LongDescription</div></td>
                                     <td class="muted" title="@error.Path">@error.Path</td>
@@ -124,6 +126,7 @@
                 toText(item.shortDescription).includes(term) ||
                 toText(item.longDescription).includes(term) ||
                 toText(item.path).includes(term) ||
+                toText(item.errorCount).includes(term) ||
                 toText(item.id).includes(term)
             );
         }
@@ -155,13 +158,14 @@
             const rows = filtered.slice(start, start + pageSize);
 
             if (!rows.length) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No matching errors found.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching errors found.</td></tr>';
             } else {
                 tableBody.innerHTML = rows.map(row => `
                     <tr>
                         <td><strong>#${row.id}</strong></td>
                         <td class="muted">${escapeHtmlDebug(formatDate(row.createdAtUtc))}</td>
                         <td><span class="source-pill"><i class="fa-solid fa-circle-exclamation" style="color:var(--danger)"></i> ${escapeHtmlDebug(row.source || 'Unknown')}</span></td>
+                        <td class="muted">${escapeHtmlDebug(String(row.errorCount || 1))}</td>
                         <td class="short" title="${escapeHtmlDebug(row.shortDescription || '')}">${escapeHtmlDebug(row.shortDescription || '')}</td>
                         <td><div class="long-desc" title="${escapeHtmlDebug(row.longDescription || '')}">${escapeHtmlDebug(row.longDescription || '')}</div></td>
                         <td class="muted" title="${escapeHtmlDebug(row.path || '')}">${escapeHtmlDebug(row.path || '')}</td>

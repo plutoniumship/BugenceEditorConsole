@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PODCAST | DAVID ASK EXPERIENCE</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700&family=Playfair+Display:ital,wght@0,900;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --dark: #050505;
+            --soft-white: #f5f5f5;
+            --primary-gold: #c5a059;
+            --dark-bg: #0a0a0a;
+            --text-gray: #a1a1a1;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            cursor: none;
+        }
+
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        .text-gold { color: var(--primary-gold); }
+
+        /* --- LUXURY CUSTOM CURSOR --- */
+        #cursor { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; position: fixed; pointer-events: none; z-index: 10000; }
+        #cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transition: all 0.1s ease-out; }
+
+        /* --- STABILIZED BUTTON DESIGN --- */
+        .magnetic-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 10px; /* Buffer for hover */
+        }
+
+        .btn-luxury {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 18px 45px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            display: inline-block;
+            text-decoration: none !important;
+        }
+
+        .btn-luxury:hover { color: black !important; border-color: var(--gold); }
+        
+        .btn-luxury::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: var(--gold);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: -1;
+        }
+        .btn-luxury:hover::before { left: 0; }
+
+        .btn-luxury-gold { background: var(--gold); color: black !important; border-color: var(--gold); }
+
+        /* --- REDESIGNED SECTION 2: SHOW OVERVIEW --- */
+        .overview-section {
+            background-color: #000;
+            padding: 180px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .overview-bg-text {
+            position: absolute;
+            top: 50%; left: 0;
+            font-size: 25vw;
+            line-height: 1;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-style: italic;
+            color: rgba(255,255,255,0.02);
+            white-space: nowrap;
+            pointer-events: none;
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+
+        .overview-mission-block {
+            border-left: 1px solid var(--gold);
+            padding-left: 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .overview-title {
+            font-size: clamp(3rem, 6vw, 6rem);
+            line-height: 0.95;
+            margin-bottom: 3rem;
+        }
+
+        /* --- EPISODES LIST --- */
+        .episode-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 50px 0;
+            transition: all 0.5s ease;
+        }
+        .episode-row:hover { background: rgba(255, 255, 255, 0.02); padding-left: 30px; }
+        .episode-number { color: var(--gold); font-size: 0.8rem; letter-spacing: 0.3em; margin-bottom: 1rem; display: block; }
+        .episode-title { font-size: 2.5rem; line-height: 1.1; margin-bottom: 1.5rem; transition: color 0.4s ease; }
+        .episode-row:hover .episode-title { color: var(--gold); }
+
+        /* --- NAVIGATION --- */
+        .nav-link-custom { color: rgba(255, 255, 255, 0.6); text-decoration: none; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3em; transition: all 0.4s ease; }
+        .nav-link-custom:hover { color: var(--gold); }
+        .nav-scrolled { background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(20px); padding-top: 1.2rem !important; padding-bottom: 1.2rem !important; border-bottom: 1px solid rgba(255,255,255,0.08); }
+
+        /* --- OPT-IN --- */
+        .optin-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding: 20px 0; color: #fff; font-size: 1.25rem; text-align: center; transition: border-color 0.6s ease; }
+        .optin-input:focus { outline: none; border-color: var(--gold); }
+
+        /* --- TEXTURE --- */
+        body::after { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.03; pointer-events: none; z-index: 9997; }
+    </style>
+</head>
+
+<body>
+
+    <div id="cursor"></div>
+    <div id="cursor-outline"></div>
+
+    <nav id="main-nav" class="fixed top-0 w-full z-[100] px-12 py-10 flex justify-between items-center mix-blend-difference transition-all duration-500">
+        <a href="index.html" class="text-white no-underline tracking-[0.5em] uppercase serif text-xl font-bold">
+            David <span class="text-[#D4AF37]">Ask</span>
+        </a>
+        <div class="hidden lg:flex items-center gap-12">
+            <ul class="flex gap-10 mb-0 list-none">
+                <li><a href="/index.html class="nav-link-custom">Home</a></li>
+                <li><a href="/Podcast.html" class="nav-link-custom text-gold">Podcast</a></li>
+                <li><a href="/Book.html" class="nav-link-custom" target="_blank">Book</a></li>
+                <li><a href="/Music.html" class="nav-link-custom">Music</a></li>
+            </ul>
+            <div class="magnetic-wrap">
+                <a href="#optin" class="btn-luxury !py-2 !px-8 text-[0.6rem]">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="h-screen relative flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=1600" class="w-full h-full object-cover opacity-20 scale-110 grayscale" alt="Podcast Studio">
+        </div>
+        <div class="relative z-10 text-center container px-6">
+            <h1 class="hero-title-main serif italic mb-8" style="font-size: clamp(3.5rem, 8vw, 8rem); line-height: 0.9;">The Ask Experience Podcast</h1>
+            <p class="max-w-3xl mx-auto text-xl md:text-2xl text-white/40 font-light leading-relaxed mb-16" data-aos="fade-up">
+                Conversations and questions that help fathers guide their sons with strength, clarity, and intention.
+            </p>
+            <div class="flex flex-col md:flex-row justify-center gap-8" data-aos="fade-up" data-aos-delay="200">
+                <div class="magnetic-wrap">
+                    <a href="#" class="btn-luxury"><i class="bi bi-apple me-2"></i> Listen on Apple</a>
+                </div>
+                <div class="magnetic-wrap">
+                    <a href="#" class="btn-luxury"><i class="bi bi-spotify me-2"></i> Listen on Spotify</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="overview-section">
+        <div class="overview-bg-text">MISSION</div>
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="row align-items-center">
+                <div class="col-lg-5" data-aos="fade-right">
+                    <h2 class="overview-title serif italic">About <br>the Show</h2>
+                </div>
+                <div class="col-lg-6 offset-lg-1" data-aos="fade-left">
+                    <div class="overview-mission-block">
+                        <p class="text-2xl md:text-3xl leading-relaxed text-white/70 font-light">
+                            This podcast exists to support fathers who want to be engaged, present, and impactful. 
+                        </p>
+                        <p class="text-xl leading-relaxed text-white/40 mt-8 font-light italic serif">
+                            Each episode blends personal reflection, practical parenting insights, and questions you can use to deepen your connection with your son with no pressure and no perfection required.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-40 bg-[#050505]">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-end mb-24" data-aos="fade-up">
+                <h2 class="text-7xl md:text-8xl serif italic">Episodes</h2>
+                <p class="text-gold tracking-[0.4em] uppercase text-[0.7rem] font-bold pb-4">Library Vol. 1</p>
+            </div>
+
+            <div class="episode-row" data-aos="fade-up">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <span class="episode-number">EPISODE 01</span>
+                        <h3 class="episode-title serif italic">Helping Your Son Find His Voice</h3>
+                        <p class="text-white/40 text-lg font-light max-w-xl">A deep dive into the practical tools fathers can use to encourage emotional honesty and confidence in their sons.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end flex gap-4 justify-lg-end mt-8 lg:mt-0">
+                        <div class="magnetic-wrap"><a href="#" class="btn-luxury btn-luxury-gold !py-3 !px-10">Listen</a></div>
+                        <div class="magnetic-wrap"><a href="#" class="btn-luxury !py-3 !px-10">Notes</a></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="episode-row" data-aos="fade-up">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <span class="episode-number">EPISODE 02</span>
+                        <h3 class="episode-title serif italic">The Strength in Silence</h3>
+                        <p class="text-white/40 text-lg font-light max-w-xl">Exploring why sometimes the best thing a father can do is listen, and how to create the space for that to happen.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end flex gap-4 justify-lg-end mt-8 lg:mt-0">
+                        <div class="magnetic-wrap"><a href="#" class="btn-luxury btn-luxury-gold !py-3 !px-10">Listen</a></div>
+                        <div class="magnetic-wrap"><a href="#" class="btn-luxury !py-3 !px-10">Notes</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="optin" class="py-40 bg-black text-center relative overflow-hidden">
+        <div class="container relative z-10 px-6">
+            <h4 class="text-gold uppercase tracking-[0.6em] text-[0.6rem] mb-12" data-aos="fade-up">Deepen the Experience</h4>
+            <h2 class="serif italic mb-8" style="font-size: clamp(3rem, 6vw, 6rem);">Get Episode Notes</h2>
+            <p class="text-xl text-white/40 font-light mb-20 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up">
+                Sign up to receive the key questions, insights, and takeaways from each episode right in your inbox.
+            </p>
+            <div class="max-w-[600px] mx-auto" data-aos="fade-up">
+                <form action="#" class="flex flex-col gap-12">
+                    <input type="email" placeholder="ENTER YOUR EMAIL ADDRESS" class="optin-input" required>
+                    <div class="magnetic-wrap mx-auto">
+                        <button type="submit" class="btn-luxury btn-luxury-gold !px-20">Subscribe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="pt-40 pb-20 bg-black border-t border-white/5">
+        <div class="container mx-auto px-10">
+            <div class="row justify-between mb-20">
+                <div class="col-lg-4">
+                    <h2 class="text-4xl serif italic mb-8">David Ask.</h2>
+                    <p class="text-zinc-600 text-sm mb-10 leading-relaxed">The Ask Experience · For fathers who are learning as they go. Dedicated to the art of raising grounded men.</p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row">
+                        <div class="col-md-4 mb-10">
+                            <p class="text-gold uppercase tracking-widest text-[0.6rem] mb-6">Discovery</p>
+                            <ul class="list-none p-0 space-y-3">
+                                <li><a href="#" class="nav-link-custom text-xs">Podcast</a></li>
+                                <li><a href="#" class="nav-link-custom text-xs">Music</a></li>
+                                <li><a href="#" class="nav-link-custom text-xs">The Book</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mb-10">
+                            <p class="text-gold uppercase tracking-widest text-[0.6rem] mb-6">Connect</p>
+                            <ul class="list-none p-0 space-y-3">
+                                <li><a href="#" class="nav-link-custom text-xs">Instagram</a></li>
+                                <li><a href="#" class="nav-link-custom text-xs">Speaking</a></li>
+                                <li><a href="#" class="nav-link-custom text-xs">Contact</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-center border-t border-white/5 pt-10">
+                <p class="text-[0.6rem] text-zinc-700 tracking-[0.3em] uppercase">© 2025 THE ASK EXPERIENCE. ALL RIGHTS RESERVED.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1200, once: true });
+        gsap.registerPlugin(ScrollTrigger);
+
+        const cursor = document.getElementById('cursor');
+        const outline = document.getElementById('cursor-outline');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, {x: e.clientX, y: e.clientY, duration: 0.1});
+            gsap.to(outline, {x: e.clientX - 16, y: e.clientY - 16, duration: 0.2});
+        });
+
+        const magnets = document.querySelectorAll('.magnetic-wrap');
+        magnets.forEach(m => {
+            m.addEventListener('mousemove', (e) => {
+                const rect = m.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                gsap.to(m, { x: x * 0.4, y: y * 0.4, duration: 0.3 });
+            });
+            m.addEventListener('mouseleave', () => {
+                gsap.to(m, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+            });
+        });
+
+        const interactive = document.querySelectorAll('a, button, .episode-row');
+        interactive.forEach(l => {
+            l.addEventListener('mouseenter', () => {
+                gsap.to(cursor, { scale: 4, background: 'rgba(212, 175, 55, 0.2)', duration: 0.3 });
+                gsap.to(outline, { opacity: 0, duration: 0.3 });
+            });
+            l.addEventListener('mouseleave', () => {
+                gsap.to(cursor, { scale: 1, background: '#D4AF37', duration: 0.3 });
+                gsap.to(outline, { opacity: 1, duration: 0.3 });
+            });
+        });
+
+        const nav = document.getElementById('main-nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) nav.classList.add('nav-scrolled');
+            else nav.classList.remove('nav-scrolled');
+        });
+    </script>
+</body>
+
+</html>

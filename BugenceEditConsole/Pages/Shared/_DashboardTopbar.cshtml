@@ -1,5 +1,6 @@
 @* Shared top navbar matching dashboard design *@
 @using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
 @inject BugenceEditConsole.Data.ApplicationDbContext Db
 @inject Microsoft.AspNetCore.Identity.UserManager<BugenceEditConsole.Models.ApplicationUser> UserManager
 @inject BugenceEditConsole.Services.ISubscriptionService SubscriptionService
@@ -8,14 +9,21 @@
     var githubProfile = User?.Claims?.FirstOrDefault(c => c.Type == "github:url")?.Value;
     var isGithubConnected = !string.IsNullOrWhiteSpace(githubUser);
     var returnUrl = Context?.Request?.Path + Context?.Request?.QueryString;
-    var currentUserId = UserManager.GetUserId(User);
-    var currentUser = string.IsNullOrWhiteSpace(currentUserId) ? null : await UserManager.GetUserAsync(User);
+    var currentPrincipal = User;
+    var currentUserId = currentPrincipal?.Identity?.IsAuthenticated == true ? UserManager.GetUserId(currentPrincipal) : null;
+    var currentUser = string.IsNullOrWhiteSpace(currentUserId) || currentPrincipal is null
+        ? null
+        : await UserManager.GetUserAsync(currentPrincipal);
+    var company = currentUser?.CompanyId.HasValue == true
+        ? await Db.CompanyProfiles.FirstOrDefaultAsync(x => x.Id == currentUser.CompanyId.Value)
+        : null;
     var displayName = currentUser?.GetFriendlyName();
     if (string.IsNullOrWhiteSpace(displayName))
     {
         displayName = User?.Identity?.Name ?? "Administrator";
     }
     var displayEmail = currentUser?.Email ?? User?.Claims?.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? "admin@bugence.com";
+    var profileAvatarUrl = string.IsNullOrWhiteSpace(currentUser?.ProfileImagePath) ? null : (currentUser.ProfileImagePath!.StartsWith('/') ? currentUser.ProfileImagePath : "/" + currentUser.ProfileImagePath);
     var initials = new string((displayName ?? "AD")
         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
         .Select(p => char.ToUpperInvariant(p[0]))
@@ -28,6 +36,8 @@
     var subscription = string.IsNullOrWhiteSpace(currentUserId) ? null : await SubscriptionService.GetOrStartTrialAsync(currentUserId);
     var plan = BugenceEditConsole.Services.BillingPlanCatalog.GetPlan(subscription?.PlanKey);
     var planBadge = subscription?.Status?.Equals("Trial", StringComparison.OrdinalIgnoreCase) == true ? "TRIAL" : (plan?.Key?.ToUpperInvariant() ?? "STARTER");
+    var companyName = string.IsNullOrWhiteSpace(company?.Name) ? "Bugence Workspace" : company!.Name;
+    var companyLogoUrl = string.IsNullOrWhiteSpace(company?.LogoPath) ? null : (company.LogoPath!.StartsWith('/') ? company.LogoPath : "/" + company.LogoPath);
 }
 <style>
     :root { --dash-muted: #737373; --dash-border: rgba(255,255,255,0.08); }
@@ -154,6 +164,112 @@
     }
     .dash-dd-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; color:#ccc; text-decoration:none; font-weight:600; font-size:0.9rem; }
     .dash-dd-item:hover { background:rgba(255,255,255,0.05); color:white; }
+    .dash-profile-menu { width: 320px; padding: 10px; }
+    #topbarProfileMenu {
+        width: 340px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        overflow: visible;
+    }
+    .dash-profile-card {
+        display:grid;
+        gap:14px;
+        padding:14px;
+        border-radius:22px;
+        border:1px solid rgba(255,255,255,0.08);
+        background:linear-gradient(180deg,rgba(15,15,15,0.96),rgba(8,8,8,0.98));
+    }
+    .dash-profile-head {
+        display:grid;
+        grid-template-columns: 54px minmax(0,1fr);
+        gap:12px;
+        align-items:center;
+    }
+    .dash-profile-avatar {
+        width:54px;
+        height:54px;
+        border-radius:18px;
+        overflow:hidden;
+        background:linear-gradient(135deg,#67e8f9,#38bdf8);
+        color:#06141a;
+        font-weight:900;
+        display:grid;
+        place-items:center;
+    }
+    .dash-profile-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+    .dash-profile-meta { min-width:0; }
+    .dash-profile-meta strong { display:block; color:#fff; font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dash-profile-meta span { display:block; color:#94a3b8; font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dash-profile-pills { display:flex; flex-wrap:wrap; gap:8px; }
+    .dash-profile-pill {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:7px 10px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.08);
+        background:rgba(255,255,255,0.04);
+        color:#dbe7f3;
+        font-size:0.72rem;
+        font-weight:800;
+        letter-spacing:0.05em;
+        text-transform:uppercase;
+    }
+    .dash-profile-grid {
+        display:grid;
+        gap:8px;
+    }
+    .dash-profile-link {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        padding:12px 14px;
+        border-radius:16px;
+        color:#e5e7eb;
+        text-decoration:none;
+        border:1px solid rgba(255,255,255,0.06);
+        background:rgba(255,255,255,0.03);
+    }
+    .dash-profile-link:hover { color:#fff; border-color:rgba(255,255,255,0.16); background:rgba(255,255,255,0.05); }
+    .dash-profile-link strong { display:block; font-size:0.9rem; }
+    .dash-profile-link span { display:block; color:#94a3b8; font-size:0.76rem; }
+    .dash-profile-link .left { display:flex; align-items:center; gap:10px; min-width:0; }
+    .dash-profile-company {
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:12px 14px;
+        border-radius:16px;
+        background:rgba(255,255,255,0.03);
+        border:1px solid rgba(255,255,255,0.06);
+    }
+    .dash-profile-company-badge {
+        width:34px;
+        height:34px;
+        border-radius:12px;
+        background:rgba(255,255,255,0.06);
+        display:grid;
+        place-items:center;
+        overflow:hidden;
+    }
+    .dash-profile-company-badge img { width:100%; height:100%; object-fit:cover; display:block; }
+    .dash-profile-footer {
+        display:flex;
+        gap:10px;
+    }
+    .dash-profile-signout {
+        width:100%;
+        justify-content:center;
+        border-radius:16px;
+        padding:12px 14px;
+        color:#fecaca;
+        border:1px solid rgba(248,113,113,0.22);
+        background:rgba(127,29,29,0.18);
+    }
+    .dash-profile-signout:hover { color:#fff1f2; border-color:rgba(248,113,113,0.45); background:rgba(127,29,29,0.28); }
     .dash-github-card {
         background:#0a0a0a; border:1px solid rgba(255,255,255,0.08); border-radius:12px;
         padding:6px 12px; display:flex; align-items:center; gap:10px; color:#e5e7eb;
@@ -396,7 +512,7 @@
         </div>
         <div class="dash-dropdown">
             <div class="dash-avatar-chip" data-dropdown-toggle="topbarProfileMenu">
-                <div class="dash-avatar-dot" data-profile-initials>@initials</div>
+                <div class="dash-avatar-dot" data-profile-initials style="@(string.IsNullOrWhiteSpace(profileAvatarUrl) ? null : $"background-image:url('{profileAvatarUrl}');background-size:cover;background-position:center;color:transparent;")">@initials</div>
                 <div class="dash-avatar-meta">
                     <strong style="font-size:0.95rem;" data-profile-name>@displayName</strong>
                     <span style="font-size:0.8rem;">@planBadge PLAN</span>
@@ -404,12 +520,61 @@
                 <i class="fa-solid fa-chevron-down" style="font-size:0.8rem; color:#0f172a;"></i>
             </div>
             <div class="dash-dropdown-menu" id="topbarProfileMenu">
-                <div class="dash-dd-body">
-                    <a href="/Settings/Profile" class="dash-dd-item"><i class="fa-solid fa-user-gear" style="width:20px;"></i> Account</a>
-                    <a href="/Settings/Teams" class="dash-dd-item"><i class="fa-solid fa-users" style="width:20px;"></i> Team</a>
-                    <a href="/Settings/Billing" class="dash-dd-item"><i class="fa-solid fa-credit-card" style="width:20px;"></i> Billing</a>
-                    <div style="height:1px; background:rgba(255,255,255,0.08); margin:6px 0;"></div>
-                    <a href="/Auth/Logout" class="dash-dd-item" style="color:#ef4444;"><i class="fa-solid fa-right-from-bracket" style="width:20px;"></i> Sign Out</a>
+                <div class="dash-profile-menu">
+                    <div class="dash-profile-card">
+                        <div class="dash-profile-head">
+                            <div class="dash-profile-avatar">
+                                @if (!string.IsNullOrWhiteSpace(profileAvatarUrl))
+                                {
+                                    <img src="@profileAvatarUrl" alt="@displayName" />
+                                }
+                                else
+                                {
+                                    @initials
+                                }
+                            </div>
+                            <div class="dash-profile-meta">
+                                <strong>@displayName</strong>
+                                <span>@displayEmail</span>
+                            </div>
+                        </div>
+                        <div class="dash-profile-pills">
+                            <span class="dash-profile-pill"><i class="fa-solid fa-gem"></i> @planBadge</span>
+                        </div>
+                        <div class="dash-profile-grid">
+                            <a href="/Settings/Profile" class="dash-profile-link">
+                                <div class="left"><i class="fa-solid fa-user-gear"></i><div><strong>Profile Settings</strong><span>Identity, company, and security</span></div></div>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                            <a href="/Settings/Integration" class="dash-profile-link">
+                                <div class="left"><i class="fa-solid fa-plug"></i><div><strong>Integrations</strong><span>Connected channels and providers</span></div></div>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                            <a href="/Settings/Teams" class="dash-profile-link">
+                                <div class="left"><i class="fa-solid fa-users"></i><div><strong>Team Access</strong><span>Roles, seats, and invitations</span></div></div>
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </div>
+                        <div class="dash-profile-company">
+                            <div class="dash-profile-company-badge">
+                                @if (!string.IsNullOrWhiteSpace(companyLogoUrl))
+                                {
+                                    <img src="@companyLogoUrl" alt="@companyName" />
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-building"></i>
+                                }
+                            </div>
+                            <div>
+                                <strong style="display:block; color:#fff;">@companyName</strong>
+                                <span style="color:#94a3b8; font-size:0.78rem;">Workspace identity and brand</span>
+                            </div>
+                        </div>
+                        <div class="dash-profile-footer">
+                            <a href="/Auth/Logout" class="dash-profile-link dash-profile-signout"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

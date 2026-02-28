@@ -1,0 +1,49 @@
+@page "/social/linkedin"
+@{
+    ViewData["Title"] = "LinkedIn Marketing";
+    ViewData["BodyClass"] = "page-social-linkedin";
+}
+
+<style>
+    .soc-shell { max-width: 1600px; margin: 0 auto; display: grid; gap: 18px; padding-bottom: 28px; }
+    .soc-hero, .soc-panel { border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); background: radial-gradient(720px 260px at -8% -18%, rgba(56,189,248,0.16), transparent 54%), radial-gradient(560px 220px at 108% 0%, rgba(59,130,246,0.16), transparent 58%), linear-gradient(145deg, rgba(10,10,10,0.985), rgba(4,4,4,0.995)); box-shadow: 0 30px 80px rgba(0,0,0,0.48); }
+    .soc-hero { padding: 28px; }
+    .soc-kicker { display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); color:#38bdf8; font-size:.72rem; font-weight:900; letter-spacing:.18em; text-transform:uppercase; }
+    .soc-title { margin:14px 0 10px; color:#f5f7fa; font-family:"Cabinet Grotesk",sans-serif; font-size:clamp(2rem,3.6vw,4rem); line-height:.92; letter-spacing:-.05em; }
+    .soc-copy { margin:0; color:#95a1b3; line-height:1.7; max-width:900px; }
+    .soc-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:18px; }
+    .soc-panel { padding:22px; }
+    .soc-panel h3 { margin:0 0 8px; color:#f5f7fa; font-family:"Cabinet Grotesk",sans-serif; font-size:1.5rem; }
+    .soc-panel p { margin:0; color:#95a1b3; }
+    .soc-list { display:grid; gap:12px; margin-top:16px; }
+    .soc-item { border-radius:18px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.025); padding:14px; color:#dfe6ef; }
+    .soc-item strong { display:block; margin-bottom:6px; color:#fff; }
+    @@media (max-width: 1100px) { .soc-grid { grid-template-columns:1fr; } }
+</style>
+
+<div class="soc-shell">
+    <section class="soc-hero">
+        <span class="soc-kicker">Channel Expansion</span>
+        <h1 class="soc-title">LinkedIn Marketing is staged for a cleaner B2B demand workflow.</h1>
+        <p class="soc-copy">This channel is positioned to reuse the same high-signal social operations stack while tailoring attribution, qualification, and lead handling to LinkedIn-style campaign and audience structures.</p>
+    </section>
+
+    <section class="soc-grid">
+        <article class="soc-panel">
+            <h3>Planned operator capabilities</h3>
+            <div class="soc-list">
+                <div class="soc-item"><strong>Campaign and form sync</strong>Bring sponsored lead-gen inventory into the same operational table system.</div>
+                <div class="soc-item"><strong>Lead desk</strong>Assign, respond, enrich, and automate from a dedicated B2B lead queue.</div>
+                <div class="soc-item"><strong>Performance views</strong>Track response quality, qualification rate, and sales-owner speed.</div>
+            </div>
+        </article>
+        <article class="soc-panel">
+            <h3>Framework readiness</h3>
+            <div class="soc-list">
+                <div class="soc-item"><strong>Reusable contracts</strong>The normalized lead context and workflow invocation model are already in place.</div>
+                <div class="soc-item"><strong>Operational shell</strong>Reports, actions, and automation routing can be reused once LinkedIn sync is enabled.</div>
+                <div class="soc-item"><strong>Next dependency</strong>LinkedIn API connection and webhook/poll ingestion are the gating items.</div>
+            </div>
+        </article>
+    </section>
+</div>

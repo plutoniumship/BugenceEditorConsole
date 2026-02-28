@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model BugenceEditConsole.Pages.Workflows.EditorModel
 @{
     ViewData["Title"] = "Workflow Editor";
@@ -49,7 +49,29 @@
     }
     .workflow-panel h3, .workflow-panel h4 { font-family: var(--font-display); color: var(--text-strong); }
     .workflow-panel--left { display: flex; flex-direction: column; gap: 14px; }
-    .workflow-panel--right { display: flex; flex-direction: column; gap: 14px; }
+    .workflow-panel--right {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        background:
+            radial-gradient(700px 320px at 120% -20%, rgba(220, 38, 38, 0.15), transparent 58%),
+            linear-gradient(180deg, rgba(12,12,12,0.92), rgba(8,8,8,0.94));
+        border-color: rgba(220, 38, 38, 0.25);
+        box-shadow: 0 22px 55px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .workflow-panel--right::-webkit-scrollbar { width: 10px; }
+    .workflow-panel--right::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 999px; }
+    .workflow-panel--right::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(220,38,38,.58), rgba(251,146,60,.58)); border-radius: 999px; }
+    .workflow-panel--right .panel-head {
+        position: sticky;
+        top: -2px;
+        z-index: 6;
+        margin: -4px -4px 2px;
+        padding: 10px 10px 8px;
+        border-radius: 12px;
+        border-bottom: 1px solid rgba(220, 38, 38, 0.24);
+        backdrop-filter: blur(3px);
+    }
     .workflow-canvas-shell {
         display: grid;
         grid-template-rows: auto 1fr;
@@ -151,6 +173,10 @@
         font-weight: 700;
         cursor: pointer;
         box-shadow: 0 10px 30px rgba(34, 211, 238, 0.25);
+    }
+    .workflow-save.is-saving {
+        cursor: progress;
+        opacity: 0.88;
     }
     .workflow-toolbar {
         display: flex;
@@ -373,7 +399,114 @@
         max-height: 160px;
         overflow: auto;
     }
-    .inspector-section { padding: 12px; border-radius: 14px; background: rgba(8, 12, 24, 0.6); border: 1px solid rgba(148,163,184,0.15); }
+    .inspector-section {
+        padding: 12px;
+        border-radius: 14px;
+        background: linear-gradient(165deg, rgba(8, 12, 24, 0.72), rgba(7, 7, 8, 0.85));
+        border: 1px solid rgba(148,163,184,0.15);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .inspector-section:hover {
+        border-color: rgba(220,38,38,0.3);
+        box-shadow: 0 14px 34px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,0.06);
+        transform: translateY(-1px);
+    }
+    .inspector-section h3,
+    .inspector-section h4 {
+        margin: 0 0 10px;
+        font-family: var(--font-display);
+        letter-spacing: 0.03em;
+    }
+    .property-group input:focus,
+    .property-group textarea:focus,
+    .property-group select:focus {
+        border-color: rgba(239, 68, 68, 0.65);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+        outline: none;
+    }
+    .workflow-panel--right .property-group label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #d5d8df;
+    }
+    .workflow-panel--right .property-group input,
+    .workflow-panel--right .property-group textarea,
+    .workflow-panel--right .property-group select {
+        border-color: rgba(220,38,38,0.28);
+        background: linear-gradient(160deg, rgba(20, 20, 20, 0.95), rgba(8, 8, 8, 0.98));
+        border-radius: 12px;
+        min-height: 38px;
+    }
+    .workflow-panel--right .property-group textarea { min-height: 90px; }
+    .workflow-panel--right #nodeInspector label,
+    .workflow-panel--right #edgeInspector label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #d5d8df;
+        margin-bottom: 4px;
+    }
+    .workflow-panel--right #nodeInspector input,
+    .workflow-panel--right #nodeInspector textarea,
+    .workflow-panel--right #nodeInspector select,
+    .workflow-panel--right #edgeInspector input,
+    .workflow-panel--right #edgeInspector textarea,
+    .workflow-panel--right #edgeInspector select {
+        width: 100%;
+        min-height: 38px;
+        padding: 9px 11px;
+        border-radius: 12px;
+        border: 1px solid rgba(220,38,38,0.28);
+        background: linear-gradient(160deg, rgba(20, 20, 20, 0.95), rgba(8, 8, 8, 0.98));
+        color: #eef2f7;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .workflow-panel--right #nodeInspector textarea,
+    .workflow-panel--right #edgeInspector textarea { min-height: 90px; resize: vertical; }
+    .workflow-panel--right #nodeInspector input::placeholder,
+    .workflow-panel--right #nodeInspector textarea::placeholder {
+        color: rgba(238,242,247,.55);
+    }
+    .workflow-panel--right #nodeInspector input:focus,
+    .workflow-panel--right #nodeInspector textarea:focus,
+    .workflow-panel--right #nodeInspector select:focus,
+    .workflow-panel--right #edgeInspector input:focus,
+    .workflow-panel--right #edgeInspector textarea:focus,
+    .workflow-panel--right #edgeInspector select:focus {
+        outline: none;
+        border-color: rgba(251,146,60,.75);
+        box-shadow: 0 0 0 3px rgba(251,146,60,.16), inset 0 1px 0 rgba(255,255,255,.08);
+        background: linear-gradient(160deg, rgba(30, 16, 10, 0.95), rgba(10, 8, 8, 0.98));
+    }
+    .workflow-panel--right #nodeInspector .inspector-simple,
+    .workflow-panel--right #nodeInspector .inspector-advanced > div {
+        display: grid;
+        gap: 10px;
+    }
+    .workflow-panel--right #nodeInspector .inspector-advanced > summary {
+        border-bottom: 1px solid rgba(220,38,38,.24);
+        background: linear-gradient(180deg, rgba(220,38,38,.12), rgba(0,0,0,0));
+    }
+    .workflow-panel--right #nodeInspector select,
+    .workflow-panel--right #edgeInspector select,
+    .workflow-panel--right .property-group select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image:
+            linear-gradient(45deg, transparent 50%, #fca5a5 50%),
+            linear-gradient(135deg, #fca5a5 50%, transparent 50%);
+        background-position:
+            calc(100% - 16px) calc(50% + 1px),
+            calc(100% - 11px) calc(50% + 1px);
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+        padding-right: 30px;
+    }
+    .workflow-panel--right .field-stack { display: grid; gap: 6px; }
     .inspector-pill { font-size: 0.7rem; padding: 4px 8px; border-radius: 999px; background: rgba(34,211,238,0.15); color: var(--accent); }
     .inspector-simple {
         display: grid;
@@ -433,6 +566,82 @@
     .label-help.is-open::after {
         opacity: 1;
     }
+    .email-builder-shell {
+        border: 1px solid rgba(220,38,38,0.26);
+        border-radius: 14px;
+        background: linear-gradient(160deg, rgba(35, 12, 12, 0.72), rgba(8, 8, 8, 0.9));
+        padding: 10px;
+        display: grid;
+        gap: 10px;
+    }
+    .email-builder-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(251,146,60,0.35);
+        background: rgba(251,146,60,0.12);
+        padding: 8px 10px;
+        color: #ffedd5;
+        font-size: 0.77rem;
+    }
+    .email-builder-grid { display: grid; gap: 10px; }
+    .email-token-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+    }
+    .email-token-chip {
+        border: 1px solid rgba(251,146,60,0.45);
+        border-radius: 999px;
+        background: rgba(124,45,18,0.28);
+        color: #ffedd5;
+        font-size: 0.73rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        cursor: pointer;
+    }
+    .email-token-chip:hover {
+        border-color: rgba(253,186,116,0.8);
+        background: rgba(154,52,18,0.38);
+    }
+    .email-preview-wrap {
+        border: 1px solid rgba(251,146,60,0.35);
+        border-radius: 10px;
+        background: rgba(12,12,12,.68);
+        padding: 8px;
+    }
+    .save-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 20px;
+        transform: translate(-50%, 24px);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 4100;
+        min-width: 260px;
+        max-width: 520px;
+        border-radius: 12px;
+        border: 1px solid rgba(34,197,94,.42);
+        background: linear-gradient(140deg, rgba(5, 46, 22, 0.95), rgba(6, 78, 59, 0.92));
+        color: #dcfce7;
+        padding: 10px 14px;
+        font-size: 0.84rem;
+        font-weight: 700;
+        box-shadow: 0 16px 36px rgba(0,0,0,.5);
+        transition: transform .2s ease, opacity .2s ease;
+    }
+    .save-toast.show {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+    .save-toast.error {
+        border-color: rgba(248,113,113,.45);
+        background: linear-gradient(140deg, rgba(69,10,10,.95), rgba(127,29,29,.94));
+        color: #fee2e2;
+    }
     .inline-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .status-list { display: grid; gap: 8px; margin-top: 10px; }
     .status-item {
@@ -451,8 +660,39 @@
     .status-item.ok { border-color: rgba(74, 222, 128, 0.35); color: #bbf7d0; }
     .status-item strong { color: var(--text-strong); }
     .log-list { display: grid; gap: 8px; margin-top: 8px; max-height: 220px; overflow: auto; }
-    .log-item { padding: 10px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.15); background: rgba(8,12,24,0.7); font-size: 0.78rem; color: var(--text-muted); }
-    .log-item span { color: var(--text-strong); font-weight: 600; }
+    .log-item {
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(148,163,184,0.15);
+        background: rgba(8,12,24,0.7);
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        display: grid;
+        gap: 5px;
+    }
+    .log-item-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 0.72rem;
+        color: #cbd5e1;
+    }
+    .log-item-time { color: var(--text-strong); font-weight: 700; }
+    .log-status-badge {
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(148,163,184,0.35);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.65rem;
+        font-weight: 700;
+    }
+    .log-status-badge.success { border-color: rgba(34, 197, 94, 0.45); color: #86efac; background: rgba(22,163,74,0.16); }
+    .log-status-badge.failed,
+    .log-status-badge.error { border-color: rgba(248, 113, 113, 0.45); color: #fecaca; background: rgba(127,29,29,0.2); }
+    .log-status-badge.running { border-color: rgba(250, 204, 21, 0.45); color: #fde047; background: rgba(113,63,18,0.2); }
+    .log-item-msg { color: #d1d5db; line-height: 1.35; }
     .snap-pill { font-size: 0.7rem; padding: 4px 8px; border-radius: 999px; background: rgba(251,191,36,0.15); color: #fcd34d; }
     .action-props-modal {
         position: fixed;
@@ -506,6 +746,47 @@
         font-size: 0.95rem;
         border-bottom: 1px solid rgba(148,163,184,0.2);
         padding-bottom: 7px;
+    }
+    .action-advanced-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 10px;
+        background: rgba(15,23,42,0.5);
+        color: #dbeafe;
+        font-weight: 800;
+        font-size: 0.88rem;
+        padding: 8px 10px;
+        cursor: pointer;
+    }
+    .action-advanced-toggle:hover {
+        border-color: rgba(147,197,253,0.65);
+    }
+    .action-advanced-meta {
+        color: #93c5fd;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .action-advanced-content {
+        margin-top: 10px;
+    }
+    .action-props-section.is-collapsed .action-advanced-content {
+        display: none;
+    }
+    .action-advanced-group {
+        border-top: 1px dashed rgba(148,163,184,0.25);
+        margin-top: 8px;
+        padding-top: 8px;
+    }
+    .action-advanced-group-title {
+        margin: 0 0 8px;
+        color: #bfdbfe;
+        font-size: 0.78rem;
+        letter-spacing: .02em;
+        text-transform: uppercase;
     }
     .action-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
     .action-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -873,9 +1154,9 @@
 <div class="workflow-header">
     <div>
         <div class="workflow-title">@workflow.Name</div>
-        <div class="workflow-meta">Last updated @workflow.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy 'at' h:mm tt") · @workflow.Status</div>
+        <div class="workflow-meta" id="workflowMeta">Last updated @workflow.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy 'at' h:mm tt") Â· @workflow.Status</div>
     </div>
-    <div class="workflow-status-pill"><span class="fa-solid fa-circle-notch"></span> @workflow.Status</div>
+    <div class="workflow-status-pill" id="workflowStatusPill"><span class="fa-solid fa-circle-notch"></span> @workflow.Status</div>
     <button class="workflow-save" id="saveWorkflowBtn"><i class="fa-solid fa-floppy-disk"></i> Save Workflow</button>
 </div>
 
@@ -1042,11 +1323,11 @@
             <div class="panel-subtitle">Workflow Templates</div>
             <div class="template-card" data-template="standard-flow">
                 <strong>Standard Flow</strong>
-                <span class="hint">Start → SQL Condition → Update → Run SQL → End</span>
+                <span class="hint">Start Ã¢â€ â€™ SQL Condition Ã¢â€ â€™ Update Ã¢â€ â€™ Run SQL Ã¢â€ â€™ End</span>
             </div>
             <div class="template-card" data-template="decision-flow">
                 <strong>Decision Flow</strong>
-                <span class="hint">Start → Decision → Update/Reassign → End</span>
+                <span class="hint">Start Ã¢â€ â€™ Decision Ã¢â€ â€™ Update/Reassign Ã¢â€ â€™ End</span>
             </div>            <div class="template-card" data-template="sql-heavy">
                 <strong>SQL Heavy</strong>
                 <span class="hint">Start -> SQL Condition -> Run SQL -> Update -> End</span>
@@ -1085,6 +1366,7 @@
             <div class="toolbar-group">
                 <label class="toolbar-toggle"><input type="checkbox" id="snapToggle" checked /> Snap to grid</label>
                 <label class="toolbar-toggle"><input type="checkbox" id="guideToggle" checked /> Guides</label>
+                <span class="toolbar-pill" id="connectionHint">Workflow ready.</span>
                 <button class="toolbar-btn panel-mobile-btn" data-action="openRightPanel"><i class="fa-solid fa-sliders"></i></button>
             </div>
         </div>
@@ -1223,6 +1505,7 @@
 <form id="workflowSaveToken" method="post" style="display:none;">
     @Html.AntiForgeryToken()
 </form>
+<div class="save-toast" id="saveToast" role="status" aria-live="polite"></div>
 
 <div class="action-props-modal" id="actionPropsModal">
     <div class="action-props-backdrop" id="actionPropsBackdrop"></div>
@@ -1306,12 +1589,95 @@
                 </div>
             </div>
             <div class="action-props-section" id="apAdvancedSection">
-                <h4>Advanced</h4>
-                <div class="action-grid-1">
-                    <label class="action-check" id="apRunThreadWrap"><input type="checkbox" id="apRunInSeparateThread" /> Run in separate thread</label>
-                    <div class="action-field" id="apSqlCommandWrap"><label>SQL / Command</label><textarea id="apSqlCommand"></textarea></div>
-                    <div class="action-field" id="apWfRecordFieldWrap"><label>WFRecordField</label><input id="apWfRecordField" /></div>
-                    <div class="action-field" id="apOnErrorActionWrap"><label>On Error Action</label><textarea id="apOnErrorAction"></textarea></div>
+                <button type="button" class="action-advanced-toggle" id="apAdvancedToggle" aria-expanded="false">
+                    <span>Advanced</span>
+                    <span class="action-advanced-meta" id="apAdvancedMeta">Show</span>
+                </button>
+                <div class="action-advanced-content" id="apAdvancedContent">
+                    <div class="action-grid-1">
+                        <label class="action-check" id="apRunThreadWrap"><input type="checkbox" id="apRunInSeparateThread" /> Run in separate thread</label>
+                        <div class="action-field" id="apSqlCommandWrap"><label>SQL / Command</label><textarea id="apSqlCommand"></textarea></div>
+                        <div class="action-field" id="apWfRecordFieldWrap"><label>WFRecordField</label><input id="apWfRecordField" /></div>
+                        <div class="action-field" id="apOnErrorActionWrap"><label>On Error Action</label><textarea id="apOnErrorAction"></textarea></div>
+                    </div>
+                    <div class="action-token-help" style="margin: 6px 0 10px;">
+                        Marketing ops configuration is now available in <a href="/social/facebook" style="color:#67e8f9;">Social Media Marketing</a>.
+                        Keep workflow canvas focused on automation and routing.
+                    </div>
+                    <div class="action-advanced-group" id="apEmailAdvancedGroup">
+                        <div class="action-advanced-group-title">Email Delivery Details</div>
+                        <div class="action-grid-2">
+                            <div class="action-field">
+                                <label>Recipient mode</label>
+                                <select id="apRecipientMode">
+                                    <option value="Current User">Current User</option>
+                                    <option value="Custom Email">Custom Email</option>
+                                    <option value="Field Value">Field Value</option>
+                                </select>
+                            </div>
+                            <div class="action-field"><label>Recipient field</label><input id="apRecipientField" /></div>
+                            <div class="action-field"><label>From name</label><input id="apFromName" /></div>
+                            <div class="action-field"><label>From email</label><input id="apFromEmail" /></div>
+                            <div class="action-field"><label>Preheader</label><input id="apEmailPreheader" /></div>
+                            <div class="action-field"><label>Fallback plain text</label><textarea id="apEmailFallback"></textarea></div>
+                        </div>
+                    </div>
+                    <div class="action-advanced-group" id="apFacebookTriggerGroup">
+                        <div class="action-advanced-group-title">Facebook Trigger Link</div>
+                        <div class="action-token-help" style="margin-bottom:10px;">
+                            Configure lead operations, SLA rules, templates, and test flows in <a href="/social/facebook" style="color:#67e8f9;">Social Media Marketing</a>.
+                            This workflow surface only keeps the trigger reference for automation wiring.
+                        </div>
+                        <div class="action-grid-2">
+                            <div class="action-field">
+                                <label>Integration Account</label>
+                                <select id="apFbConnectionId"></select>
+                            </div>
+                            <div class="action-field">
+                                <label>Status</label>
+                                <input id="apFbConnectionStatus" readonly />
+                            </div>
+                            <div class="action-field">
+                                <label>Trigger Event</label>
+                                <select id="apFbTriggerEvent">
+                                    <option value="leadgen.form.submit">leadgen.form.submit</option>
+                                    <option value="leadgen.form.update">leadgen.form.update</option>
+                                </select>
+                            </div>
+                            <div class="action-field">
+                                <label>Mode</label>
+                                <select id="apFbMode">
+                                    <option value="test">Test (Replay)</option>
+                                    <option value="live">Live (Webhook)</option>
+                                </select>
+                            </div>
+                            <div class="action-field">
+                                <label>Operational Surface</label>
+                                <a href="/social/facebook" class="action-inspector-open" style="text-decoration:none;display:inline-flex;justify-content:center;align-items:center;">Open Social Module</a>
+                            </div>
+                        </div>
+                        <div class="action-grid-2" style="display:none;">
+                            <div class="action-field">
+                                <label>Mapping Mode</label>
+                                <select id="apFbMappingMode">
+                                    <option value="Lead Fields">Lead Fields</option>
+                                    <option value="Custom Mapping">Custom Mapping</option>
+                                </select>
+                            </div>
+                            <div class="action-field">
+                                <label>Replay Window Minutes</label>
+                                <input id="apFbReplayWindow" type="number" min="1" value="10" />
+                            </div>
+                            <label class="action-check"><input type="checkbox" id="apFbRequireConsent" /> Require consent</label>
+                            <div class="action-field">
+                                <label>Mapping Rules (JSON)</label>
+                                <textarea id="apFbMappingRules" rows="5" placeholder='[{"sourceField":"full_name","targetEntity":"lead","targetField":"name"}]'></textarea>
+                            </div>
+                        </div>
+                        <div class="action-token-help" style="margin-top:8px;">
+                            Outputs: <code>Out</code>, <code>Needs Enrichment</code>, <code>Compliance Review</code>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1350,6 +1716,10 @@
     const workflowKpiActivityInput = document.getElementById('workflowKpiActivityInput');
     const workflowInactiveInput = document.getElementById('workflowInactiveInput');
     const saveWorkflowBtn = document.getElementById('saveWorkflowBtn');
+    const saveToast = document.getElementById('saveToast');
+    const workflowMeta = document.getElementById('workflowMeta');
+    const workflowStatusPill = document.getElementById('workflowStatusPill');
+    const connectionHint = document.getElementById('connectionHint');
     const zoomLabel = document.getElementById('zoomLabel');
     const blockSearch = document.getElementById('blockSearch');
     const snapToggle = document.getElementById('snapToggle');
@@ -1380,13 +1750,59 @@
     const apSqlCommandWrap = document.getElementById('apSqlCommandWrap');
     const apWfRecordFieldWrap = document.getElementById('apWfRecordFieldWrap');
     const apOnErrorActionWrap = document.getElementById('apOnErrorActionWrap');
+    const apAdvancedToggle = document.getElementById('apAdvancedToggle');
+    const apAdvancedMeta = document.getElementById('apAdvancedMeta');
+    const apEmailAdvancedGroup = document.getElementById('apEmailAdvancedGroup');
     const apImportFormTokensBtn = document.getElementById('apImportFormTokensBtn');
     const apImportFormTokensStatus = document.getElementById('apImportFormTokensStatus');
     const apImportFormTokensChips = document.getElementById('apImportFormTokensChips');
+    const apFacebookTriggerGroup = document.getElementById('apFacebookTriggerGroup');
+    const apFbConnectionId = document.getElementById('apFbConnectionId');
+    const apFbConnectionStatus = document.getElementById('apFbConnectionStatus');
+    const apFbAdAccountId = document.getElementById('apFbAdAccountId');
+    const apFbPageId = document.getElementById('apFbPageId');
+    const apFbFormId = document.getElementById('apFbFormId');
+    const apFbTriggerEvent = document.getElementById('apFbTriggerEvent');
+    const apFbMode = document.getElementById('apFbMode');
+    const apFbMappingMode = document.getElementById('apFbMappingMode');
+    const apFbReplayWindow = document.getElementById('apFbReplayWindow');
+    const apFbRequireConsent = document.getElementById('apFbRequireConsent');
+    const apFbMappingRules = document.getElementById('apFbMappingRules');
 
     let activeActionNodeId = null;
     let smtpProfiles = [];
     let importedFormTokens = [];
+    let importedTokenHash = '';
+    let fbAccounts = [];
+    let fbAdAccounts = [];
+    let fbPages = [];
+    let fbForms = [];
+    let saveToastTimer = null;
+
+    const formatWorkflowUpdatedAt = (value) => {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+    };
+    const showSaveToast = (message, isError = false) => {
+        if (!saveToast) return;
+        saveToast.textContent = message;
+        saveToast.classList.toggle('error', !!isError);
+        saveToast.classList.add('show');
+        if (saveToastTimer) {
+            window.clearTimeout(saveToastTimer);
+        }
+        saveToastTimer = window.setTimeout(() => {
+            saveToast.classList.remove('show');
+        }, 2400);
+    };
 
     const state = (() => {
         try {
@@ -1492,7 +1908,22 @@
             return { ...base, actionName: 'Workflow Start', wfRecordField: 'No Field Selected' };
         }
         if (node.type === 'facebookLeadTrigger') {
-            return { ...base, actionName: 'Facebook Lead Trigger', actionMapping: 'Facebook Lead Submit' };
+            return {
+                ...base,
+                actionName: 'Facebook Lead Trigger',
+                actionMapping: 'Facebook Lead Submit',
+                fbConnectionId: '',
+                fbConnectionStatus: 'Disconnected',
+                fbAdAccountId: '',
+                fbPageId: '',
+                fbFormId: '',
+                fbMode: 'test',
+                fbTriggerEvent: 'leadgen.form.submit',
+                fbMappingMode: 'Lead Fields',
+                fbReplayWindow: 10,
+                fbRequireConsent: false,
+                fbMappingRules: '[]'
+            };
         }
         if (node.type === 'workflowEnd') {
             return { ...base, actionName: 'Workflow End', runInSeparateThread: true };
@@ -1564,6 +1995,8 @@
         const isEnd = nodeType === 'workflowEnd';
         const isDecision = nodeType === 'decision';
         const isUpdate = nodeType === 'updateRecord' || nodeType === 'updateReassign';
+        const isEmail = nodeType === 'email';
+        const isFacebookTrigger = nodeType === 'facebookLeadTrigger';
         const showJourney = !isEnd;
         const showThread = isSqlAction || isEnd || isStart;
         const showSql = isSqlAction;
@@ -1578,9 +2011,121 @@
         if (apSqlCommandWrap) apSqlCommandWrap.style.display = showSql ? 'block' : 'none';
         if (apWfRecordFieldWrap) apWfRecordFieldWrap.style.display = showWfField ? 'block' : 'none';
         if (apOnErrorActionWrap) apOnErrorActionWrap.style.display = showErrorAction ? 'block' : 'none';
+        if (apEmailAdvancedGroup) apEmailAdvancedGroup.style.display = isEmail ? 'block' : 'none';
+        if (apFacebookTriggerGroup) apFacebookTriggerGroup.style.display = isFacebookTrigger ? 'block' : 'none';
     };
 
-    const fillActionModal = (props) => {
+    const setAdvancedSectionExpanded = (expanded) => {
+        const isExpanded = !!expanded;
+        apAdvancedSection?.classList.toggle('is-collapsed', !isExpanded);
+        if (apAdvancedToggle) apAdvancedToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        if (apAdvancedMeta) apAdvancedMeta.textContent = isExpanded ? 'Hide' : 'Show';
+    };
+
+    const getFacebookTriggerConfig = (node) => {
+        node.data = node.data || {};
+        node.data.facebookTriggerConfig = node.data.facebookTriggerConfig || {};
+        const config = node.data.facebookTriggerConfig;
+        return {
+            mode: config.mode || node.data.mode || 'test',
+            connectionId: config.connectionId || '',
+            connectionStatus: config.connectionStatus || 'Disconnected',
+            adAccountId: config.adAccountId || '',
+            pageId: config.pageId || node.data.pageId || '',
+            formId: config.formId || node.data.formId || '',
+            triggerEvent: config.triggerEvent || node.data.triggerEvent || 'leadgen.form.submit',
+            mappingMode: config.mappingMode || node.data.mappingMode || 'Lead Fields',
+            mappingRules: Array.isArray(config.mappingRules) ? config.mappingRules : [],
+            replayWindowMinutes: Number(config.replayWindowMinutes || 10),
+            requireConsent: Boolean(config.requireConsent)
+        };
+    };
+
+    const setFacebookTriggerConfig = (node, config) => {
+        node.data = node.data || {};
+        node.data.facebookTriggerConfig = {
+            ...getFacebookTriggerConfig(node),
+            ...config
+        };
+        node.data.pageId = node.data.facebookTriggerConfig.pageId || '';
+        node.data.formId = node.data.facebookTriggerConfig.formId || '';
+        node.data.triggerEvent = node.data.facebookTriggerConfig.triggerEvent || 'leadgen.form.submit';
+        node.data.mappingMode = node.data.facebookTriggerConfig.mappingMode || 'Lead Fields';
+    };
+
+    const jsonFetch = async (url, options = {}) => {
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            },
+            ...options
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.success === false) {
+            throw new Error(data?.message || `Request failed (${response.status})`);
+        }
+        return data;
+    };
+
+    const hydrateFacebookTriggerConfig = async (node) => {
+        if (!node || !workflowId || node.type !== 'facebookLeadTrigger') return getFacebookTriggerConfig(node);
+        if (node.data?.facebookTriggerHydrated) return getFacebookTriggerConfig(node);
+        try {
+            const data = await jsonFetch(`/api/workflows/${encodeURIComponent(workflowId)}/triggers/${encodeURIComponent(node.id)}`);
+            const config = data?.config || {};
+            setFacebookTriggerConfig(node, {
+                mode: config.mode || 'test',
+                connectionId: config.connectionId || '',
+                adAccountId: config.adAccountId || '',
+                pageId: config.pageId || '',
+                formId: config.formId || '',
+                triggerEvent: config.triggerEvent || 'leadgen.form.submit',
+                mappingMode: config.mappingMode || 'Lead Fields',
+                mappingRules: Array.isArray(config.mappingRules) ? config.mappingRules : [],
+                replayWindowMinutes: Number(config?.validation?.replayWindowMinutes || 10),
+                requireConsent: Boolean(config?.validation?.requireConsent)
+            });
+            node.data.facebookTriggerHydrated = true;
+        } catch (error) {
+            console.warn('Unable to hydrate Facebook trigger config', error);
+        }
+        return getFacebookTriggerConfig(node);
+    };
+
+    const loadFacebookAccounts = async () => {
+        const data = await jsonFetch('/api/integrations/facebook/accounts');
+        fbAccounts = Array.isArray(data?.accounts) ? data.accounts : [];
+        return fbAccounts;
+    };
+
+    const loadFacebookAssets = async (connectionId, type, parentId = '') => {
+        if (!connectionId || !type) return [];
+        const qs = new URLSearchParams({ connectionId, type });
+        if (parentId) qs.set('parentId', parentId);
+        const data = await jsonFetch(`/api/integrations/facebook/assets?${qs.toString()}`);
+        return Array.isArray(data?.assets) ? data.assets : [];
+    };
+
+    const fillSelectOptions = (select, rows, placeholder = 'Select') => {
+        if (!select) return;
+        const current = select.value;
+        select.innerHTML = '';
+        const empty = document.createElement('option');
+        empty.value = '';
+        empty.textContent = placeholder;
+        select.appendChild(empty);
+        (rows || []).forEach((row) => {
+            const option = document.createElement('option');
+            option.value = row.id || row.connectionId || '';
+            option.textContent = row.name || row.displayName || row.id || '';
+            select.appendChild(option);
+        });
+        if (current) select.value = current;
+    };
+
+    const fillActionModal = (node, props) => {
         const setVal = (id, value) => {
             const el = document.getElementById(id);
             if (!el) return;
@@ -1611,6 +2156,12 @@
         setVal('apEmailSubject', props.emailSubject || props.emailTitle || '');
         setVal('apEmailBody', props.emailBody || '');
         setVal('apSmtpProfileDguid', props.smtpProfileDguid || '');
+        setVal('apRecipientMode', props.recipientMode || node?.data?.toMode || 'Current User');
+        setVal('apRecipientField', props.recipientField || node?.data?.toField || 'Email');
+        setVal('apFromName', props.fromName || node?.data?.fromName || 'Bugence Team');
+        setVal('apFromEmail', props.fromEmail || node?.data?.fromEmail || 'noreply@bugence.com');
+        setVal('apEmailPreheader', props.emailPreheader || node?.data?.preheader || '');
+        setVal('apEmailFallback', props.emailFallback || node?.data?.fallbackText || '');
         const smtpSelect = document.getElementById('apSmtpProfileDguid');
         if (smtpSelect) {
             smtpSelect.dataset.pendingValue = props.smtpProfileDguid || '';
@@ -1619,6 +2170,13 @@
         setVal('apSqlCommand', props.sqlCommand);
         setVal('apWfRecordField', props.wfRecordField);
         setVal('apOnErrorAction', props.onErrorAction);
+        setVal('apFbConnectionId', props.fbConnectionId || '');
+        setVal('apFbConnectionStatus', props.fbConnectionStatus || 'Disconnected');
+        setVal('apFbAdAccountId', props.fbAdAccountId || '');
+        setVal('apFbPageId', props.fbPageId || '');
+        setVal('apFbFormId', props.fbFormId || '');
+        setVal('apFbTriggerEvent', props.fbTriggerEvent || 'leadgen.form.submit');
+        setVal('apFbMode', props.fbMode || 'test');
         setActionSectionsState();
         addFieldHelpIcons(actionPropsModal);
     };
@@ -1651,10 +2209,23 @@
             emailSubject: val('apEmailSubject').trim(),
             emailBody: val('apEmailBody'),
             smtpProfileDguid: val('apSmtpProfileDguid').trim(),
+            recipientMode: val('apRecipientMode').trim(),
+            recipientField: val('apRecipientField').trim(),
+            fromName: val('apFromName').trim(),
+            fromEmail: val('apFromEmail').trim(),
+            emailPreheader: val('apEmailPreheader').trim(),
+            emailFallback: val('apEmailFallback'),
             runInSeparateThread: checked('apRunInSeparateThread'),
             sqlCommand: val('apSqlCommand'),
             wfRecordField: val('apWfRecordField').trim(),
-            onErrorAction: val('apOnErrorAction')
+            onErrorAction: val('apOnErrorAction'),
+            fbConnectionId: val('apFbConnectionId').trim(),
+            fbConnectionStatus: val('apFbConnectionStatus').trim(),
+            fbAdAccountId: val('apFbAdAccountId').trim(),
+            fbPageId: val('apFbPageId').trim(),
+            fbFormId: val('apFbFormId').trim(),
+            fbTriggerEvent: val('apFbTriggerEvent').trim(),
+            fbMode: val('apFbMode').trim()
         };
     };
 
@@ -1699,6 +2270,33 @@
             syncSmtpProfileSelect();
         } catch {
             // keep default option only
+        }
+    };
+
+    const syncFacebookModalOptions = async (node, props) => {
+        if (!node || node.type !== 'facebookLeadTrigger') return;
+        try {
+            const accounts = await loadFacebookAccounts();
+            fillSelectOptions(apFbConnectionId, accounts.map(x => ({ id: x.connectionId, name: x.displayName })), 'Select account');
+            if (props.fbConnectionId) apFbConnectionId.value = props.fbConnectionId;
+            const currentAccount = accounts.find(x => (x.connectionId || '') === (apFbConnectionId?.value || ''));
+            if (apFbConnectionStatus) {
+                apFbConnectionStatus.value = currentAccount?.status || 'Disconnected';
+            }
+
+            fbAdAccounts = await loadFacebookAssets(apFbConnectionId?.value || '', 'ad_account');
+            fillSelectOptions(apFbAdAccountId, fbAdAccounts, 'Optional');
+            if (props.fbAdAccountId) apFbAdAccountId.value = props.fbAdAccountId;
+
+            fbPages = await loadFacebookAssets(apFbConnectionId?.value || '', 'page');
+            fillSelectOptions(apFbPageId, fbPages, 'Select page');
+            if (props.fbPageId) apFbPageId.value = props.fbPageId;
+
+            fbForms = await loadFacebookAssets(apFbConnectionId?.value || '', 'form', apFbPageId?.value || '');
+            fillSelectOptions(apFbFormId, fbForms, 'Select form');
+            if (props.fbFormId) apFbFormId.value = props.fbFormId;
+        } catch (error) {
+            console.warn('Unable to load Facebook modal options', error);
         }
     };
 
@@ -1773,7 +2371,35 @@
         });
     };
 
-    const importConnectedFormTokens = async () => {
+    const toTokenHash = (tokens) => (Array.isArray(tokens) ? tokens.map(x => x?.token).filter(Boolean).sort().join('|') : '');
+
+    const getEmailBuilderTokenList = () => {
+        const fromImported = importedFormTokens
+            .map(item => item?.token)
+            .filter(token => typeof token === 'string' && token.trim().length > 0);
+        if (fromImported.length) {
+            return Array.from(new Set(fromImported));
+        }
+        return ['^name^', '^email^', '^company^', '^type^', '^details^'];
+    };
+
+    const escapeEditorHtml = (value) => String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+
+    const buildEmailTokenChipsHtml = (target, extraTokens = []) => {
+        const merged = [...getEmailBuilderTokenList(), ...extraTokens]
+            .filter(token => typeof token === 'string' && token.trim().length > 0);
+        const uniqueTokens = Array.from(new Set(merged));
+        return uniqueTokens.map(token =>
+            `<button type="button" class="email-token-chip" data-email-token="${escapeEditorHtml(token)}" data-email-target="${escapeEditorHtml(target)}">${escapeEditorHtml(token)}</button>`
+        ).join('');
+    };
+
+    const refreshConnectedFormTokens = async ({ appendToEmailBody = false, initiatedByUser = false } = {}) => {
         const currentWorkflowId = (workflowId || '').trim();
         if (!currentWorkflowId) {
             setImportTokenStatus('Workflow ID is missing.', true);
@@ -1781,7 +2407,7 @@
         }
 
         try {
-            setImportTokenStatus('Scanning connected forms...');
+            setImportTokenStatus(initiatedByUser ? 'Scanning connected forms...' : 'Refreshing connected form tokens...');
             const url = new URL(window.location.href);
             url.searchParams.set('handler', 'ImportFormTokens');
             url.searchParams.set('id', currentWorkflowId);
@@ -1796,18 +2422,35 @@
 
             importedFormTokens = Array.isArray(data?.tokens) ? data.tokens : [];
             renderImportedTokenChips(importedFormTokens);
+            const tokenHash = toTokenHash(importedFormTokens);
+            const changed = tokenHash !== importedTokenHash;
+            importedTokenHash = tokenHash;
 
             if (!importedFormTokens.length) {
-                setImportTokenStatus('No form fields found. Make sure a form button is connected to this workflow in Visual Editor.');
+                setImportTokenStatus('No form fields found yet. Connect a form submit/button in Dynamic VE, then refresh.');
                 return;
             }
 
             const tokens = importedFormTokens.map(item => item?.token).filter(Boolean);
-            appendTokensToBody(tokens);
-            setImportTokenStatus(`Imported ${tokens.length} token(s) into Email Body. Click a chip to insert at cursor.`);
+            if (appendToEmailBody) {
+                appendTokensToBody(tokens);
+                setImportTokenStatus(`Imported ${tokens.length} token(s) into Email Body. Click a chip to insert at cursor.`);
+            } else {
+                setImportTokenStatus(`Loaded ${tokens.length} connected token(s).`);
+            }
+            if (changed && activeNodeId) {
+                const activeNode = state.nodes.find(n => n.id === activeNodeId);
+                if (activeNode?.type === 'email') {
+                    renderNodeInspector();
+                }
+            }
         } catch (error) {
             setImportTokenStatus(error?.message || 'Unable to import form tokens.', true);
         }
+    };
+
+    const importConnectedFormTokens = async () => {
+        await refreshConnectedFormTokens({ appendToEmailBody: true, initiatedByUser: true });
     };
 
     const isMobileViewport = () => window.matchMedia('(max-width: 1024px)').matches;
@@ -1837,16 +2480,34 @@
         }
     };
 
-    const openActionProperties = (nodeId) => {
+    const openActionProperties = async (nodeId) => {
         const node = state.nodes.find(n => n.id === nodeId);
         if (!node) return;
         activeActionNodeId = nodeId;
         node.data = node.data || {};
+        if (node.type === 'facebookLeadTrigger') {
+            await hydrateFacebookTriggerConfig(node);
+        }
         const props = getActionProps(node);
+        if (node.type === 'facebookLeadTrigger') {
+            const config = getFacebookTriggerConfig(node);
+            props.fbConnectionId = config.connectionId;
+            props.fbConnectionStatus = config.connectionStatus || 'Disconnected';
+            props.fbAdAccountId = config.adAccountId;
+            props.fbPageId = config.pageId;
+            props.fbFormId = config.formId;
+            props.fbTriggerEvent = config.triggerEvent;
+            props.fbMode = config.mode;
+        }
         syncSmtpProfileSelect();
-        fillActionModal(props);
+        fillActionModal(node, props);
         applyActionTypeMode(node.type);
+        if (node.type === 'facebookLeadTrigger') {
+            await syncFacebookModalOptions(node, props);
+        }
+        setAdvancedSectionExpanded(node.type === 'email' || node.type === 'facebookLeadTrigger');
         showActionModal(true);
+        void refreshConnectedFormTokens();
     };
 
     const injectActionButton = (node) => {
@@ -1867,7 +2528,7 @@
         };
         const node = { id, type, x: snapValue(x), y: snapValue(y), ...defaults };
         node.data = {
-            ...(type === 'email' ? { subject: 'Welcome to Bugence', preheader: 'Let’s get started', body: '<p>Hello!</p><p>Thanks for joining.</p>' } : {}),
+            ...(type === 'email' ? { subject: 'Welcome to Bugence', preheader: 'LetÃ¢â‚¬â„¢s get started', body: '<p>Hello!</p><p>Thanks for joining.</p>' } : {}),
             actionProps: createActionDefaults(node)
         };
         if (type === 'email') {
@@ -1887,7 +2548,20 @@
                 pageId: '',
                 formId: '',
                 triggerEvent: 'leadgen.form.submit',
-                mappingMode: 'Lead Fields'
+                mappingMode: 'Lead Fields',
+                facebookTriggerConfig: {
+                    mode: 'test',
+                    connectionId: '',
+                    connectionStatus: 'Disconnected',
+                    adAccountId: '',
+                    pageId: '',
+                    formId: '',
+                    triggerEvent: 'leadgen.form.submit',
+                    mappingMode: 'Lead Fields',
+                    mappingRules: [],
+                    replayWindowMinutes: 10,
+                    requireConsent: false
+                }
             };
         }
         if (type === 'sms') {
@@ -2007,6 +2681,7 @@
             el.dataset.nodeId = node.id;
             const icon = nodeTypes[node.type]?.icon || 'fa-circle-dot';
             const actionProps = getActionProps(node);
+            const fbCfg = node.type === 'facebookLeadTrigger' ? getFacebookTriggerConfig(node) : null;
             const nodeMeta = node.type === 'email'
                 ? (node.data?.subject || 'Configure email')
                 : node.type === 'sms'
@@ -2014,8 +2689,8 @@
                     : node.type === 'delay'
                         ? `${node.data?.value || '1'} ${node.data?.unit || 'hours'} wait`
                         : node.type === 'facebookLeadTrigger'
-                            ? `Form ${node.data?.formId || 'not linked'}`
-                            : (actionProps.actionTypeId ? `${actionProps.actionTypeId} · ${actionProps.actionMapping || 'Not mapped'}` : 'Configure in inspector');
+                            ? `${(fbCfg?.mode || 'test').toUpperCase()} · Form ${fbCfg?.formId || 'not linked'}`
+                            : (actionProps.actionTypeId ? `${actionProps.actionTypeId} Ã‚Â· ${actionProps.actionMapping || 'Not mapped'}` : 'Configure in inspector');
             el.innerHTML = `
                 <div class="node-header">
                     <div>
@@ -2204,66 +2879,151 @@
             return;
         }
         if (node.type === 'facebookLeadTrigger') {
+            const cfg = getFacebookTriggerConfig(node);
             nodeInspector.innerHTML = `
                 <h4 style="margin-top:0;">Facebook Lead Trigger</h4>
+                <div class="hint" style="margin-bottom:10px;">For ad and lead operations, use <a href="/social/facebook" style="color:#67e8f9;">Social Media Marketing</a>.</div>
                 <div class="inspector-simple">
-                    <label>Facebook Page ID</label>
-                    <input id="fbPageId" value="${node.data?.pageId || ''}" placeholder="Page ID for lead ads form" />
-                    <label>Lead Form ID</label>
-                    <input id="fbFormId" value="${node.data?.formId || ''}" placeholder="Form ID from Facebook Lead Ads" />
-                </div>
-                <details class="inspector-advanced" open>
-                    <summary>Advanced Mapping</summary>
-                    <div>
-                        <label>Trigger Event</label>
-                        <input id="fbTriggerEvent" value="${node.data?.triggerEvent || 'leadgen.form.submit'}" />
-                        <label>Mapping Mode</label>
-                        <select id="fbMappingMode">
-                            <option value="Lead Fields">Lead Fields</option>
-                            <option value="Custom Mapping">Custom Mapping</option>
-                        </select>
+                    <label>Integration Account</label>
+                    <select id="fbConnectionId"></select>
+                    <label>Status</label>
+                    <input id="fbConnectionStatus" readonly value="${cfg.connectionStatus || 'Disconnected'}" />
+                    <button type="button" class="action-inspector-open" id="fbManageIntegrations">Manage Integrations</button>
+                    <label>Trigger Event</label>
+                    <select id="fbTriggerEvent">
+                        <option value="leadgen.form.submit">leadgen.form.submit</option>
+                        <option value="leadgen.form.update">leadgen.form.update</option>
+                    </select>
+                    <label>Mode</label>
+                    <select id="fbMode">
+                        <option value="test">Test (Replay)</option>
+                        <option value="live">Live (Webhook)</option>
+                    </select>
+                    <div class="inline-row" style="margin-top:10px;">
+                        <a href="/social/facebook" class="action-inspector-open" style="text-decoration:none;">Open Social Module</a>
+                        <button type="button" class="action-inspector-open" id="fbOpenActionPropsBtn">Open Action Properties</button>
                     </div>
-                </details>
+                    <div class="hint" id="fbTestReplayStatus">Branching remains in the workflow. Lead ops, templates, SLA, and rule management live in Social Media Marketing.</div>
+                </div>
             `;
-            const fbPageId = document.getElementById('fbPageId');
-            const fbFormId = document.getElementById('fbFormId');
+            const fbConnectionId = document.getElementById('fbConnectionId');
+            const fbConnectionStatus = document.getElementById('fbConnectionStatus');
             const fbTriggerEvent = document.getElementById('fbTriggerEvent');
-            const fbMappingMode = document.getElementById('fbMappingMode');
-            if (fbMappingMode && node.data?.mappingMode) fbMappingMode.value = node.data.mappingMode;
-            fbPageId?.addEventListener('input', () => { node.data.pageId = fbPageId.value; renderNodes(); });
-            fbFormId?.addEventListener('input', () => { node.data.formId = fbFormId.value; renderNodes(); });
-            fbTriggerEvent?.addEventListener('input', () => { node.data.triggerEvent = fbTriggerEvent.value; });
-            fbMappingMode?.addEventListener('change', () => { node.data.mappingMode = fbMappingMode.value; });
+            const fbMode = document.getElementById('fbMode');
+            const fbTestReplayStatus = document.getElementById('fbTestReplayStatus');
+            if (fbTriggerEvent) fbTriggerEvent.value = cfg.triggerEvent || 'leadgen.form.submit';
+            if (fbMode) fbMode.value = cfg.mode || 'test';
+
+            const refreshAssets = async () => {
+                const selectedConnection = fbConnectionId?.value || '';
+                fbAdAccounts = await loadFacebookAssets(selectedConnection, 'ad_account');
+                fbPages = await loadFacebookAssets(selectedConnection, 'page');
+                fbForms = [];
+            };
+
+            const applyLocalConfig = () => {
+                const status = fbAccounts.find(x => (x.connectionId || '') === (fbConnectionId?.value || ''))?.status || 'Disconnected';
+                if (fbConnectionStatus) fbConnectionStatus.value = status;
+                setFacebookTriggerConfig(node, {
+                    connectionId: fbConnectionId?.value || '',
+                    connectionStatus: status,
+                    adAccountId: cfg.adAccountId || '',
+                    pageId: cfg.pageId || '',
+                    formId: cfg.formId || '',
+                    triggerEvent: fbTriggerEvent?.value || 'leadgen.form.submit',
+                    mode: fbMode?.value || 'test',
+                    mappingMode: cfg.mappingMode || 'Lead Fields',
+                    mappingRules: cfg.mappingRules || [],
+                    replayWindowMinutes: Number(cfg.replayWindowMinutes || 10),
+                    requireConsent: !!cfg.requireConsent
+                });
+                renderNodes();
+            };
+
+            fbConnectionId?.addEventListener('change', async () => { await refreshAssets(); applyLocalConfig(); });
+            fbTriggerEvent?.addEventListener('change', applyLocalConfig);
+            fbMode?.addEventListener('change', applyLocalConfig);
+
+            document.getElementById('fbManageIntegrations')?.addEventListener('click', () => {
+                window.location.href = '/Settings/Integration';
+            });
+            document.getElementById('fbOpenActionPropsBtn')?.addEventListener('click', () => {
+                openActionProperties(node.id);
+            });
+
+            (async () => {
+                await hydrateFacebookTriggerConfig(node);
+                const accounts = await loadFacebookAccounts();
+                fillSelectOptions(fbConnectionId, accounts.map(x => ({ id: x.connectionId, name: x.displayName })), 'Select account');
+                if (cfg.connectionId) fbConnectionId.value = cfg.connectionId;
+                await refreshAssets();
+                if (cfg.adAccountId && fbAdAccountId) fbAdAccountId.value = cfg.adAccountId;
+                if (cfg.pageId && fbPageId) fbPageId.value = cfg.pageId;
+                fbForms = await loadFacebookAssets(fbConnectionId?.value || '', 'form', fbPageId?.value || '');
+                fillSelectOptions(fbFormId, fbForms, 'Select form');
+                if (cfg.formId && fbFormId) fbFormId.value = cfg.formId;
+                if (fbPageIdReadonly) fbPageIdReadonly.value = fbPageId?.value || '';
+                if (fbFormIdReadonly) fbFormIdReadonly.value = fbFormId?.value || '';
+                applyLocalConfig();
+            })();
         } else if (node.type === 'email') {
             nodeInspector.innerHTML = `
                 <h4 style="margin-top:0;">Email Builder</h4>
-                <div class="inspector-simple">
-                    <label>From name</label>
-                    <input id="emailFromName" value="${node.data?.fromName || 'Bugence Team'}" />
-                    <label>From email</label>
-                    <input id="emailFromEmail" value="${node.data?.fromEmail || 'noreply@bugence.com'}" />
-                    <label>Subject</label>
-                    <input id="emailSubject" value="${node.data?.subject || ''}" />
+                <div class="email-builder-shell">
+                    <div class="email-builder-banner">
+                        <span><i class="fa-solid fa-envelope-circle-check"></i> Build and preview production-ready email content.</span>
+                        <span class="inspector-pill">Live Preview</span>
+                    </div>
+                    <div class="email-builder-grid">
+                        <div class="field-stack">
+                            <label>From name</label>
+                            <input id="emailFromName" value="${node.data?.fromName || 'Bugence Team'}" />
+                        </div>
+                        <div class="field-stack">
+                            <label>From email</label>
+                            <input id="emailFromEmail" value="${node.data?.fromEmail || 'noreply@bugence.com'}" />
+                        </div>
+                        <div class="field-stack">
+                            <label>Subject</label>
+                            <input id="emailSubject" value="${node.data?.subject || ''}" />
+                        </div>
+                        <div class="email-token-row">
+                            ${buildEmailTokenChipsHtml('emailSubject')}
+                        </div>
+                    </div>
                 </div>
                 <details class="inspector-advanced" open>
                     <summary>Advanced Delivery</summary>
                     <div>
-                        <label>Recipient mode</label>
-                        <select id="emailToMode">
-                            <option value="Current User">Current User</option>
-                            <option value="Custom Email">Custom Email</option>
-                            <option value="Field Value">Field Value</option>
-                        </select>
-                        <label>Recipient field</label>
-                        <input id="emailToField" value="${node.data?.toField || 'Email'}" />
-                        <label>Preheader</label>
-                        <input id="emailPreheader" value="${node.data?.preheader || ''}" />
-                        <label>Email HTML</label>
-                        <textarea id="emailBody" rows="6">${node.data?.htmlBody || node.data?.body || ''}</textarea>
-                        <label>Fallback plain text</label>
-                        <textarea id="emailFallback" rows="3">${node.data?.fallbackText || ''}</textarea>
+                        <div class="field-stack">
+                            <label>Recipient mode</label>
+                            <select id="emailToMode">
+                                <option value="Current User">Current User</option>
+                                <option value="Custom Email">Custom Email</option>
+                                <option value="Field Value">Field Value</option>
+                            </select>
+                        </div>
+                        <div class="field-stack">
+                            <label>Recipient field</label>
+                            <input id="emailToField" value="${node.data?.toField || 'Email'}" />
+                        </div>
+                        <div class="field-stack">
+                            <label>Preheader</label>
+                            <input id="emailPreheader" value="${node.data?.preheader || ''}" />
+                        </div>
+                        <div class="field-stack">
+                            <label>Email HTML</label>
+                            <textarea id="emailBody" rows="7">${node.data?.htmlBody || node.data?.body || ''}</textarea>
+                        </div>
+                        <div class="email-token-row">
+                            ${buildEmailTokenChipsHtml('emailBody')}
+                        </div>
+                        <div class="field-stack">
+                            <label>Fallback plain text</label>
+                            <textarea id="emailFallback" rows="3">${node.data?.fallbackText || ''}</textarea>
+                        </div>
                         <label>Preview</label>
-                        <div class="email-preview" id="emailPreview"></div>
+                        <div class="email-preview-wrap"><div class="email-preview" id="emailPreview"></div></div>
                     </div>
                 </details>
             `;
@@ -2276,7 +3036,19 @@
             const body = document.getElementById('emailBody');
             const fallback = document.getElementById('emailFallback');
             const preview = document.getElementById('emailPreview');
+            const tokenButtons = nodeInspector.querySelectorAll('.email-token-chip[data-email-token][data-email-target]');
             if (toMode && node.data?.toMode) toMode.value = node.data.toMode;
+            const insertTokenAtCursor = (target, token) => {
+                if (!target || !token) return;
+                const start = Number.isInteger(target.selectionStart) ? target.selectionStart : target.value.length;
+                const end = Number.isInteger(target.selectionEnd) ? target.selectionEnd : start;
+                target.value = `${target.value.slice(0, start)}${token}${target.value.slice(end)}`;
+                const nextPos = start + token.length;
+                target.selectionStart = nextPos;
+                target.selectionEnd = nextPos;
+                target.dispatchEvent(new Event('input', { bubbles: true }));
+                target.focus();
+            };
             const updatePreview = () => {
                 if (preview) preview.innerHTML = body?.value || '';
             };
@@ -2307,7 +3079,16 @@
             fallback?.addEventListener('input', () => {
                 node.data.fallbackText = fallback.value;
             });
+            tokenButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const token = button.getAttribute('data-email-token') || '';
+                    const targetId = button.getAttribute('data-email-target');
+                    const target = targetId ? document.getElementById(targetId) : null;
+                    insertTokenAtCursor(target, token);
+                });
+            });
             updatePreview();
+            void refreshConnectedFormTokens();
         } else if (node.type === 'sms') {
             nodeInspector.innerHTML = `
                 <h4 style="margin-top:0;">SMS Workflow</h4>
@@ -2603,6 +3384,37 @@
         minimapViewport.style.top = `${viewTop}px`;
     };
 
+        const formatExecutionTimestamp = (value) => {
+        if (!value) return 'Unknown time';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return 'Unknown time';
+        return parsed.toLocaleString();
+    };
+    const normalizeLogStatus = (status) => {
+        const value = (status || '').toString().trim().toLowerCase();
+        if (!value) return 'unknown';
+        if (value.includes('success') || value === 'ok' || value === 'completed') return 'success';
+        if (value.includes('fail') || value.includes('error')) return 'failed';
+        if (value.includes('run') || value.includes('progress')) return 'running';
+        return value;
+    };
+    const renderLogItem = (entry) => {
+        const item = document.createElement('div');
+        item.className = 'log-item';
+        const stamp = formatExecutionTimestamp(entry?.executedAtUtc);
+        const statusRaw = (entry?.status || 'Unknown').toString();
+        const statusClass = normalizeLogStatus(statusRaw);
+        const step = entry?.stepName ? `${entry.stepName} Â· ` : '';
+        const message = entry?.message ? `${entry.message}` : 'No message';
+        item.innerHTML = `
+            <div class="log-item-head">
+                <span class="log-item-time">${stamp}</span>
+                <span class="log-status-badge ${statusClass}">${statusRaw}</span>
+            </div>
+            <div class="log-item-msg">${step}${message}</div>
+        `;
+        return item;
+    };
     const renderExecutionLogs = (entries) => {
         if (!executionLogs) return;
         executionLogs.innerHTML = '';
@@ -2610,14 +3422,7 @@
             executionLogs.innerHTML = '<div class="log-item">No executions yet. Trigger the workflow to see logs here.</div>';
             return;
         }
-        entries.forEach(entry => {
-            const item = document.createElement('div');
-            item.className = 'log-item';
-            const stamp = new Date(entry.executedAtUtc).toLocaleString();
-            const step = entry.stepName ? ` · ${entry.stepName}` : '';
-            item.innerHTML = `<span>${stamp}</span> · ${entry.status}${step} · ${entry.message}`;
-            executionLogs.appendChild(item);
-        });
+        entries.forEach(entry => executionLogs.appendChild(renderLogItem(entry)));
     };
 
     const fetchExecutionLogs = async () => {
@@ -2655,11 +3460,7 @@
                 if (executionLogs.textContent?.includes('No executions yet')) {
                     executionLogs.innerHTML = '';
                 }
-                const item = document.createElement('div');
-                item.className = 'log-item';
-                const stamp = new Date(entry.executedAtUtc).toLocaleString();
-                const step = entry.stepName ? ` · ${entry.stepName}` : '';
-                item.innerHTML = `<span>${stamp}</span> · ${entry.status}${step} · ${entry.message}`;
+                const item = renderLogItem(entry);
                 executionLogs.prepend(item);
                 while (executionLogs.children.length > 8) {
                     executionLogs.removeChild(executionLogs.lastChild);
@@ -2745,8 +3546,7 @@
     };
 
     const updateConnectHint = (text) => {
-        const hint = document.querySelector('.workflow-meta');
-        if (hint) hint.textContent = text;
+        if (connectionHint) connectionHint.textContent = text;
     };
 
     const clearConnectionState = () => {
@@ -2952,7 +3752,10 @@
     });
 
     saveWorkflowBtn?.addEventListener('click', async () => {
+        const originalLabel = saveWorkflowBtn.innerHTML;
         saveWorkflowBtn.disabled = true;
+        saveWorkflowBtn.classList.add('is-saving');
+        saveWorkflowBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
         try {
             const payload = {
                 id: workflowId,
@@ -2982,13 +3785,24 @@
             });
             const data = await res.json();
             if (!res.ok || !data?.success) {
-                alert(data?.message || 'Unable to save workflow.');
+                showSaveToast(data?.message || 'Unable to save workflow.', true);
                 return;
             }
+            const statusText = workflowStatusInput?.value || 'Draft';
+            const updatedAtText = formatWorkflowUpdatedAt(data?.updatedAt) || formatWorkflowUpdatedAt(new Date().toISOString());
+            if (workflowMeta && updatedAtText) {
+                workflowMeta.textContent = `Last updated ${updatedAtText} - ${statusText}`;
+            }
+            if (workflowStatusPill) {
+                workflowStatusPill.innerHTML = `<span class="fa-solid fa-circle-notch"></span> ${statusText}`;
+            }
+            showSaveToast('Workflow saved successfully.');
         } catch (err) {
-            alert('Unable to save workflow.');
+            showSaveToast('Unable to save workflow.', true);
         } finally {
             saveWorkflowBtn.disabled = false;
+            saveWorkflowBtn.classList.remove('is-saving');
+            saveWorkflowBtn.innerHTML = originalLabel;
         }
     });
 
@@ -3055,6 +3869,23 @@
 
     apAssignToUser?.addEventListener('change', setActionSectionsState);
     apSendEmail?.addEventListener('change', setActionSectionsState);
+    apAdvancedToggle?.addEventListener('click', () => {
+        const isExpanded = apAdvancedToggle.getAttribute('aria-expanded') === 'true';
+        setAdvancedSectionExpanded(!isExpanded);
+    });
+    apFbConnectionId?.addEventListener('change', async () => {
+        const selected = fbAccounts.find(x => (x.connectionId || '') === (apFbConnectionId.value || ''));
+        if (apFbConnectionStatus) apFbConnectionStatus.value = selected?.status || 'Disconnected';
+        fbAdAccounts = await loadFacebookAssets(apFbConnectionId.value || '', 'ad_account');
+        fillSelectOptions(apFbAdAccountId, fbAdAccounts, 'Optional');
+        fbPages = await loadFacebookAssets(apFbConnectionId.value || '', 'page');
+        fillSelectOptions(apFbPageId, fbPages, 'Select page');
+        fillSelectOptions(apFbFormId, [], 'Select form');
+    });
+    apFbPageId?.addEventListener('change', async () => {
+        fbForms = await loadFacebookAssets(apFbConnectionId?.value || '', 'form', apFbPageId.value || '');
+        fillSelectOptions(apFbFormId, fbForms, 'Select form');
+    });
     actionPropsClose?.addEventListener('click', () => showActionModal(false));
     apCancelBtn?.addEventListener('click', () => showActionModal(false));
     actionPropsBackdrop?.addEventListener('click', () => showActionModal(false));
@@ -3069,7 +3900,7 @@
         renderNodeInspector();
     });
 
-    apSubmitBtn?.addEventListener('click', () => {
+    apSubmitBtn?.addEventListener('click', async () => {
         if (!activeActionNodeId) return;
         const node = state.nodes.find(n => n.id === activeActionNodeId);
         if (!node) return;
@@ -3082,6 +3913,77 @@
         if (node.type === 'email') {
             node.data.subject = payload.emailSubject || payload.emailTitle || '';
             node.data.body = payload.emailBody || '';
+            node.data.htmlBody = payload.emailBody || '';
+            node.data.toMode = payload.recipientMode || node.data.toMode || 'Current User';
+            node.data.toField = payload.recipientField || node.data.toField || 'Email';
+            node.data.fromName = payload.fromName || node.data.fromName || 'Bugence Team';
+            node.data.fromEmail = payload.fromEmail || node.data.fromEmail || 'noreply@bugence.com';
+            node.data.preheader = payload.emailPreheader || '';
+            node.data.fallbackText = payload.emailFallback || '';
+            node.data.actionProps = {
+                ...node.data.actionProps,
+                recipientMode: node.data.toMode,
+                recipientField: node.data.toField,
+                fromName: node.data.fromName,
+                fromEmail: node.data.fromEmail,
+                emailPreheader: node.data.preheader,
+                emailFallback: node.data.fallbackText
+            };
+        }
+        if (node.type === 'facebookLeadTrigger') {
+            const configPayload = {
+                workflowId,
+                actionNodeId: node.id,
+                triggerType: 'facebook_lead',
+                mode: payload.fbMode || 'test',
+                connectionId: payload.fbConnectionId || null,
+                adAccountId: payload.fbAdAccountId || null,
+                pageId: payload.fbPageId || null,
+                formId: payload.fbFormId || null,
+                triggerEvent: payload.fbTriggerEvent || 'leadgen.form.submit',
+                mappingMode: 'Lead Fields',
+                mappingRules: [],
+                validation: {
+                    requireConsent: false,
+                    replayWindowMinutes: 10,
+                    routeMissingContactToNeedsEnrichment: true
+                },
+                splitFullName: true,
+                normalizePhone: true,
+                validateEmail: true,
+                detectCountryFromPhone: true
+            };
+            try {
+                await jsonFetch(`/api/workflows/${encodeURIComponent(workflowId)}/triggers/${encodeURIComponent(node.id)}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(configPayload),
+                    headers: {
+                        'RequestVerificationToken': csrfToken
+                    }
+                });
+                setFacebookTriggerConfig(node, {
+                    mode: configPayload.mode,
+                    connectionId: configPayload.connectionId || '',
+                    connectionStatus: payload.fbConnectionStatus || 'Disconnected',
+                    adAccountId: configPayload.adAccountId || '',
+                    pageId: configPayload.pageId || '',
+                    formId: configPayload.formId || '',
+                    triggerEvent: configPayload.triggerEvent
+                });
+                node.data.actionProps = {
+                    ...node.data.actionProps,
+                    fbConnectionId: configPayload.connectionId || '',
+                    fbConnectionStatus: payload.fbConnectionStatus || 'Disconnected',
+                    fbAdAccountId: configPayload.adAccountId || '',
+                    fbPageId: configPayload.pageId || '',
+                    fbFormId: configPayload.formId || '',
+                    fbTriggerEvent: configPayload.triggerEvent,
+                    fbMode: configPayload.mode
+                };
+            } catch (error) {
+                showSaveToast(error?.message || 'Unable to save Facebook trigger config.', true);
+                return;
+            }
         }
         showActionModal(false);
         render();
@@ -3226,3 +4128,7 @@
     }
     render();
 </script>
+
+
+
+

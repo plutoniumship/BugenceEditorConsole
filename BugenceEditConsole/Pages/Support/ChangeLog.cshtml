@@ -1,192 +1,626 @@
 @page
 @model BugenceEditConsole.Pages.Support.ChangeLogModel
 @{
-    ViewData["Title"] = "ChangeLog";
+    ViewData["Title"] = "Change Log";
     ViewData["BodyClass"] = "page-support-changelog";
 }
 
 @section Head {
 <style>
-    :root { --bg:#050505; --surface:#0a0a0a; --surface-hover:#121212; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --diff-add:rgba(16,185,129,0.15); --diff-add-text:#10b981; --diff-rem:rgba(239,68,68,0.15); --diff-rem-text:#ef4444; }
-    .activity-shell { padding:28px 24px; }
-    .header-row { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:18px; }
-    .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.2rem; margin:0 0 4px; }
-    .header p { color:var(--muted); margin:0; }
-    .project-switcher { display:inline-flex; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:10px; position:relative; min-width:280px; }
-    .project-select { appearance:none; background:transparent; border:none; color:white; font-family:inherit; font-weight:700; font-size:0.95rem; width:100%; padding:10px 40px 10px 14px; }
-    .project-select:disabled { opacity:.6; cursor:not-allowed; }
-    .select-arrow { position:absolute; right:14px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--muted); font-size:0.8rem; }
-    .summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
-    .summary-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
-    .summary-label { color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; }
-    .summary-value { margin-top:4px; font-size:1.35rem; font-weight:800; }
-    .controls { display:flex; gap:12px; margin-bottom:18px; align-items:center; flex-wrap:wrap; }
-    .search-box { position:relative; flex:1; min-width:240px; max-width:360px; }
-    .search-input { width:100%; background:var(--surface); border:1px solid var(--border); padding:10px 12px 10px 34px; border-radius:8px; color:white; }
-    .search-input:focus { border-color:var(--accent); }
-    .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#666; }
-    .filter-select { background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:10px 12px; border-radius:8px; min-width:170px; }
-    .btn-export { margin-left:auto; background:transparent; border:1px solid var(--border); color:white; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer; display:inline-flex; gap:8px; align-items:center; }
-    .btn-export:hover { border-color:#fff; }
-    .timeline-container { position:relative; padding-left:28px; }
-    .timeline-line { position:absolute; left:13px; top:8px; bottom:0; width:1px; background:rgba(255,255,255,0.1); }
-    .date-group { margin-bottom:18px; }
-    .date-separator { position:relative; margin:0 0 14px -28px; display:flex; align-items:center; gap:12px; }
-    .date-badge { background:#202020; border:1px solid var(--border); padding:5px 12px; border-radius:999px; font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
-    .date-line { flex:1; height:1px; background:var(--border); }
-    .activity-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; position:relative; }
-    .activity-card:hover { border-color:rgba(255,255,255,0.2); background:var(--surface-hover); }
-    .timeline-dot { position:absolute; left:-33px; top:20px; width:10px; height:10px; border-radius:50%; border:2px solid var(--muted); background:var(--bg); }
-    .type-code .timeline-dot { border-color:var(--accent); background:var(--accent); }
-    .type-config .timeline-dot { border-color:var(--warning); background:var(--warning); }
-    .type-delete .timeline-dot { border-color:var(--danger); background:var(--danger); }
-    .act-header { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
-    .user-meta { display:flex; gap:10px; align-items:flex-start; }
-    .avatar { width:34px; height:34px; border-radius:8px; background:#18212a; border:1px solid rgba(6,182,212,0.35); display:grid; place-items:center; color:#7ee7ff; font-weight:800; }
-    .act-title { font-size:.95rem; font-weight:700; color:#fff; }
-    .act-title span { color:var(--muted); font-weight:500; }
-    .act-time { margin-top:2px; font-size:.78rem; color:var(--muted); }
-    .act-subtitle { margin-top:8px; color:#d4d4d8; font-size:.9rem; }
-    .action-row { display:flex; gap:8px; }
-    .btn-action { background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 10px; border-radius:6px; font-size:.75rem; font-weight:700; text-decoration:none; cursor:pointer; }
-    .btn-action:hover { color:white; border-color:white; }
-    .act-details { background:#080808; border:1px solid var(--border); border-radius:8px; overflow:hidden; font-family:'JetBrains Mono',monospace; font-size:.78rem; margin-top:10px; display:none; }
-    .act-details.open { display:block; }
-    .diff-line { display:flex; padding:4px 10px; line-height:1.45; color:#d4d4d8; }
-    .line-num { width:28px; color:#52525b; text-align:right; margin-right:10px; user-select:none; }
-    .empty-state { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; color:var(--muted); }
-    .hidden { display:none !important; }
-    @@media (max-width: 980px) {
-        .activity-shell { padding:16px 12px; }
-        .header-row { flex-direction:column; align-items:stretch; }
-        .project-switcher { min-width:0; width:100%; }
-        .summary-grid { grid-template-columns:1fr; }
-        .btn-export { margin-left:0; }
+    :root {
+        --cl-bg: #020202;
+        --cl-panel: rgba(8,8,8,0.95);
+        --cl-panel-strong: rgba(4,4,4,0.98);
+        --cl-border: rgba(255,255,255,0.08);
+        --cl-text: #f5f7fa;
+        --cl-muted: #8d97a5;
+        --cl-cyan: #6ee7ff;
+        --cl-gold: #f6c85f;
+        --cl-green: #4ade80;
+        --cl-red: #fb7185;
+    }
+
+    .cl-shell {
+        max-width: 1660px;
+        margin: 0 auto;
+        display: grid;
+        gap: 18px;
+        padding-bottom: 24px;
+    }
+
+    .cl-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background:
+            radial-gradient(640px 280px at -5% -10%, rgba(110,231,255,0.16), transparent 56%),
+            radial-gradient(500px 240px at 110% 0%, rgba(246,200,95,0.14), transparent 54%),
+            linear-gradient(140deg, rgba(12,12,12,0.98), rgba(3,3,3,0.98));
+        box-shadow: 0 36px 90px rgba(0,0,0,0.52);
+        padding: 26px;
+    }
+
+    .cl-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 32px 32px;
+        opacity: 0.18;
+        pointer-events: none;
+    }
+
+    .cl-hero-inner {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) 360px;
+        gap: 18px;
+    }
+
+    .cl-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: var(--cl-cyan);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.72rem;
+        font-weight: 900;
+    }
+
+    .cl-title {
+        margin: 14px 0 8px;
+        font-family: "Cabinet Grotesk", sans-serif;
+        font-size: clamp(2rem, 4vw, 4rem);
+        line-height: 0.94;
+        letter-spacing: -0.05em;
+        color: var(--cl-text);
+    }
+
+    .cl-subtitle {
+        margin: 0;
+        max-width: 760px;
+        color: var(--cl-muted);
+        line-height: 1.7;
+    }
+
+    .cl-project-select {
+        width: 100%;
+        height: 50px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.04);
+        color: var(--cl-text);
+        padding: 0 14px;
+        font-size: 0.95rem;
+    }
+
+    .cl-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+    }
+
+    .cl-stat {
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+        padding: 16px;
+    }
+
+    .cl-stat-label {
+        color: #7c8796;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 900;
+    }
+
+    .cl-stat-value {
+        margin-top: 10px;
+        font-size: 1.7rem;
+        font-weight: 900;
+        color: var(--cl-text);
+    }
+
+    .cl-command {
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(180deg, rgba(15,15,15,0.96), rgba(7,7,7,0.98));
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+        align-content: start;
+    }
+
+    .cl-command h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--cl-text);
+        font-weight: 900;
+    }
+
+    .cl-command p {
+        margin: 0;
+        color: var(--cl-muted);
+        font-size: 0.84rem;
+        line-height: 1.6;
+    }
+
+    .cl-controls-panel {
+        border-radius: 24px;
+        border: 1px solid var(--cl-border);
+        background: linear-gradient(180deg, var(--cl-panel), var(--cl-panel-strong));
+        box-shadow: 0 18px 44px rgba(0,0,0,0.42);
+        overflow: hidden;
+    }
+
+    .cl-controls-head {
+        padding: 20px 20px 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .cl-controls-title {
+        margin: 0;
+        color: var(--cl-text);
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .cl-controls-sub {
+        margin: 6px 0 0;
+        color: var(--cl-muted);
+        font-size: 0.84rem;
+    }
+
+    .cl-controls-body {
+        padding: 18px 20px 20px;
+        display: grid;
+        gap: 14px;
+    }
+
+    .cl-filter-grid {
+        display: grid;
+        grid-template-columns: 1.3fr repeat(3, minmax(180px, 1fr)) auto;
+        gap: 12px;
+    }
+
+    .cl-search,
+    .cl-filter,
+    .cl-page-size {
+        width: 100%;
+        height: 48px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.03);
+        color: var(--cl-text);
+        padding: 0 14px;
+    }
+
+    .cl-btn {
+        height: 48px;
+        padding: 0 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.04);
+        color: var(--cl-text);
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    .cl-btn:hover {
+        border-color: rgba(255,255,255,0.22);
+    }
+
+    .cl-meta-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        color: var(--cl-muted);
+        font-size: 0.86rem;
+    }
+
+    .cl-feed {
+        position: relative;
+        padding-left: 26px;
+        display: grid;
+        gap: 18px;
+    }
+
+    .cl-feed::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        top: 6px;
+        bottom: 6px;
+        width: 1px;
+        background: linear-gradient(180deg, rgba(110,231,255,0.22), rgba(255,255,255,0.06));
+    }
+
+    .cl-date-group {
+        display: grid;
+        gap: 12px;
+    }
+
+    .cl-date-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .cl-date-pill {
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: #dbe4ee;
+        font-size: 0.76rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    .cl-date-line {
+        flex: 1;
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+    }
+
+    .cl-entry {
+        position: relative;
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background:
+            radial-gradient(260px 100px at 100% 0%, rgba(255,255,255,0.03), transparent 60%),
+            linear-gradient(180deg, rgba(10,10,10,0.96), rgba(6,6,6,0.98));
+        padding: 18px;
+        margin-left: 6px;
+        box-shadow: 0 16px 38px rgba(0,0,0,0.34);
+    }
+
+    .cl-entry::before {
+        content: "";
+        position: absolute;
+        left: -23px;
+        top: 20px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.14);
+        background: #020202;
+    }
+
+    .type-code.cl-entry::before { border-color: rgba(110,231,255,0.6); background: rgba(110,231,255,0.3); }
+    .type-config.cl-entry::before { border-color: rgba(246,200,95,0.6); background: rgba(246,200,95,0.3); }
+    .type-delete.cl-entry::before { border-color: rgba(251,113,133,0.6); background: rgba(251,113,133,0.3); }
+
+    .cl-entry-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: start;
+    }
+
+    .cl-entry-meta {
+        display: flex;
+        gap: 12px;
+        align-items: start;
+    }
+
+    .cl-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
+        border: 1px solid rgba(110,231,255,0.22);
+        background: rgba(110,231,255,0.08);
+        color: var(--cl-cyan);
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+    }
+
+    .cl-entry-title {
+        color: var(--cl-text);
+        font-size: 0.98rem;
+        font-weight: 900;
+    }
+
+    .cl-entry-title span {
+        color: var(--cl-muted);
+        font-weight: 600;
+    }
+
+    .cl-entry-time {
+        margin-top: 4px;
+        color: var(--cl-muted);
+        font-size: 0.8rem;
+    }
+
+    .cl-entry-sub {
+        margin-top: 12px;
+        color: #d4dde6;
+        font-size: 0.92rem;
+        line-height: 1.65;
+    }
+
+    .cl-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .cl-action {
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03);
+        color: #dbe4ee;
+        padding: 8px 12px;
+        font-size: 0.74rem;
+        font-weight: 900;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cl-detail {
+        display: none;
+        margin-top: 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        overflow: hidden;
+        background: rgba(255,255,255,0.02);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.8rem;
+    }
+
+    .cl-detail.open {
+        display: block;
+    }
+
+    .cl-detail-line {
+        display: flex;
+        gap: 12px;
+        padding: 6px 12px;
+        line-height: 1.5;
+    }
+
+    .cl-detail-line.context { color: #d4dde6; }
+    .cl-detail-line.added { background: rgba(74,222,128,0.08); color: #86efac; }
+    .cl-detail-line.removed { background: rgba(251,113,133,0.08); color: #fecdd3; }
+
+    .cl-line-num {
+        width: 24px;
+        text-align: right;
+        color: #6f7a89;
+        user-select: none;
+    }
+
+    .cl-pagination {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-top: 4px;
+    }
+
+    .cl-pagination-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .cl-pagination-btn {
+        min-width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: var(--cl-text);
+        font-weight: 900;
+        cursor: pointer;
+        padding: 0 14px;
+    }
+
+    .cl-pagination-btn[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .cl-empty {
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: linear-gradient(180deg, rgba(9,9,9,0.96), rgba(4,4,4,0.98));
+        padding: 38px 24px;
+        text-align: center;
+        color: var(--cl-muted);
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    @@media (max-width: 1180px) {
+        .cl-hero-inner,
+        .cl-filter-grid,
+        .cl-summary-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 }
 
-<div class="activity-shell">
-    <div class="header-row">
-        <div class="header">
-            <h1>Project Activity</h1>
-            <p>Audit trail and change history for <span id="headerProjectName" style="color:white; font-weight:700;">@Model.SelectedProjectName</span></p>
-        </div>
-        <div class="project-switcher">
-            <select id="projectSelect" class="project-select" @(Model.Projects.Count == 0 ? "disabled" : null)>
-                @foreach (var project in Model.Projects)
-                {
-                    if (project.Id == Model.SelectedProjectId)
+<div class="cl-shell">
+    <section class="cl-hero">
+        <div class="cl-hero-inner">
+            <div>
+                <div class="cl-kicker"><i class="fa-solid fa-clock-rotate-left"></i> Change Intelligence</div>
+                <h1 class="cl-title">Project activity that you can actually search, page, and inspect at speed.</h1>
+                <p class="cl-subtitle">
+                    This view now behaves like an operational timeline instead of a long static dump.
+                    Filter by member, event type, and query. Page through the result set without losing context.
+                </p>
+
+                <div class="cl-summary-grid">
+                    <div class="cl-stat">
+                        <div class="cl-stat-label">Total Events</div>
+                        <div class="cl-stat-value">@Model.TotalEvents</div>
+                    </div>
+                    <div class="cl-stat">
+                        <div class="cl-stat-label">Past 24 Hours</div>
+                        <div class="cl-stat-value">@Model.Last24hEvents</div>
+                    </div>
+                    <div class="cl-stat">
+                        <div class="cl-stat-label">Dynamic VE Events</div>
+                        <div class="cl-stat-value">@Model.DynamicEvents</div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="cl-command">
+                <h3>Project Scope</h3>
+                <p>Select the project whose audit stream you want to inspect. Export respects current filters.</p>
+                <select id="projectSelect" class="cl-project-select" @(Model.Projects.Count == 0 ? "disabled" : null)>
+                    @foreach (var project in Model.Projects)
                     {
-                        <option value="@project.Id" selected>@project.Name</option>
+                        if (project.Id == Model.SelectedProjectId)
+                        {
+                            <option value="@project.Id" selected>@project.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@project.Id">@project.Name</option>
+                        }
                     }
-                    else
+                </select>
+            </aside>
+        </div>
+    </section>
+
+    <section class="cl-controls-panel">
+        <div class="cl-controls-head">
+            <div>
+                <h2 class="cl-controls-title">Filters & Navigation</h2>
+                <p class="cl-controls-sub">Search, narrow, paginate, then drill into diffs or activity detail.</p>
+            </div>
+        </div>
+        <div class="cl-controls-body">
+            <div class="cl-filter-grid">
+                <input type="text" class="cl-search" id="searchLog" placeholder="Search action, user, source, path, subtitle..." />
+                <select class="cl-filter" id="memberFilter">
+                    <option value="all">All Members</option>
+                    @foreach (var member in Model.Members)
                     {
-                        <option value="@project.Id">@project.Name</option>
+                        <option value="@member">@member</option>
                     }
-                }
-            </select>
-            <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </select>
+                <select class="cl-filter" id="typeFilter">
+                    <option value="all">All Event Types</option>
+                    @foreach (var type in Model.EventTypes)
+                    {
+                        var label = string.IsNullOrWhiteSpace(type) ? type : char.ToUpperInvariant(type[0]) + type.Substring(1);
+                        <option value="@type">@label</option>
+                    }
+                </select>
+                <select class="cl-page-size" id="pageSize">
+                    <option value="10">10 per page</option>
+                    <option value="20" selected>20 per page</option>
+                    <option value="40">40 per page</option>
+                    <option value="80">80 per page</option>
+                </select>
+                <button class="cl-btn" id="exportBtn" @(Model.Entries.Count == 0 ? "disabled" : null)><i class="fa-solid fa-download"></i> Export CSV</button>
+            </div>
+
+            <div class="cl-meta-row">
+                <div id="visibleSummary">@Model.Entries.Count event(s) loaded for @Model.SelectedProjectName</div>
+                <div id="pageSummary">Page 1 of 1</div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <div class="summary-grid">
-        <div class="summary-card">
-            <div class="summary-label">Total Events</div>
-            <div class="summary-value">@Model.TotalEvents</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Past 24 Hours</div>
-            <div class="summary-value">@Model.Last24hEvents</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-label">Dynamic VE Events</div>
-            <div class="summary-value">@Model.DynamicEvents</div>
-        </div>
-    </div>
-
-    <div class="controls">
-        <div class="search-box">
-            <i class="fa-solid fa-search search-icon"></i>
-            <input type="text" class="search-input" id="searchLog" placeholder="Search by action, user, source, path..." />
-        </div>
-
-        <select class="filter-select" id="memberFilter">
-            <option value="all">All Members</option>
-            @foreach (var member in Model.Members)
-            {
-                <option value="@member">@member</option>
-            }
-        </select>
-
-        <select class="filter-select" id="typeFilter">
-            <option value="all">All Event Types</option>
-            @foreach (var type in Model.EventTypes)
-            {
-                var label = string.IsNullOrWhiteSpace(type) ? type : char.ToUpperInvariant(type[0]) + type.Substring(1);
-                <option value="@type">@label</option>
-            }
-        </select>
-
-        <button class="btn-export" id="exportBtn" @(Model.Entries.Count == 0 ? "disabled" : null)><i class="fa-solid fa-download"></i> Export CSV</button>
-    </div>
-
-    <div class="timeline-container" id="timelineFeed">
-        <div class="timeline-line"></div>
-
+    <section class="cl-feed" id="timelineFeed">
         @if (Model.Entries.Count == 0)
         {
-            <div class="empty-state">No activity found for this project yet.</div>
+            <div class="cl-empty">No activity found for this project yet.</div>
         }
         else
         {
             @foreach (var group in Model.Groups)
             {
-                <div class="date-group" data-date-group>
-                    <div class="date-separator">
-                        <span class="date-badge">@group.Label</span>
-                        <div class="date-line"></div>
+                <div class="cl-date-group" data-date-group>
+                    <div class="cl-date-head">
+                        <span class="cl-date-pill">@group.Label</span>
+                        <div class="cl-date-line"></div>
                     </div>
 
                     @foreach (var entry in group.Entries)
                     {
                         var detailId = $"details-{entry.EntryId}";
-                        <article class="activity-card @entry.CardTypeClass"
+                        <article class="cl-entry @entry.CardTypeClass"
                                  data-entry
                                  data-member="@entry.Actor"
                                  data-type="@entry.TypeKey"
                                  data-search="@entry.SearchText">
-                            <div class="timeline-dot"></div>
-
-                            <div class="act-header">
-                                <div class="user-meta">
-                                    <div class="avatar">@entry.ActorInitials</div>
+                            <div class="cl-entry-head">
+                                <div class="cl-entry-meta">
+                                    <div class="cl-avatar">@entry.ActorInitials</div>
                                     <div>
-                                        <div class="act-title">@entry.Actor <span>- @entry.Title</span></div>
-                                        <div class="act-time" title="@entry.LocalTimeText">@entry.RelativeTime</div>
+                                        <div class="cl-entry-title">@entry.Actor <span>- @entry.Title</span></div>
+                                        <div class="cl-entry-time" title="@entry.LocalTimeText">@entry.RelativeTime</div>
                                     </div>
                                 </div>
 
-                                <div class="action-row">
-                                    @if (entry.DetailLines.Count > 0)
+                                <div class="cl-actions">
+                                    @if (entry.DiffLines.Count > 0 || entry.DetailLines.Count > 0)
                                     {
-                                        <button type="button" class="btn-action" data-toggle-details data-target="@detailId"><i class="fa-solid fa-code"></i> Details</button>
+                                        <button type="button" class="cl-action" data-toggle-details data-target="@detailId"><i class="fa-solid fa-code"></i> @(entry.DiffLines.Count > 0 ? "View Diff" : "Details")</button>
                                     }
                                     @if (!string.IsNullOrWhiteSpace(entry.DeployLogsUrl))
                                     {
-                                        <a class="btn-action" href="@entry.DeployLogsUrl"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Logs</a>
+                                        <a class="cl-action" href="@entry.DeployLogsUrl"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Logs</a>
                                     }
                                 </div>
                             </div>
 
-                            <div class="act-subtitle">@entry.Subtitle</div>
+                            <div class="cl-entry-sub">@entry.Subtitle</div>
 
-                            @if (entry.DetailLines.Count > 0)
+                            @if (entry.DiffLines.Count > 0 || entry.DetailLines.Count > 0)
                             {
-                                <div class="act-details" id="@detailId">
-                                    @for (var i = 0; i < entry.DetailLines.Count; i++)
+                                <div class="cl-detail" id="@detailId">
+                                    @if (entry.DiffLines.Count > 0)
                                     {
-                                        <div class="diff-line"><span class="line-num">@(i + 1)</span><span>@entry.DetailLines[i]</span></div>
+                                        @for (var i = 0; i < entry.DiffLines.Count; i++)
+                                        {
+                                            <div class="cl-detail-line @entry.DiffLines[i].Type"><span class="cl-line-num">@(i + 1)</span><span>@entry.DiffLines[i].Text</span></div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @for (var i = 0; i < entry.DetailLines.Count; i++)
+                                        {
+                                            <div class="cl-detail-line context"><span class="cl-line-num">@(i + 1)</span><span>@entry.DetailLines[i]</span></div>
+                                        }
                                     }
                                 </div>
                             }
@@ -195,7 +629,20 @@
                 </div>
             }
         }
-    </div>
+    </section>
+
+    @if (Model.Entries.Count > 0)
+    {
+        <div class="cl-pagination">
+            <div class="cl-pagination-controls">
+                <button class="cl-pagination-btn" id="prevPage">Previous</button>
+                <button class="cl-pagination-btn" id="nextPage">Next</button>
+            </div>
+            <div class="cl-pagination-controls">
+                <span id="paginationInfo">Page 1 of 1</span>
+            </div>
+        </div>
+    }
 </div>
 
 @section Scripts {
@@ -205,9 +652,20 @@
     const searchInput = document.getElementById('searchLog');
     const memberFilter = document.getElementById('memberFilter');
     const typeFilter = document.getElementById('typeFilter');
+    const pageSizeSelect = document.getElementById('pageSize');
     const exportBtn = document.getElementById('exportBtn');
     const entries = Array.from(document.querySelectorAll('[data-entry]'));
     const groups = Array.from(document.querySelectorAll('[data-date-group]'));
+    const visibleSummary = document.getElementById('visibleSummary');
+    const pageSummary = document.getElementById('pageSummary');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const prevPage = document.getElementById('prevPage');
+    const nextPage = document.getElementById('nextPage');
+
+    const state = {
+        page: 1,
+        pageSize: Number(pageSizeSelect?.value || 20)
+    };
 
     const updateProject = () => {
         const projectId = projectSelect?.value;
@@ -217,26 +675,50 @@
         window.location.href = url.toString();
     };
 
-    const applyFilters = () => {
+    const matchingEntries = () => {
         const member = (memberFilter?.value || 'all').toLowerCase();
         const type = (typeFilter?.value || 'all').toLowerCase();
         const q = (searchInput?.value || '').trim().toLowerCase();
 
-        entries.forEach((entry) => {
+        return entries.filter((entry) => {
             const entryMember = (entry.dataset.member || '').toLowerCase();
             const entryType = (entry.dataset.type || '').toLowerCase();
             const search = (entry.dataset.search || '').toLowerCase();
-
             const memberPass = member === 'all' || entryMember === member;
             const typePass = type === 'all' || entryType === type;
             const searchPass = q.length === 0 || search.includes(q);
-            entry.classList.toggle('hidden', !(memberPass && typePass && searchPass));
+            return memberPass && typePass && searchPass;
+        });
+    };
+
+    const applyFilters = () => {
+        state.pageSize = Number(pageSizeSelect?.value || 20);
+        const filtered = matchingEntries();
+        const pages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+        state.page = Math.min(Math.max(state.page, 1), pages);
+        const start = (state.page - 1) * state.pageSize;
+        const pageItems = new Set(filtered.slice(start, start + state.pageSize));
+
+        entries.forEach((entry) => {
+            entry.classList.toggle('hidden', !pageItems.has(entry));
         });
 
         groups.forEach((group) => {
             const visibleInGroup = group.querySelectorAll('[data-entry]:not(.hidden)').length;
             group.classList.toggle('hidden', visibleInGroup === 0);
         });
+
+        if (visibleSummary) {
+            visibleSummary.textContent = `${filtered.length} matching event(s) across ${pages} page(s)`;
+        }
+        if (pageSummary) {
+            pageSummary.textContent = `Showing page ${state.page} of ${pages}`;
+        }
+        if (paginationInfo) {
+            paginationInfo.textContent = `Page ${state.page} of ${pages}`;
+        }
+        if (prevPage) prevPage.disabled = state.page <= 1;
+        if (nextPage) nextPage.disabled = state.page >= pages;
     };
 
     const exportCsv = () => {
@@ -265,10 +747,15 @@
     });
 
     projectSelect?.addEventListener('change', updateProject);
-    searchInput?.addEventListener('input', applyFilters);
-    memberFilter?.addEventListener('change', applyFilters);
-    typeFilter?.addEventListener('change', applyFilters);
+    searchInput?.addEventListener('input', () => { state.page = 1; applyFilters(); });
+    memberFilter?.addEventListener('change', () => { state.page = 1; applyFilters(); });
+    typeFilter?.addEventListener('change', () => { state.page = 1; applyFilters(); });
+    pageSizeSelect?.addEventListener('change', () => { state.page = 1; applyFilters(); });
     exportBtn?.addEventListener('click', exportCsv);
+    prevPage?.addEventListener('click', () => { state.page = Math.max(1, state.page - 1); applyFilters(); });
+    nextPage?.addEventListener('click', () => { state.page += 1; applyFilters(); });
+
+    applyFilters();
 })();
 </script>
 }

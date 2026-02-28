@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>David Ask | Editorial Grid</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,900;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --gold: #c5a059;
+            --dark: #050505;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            cursor: crosshair;
+        }
+
+        .serif { font-family: 'Playfair Display', serif; }
+
+        /* --- ASYMMETRICAL EDITORIAL GRID --- */
+        .editorial-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 40px;
+            padding: 80px 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .editorial-item {
+            position: relative;
+            overflow: hidden;
+            background: #111; 
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none !important;
+        }
+
+        /* Layout Proportions */
+        .item-featured { grid-column: span 8; height: 750px; }
+        .item-side { grid-column: span 4; height: 500px; margin-top: 150px; }
+        .item-wide { grid-column: span 5; height: 600px; margin-top: -100px; }
+        .item-square { grid-column: span 7; height: 700px; }
+
+        @media (max-width: 992px) {
+            .editorial-item { grid-column: span 12 !important; height: 500px !important; margin-top: 0 !important; }
+        }
+
+        .editorial-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(1.1) brightness(0.4);
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(1.1);
+            display: block;
+        }
+
+        .editorial-item:hover .editorial-img {
+            filter: grayscale(0%) contrast(1) brightness(0.6);
+            transform: scale(1);
+        }
+
+        .floating-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 60px;
+            z-index: 10;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%);
+        }
+
+        .item-title {
+            font-size: clamp(2rem, 3.5vw, 5rem);
+            line-height: 0.9;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            transform: translateY(20px);
+            opacity: 0.8;
+            color: #fff;
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .editorial-item:hover .item-title {
+            transform: translateY(0);
+            opacity: 1;
+            color: var(--gold);
+        }
+
+        .item-category {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+            color: var(--gold);
+            margin-bottom: 20px;
+            display: block;
+            transform: translateX(-10px);
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+
+        .editorial-item:hover .item-category {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .editorial-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 0px solid var(--gold);
+            transition: border 0.4s ease;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .editorial-item:hover::after { border-width: 1px; }
+
+    </style>
+</head>
+<body>
+
+    <section class="editorial-container">
+        
+        <a href="#podcast" class="editorial-item item-featured group">
+            <img src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=1200" class="editorial-img" alt="Podcast">
+            <div class="floating-label">
+                <span class="item-category">Audio Experience</span>
+                <h3 class="item-title serif italic">The Ask <br> Experience Podcast</h3>
+            </div>
+        </a>
+
+        <a href="https://davidaskmusic.com/" target="_blank" class="editorial-item item-side group">
+            <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=1200" class="editorial-img" alt="Music">
+            <div class="floating-label">
+                <span class="item-category">Performance</span>
+                <h3 class="item-title serif italic">David Ask <br> Music</h3>
+            </div>
+        </a>
+
+        <a href="#speaker" class="editorial-item item-wide group">
+            <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&q=80&w=1200" 
+                 class="editorial-img" 
+                 alt="Speaking"
+                 onerror="this.src='https://images.pexels.com/photos/2833037/pexels-photo-2833037.jpeg?auto=compress&cs=tinysrgb&w=1200'">
+            <div class="floating-label">
+                <span class="item-category">Public Keynote</span>
+                <h3 class="item-title serif italic">Speaking & <br> Booking</h3>
+            </div>
+        </a>
+
+        <a href="#cards" class="editorial-item item-square group">
+            <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=1200" class="editorial-img" alt="Cards">
+            <div class="floating-label">
+                <span class="item-category">Interactive Tools</span>
+                <h3 class="item-title serif italic">Conversation <br> Cards</h3>
+            </div>
+        </a>
+
+    </section>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // --- PARALLAX SCROLLING ---
+        gsap.utils.toArray('.editorial-item').forEach((item, i) => {
+            const speed = (i % 2 === 0) ? -60 : 60; 
+            gsap.to(item, {
+                y: speed,
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: 1.8
+                }
+            });
+        });
+
+        // --- MAGNETIC TYPOGRAPHY ---
+        const items = document.querySelectorAll('.editorial-item');
+        items.forEach(item => {
+            item.addEventListener('mousemove', (e) => {
+                const rect = item.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                
+                const title = item.querySelector('.item-title');
+                gsap.to(title, {
+                    x: x * 45,
+                    y: y * 45,
+                    rotateX: -y * 12,
+                    rotateY: x * 12,
+                    duration: 0.7,
+                    ease: "power2.out"
+                });
+            });
+
+            item.addEventListener('mouseleave', () => {
+                const title = item.querySelector('.item-title');
+                gsap.to(title, { x: 0, y: 0, rotateX: 0, rotateY: 0, duration: 1.2, ease: "elastic.out(1, 0.3)" });
+            });
+        });
+    </script>
+</body>
+</html>

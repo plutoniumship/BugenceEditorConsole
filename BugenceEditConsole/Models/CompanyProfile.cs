@@ -30,6 +30,9 @@ public class CompanyProfile
     [MaxLength(32)]
     public string? PhoneNumber { get; set; }
 
+    [MaxLength(400)]
+    public string? LogoPath { get; set; }
+
     public int? ExpectedUserCount { get; set; }
 
     [MaxLength(450)]

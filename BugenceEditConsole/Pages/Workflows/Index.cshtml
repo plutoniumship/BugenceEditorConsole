@@ -137,6 +137,84 @@
     .actions-item.danger { color: #f87171; }
     .actions-item.disabled { opacity: 0.5; cursor: default; }
     .hidden { display: none !important; }
+    .archive-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        display: none;
+        z-index: 3400;
+    }
+    .archive-modal-overlay.active { display: block; }
+    .archive-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: min(920px, 94vw);
+        max-height: 80vh;
+        background: #060606;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.65);
+        display: none;
+        z-index: 3500;
+        overflow: hidden;
+    }
+    .archive-modal.active { display: flex; flex-direction: column; }
+    .archive-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .archive-title {
+        margin: 0;
+        font-size: 1rem;
+        color: #f8fafc;
+        letter-spacing: 0.02em;
+    }
+    .archive-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: #0b0b0b;
+        color: #e2e8f0;
+        cursor: pointer;
+    }
+    .archive-body { padding: 10px 14px 14px; overflow: auto; }
+    .archive-table { width: 100%; border-collapse: collapse; }
+    .archive-table th, .archive-table td {
+        padding: 12px 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        font-size: 0.86rem;
+        color: #dbeafe;
+    }
+    .archive-table th {
+        color: #94a3b8;
+        text-transform: uppercase;
+        font-size: 0.68rem;
+        letter-spacing: 0.07em;
+    }
+    .archive-table tr:last-child td { border-bottom: none; }
+    .archive-empty {
+        padding: 18px 8px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    .archive-action-btn {
+        border: 1px solid rgba(255,255,255,0.15);
+        background: #0b0b0b;
+        color: #e2e8f0;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .archive-action-btn:hover { border-color: rgba(255,255,255,0.3); }
 
     .sidebar-overlay {
         position: fixed;
@@ -384,6 +462,30 @@
     </div>
 </aside>
 
+<div class="archive-modal-overlay" id="archiveOverlay"></div>
+<section class="archive-modal" id="archiveModal" aria-hidden="true">
+    <div class="archive-header">
+        <h3 class="archive-title">Archived Workflows</h3>
+        <button type="button" class="archive-close" id="closeArchiveModal">&times;</button>
+    </div>
+    <div class="archive-body">
+        <table class="archive-table">
+            <thead>
+                <tr>
+                    <th>WFID</th>
+                    <th>Name</th>
+                    <th>Trigger</th>
+                    <th>Updated</th>
+                    <th style="text-align:right;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="archiveBodyRows">
+                <tr><td colspan="5" class="archive-empty">Loading archived workflows...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
 <form id="workflowAntiForgery" method="post" style="display:none;">
     @Html.AntiForgeryToken()
 </form>
@@ -396,6 +498,10 @@
     const closeWorkflowModal = document.getElementById('closeWorkflowModal');
     const cancelWorkflowSidebar = document.getElementById('cancelWorkflowSidebar');
     const openArchive = document.getElementById('openArchive');
+    const archiveOverlay = document.getElementById('archiveOverlay');
+    const archiveModal = document.getElementById('archiveModal');
+    const archiveBodyRows = document.getElementById('archiveBodyRows');
+    const closeArchiveModal = document.getElementById('closeArchiveModal');
     const createWorkflowBtn = document.getElementById('createWorkflowBtn');
     const workflowName = document.getElementById('workflowName');
     const workflowDesc = document.getElementById('workflowDesc');
@@ -410,7 +516,6 @@
         topButtonAnchorId: 'openWorkflowModal',
         editButtonAnchorId: 'createWorkflowBtn'
     });
-    const isArchivedView = new URLSearchParams(window.location.search).get('archived') === '1';
     const nameCellClass = 'workflow-name-cell';
 
     const setStatus = (message, isError = false) => {
@@ -453,18 +558,59 @@
         if (event.key === 'Escape') toggleModal(false);
     });
 
-    if (openArchive) {
-        openArchive.classList.toggle('active', isArchivedView);
-        openArchive.addEventListener('click', () => {
-            const url = new URL(window.location.href);
-            if (isArchivedView) {
-                url.searchParams.delete('archived');
-            } else {
-                url.searchParams.set('archived', '1');
-            }
-            window.location.href = url.toString();
-        });
-    }
+    const renderArchivedRows = (items) => {
+        if (!archiveBodyRows) return;
+        if (!Array.isArray(items) || items.length === 0) {
+            archiveBodyRows.innerHTML = '<tr><td colspan="5" class="archive-empty">No archived workflows.</td></tr>';
+            return;
+        }
+
+        archiveBodyRows.innerHTML = items.map((item) => {
+            const name = (item?.name || 'Workflow').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const updated = item?.updatedAtUtc ? new Date(item.updatedAtUtc).toLocaleString() : '-';
+            return `
+                <tr data-archive-id="${item.id}">
+                    <td><strong>${item.displayId ?? '-'}</strong></td>
+                    <td>${name}</td>
+                    <td>${item.triggerType || '-'}</td>
+                    <td>${updated}</td>
+                    <td style="text-align:right;">
+                        <button type="button" class="archive-action-btn" data-unarchive-id="${item.id}">Unarchive</button>
+                    </td>
+                </tr>`;
+        }).join('');
+    };
+
+    const loadArchivedWorkflows = async () => {
+        if (!archiveBodyRows) return;
+        archiveBodyRows.innerHTML = '<tr><td colspan="5" class="archive-empty">Loading archived workflows...</td></tr>';
+        const res = await fetch('/Workflows/Index?handler=Archived', { credentials: 'include' });
+        const raw = await res.text();
+        let data = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch { }
+        if (!res.ok || !data?.success) {
+            archiveBodyRows.innerHTML = `<tr><td colspan="5" class="archive-empty">${data?.message || 'Unable to load archived workflows.'}</td></tr>`;
+            return;
+        }
+        renderArchivedRows(data.archived || []);
+    };
+
+    const toggleArchiveModal = (show) => {
+        archiveOverlay?.classList.toggle('active', show);
+        archiveModal?.classList.toggle('active', show);
+        archiveModal?.setAttribute('aria-hidden', show ? 'false' : 'true');
+        if (show) {
+            loadArchivedWorkflows().catch(() => {
+                if (archiveBodyRows) {
+                    archiveBodyRows.innerHTML = '<tr><td colspan="5" class="archive-empty">Unable to load archived workflows.</td></tr>';
+                }
+            });
+        }
+    };
+
+    openArchive?.addEventListener('click', () => toggleArchiveModal(true));
+    closeArchiveModal?.addEventListener('click', () => toggleArchiveModal(false));
+    archiveOverlay?.addEventListener('click', () => toggleArchiveModal(false));
 
     document.querySelectorAll('.actions-trigger').forEach((btn) => {
         btn.addEventListener('click', (event) => {
@@ -485,8 +631,8 @@
         document.querySelectorAll('.actions-menu').forEach((menu) => {
             const archiveItem = menu.querySelector('[data-action="archive"]');
             const unarchiveItem = menu.querySelector('[data-action="unarchive"]');
-            if (archiveItem) archiveItem.classList.toggle('hidden', isArchivedView);
-            if (unarchiveItem) unarchiveItem.classList.toggle('hidden', !isArchivedView);
+            if (archiveItem) archiveItem.classList.remove('hidden');
+            if (unarchiveItem) unarchiveItem.classList.add('hidden');
         });
     };
     toggleActionVisibility();
@@ -494,15 +640,18 @@
     const postAction = async (handler, payload) => {
         const res = await fetch(`/Workflows/Index?handler=${handler}`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 'RequestVerificationToken': csrfToken
             },
             body: JSON.stringify(payload)
         });
-        const data = await res.json();
+        const raw = await res.text();
+        let data = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch { }
         if (!res.ok || !data?.success) {
-            throw new Error(data?.message || 'Action failed.');
+            throw new Error(data?.message || `Action failed (${res.status}).`);
         }
         return data;
     };
@@ -546,13 +695,9 @@
                         const confirmArchive = confirm(`Archive "${workflowName}"? You can view it in Archive.`);
                         if (!confirmArchive) return;
                         await postAction('Archive', { id: workflowId });
-                        window.location.reload();
-                    }
-                    if (action === 'unarchive') {
-                        const confirmUnarchive = confirm(`Unarchive "${workflowName}"? It will return to Draft.`);
-                        if (!confirmUnarchive) return;
-                        await postAction('Unarchive', { id: workflowId });
-                        window.location.reload();
+                        const row = menu.closest('tr');
+                        if (row) row.remove();
+                        loadArchivedWorkflows().catch(() => {});
                     }
                     if (action === 'delete') {
                         const confirmDelete = confirm(`Delete "${workflowName}"? This moves it to deleted state.`);
@@ -607,6 +752,24 @@
             setStatus('Unable to create workflow. Please try again.', true);
         } finally {
             createWorkflowBtn.disabled = false;
+        }
+    });
+
+    archiveBodyRows?.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-unarchive-id]');
+        if (!button) return;
+        const workflowId = button.getAttribute('data-unarchive-id');
+        if (!workflowId) return;
+        const ok = confirm('Unarchive this workflow? It will return to Draft and appear in the main table.');
+        if (!ok) return;
+        button.disabled = true;
+        try {
+            await postAction('Unarchive', { id: workflowId });
+            toggleArchiveModal(false);
+            window.location.reload();
+        } catch (err) {
+            alert(err?.message || 'Unable to unarchive workflow.');
+            button.disabled = false;
         }
     });
 </script>

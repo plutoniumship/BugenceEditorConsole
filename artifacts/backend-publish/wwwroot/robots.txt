@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Keep internal/admin surfaces out of search indexes.
+Disallow: /Auth/
+Disallow: /Dashboard/
+Disallow: /Settings/
+Disallow: /Tools/
+Disallow: /Workflows/
+Disallow: /Editor/
+Disallow: /ProjectHub/
+Disallow: /api/
+
+Sitemap: https://www.bugence.com/sitemap.xml

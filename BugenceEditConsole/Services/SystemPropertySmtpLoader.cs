@@ -138,7 +138,7 @@ ORDER BY UpdatedAtUtc DESC, Id DESC";
     private static SmtpProfile MapRow(SmtpRow row, ISensitiveDataProtector protector)
     {
         var defaults = ParseSmtpNotes(row.Notes);
-        var decryptedPassword = SafeUnprotect(protector, row.PasswordEncrypted);
+        var decryptedPassword = NormalizeSmtpSecret(SafeUnprotect(protector, row.PasswordEncrypted));
         var port = int.TryParse(row.Port, out var parsedPort) && parsedPort > 0 ? parsedPort : 587;
         var fromAddress = !string.IsNullOrWhiteSpace(defaults.FromAddress)
             ? defaults.FromAddress
@@ -150,9 +150,9 @@ ORDER BY UpdatedAtUtc DESC, Id DESC";
             Id = row.Id,
             Dguid = NormalizeDguid(row.Dguid),
             Name = row.Name,
-            Host = row.Host,
+            Host = row.Host?.Trim() ?? string.Empty,
             Port = port,
-            Username = row.Username,
+            Username = row.Username?.Trim() ?? string.Empty,
             Password = decryptedPassword,
             FromAddress = fromAddress,
             FromName = fromName,
@@ -192,6 +192,18 @@ ORDER BY UpdatedAtUtc DESC, Id DESC";
 
     private static bool IsEmail(string? value)
         => !string.IsNullOrWhiteSpace(value) && value.Contains('@', StringComparison.Ordinal);
+
+    // Gmail app passwords are often copied with spaces between 4-char groups.
+    // Strip whitespace so SMTP auth receives the raw secret.
+    private static string NormalizeSmtpSecret(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        return new string(value.Where(ch => !char.IsWhiteSpace(ch)).ToArray());
+    }
 
     private static string NormalizeDguid(string? value)
         => string.IsNullOrWhiteSpace(value)

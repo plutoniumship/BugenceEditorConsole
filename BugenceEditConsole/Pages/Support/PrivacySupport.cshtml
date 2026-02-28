@@ -60,6 +60,9 @@
         .textarea { resize:vertical; min-height:120px; }
         .btn-submit { background:var(--accent); color:black; border:none; padding:12px 24px; border-radius:10px; font-weight:800; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:8px; }
         .btn-submit:hover { filter:brightness(1.1); transform:translateY(-2px); }
+        .status-banner { margin-bottom:24px; padding:14px 16px; border-radius:14px; border:1px solid rgba(16,185,129,0.35); background:rgba(16,185,129,0.1); color:#a7f3d0; font-weight:700; }
+        .status-banner.error { border-color:rgba(239,68,68,0.35); background:rgba(239,68,68,0.1); color:#fecaca; }
+        .field-validation { margin-top:6px; color:#fca5a5; font-size:0.8rem; }
         .action-list { display:flex; flex-direction:column; gap:12px; }
         .action-btn { background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:15px; border-radius:12px; color:#ddd; cursor:pointer; text-align:left; transition:0.2s; display:flex; align-items:center; gap:15px; }
         .action-btn:hover { background:rgba(255,255,255,0.06); color:white; border-color:#444; }
@@ -85,6 +88,12 @@
 }
 
 <div class="content-container">
+                @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+                {
+                    <div class="status-banner @(string.Equals(Model.StatusKind, "error", StringComparison.OrdinalIgnoreCase) ? "error" : string.Empty)">
+                        @Model.StatusMessage
+                    </div>
+                }
                 <div class="header">
                     <div>
                         <h1>Privacy & Support Center</h1>
@@ -100,24 +109,39 @@
                         <div class="card">
                             <div class="card-title"><i class="fa-regular fa-paper-plane"></i> Submit a Request</div>
                             <p class="card-desc">Have a question about your data or need technical help? Our privacy team usually responds within 24 hours.</p>
-                            <div class="form-group">
-                                <label class="label">Inquiry Type</label>
-                                <select class="select" id="ticketType">
-                                    <option>General Support</option>
-                                    <option>Data Export Request (GDPR)</option>
-                                    <option>Account Deletion</option>
-                                    <option>Report a Vulnerability</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Subject</label>
-                                <input type="text" class="input" id="ticketSubject" placeholder="Briefly describe the issue...">
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Message</label>
-                                <textarea class="textarea" id="ticketMsg" placeholder="Provide details about your request..."></textarea>
-                            </div>
-                            <button class="btn-submit" id="submitBtn">Send Request <i class="fa-solid fa-arrow-right"></i></button>
+                            <form method="post" asp-page-handler="Submit">
+                                <input asp-for="Input.IntegrationKey" type="hidden" />
+                                <input asp-for="Input.SourcePage" type="hidden" />
+                                <div class="form-group">
+                                    <label class="label" asp-for="Input.Category">Inquiry Type</label>
+                                    <select class="select" asp-for="Input.Category">
+                                        <option value="general_support">General Support</option>
+                                        <option value="integration_setup">Integration Setup Request</option>
+                                        <option value="data_export">Data Export Request (GDPR)</option>
+                                        <option value="account_deletion">Account Deletion</option>
+                                        <option value="security">Report a Vulnerability</option>
+                                    </select>
+                                    <span class="field-validation" asp-validation-for="Input.Category"></span>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(Model.Input.IntegrationKey))
+                                {
+                                    <div class="form-group">
+                                        <label class="label">Integration</label>
+                                        <input type="text" class="input" value="@Model.IntegrationLabel" readonly />
+                                    </div>
+                                }
+                                <div class="form-group">
+                                    <label class="label" asp-for="Input.Subject">Subject</label>
+                                    <input asp-for="Input.Subject" type="text" class="input" placeholder="Briefly describe the issue...">
+                                    <span class="field-validation" asp-validation-for="Input.Subject"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label" asp-for="Input.Message">Message</label>
+                                    <textarea asp-for="Input.Message" class="textarea" placeholder="Provide details about your request..."></textarea>
+                                    <span class="field-validation" asp-validation-for="Input.Message"></span>
+                                </div>
+                                <button class="btn-submit" id="submitBtn" type="submit">Send Request <i class="fa-solid fa-arrow-right"></i></button>
+                            </form>
                         </div>
                         <div class="card">
                             <div class="card-title">Common Questions</div>

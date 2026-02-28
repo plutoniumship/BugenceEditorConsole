@@ -1,0 +1,455 @@
+@page
+@model BugenceEditConsole.Pages.Settings.IntegrationModel
+@{
+    ViewData["Title"] = "Integration";
+    ViewData["BodyClass"] = "page-settings-integration";
+}
+
+@section Head {
+<style>
+    :root {
+        --ig-bg: #030303;
+        --ig-surface: rgba(8, 8, 8, 0.98);
+        --ig-border: rgba(255, 255, 255, 0.1);
+        --ig-muted: #98a2b3;
+        --ig-text: #f8fafc;
+        --ig-accent: #f8fafc;
+        --ig-success: #10b981;
+        --ig-danger: #ef4444;
+    }
+    .integration-shell {
+        display: grid;
+        gap: 18px;
+    }
+    .integration-hero {
+        border: 1px solid var(--ig-border);
+        border-radius: 24px;
+        padding: 22px;
+        background: linear-gradient(180deg, rgba(10, 10, 10, 0.98), rgba(4, 4, 4, 0.995));
+        box-shadow: 0 24px 60px rgba(0,0,0,0.42);
+    }
+    .integration-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+    .integration-title {
+        margin: 0;
+        font-family: 'Cabinet Grotesk', sans-serif;
+        font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+        letter-spacing: -0.02em;
+    }
+    .integration-subtitle {
+        margin: 8px 0 0;
+        color: var(--ig-muted);
+        max-width: 760px;
+        font-size: 0.92rem;
+    }
+    .integration-stats {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 12px;
+        border: 1px solid var(--ig-border);
+        background: var(--ig-surface);
+        padding: 10px 14px;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.34);
+    }
+    .integration-stats strong {
+        font-size: 1.05rem;
+        color: #e2e8f0;
+    }
+    .integration-stats span {
+        color: var(--ig-muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+    }
+    .integration-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .integration-card {
+        border: 1px solid var(--ig-border);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(12, 12, 12, 0.98), rgba(6, 6, 6, 0.99));
+        box-shadow: 0 18px 42px rgba(0,0,0,0.35);
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+    }
+    .integration-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .integration-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+    .integration-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        border: 1px solid rgba(255,255,255,0.15);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        flex-shrink: 0;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .integration-brand h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--ig-text);
+        line-height: 1.2;
+    }
+    .integration-badge {
+        border-radius: 999px;
+        border: 1px solid rgba(148,163,184,0.32);
+        padding: 4px 9px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #cbd5e1;
+        background: rgba(255,255,255,0.02);
+    }
+    .integration-badge.connected {
+        color: #34d399;
+        border-color: rgba(16,185,129,0.46);
+        background: rgba(16,185,129,0.14);
+    }
+    .integration-card-body {
+        color: var(--ig-muted);
+        font-size: 0.84rem;
+        display: grid;
+        gap: 8px;
+    }
+    .integration-category {
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #cbd5e1;
+        font-weight: 800;
+    }
+    .integration-account {
+        color: #e2e8f0;
+        font-weight: 700;
+        word-break: break-all;
+    }
+    .integration-input {
+        width: 100%;
+        border: 1px solid rgba(148,163,184,0.33);
+        border-radius: 10px;
+        background: #070707;
+        color: #e2e8f0;
+        padding: 9px 10px;
+        font-size: 0.84rem;
+        font-family: inherit;
+    }
+    .integration-input:focus {
+        outline: none;
+        border-color: rgba(255,255,255,0.28);
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
+    }
+    .integration-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+    .integration-btn {
+        border: 1px solid rgba(148,163,184,0.35);
+        border-radius: 9px;
+        background: rgba(255,255,255,0.03);
+        color: #e2e8f0;
+        padding: 8px 11px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .integration-btn:hover {
+        border-color: rgba(255,255,255,0.28);
+        color: #fff;
+    }
+    .integration-btn.primary {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.2);
+        color: #fff;
+    }
+    .integration-btn.danger {
+        background: rgba(239,68,68,0.16);
+        border-color: rgba(248,113,113,0.5);
+        color: #fecaca;
+    }
+    .integration-note {
+        font-size: 0.72rem;
+        color: #7c8da4;
+        line-height: 1.35;
+    }
+    .integration-note strong { color: #dbeafe; }
+    .integration-alert {
+        border: 1px solid rgba(16,185,129,0.4);
+        background: rgba(16,185,129,0.12);
+        color: #6ee7b7;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 0.84rem;
+        font-weight: 700;
+    }
+    .integration-alert.error {
+        border-color: rgba(248,113,113,0.4);
+        background: rgba(239,68,68,0.12);
+        color: #fecaca;
+    }
+    .integration-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.76);
+        backdrop-filter: blur(4px);
+    }
+    .integration-modal.show { display: flex; }
+    .integration-modal-card {
+        width: min(540px, 92vw);
+        border-radius: 16px;
+        border: 1px solid rgba(148,163,184,0.35);
+        background: linear-gradient(180deg, rgba(12,12,12,0.99), rgba(5,5,5,0.995));
+        box-shadow: 0 28px 56px rgba(0,0,0,0.52);
+        padding: 18px;
+    }
+    .integration-modal-title {
+        margin: 0 0 8px;
+        color: #e2e8f0;
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+    .integration-modal-text {
+        margin: 0;
+        color: #9fb3cb;
+        font-size: 0.86rem;
+        line-height: 1.45;
+    }
+    .integration-modal-actions {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    @@media (max-width: 960px) {
+        .integration-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+}
+
+<div class="integration-shell">
+    <div class="integration-hero">
+    <div class="integration-head">
+        <div>
+            <h1 class="integration-title">Connection Control</h1>
+            <p class="integration-subtitle">
+                Bring social, messaging, CRM, analytics, and workspace channels into one dark-theme connection hub.
+                Cards below show live connection state, next useful actions, and where each integration fits in your operating stack.
+            </p>
+        </div>
+        <div class="integration-stats">
+            <strong>@Model.ConnectedCount/@Model.TotalCount</strong>
+            <span>Configured Connections</span>
+        </div>
+    </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="integration-alert @(string.Equals(Model.StatusKind, "error", StringComparison.OrdinalIgnoreCase) ? "error" : string.Empty)">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <div class="integration-grid">
+        @foreach (var card in Model.Cards)
+        {
+            <article class="integration-card">
+                <div class="integration-card-head">
+                    <div class="integration-brand">
+                        <span class="integration-icon" style="background:linear-gradient(145deg,@card.Accent, rgba(2,6,23,0.9));">
+                            <i class="@card.IconClass"></i>
+                        </span>
+                        <div>
+                            <div class="integration-category">@card.Category</div>
+                            <h3>@card.Name</h3>
+                        </div>
+                    </div>
+                    <span class="integration-badge @(card.IsConnected ? "connected" : string.Empty)">
+                        @(card.IsConnected ? "Connected" : card.ModeLabel)
+                    </span>
+                </div>
+
+                <div class="integration-card-body">
+                    <div>@card.Summary</div>
+                    @if (card.IsConnected)
+                    {
+                        <div class="integration-account">@(string.IsNullOrWhiteSpace(card.AccountLabel) ? "Account linked" : card.AccountLabel)</div>
+                        @if (card.ConnectedAtUtc.HasValue)
+                        {
+                            <div>Linked @card.ConnectedAtUtc.Value.ToLocalTime().ToString("MMM dd, yyyy h:mm tt")</div>
+                        }
+                    }
+                    else
+                    {
+                        <div>No connected account yet.</div>
+                    }
+
+                    @if (card.IsOAuth)
+                    {
+                        <div class="integration-actions">
+                            @if (!card.IsConnected)
+                            {
+                                <a class="integration-btn primary js-connect-popup" href="@card.ConnectPath" data-provider="@card.Name">
+                                    <i class="fa-solid fa-link"></i> @card.PrimaryActionLabel
+                                </a>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Disconnect">
+                                    <input type="hidden" name="provider" value="@card.Key" />
+                                    <button class="integration-btn danger" type="submit">
+                                        <i class="fa-solid fa-link-slash"></i> Disconnect
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                        @if (!card.IsAvailable)
+                        {
+                            <div class="integration-note"><strong>Config note:</strong> Provider keys are not configured yet. A popup will still open and show setup status.</div>
+                        }
+                        <div class="integration-note">OAuth secure sign-in is used for this integration.</div>
+                    }
+                    else
+                    {
+                        <div class="integration-actions">
+                            <a class="integration-btn" href="@card.ConnectPath">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> @card.PrimaryActionLabel
+                            </a>
+                        </div>
+                        <div class="integration-note">This card is staged as a guided entry point so users can move from discovery into configuration without leaving settings.</div>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+</div>
+<div class="integration-modal" id="connectPopupModal" role="dialog" aria-modal="true" aria-labelledby="connectPopupTitle">
+    <div class="integration-modal-card">
+        <h3 class="integration-modal-title" id="connectPopupTitle">Connect account in a secure popup</h3>
+        <p class="integration-modal-text" id="connectPopupText">
+            We will open a popup window for sign-in and permissions. Please allow popups for this site if your browser asks.
+        </p>
+        <div class="integration-modal-actions">
+            <button type="button" class="integration-btn" id="connectPopupCancelBtn">Cancel</button>
+            <button type="button" class="integration-btn primary" id="connectPopupContinueBtn">
+                <i class="fa-solid fa-up-right-from-square"></i> Continue
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(() => {
+    const alertBox = document.querySelector('.integration-alert');
+    const showAlert = (message, isError) => {
+        if (!message) return;
+        if (alertBox) {
+            alertBox.textContent = message;
+            alertBox.classList.toggle('error', !!isError);
+            return;
+        }
+        window.alert(message);
+    };
+
+    const openPopup = (url, title) => {
+        const width = 560;
+        const height = 720;
+        const left = Math.max(0, Math.round((window.screen.width - width) / 2));
+        const top = Math.max(0, Math.round((window.screen.height - height) / 2));
+        const features = `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+        return window.open(url, title, features);
+    };
+
+    const connectModal = document.getElementById('connectPopupModal');
+    const connectModalText = document.getElementById('connectPopupText');
+    const connectCancelBtn = document.getElementById('connectPopupCancelBtn');
+    const connectContinueBtn = document.getElementById('connectPopupContinueBtn');
+    let pendingConnect = null;
+
+    const closeConnectModal = () => {
+        connectModal?.classList.remove('show');
+        pendingConnect = null;
+    };
+
+    const continueConnect = () => {
+        if (!pendingConnect) return;
+        const { href, provider } = pendingConnect;
+        const popup = openPopup(href, `connect-${provider || 'provider'}`);
+        if (!popup) {
+            showAlert('Popup blocked. Please allow popups for this site and click Continue again.', true);
+            if (connectModalText) {
+                connectModalText.textContent = 'Popup was blocked by your browser. Allow popups in browser settings for this site, then press Continue.';
+            }
+            return;
+        }
+        popup.focus();
+        closeConnectModal();
+    };
+
+    connectCancelBtn?.addEventListener('click', closeConnectModal);
+    connectContinueBtn?.addEventListener('click', continueConnect);
+    connectModal?.addEventListener('click', (event) => {
+        if (event.target === connectModal) closeConnectModal();
+    });
+
+    document.querySelectorAll('.js-connect-popup').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            pendingConnect = {
+                href: link.href,
+                provider: (link.dataset.provider || 'provider').toLowerCase()
+            };
+            if (connectModalText) {
+                connectModalText.textContent = `We are about to open a ${link.dataset.provider || 'provider'} sign-in popup. Approve access there, and this window will update automatically.`;
+            }
+            connectModal?.classList.add('show');
+        });
+    });
+
+    window.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data || {};
+        if (data.type !== 'bugence.integration.result') return;
+        const isError = String(data.status || '') !== 'success';
+        showAlert(data.message || 'Integration status updated.', isError);
+        window.setTimeout(() => window.location.reload(), isError ? 400 : 180);
+    });
+})();
+</script>
+}

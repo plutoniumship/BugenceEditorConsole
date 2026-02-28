@@ -5,7 +5,6 @@
     ViewData["BodyClass"] = "page-tools-reactbuildereditor";
 
     var sidebarName = User?.Identity?.Name ?? "Administrator";
-    var sidebarEmail = "admin@bugence.com";
 }
 
 @section Head {
@@ -88,6 +87,8 @@
         <div class="actions">
             <button class="btn" id="backList" type="button"><i class="fa-solid fa-arrow-left"></i> Back</button>
             <button class="btn" id="loadExample" type="button"><i class="fa-solid fa-sparkles"></i> Load Example</button>
+            <button class="btn" id="importLocal" type="button"><i class="fa-solid fa-laptop-file"></i> Import Local</button>
+            <button class="btn" id="downloadWorkspace" type="button"><i class="fa-solid fa-file-zipper"></i> Download Zip</button>
             <button class="btn" id="formatDoc" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Format</button>
             <button class="btn" id="refreshPreview" type="button"><i class="fa-solid fa-rotate"></i> Refresh</button>
             <button class="btn primary" id="saveWorkspace" type="button"><i class="fa-solid fa-floppy-disk"></i> Save</button>
@@ -231,6 +232,7 @@
         <p class="m" id="toastMsg"></p>
     </div>
 
+    <input type="file" id="localWorkspaceInput" style="display:none" webkitdirectory directory multiple />
     <form id="antiForgery" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
 </div>
 
@@ -248,7 +250,9 @@
                 saveWorkspace: baseUrl + "?handler=SaveWorkspace",
                 createNode: baseUrl + "?handler=CreateNode",
                 renameNode: baseUrl + "?handler=RenameNode",
-                deleteNode: baseUrl + "?handler=DeleteNode"
+                deleteNode: baseUrl + "?handler=DeleteNode",
+                importWorkspace: baseUrl + "?handler=ImportWorkspace",
+                downloadWorkspace: baseUrl + "?handler=DownloadWorkspace&id=" + encodeURIComponent(builderId)
             };
 
             const ui = {
@@ -266,7 +270,10 @@
                 btnRefresh: document.getElementById("refreshPreview"),
                 btnFormat: document.getElementById("formatDoc"),
                 btnExample: document.getElementById("loadExample"),
+                btnImportLocal: document.getElementById("importLocal"),
+                btnDownloadWorkspace: document.getElementById("downloadWorkspace"),
                 btnConnect: document.getElementById("connectPage"),
+                localWorkspaceInput: document.getElementById("localWorkspaceInput"),
 
                 btnAddFile: document.getElementById("treeAddFile"),
                 btnAddFolder: document.getElementById("treeAddFolder"),
@@ -336,6 +343,17 @@
                         "RequestVerificationToken": csrfToken()
                     },
                     body: JSON.stringify(body || {})
+                });
+                if (!res.ok) throw new Error(await res.text() || ("POST " + res.status));
+                const ct = (res.headers.get("content-type") || "").toLowerCase();
+                return ct.includes("application/json") ? await res.json() : await res.text();
+            }
+
+            async function apiForm(url, formData) {
+                const res = await fetch(url, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    body: formData
                 });
                 if (!res.ok) throw new Error(await res.text() || ("POST " + res.status));
                 const ct = (res.headers.get("content-type") || "").toLowerCase();
@@ -1225,30 +1243,309 @@ html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Robo
                 const starter = [
                     { path: "App.jsx", nodeType: "file", content:
 `import "./styles/app.css";
+const featuredListings = [
+  { id: "A01", label: "Skyline Penthouse", location: "Downtown Marina", price: "$4.8M", detail: "4 bed · 4.5 bath · 4,200 sq ft", accent: "Panoramic glass walls and a private rooftop plunge deck." },
+  { id: "A02", label: "Cedar Ridge Estate", location: "North Hills", price: "$3.1M", detail: "5 bed · 6 bath · 6,050 sq ft", accent: "Long-drive arrival, wine room, and sculpted courtyard garden." },
+  { id: "A03", label: "Laguna Modern", location: "Coastal Reserve", price: "$2.4M", detail: "3 bed · 3 bath · 2,980 sq ft", accent: "Frameless corners, salt-air terraces, and resort-grade indoor-outdoor flow." }
+];
+
+const signatureServices = [
+  { title: "Acquisition Strategy", text: "We map inventory, off-market opportunities, negotiation posture, and closing leverage around your exact lifestyle goals." },
+  { title: "Seller Positioning", text: "Every listing ships with a cinematic launch plan, editorial staging direction, and data-backed pricing confidence." },
+  { title: "Investor Advisory", text: "Short-term rental, value-add, and portfolio acquisition guidance with market velocity and neighborhood demand scoring." }
+];
+
+const neighborhoods = [
+  { name: "Harbor Point", vibe: "Waterfront towers, chef-driven dining, and concierge living.", score: "94 / 100" },
+  { name: "The Preserve", vibe: "Architect estates, private schools, and acreage privacy.", score: "91 / 100" },
+  { name: "Arts District", vibe: "Loft conversions, galleries, and walkable nightlife energy.", score: "88 / 100" }
+];
+
+const testimonials = [
+  { quote: "They made the search feel curated, strategic, and completely under control.", name: "Lena + Marc", role: "Bought in Harbor Point" },
+  { quote: "The launch campaign created urgency before we even hit the full public market.", name: "Nadia R.", role: "Sold in North Hills" }
+];
+
 export default function App(){
   return (
-    <div className="app">
-      <h1>Bugence React Builder</h1>
-      <p>Edit files on the left, save, and preview instantly.</p>
-      <Card title="Example Component" />
+    <main className="estate-app">
+      <section className="hero-shell">
+        <div className="hero-copy">
+          <p className="eyebrow">AURELIA ESTATES</p>
+          <h1>Luxury real estate with cinematic launches and decisive closings.</h1>
+          <p className="hero-text">
+            From skyline penthouses to private hillside compounds, we build a full-funnel strategy around the property, the buyer profile, and the story that moves markets.
+          </p>
+          <div className="hero-actions">
+            <button className="primary-action">Book a Private Tour</button>
+            <button className="ghost-action">View Signature Listings</button>
+          </div>
+          <div className="hero-metrics">
+            <Metric value="$186M" label="Closed in the last 12 months" />
+            <Metric value="21" label="Days average luxury listing cycle" />
+            <Metric value="97%" label="Repeat and referral clients" />
+          </div>
+        </div>
+        <div className="hero-visual">
+          <div className="hero-card hero-card-main">
+            <div className="hero-card-header">
+              <span>Featured Residence</span>
+              <strong>Private preview</strong>
+            </div>
+            <div className="hero-image"></div>
+            <div className="hero-card-body">
+              <div>
+                <p className="hero-card-title">The Observatory House</p>
+                <p className="hero-card-sub">Sunset Crest · 6 bed · Infinity edge terrace</p>
+              </div>
+              <strong className="hero-card-price">$5.9M</strong>
+            </div>
+          </div>
+          <div className="hero-float hero-float-top">
+            <span>Buyer intent</span>
+            <strong>High-net-worth relocation pipeline active</strong>
+          </div>
+          <div className="hero-float hero-float-bottom">
+            <span>Launch stack</span>
+            <strong>Drone film · Editorial brochure · Invite-only showing</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="ticker-band">
+        <div>Oceanfront</div>
+        <div>Penthouses</div>
+        <div>Architect Estates</div>
+        <div>Investment Assets</div>
+        <div>Private Showings</div>
+      </section>
+
+      <section className="section-block">
+        <div className="section-heading">
+          <p className="eyebrow">Spotlight Collection</p>
+          <div className="heading-row">
+            <h2>Properties designed to stop the scroll and start the negotiation.</h2>
+            <p>Every launch combines architectural storytelling, pricing precision, and buyer targeting that keeps premium inventory moving.</p>
+          </div>
+        </div>
+        <div className="listing-grid">
+          {featuredListings.map((listing) => (
+            <article className="listing-card" key={listing.id}>
+              <div className="listing-media">
+                <span className="listing-chip">{listing.id}</span>
+              </div>
+              <div className="listing-copy">
+                <div className="listing-topline">
+                  <div>
+                    <p className="listing-location">{listing.location}</p>
+                    <h3>{listing.label}</h3>
+                  </div>
+                  <strong>{listing.price}</strong>
+                </div>
+                <p className="listing-detail">{listing.detail}</p>
+                <p className="listing-accent">{listing.accent}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="split-showcase">
+        <div className="showcase-panel dark">
+          <p className="eyebrow">Signature Service</p>
+          <h2>Advisory built for high-value buyers, sellers, and investors.</h2>
+          <div className="service-stack">
+            {signatureServices.map((service) => (
+              <div className="service-card" key={service.title}>
+                <strong>{service.title}</strong>
+                <p>{service.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="showcase-panel light">
+          <p className="eyebrow">Market Snapshot</p>
+          <h2>Neighborhood fit, demand strength, and buyer energy at a glance.</h2>
+          <div className="neighborhood-stack">
+            {neighborhoods.map((spot) => (
+              <div className="neighborhood-row" key={spot.name}>
+                <div>
+                  <strong>{spot.name}</strong>
+                  <p>{spot.vibe}</p>
+                </div>
+                <span>{spot.score}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="story-grid">
+        <div className="story-card portrait-card">
+          <div className="portrait-art"></div>
+          <div className="story-copy">
+            <p className="eyebrow">Lead Advisor</p>
+            <h3>Maria Vale pairs editorial taste with ruthless market discipline.</h3>
+            <p>
+              Her team manages positioning, offer architecture, and client communication with the same level of care luxury brands bring to flagship launches.
+            </p>
+          </div>
+        </div>
+        <div className="story-card process-card">
+          <p className="eyebrow">Client Journey</p>
+          <h3>A three-step process built to reduce noise and increase certainty.</h3>
+          <div className="process-steps">
+            <ProcessStep number="01" title="Curate" text="Filter the market down to a shortlist with pricing logic and timing clarity." />
+            <ProcessStep number="02" title="Stage" text="Build the narrative, visuals, and channel plan that creates premium demand." />
+            <ProcessStep number="03" title="Close" text="Run negotiation, diligence, and final execution with total visibility." />
+          </div>
+        </div>
+      </section>
+
+      <section className="testimonial-band">
+        {testimonials.map((item) => (
+          <blockquote className="quote-card" key={item.name}>
+            <p>"{item.quote}"</p>
+            <footer>
+              <strong>{item.name}</strong>
+              <span>{item.role}</span>
+            </footer>
+          </blockquote>
+        ))}
+      </section>
+
+      <section className="cta-shell">
+        <div>
+          <p className="eyebrow">Next Move</p>
+          <h2>Ready to buy smarter or launch a listing with more impact?</h2>
+        </div>
+        <div className="cta-actions">
+          <button className="primary-action">Schedule a Strategy Call</button>
+          <button className="ghost-action light">Download Market Brief</button>
+        </div>
+      </section>
+    </main>
+  );
+}
+function Metric({ value, label }){
+  return (
+    <div className="metric-card">
+      <strong>{value}</strong>
+      <span>{label}</span>
     </div>
   );
 }
-function Card({ title }){
+function ProcessStep({ number, title, text }){
   return (
-    <div className="card">
-      <div className="card-title">{title}</div>
-      <div className="card-body">This is running in an iframe preview using Babel.</div>
+    <div className="process-step">
+      <span>{number}</span>
+      <div>
+        <strong>{title}</strong>
+        <p>{text}</p>
+      </div>
     </div>
   );
 }`},
                     { path: "styles", nodeType: "folder", content: null },
                     { path: "styles/app.css", nodeType: "file", content:
-`.app{padding:28px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-h1{margin:0 0 8px}
-.card{margin-top:14px;border:1px solid #e5e7eb;border-radius:14px;padding:14px;background:#fff;box-shadow:0 10px 24px rgba(0,0,0,.06)}
-.card-title{font-weight:800;margin-bottom:6px}
-.card-body{color:#4b5563}` }
+`:root{
+  --bg:#f4efe7;
+  --ink:#14110f;
+  --muted:#6f655d;
+  --panel:#fffaf4;
+  --panel-strong:#201b17;
+  --line:rgba(20,17,15,.1);
+  --gold:#c79a5a;
+  --sand:#e8ddcf;
+  --rose:#7d4d46;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Segoe UI Variable","Trebuchet MS","Gill Sans",sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(199,154,90,.18), transparent 28%),
+    linear-gradient(180deg,#f7f2eb 0%, #efe6db 45%, #f6f0e8 100%);
+}
+button{font:inherit}
+.estate-app{min-height:100vh;padding:28px;display:grid;gap:24px}
+.hero-shell,.split-showcase,.story-grid{display:grid;gap:20px}
+.hero-shell{grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);align-items:stretch}
+.hero-copy,.hero-visual,.section-block,.showcase-panel,.story-card,.cta-shell{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:30px;background:rgba(255,250,244,.82);box-shadow:0 24px 70px rgba(60,42,20,.08)}
+.hero-copy{padding:42px;background:radial-gradient(circle at top right, rgba(199,154,90,.16), transparent 26%),linear-gradient(180deg, rgba(255,255,255,.8), rgba(255,247,239,.88))}
+.eyebrow{margin:0 0 12px;font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
+.hero-copy h1,.section-heading h2,.showcase-panel h2,.story-card h3,.cta-shell h2{margin:0;font-family:Georgia,"Times New Roman",serif;line-height:.98;letter-spacing:-.04em}
+.hero-copy h1{font-size:clamp(3rem,6vw,5.6rem);max-width:10ch}
+.hero-text,.heading-row p,.service-card p,.story-copy p,.process-step p{color:var(--muted);line-height:1.6}
+.hero-text{max-width:58ch;font-size:1.02rem;margin:18px 0 0}
+.hero-actions,.cta-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.primary-action,.ghost-action{min-height:48px;padding:0 18px;border-radius:999px;border:1px solid transparent;cursor:pointer;transition:transform .2s ease, box-shadow .2s ease, background .2s ease}
+.primary-action{background:linear-gradient(135deg,var(--panel-strong),#3b312b);color:#fff7ed;box-shadow:0 18px 36px rgba(20,17,15,.18)}
+.ghost-action{border-color:var(--line);background:rgba(255,255,255,.58);color:var(--ink)}
+.ghost-action.light{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#fff}
+.primary-action:hover,.ghost-action:hover{transform:translateY(-1px)}
+.hero-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:32px}
+.metric-card{padding:16px;border-radius:22px;background:rgba(255,255,255,.72);border:1px solid rgba(20,17,15,.08)}
+.metric-card strong{display:block;font-size:1.3rem}
+.metric-card span{display:block;margin-top:8px;color:var(--muted);font-size:.84rem;line-height:1.45}
+.hero-visual{min-height:620px;padding:28px;background:radial-gradient(circle at 20% 10%, rgba(231,195,145,.4), transparent 26%),linear-gradient(160deg,#1f1915 0%, #30261f 42%, #151210 100%)}
+.hero-card{border-radius:28px;border:1px solid rgba(255,255,255,.1);background:rgba(255,250,244,.08);backdrop-filter:blur(8px)}
+.hero-card-main{width:100%;height:100%;padding:18px;display:grid;grid-template-rows:auto 1fr auto}
+.hero-card-header,.hero-card-body{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#f8e7d2}
+.hero-card-header span{color:rgba(255,255,255,.62);font-size:.82rem;letter-spacing:.12em;text-transform:uppercase}
+.hero-image{border-radius:24px;margin:16px 0;min-height:360px;background:linear-gradient(180deg, rgba(22,16,12,.1), rgba(22,16,12,.46)),radial-gradient(circle at 20% 18%, rgba(255,233,192,.95), transparent 18%),linear-gradient(140deg, #b88f5d 0%, #8a5e35 28%, #394b5c 60%, #1e2833 100%);box-shadow:inset 0 -80px 120px rgba(8,8,8,.38)}
+.hero-card-title{margin:0;font-size:1.4rem;font-family:Georgia,"Times New Roman",serif}
+.hero-card-sub{margin:4px 0 0;color:rgba(255,255,255,.68)}
+.hero-card-price{font-size:1.2rem;color:#fff7ec}
+.hero-float{position:absolute;max-width:240px;padding:14px 16px;border-radius:20px;background:rgba(255,250,244,.92);color:var(--ink);box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.hero-float span{display:block;color:var(--muted);font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:6px}
+.hero-float strong{line-height:1.35}
+.hero-float-top{top:26px;right:22px}.hero-float-bottom{left:18px;bottom:22px}
+.ticker-band{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.ticker-band div{padding:14px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.6);text-align:center;font-size:.84rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.section-block{padding:32px}
+.section-heading{display:grid;gap:14px}
+.heading-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.55fr);gap:18px;align-items:end}
+.listing-grid{margin-top:22px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.listing-card{border-radius:24px;overflow:hidden;border:1px solid var(--line);background:#fffdf9}
+.listing-media{min-height:220px;padding:18px;display:flex;align-items:flex-start;justify-content:flex-end;background:linear-gradient(180deg, rgba(20,17,15,.12), rgba(20,17,15,.48)),linear-gradient(135deg,#e8c591 0%, #9d6b3e 32%, #5c7281 63%, #21303c 100%)}
+.listing-chip{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.85);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase}
+.listing-copy{padding:18px}
+.listing-topline{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.listing-location{margin:0 0 6px;color:var(--muted);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+.listing-copy h3{margin:0;font-size:1.4rem;font-family:Georgia,"Times New Roman",serif}
+.listing-detail,.listing-accent{margin:12px 0 0}
+.listing-accent{color:var(--rose)}
+.split-showcase{grid-template-columns:repeat(2,minmax(0,1fr))}
+.showcase-panel{padding:28px}
+.showcase-panel.dark{background:radial-gradient(circle at top right, rgba(231,195,145,.18), transparent 24%),linear-gradient(160deg,#191412 0%, #0f0c0b 100%);color:#fff5ea}
+.showcase-panel.dark .eyebrow,.showcase-panel.dark p{color:rgba(255,245,234,.68)}
+.service-stack,.neighborhood-stack,.process-steps{display:grid;gap:12px;margin-top:20px}
+.service-card,.neighborhood-row,.process-step{padding:16px;border-radius:22px;border:1px solid rgba(20,17,15,.1);background:rgba(255,255,255,.08)}
+.showcase-panel.light .service-card,.showcase-panel.light .neighborhood-row,.showcase-panel.light .process-step{background:rgba(255,255,255,.78)}
+.service-card strong,.neighborhood-row strong,.process-step strong{display:block;margin-bottom:6px}
+.neighborhood-row{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.neighborhood-row p{margin:6px 0 0}
+.neighborhood-row span{padding:8px 10px;border-radius:999px;background:var(--panel-strong);color:#fff5ea;white-space:nowrap}
+.story-grid{grid-template-columns:1.05fr .95fr}
+.story-card{padding:26px}
+.portrait-card{display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:center}
+.portrait-art{min-height:280px;border-radius:24px;background:radial-gradient(circle at 52% 28%, rgba(255,233,205,.9), transparent 16%),radial-gradient(circle at 50% 45%, rgba(61,38,24,.58), transparent 24%),linear-gradient(160deg,#d6b08c 0%, #8e6342 38%, #4a3427 100%)}
+.story-copy h3{margin-bottom:12px}
+.process-card{background:radial-gradient(circle at top left, rgba(199,154,90,.16), transparent 22%),linear-gradient(180deg,#fffaf4,#f3eadf)}
+.process-step{display:grid;grid-template-columns:54px 1fr;gap:14px;align-items:start;background:rgba(255,255,255,.78)}
+.process-step span{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:var(--panel-strong);color:#fff1e1;font-weight:800;letter-spacing:.08em}
+.process-step p{margin:6px 0 0}
+.testimonial-band{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.quote-card{margin:0;padding:24px;border-radius:28px;border:1px solid var(--line);background:rgba(255,255,255,.74)}
+.quote-card p{margin:0;font-size:1.15rem;line-height:1.6;font-family:Georgia,"Times New Roman",serif}
+.quote-card footer{margin-top:18px;display:grid;gap:4px}
+.quote-card span{color:var(--muted)}
+.cta-shell{padding:28px 30px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:radial-gradient(circle at top right, rgba(231,195,145,.16), transparent 26%),linear-gradient(135deg,#201914,#14100d);color:#fff7ec}
+.cta-shell .eyebrow{color:rgba(255,247,236,.66)}
+@@media (max-width: 1100px){.hero-shell,.split-showcase,.story-grid,.heading-row,.portrait-card,.cta-shell{grid-template-columns:1fr;display:grid}.hero-metrics,.listing-grid,.testimonial-band,.ticker-band{grid-template-columns:1fr 1fr}}
+@@media (max-width: 720px){.estate-app{padding:16px}.hero-copy,.hero-visual,.section-block,.showcase-panel,.story-card,.cta-shell{border-radius:24px;padding:20px}.hero-visual{min-height:520px}.hero-metrics,.listing-grid,.testimonial-band,.ticker-band{grid-template-columns:1fr}.hero-card-main{min-height:420px}.hero-image{min-height:240px}}` }
                 ];
 
                 state.nodes = starter.map(toCanonicalNode);
@@ -1378,12 +1675,38 @@ h1{margin:0 0 8px}
                 ui.btnRefresh.addEventListener("click", refreshPreview);
                 ui.btnFormat.addEventListener("click", formatCurrent);
                 ui.btnExample.addEventListener("click", loadExampleWorkspace);
+                ui.btnImportLocal.addEventListener("click", () => ui.localWorkspaceInput?.click());
+                ui.btnDownloadWorkspace.addEventListener("click", () => {
+                    window.location.href = endpoints.downloadWorkspace;
+                });
 
                 ui.btnConnect.addEventListener("click", () => {
                     window.location.href = "/Tools/ReactBuilder?connect=" + encodeURIComponent(builderId);
                 });
 
                 ui.previewClearErrors.addEventListener("click", clearErrors);
+                ui.localWorkspaceInput?.addEventListener("change", async () => {
+                    const files = [...(ui.localWorkspaceInput.files || [])];
+                    if (!files.length) return;
+                    const fd = new FormData();
+                    fd.append("__RequestVerificationToken", csrfToken());
+                    fd.append("reactBuilderId", String(builderId));
+                    files.forEach((file) => fd.append("upload", file, file.webkitRelativePath || file.name));
+                    ui.btnImportLocal.disabled = true;
+                    try {
+                        const result = await apiForm(endpoints.importWorkspace, fd);
+                        if (!result || result.success !== true) {
+                            throw new Error((result && result.message) ? result.message : "Unable to import local workspace.");
+                        }
+                        await loadWorkspace();
+                        toastOk("Workspace Imported", result.message || "Local files imported.");
+                    } catch (e) {
+                        toastErr("Import Failed", (e && e.message) ? e.message : "Unable to import local workspace.");
+                    } finally {
+                        ui.btnImportLocal.disabled = false;
+                        ui.localWorkspaceInput.value = "";
+                    }
+                });
 
                 window.addEventListener("beforeunload", (e) => {
                     if (!state.dirty) return;

@@ -189,6 +189,9 @@
   }
   function initChangeLog() {
     if (!document.body.classList.contains("page-support-changelog")) return;
+    // The Razor page renders real audit records server-side.
+    // Do not inject legacy demo/mock timeline cards on top of live data.
+    return;
     const logs = {
       "2": [
         { id: 101, user: "Administrator", avatar: "A", action: "Updated", target: "index.html", desc: "Modified hero section headline text.", time: "2 hours ago", type: "code", dateGroup: "Today", hasDiff: true, diff: [{ type: "context", line: 45, text: "<div class=\"hero-content\">" }, { type: "removed", line: 46, text: "  <h1>Welcome to the Future</h1>" }, { type: "added", line: 46, text: "  <h1>Build Faster with Bugence</h1>" }] },
@@ -408,6 +411,7 @@
       if (ext === "pdf") return "<i class=\"fa-solid fa-file-pdf file-icon file-icon-pdf\"></i>";
       return "<i class=\"fa-solid fa-file file-icon file-icon-generic\"></i>";
     };
+    const normalizeEntryPath = (value) => String(value || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
 
     setBtn?.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); menu?.classList.toggle("show"); });
     document.addEventListener("click", (e) => { if (menu && setBtn && !menu.contains(e.target) && !setBtn.contains(e.target)) menu.classList.remove("show"); });
@@ -484,7 +488,7 @@
       }
       filesBody.innerHTML = projects.map((p) => `
         <tr data-open-project-row="${esc(p.id)}">
-          <td><button type="button" class="nav-btn" data-open-project="${esc(p.id)}" style="padding:4px 10px;">${fileIcon(p.name, true)}${esc(p.name)}</button></td>
+          <td><button type="button" class="nav-btn file-entry-link" data-open-project="${esc(p.id)}" style="padding:4px 10px;"><span class="file-entry-name">${fileIcon(p.name, true)}${esc(p.name)}</span></button></td>
           <td>Project</td>
           <td>${esc(p.sizeDisplay || fmtSize(p.size))}</td>
           <td>${esc(p.uploaded || "-")}</td>
@@ -495,6 +499,7 @@
 
     const renderProjectChildren = (items) => {
       if (!filesBody) return;
+      const project = projects.find((p) => p.id === activeProjectId) || {};
       const sorted = [...(items || [])].sort((a, b) => {
         if (!!a.isFolder !== !!b.isFolder) return a.isFolder ? -1 : 1;
         return String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
@@ -510,14 +515,28 @@
         const name = String(item.name || "");
         const path = String(item.path || name);
         const type = isFolder ? "Folder" : (name.includes(".") ? name.split(".").pop().toUpperCase() : "File");
+        const projectStatus = project.status || "Uploaded";
+        const projectUploaded = project.uploaded || "-";
+        const actionsMenu = `
+            <div class="actions-cell" style="text-align:right;">
+                <button class="actions-btn" type="button" aria-label="Entry actions"><i class="fa-solid fa-ellipsis"></i></button>
+                <div class="actions-menu">
+                    <button type="button" class="action-rename action-entry-rename" data-action="entry-rename" data-project-id="${esc(activeProjectId)}" data-path="${esc(path)}" data-is-folder="${isFolder ? "true" : "false"}" data-name="${esc(name)}">
+                        Rename ${isFolder ? "Folder" : "File"}
+                    </button>
+                    <button type="button" class="action-delete action-entry-delete" data-action="entry-delete" data-project-id="${esc(activeProjectId)}" data-path="${esc(path)}" data-is-folder="${isFolder ? "true" : "false"}" data-name="${esc(name)}">
+                        Delete ${isFolder ? "Folder" : "File"}
+                    </button>
+                </div>
+            </div>`;
         return `
           <tr ${isFolder ? `data-open-folder-row="${esc(path)}"` : ""}>
-            <td>${isFolder ? `<button type="button" class="nav-btn" data-open-folder="${esc(path)}" style="padding:4px 10px;">${fileIcon(name, true)}${esc(name)}</button>` : `${fileIcon(name, false)}${esc(name)}`}</td>
+            <td>${isFolder ? `<button type="button" class="nav-btn file-entry-link" data-open-folder="${esc(path)}" style="padding:4px 10px;"><span class="file-entry-name">${fileIcon(name, true)}${esc(name)}</span></button>` : `<span class="file-entry-name">${fileIcon(name, false)}${esc(name)}</span>`}</td>
             <td>${esc(type)}</td>
             <td>${isFolder ? "-" : esc(fmtSize(item.size))}</td>
-            <td>${esc((projects.find((p) => p.id === activeProjectId) || {}).uploaded || "-")}</td>
-            <td><span class="status-badge ${statusClass((projects.find((p) => p.id === activeProjectId) || {}).status)}"><span class="dot"></span> ${esc((projects.find((p) => p.id === activeProjectId) || {}).status || "Uploaded")}</span></td>
-            <td class="actions-cell" style="text-align:right;">${isFolder ? `<button type="button" class="nav-btn" data-open-folder="${esc(path)}">Open</button>` : "-"}</td>
+            <td>${esc(projectUploaded)}</td>
+            <td><span class="status-badge ${statusClass(projectStatus)}"><span class="dot"></span> ${esc(projectStatus)}</span></td>
+            <td>${actionsMenu}</td>
           </tr>`;
       }).join("");
     };
@@ -831,28 +850,162 @@
       openCreateDrawer();
     }
 
-    const up = async (files, pid, h) => {
-      if (!files?.length) return;
+    const uploadConfirmOverlay = $id("uploadConfirmOverlay");
+    const uploadConfirmMeta = $id("uploadConfirmMeta");
+    const uploadConfirmFiles = $id("uploadConfirmFiles");
+    const uploadConfirmCancelBtn = $id("uploadConfirmCancelBtn");
+    const uploadConfirmStartBtn = $id("uploadConfirmStartBtn");
+    const uploadConfirmProgress = $id("uploadConfirmProgress");
+    const uploadConfirmBar = $id("uploadConfirmBar");
+    const uploadConfirmPercent = $id("uploadConfirmPercent");
+    const uploadConfirmPhase = $id("uploadConfirmPhase");
+    const uploadConfirmError = $id("uploadConfirmError");
+    const uploadInlineProgress = $id("uploadProgress");
+    const uploadInlinePercent = $id("uploadPercent");
+    const uploadInlineBar = $id("uploadBar");
+    let pendingUpload = null;
+    let uploadXhr = null;
+
+    const fmtUploadSize = (bytes) => fmtSize(bytes);
+    const summarizeUpload = (files) => {
+      const list = [...(files || [])].filter(Boolean);
+      const totalBytes = list.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+      const folderSet = new Set();
+      list.forEach((file) => {
+        const rel = String(file.webkitRelativePath || "");
+        const head = rel.includes("/") ? rel.split("/")[0] : "";
+        if (head) folderSet.add(head);
+      });
+      return { count: list.length, totalBytes, folderCount: folderSet.size };
+    };
+
+    const setUploadProgress = (percent, phaseText) => {
+      const pct = Math.max(0, Math.min(100, Math.round(percent || 0)));
+      if (uploadInlineProgress) uploadInlineProgress.style.display = "block";
+      if (uploadInlinePercent) uploadInlinePercent.textContent = `${pct}%`;
+      if (uploadInlineBar) uploadInlineBar.style.width = `${pct}%`;
+      if (uploadConfirmProgress) uploadConfirmProgress.style.display = "block";
+      if (uploadConfirmPercent) uploadConfirmPercent.textContent = `${pct}%`;
+      if (uploadConfirmBar) uploadConfirmBar.style.width = `${pct}%`;
+      if (uploadConfirmPhase && phaseText) uploadConfirmPhase.textContent = phaseText;
+    };
+
+    const resetUploadModal = () => {
+      if (uploadConfirmProgress) uploadConfirmProgress.style.display = "none";
+      if (uploadConfirmBar) uploadConfirmBar.style.width = "0%";
+      if (uploadConfirmPercent) uploadConfirmPercent.textContent = "0%";
+      if (uploadConfirmPhase) uploadConfirmPhase.textContent = "Uploading files...";
+      if (uploadConfirmError) {
+        uploadConfirmError.style.display = "none";
+        uploadConfirmError.textContent = "";
+      }
+      if (uploadInlineProgress) uploadInlineProgress.style.display = "none";
+      if (uploadInlineBar) uploadInlineBar.style.width = "0%";
+      if (uploadInlinePercent) uploadInlinePercent.textContent = "0%";
+      if (uploadConfirmStartBtn) {
+        uploadConfirmStartBtn.disabled = false;
+        uploadConfirmStartBtn.innerHTML = '<i class="fa-solid fa-check"></i> Confirm Upload';
+      }
+      if (uploadConfirmCancelBtn) uploadConfirmCancelBtn.disabled = false;
+    };
+
+    const closeUploadConfirm = () => {
+      if (uploadXhr) return;
+      pendingUpload = null;
+      uploadConfirmOverlay?.classList.remove("show");
+      resetUploadModal();
+    };
+
+    const openUploadConfirm = (files, pid, handler, label) => {
+      const list = [...(files || [])].filter(Boolean);
+      if (!list.length || !uploadConfirmOverlay) return;
+      pendingUpload = { files: list, pid, handler, label };
+      const summary = summarizeUpload(list);
+      if (uploadConfirmMeta) {
+        uploadConfirmMeta.innerHTML = `
+          <span><strong>${summary.count}</strong> files</span>
+          <span><strong>${summary.folderCount}</strong> folders</span>
+          <span><strong>${fmtUploadSize(summary.totalBytes)}</strong> total</span>`;
+      }
+      if (uploadConfirmFiles) {
+        uploadConfirmFiles.innerHTML = list.slice(0, 8).map((file) => `<div>${esc(file.webkitRelativePath || file.name)}</div>`).join("");
+        if (list.length > 8) uploadConfirmFiles.innerHTML += `<div style="color:#94a3b8; margin-top:6px;">+${list.length - 8} more files</div>`;
+      }
+      resetUploadModal();
+      uploadConfirmOverlay.classList.add("show");
+    };
+
+    const runUpload = async () => {
+      if (!pendingUpload || uploadXhr) return;
+      const { files, pid, handler } = pendingUpload;
       const fd = new FormData();
       if (t) fd.append("__RequestVerificationToken", t);
       if (pid) fd.append("projectId", String(pid));
-      [...files].forEach((f) => fd.append("upload", f, f.webkitRelativePath || f.name));
-      const { r, p } = await jsonReq(`/Dashboard/Index?handler=${encodeURIComponent(h)}${pid ? `&projectId=${encodeURIComponent(String(pid))}` : ""}`, { method: "POST", body: fd });
-      if (!r.ok || !p?.success) throw new Error(msg(p, "Upload failed."));
-      toast(msg(p, "Upload complete."), "success");
-      setTimeout(() => location.reload(), 650);
+      files.forEach((file) => fd.append("upload", file, file.webkitRelativePath || file.name));
+      if (uploadConfirmStartBtn) {
+        uploadConfirmStartBtn.disabled = true;
+        uploadConfirmStartBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading';
+      }
+      if (uploadConfirmCancelBtn) uploadConfirmCancelBtn.disabled = true;
+      setUploadProgress(0, "Uploading files...");
+
+      const url = `/Dashboard/Index?handler=${encodeURIComponent(handler)}${pid ? `&projectId=${encodeURIComponent(String(pid))}` : ""}`;
+      const xhr = new XMLHttpRequest();
+      uploadXhr = xhr;
+      xhr.open("POST", url, true);
+      xhr.responseType = "json";
+      xhr.upload.onprogress = (event) => {
+        if (!event.lengthComputable) return;
+        setUploadProgress((event.loaded / event.total) * 100, "Uploading files...");
+      };
+      xhr.onerror = () => {
+        if (uploadConfirmError) {
+          uploadConfirmError.textContent = "Upload failed. Check your connection and try again.";
+          uploadConfirmError.style.display = "block";
+        }
+        uploadXhr = null;
+        if (uploadConfirmCancelBtn) uploadConfirmCancelBtn.disabled = false;
+      };
+      xhr.onload = () => {
+        const payload = xhr.response || {};
+        uploadXhr = null;
+        if (xhr.status < 200 || xhr.status >= 300 || payload?.success !== true) {
+          if (uploadConfirmError) {
+            uploadConfirmError.textContent = msg(payload, "Upload failed.");
+            uploadConfirmError.style.display = "block";
+          }
+          if (uploadConfirmStartBtn) {
+            uploadConfirmStartBtn.disabled = false;
+            uploadConfirmStartBtn.innerHTML = '<i class="fa-solid fa-check"></i> Confirm Upload';
+          }
+          if (uploadConfirmCancelBtn) uploadConfirmCancelBtn.disabled = false;
+          return;
+        }
+        setUploadProgress(100, "Finalizing upload...");
+        toast(msg(payload, "Upload complete."), "success");
+        setTimeout(() => location.reload(), 500);
+      };
+      xhr.send(fd);
     };
+
+    uploadConfirmCancelBtn?.addEventListener("click", closeUploadConfirm);
+    uploadConfirmOverlay?.addEventListener("click", (event) => {
+      if (event.target === uploadConfirmOverlay) closeUploadConfirm();
+    });
+    uploadConfirmStartBtn?.addEventListener("click", runUpload);
+
+    const queueUpload = (files, pid, handler, label) => openUploadConfirm(files, pid, handler, label);
     $id("uploadDrop")?.addEventListener("click", () => $id("uploadInput")?.click());
     $id("uploadDrop")?.addEventListener("dragover", (e) => { e.preventDefault(); $id("uploadDrop").classList.add("dragover"); });
     $id("uploadDrop")?.addEventListener("dragleave", () => $id("uploadDrop").classList.remove("dragover"));
-    $id("uploadDrop")?.addEventListener("drop", (e) => { e.preventDefault(); $id("uploadDrop").classList.remove("dragover"); up(e.dataTransfer?.files, null, "Upload").catch((er) => toast(er.message || "Upload failed.", "error")); });
-    $id("uploadInput")?.addEventListener("change", () => { up($id("uploadInput").files, null, "Upload").catch((er) => toast(er.message || "Upload failed.", "error")); $id("uploadInput").value = ""; });
+    $id("uploadDrop")?.addEventListener("drop", (e) => { e.preventDefault(); $id("uploadDrop").classList.remove("dragover"); queueUpload(e.dataTransfer?.files, null, "Upload", "Upload"); });
+    $id("uploadInput")?.addEventListener("change", () => { queueUpload($id("uploadInput").files, null, "Upload", "Upload"); $id("uploadInput").value = ""; });
     $id("uploadZipBtn")?.addEventListener("click", () => $id("uploadZipInput")?.click());
-    $id("uploadZipInput")?.addEventListener("change", () => { up($id("uploadZipInput").files, null, "Upload").catch((er) => toast(er.message || "Upload failed.", "error")); $id("uploadZipInput").value = ""; });
+    $id("uploadZipInput")?.addEventListener("change", () => { queueUpload($id("uploadZipInput").files, null, "Upload", "Upload"); $id("uploadZipInput").value = ""; });
     let rePid = null;
     $id("reuploadInputGlobal")?.addEventListener("change", () => {
       if (!rePid) return;
-      up($id("reuploadInputGlobal").files, rePid, "Reupload").catch((er) => toast(er.message || "Re-upload failed.", "error"));
+      queueUpload($id("reuploadInputGlobal").files, rePid, "Reupload", "Reupload");
       rePid = null;
       $id("reuploadInputGlobal").value = "";
     });
@@ -872,19 +1025,23 @@
         return;
       }
       const a = e.target.closest("[data-action]");
-      if (a?.matches(".action-deploy,.action-rename,.action-delete")) {
+      if (a?.matches(".action-deploy,.action-rename,.action-delete,.action-entry-rename,.action-entry-delete")) {
         e.preventDefault();
         const id = Number(a.dataset.id), name = a.dataset.name || "Project", act = a.dataset.action;
-        if (!Number.isFinite(id)) return;
         try {
           if (act === "deploy") {
+            if (!Number.isFinite(id)) return;
             const { r, p } = await post("DeployLatest", { projectId: id });
             if (!r.ok || !p?.success) throw new Error(msg(p, "Deploy failed."));
             toast(`Deploy started for ${name}.`, "success");
             setTimeout(() => location.reload(), 650);
           }
-          if (act === "reupload") { rePid = id; $id("reuploadInputGlobal")?.click(); }
+          if (act === "reupload") {
+            if (!Number.isFinite(id)) return;
+            rePid = id; $id("reuploadInputGlobal")?.click();
+          }
           if (act === "rename") {
+            if (!Number.isFinite(id)) return;
             const next = prompt("Rename project", name);
             if (!next?.trim()) return;
             const { r, p } = await post("RenameProject", { projectId: id, newName: next.trim() });
@@ -893,11 +1050,38 @@
             setTimeout(() => location.reload(), 450);
           }
           if (act === "delete") {
+            if (!Number.isFinite(id)) return;
             if (!confirm(`Delete ${name} permanently?`)) return;
             const { r, p } = await post("DeleteProject", { projectId: id });
             if (!r.ok || !p?.success) throw new Error(msg(p, "Delete failed."));
             toast("Project deleted.", "success");
             setTimeout(() => location.reload(), 450);
+          }
+          if (act === "entry-rename") {
+            const projectId = Number(a.dataset.projectId);
+            const path = a.dataset.path || "";
+            const isFolder = a.dataset.isFolder === "true";
+            const next = prompt(`Rename ${isFolder ? "folder" : "file"}`, name);
+            if (!Number.isFinite(projectId) || !path || !next?.trim()) return;
+            const { r, p } = await post("RenameEntry", { projectId, path, isFolder, newName: next.trim() });
+            if (!r.ok || !p?.success) throw new Error(msg(p, "Rename failed."));
+            toast(`${isFolder ? "Folder" : "File"} renamed.`, "success");
+            await loadProjectChildren();
+          }
+          if (act === "entry-delete") {
+            const projectId = Number(a.dataset.projectId);
+            const path = a.dataset.path || "";
+            const isFolder = a.dataset.isFolder === "true";
+            if (!Number.isFinite(projectId) || !path) return;
+            if (!confirm(`Delete ${isFolder ? "folder" : "file"} "${name}" permanently?`)) return;
+            const { r, p } = await post("DeleteEntry", { projectId, path, isFolder });
+            if (!r.ok || !p?.success) throw new Error(msg(p, "Delete failed."));
+            toast(`${isFolder ? "Folder" : "File"} deleted.`, "success");
+            if (activePath && normalizeEntryPath(activePath) === normalizeEntryPath(path) && isFolder) {
+              await goBack();
+            } else {
+              await loadProjectChildren();
+            }
           }
         } catch (er) { toast(er.message || "Action failed.", "error"); }
       } else if (!e.target.closest(".actions-cell")) {

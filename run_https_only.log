@@ -1,0 +1,236 @@
+Using launch settings from BugenceEditConsole\Properties\launchSettings.json...
+Building...
+C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\BugenceEditConsole.csproj : warning NU1701: Package 'PdfiumViewer 2.13.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net9.0'. This package may not be fully compatible with your project.
+C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\BugenceEditConsole.csproj : warning NU1701: Package 'PdfiumViewer 2.13.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net9.0'. This package may not be fully compatible with your project.
+C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\BugenceEditConsole.csproj(60,5): warning MSB6007: The "/usr/local/bin" value passed to the Environment property is not in the format "name=value", where the value part may be empty.
+fail: Microsoft.EntityFrameworkCore.Migrations[20409]
+      The model for context 'ApplicationDbContext' has pending changes. Add a new migration before updating the database. See https://aka.ms/efcore-docs-pending-changes.
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (76ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsLock' AND "type" = 'table';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT OR IGNORE INTO "__EFMigrationsLock"("Id", "Timestamp") VALUES(1, '2026-02-26 02:44:20.38985+00:00');
+      SELECT changes();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+          "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+          "ProductVersion" TEXT NOT NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+info: Microsoft.EntityFrameworkCore.Migrations[20405]
+      No migrations were applied. The database is already up to date.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DELETE FROM "__EFMigrationsLock";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[@__normalizedUserName_0='?' (Size = 5)], CommandType='Text', CommandTimeout='30']
+      SELECT "a"."Id", "a"."AccessFailedCount", "a"."CompanyId", "a"."ConcurrencyStamp", "a"."CreatedAtUtc", "a"."DisplayName", "a"."Email", "a"."EmailConfirmed", "a"."FirstName", "a"."IsCompanyAdmin", "a"."LastName", "a"."LockoutEnabled", "a"."LockoutEnd", "a"."NameChangeCount", "a"."NameLastChangedAtUtc", "a"."NormalizedEmail", "a"."NormalizedUserName", "a"."PasswordHash", "a"."PhoneNumber", "a"."PhoneNumberConfirmed", "a"."ProfileCompletedAtUtc", "a"."ProfileImagePath", "a"."SecurityStamp", "a"."TwoFactorEnabled", "a"."UserName"
+      FROM "AspNetUsers" AS "a"
+      WHERE "a"."NormalizedUserName" = @__normalizedUserName_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__user_CompanyId_Value_0='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "CompanyProfiles" AS "c"
+          WHERE "c"."Id" = @__user_CompanyId_Value_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__normalizedUserName_0='?' (Size = 5)], CommandType='Text', CommandTimeout='30']
+      SELECT "a"."Id", "a"."AccessFailedCount", "a"."CompanyId", "a"."ConcurrencyStamp", "a"."CreatedAtUtc", "a"."DisplayName", "a"."Email", "a"."EmailConfirmed", "a"."FirstName", "a"."IsCompanyAdmin", "a"."LastName", "a"."LockoutEnabled", "a"."LockoutEnd", "a"."NameChangeCount", "a"."NameLastChangedAtUtc", "a"."NormalizedEmail", "a"."NormalizedUserName", "a"."PasswordHash", "a"."PhoneNumber", "a"."PhoneNumberConfirmed", "a"."ProfileCompletedAtUtc", "a"."ProfileImagePath", "a"."SecurityStamp", "a"."TwoFactorEnabled", "a"."UserName"
+      FROM "AspNetUsers" AS "a"
+      WHERE "a"."NormalizedUserName" = @__normalizedUserName_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@p24='?' (Size = 36), @p0='?' (DbType = Int32), @p1='?' (DbType = Guid), @p2='?' (Size = 36), @p25='?' (Size = 36), @p3='?' (DbType = DateTime), @p4='?' (Size = 5), @p5='?' (Size = 17), @p6='?' (DbType = Boolean), @p7='?' (Size = 5), @p8='?' (DbType = Boolean), @p9='?', @p10='?' (DbType = Boolean), @p11='?' (DbType = DateTimeOffset), @p12='?' (DbType = Int32), @p13='?' (DbType = DateTime), @p14='?' (Size = 17), @p15='?' (Size = 5), @p16='?', @p17='?', @p18='?' (DbType = Boolean), @p19='?' (DbType = DateTime), @p20='?', @p21='?' (Size = 32), @p22='?' (DbType = Boolean), @p23='?' (Size = 5)], CommandType='Text', CommandTimeout='30']
+      UPDATE "AspNetUsers" SET "AccessFailedCount" = @p0, "CompanyId" = @p1, "ConcurrencyStamp" = @p2, "CreatedAtUtc" = @p3, "DisplayName" = @p4, "Email" = @p5, "EmailConfirmed" = @p6, "FirstName" = @p7, "IsCompanyAdmin" = @p8, "LastName" = @p9, "LockoutEnabled" = @p10, "LockoutEnd" = @p11, "NameChangeCount" = @p12, "NameLastChangedAtUtc" = @p13, "NormalizedEmail" = @p14, "NormalizedUserName" = @p15, "PasswordHash" = @p16, "PhoneNumber" = @p17, "PhoneNumberConfirmed" = @p18, "ProfileCompletedAtUtc" = @p19, "ProfileImagePath" = @p20, "SecurityStamp" = @p21, "TwoFactorEnabled" = @p22, "UserName" = @p23
+      WHERE "Id" = @p24 AND "ConcurrencyStamp" = @p25
+      RETURNING 1;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__normalizedUserName_0='?' (Size = 5)], CommandType='Text', CommandTimeout='30']
+      SELECT "a"."Id", "a"."AccessFailedCount", "a"."CompanyId", "a"."ConcurrencyStamp", "a"."CreatedAtUtc", "a"."DisplayName", "a"."Email", "a"."EmailConfirmed", "a"."FirstName", "a"."IsCompanyAdmin", "a"."LastName", "a"."LockoutEnabled", "a"."LockoutEnd", "a"."NameChangeCount", "a"."NameLastChangedAtUtc", "a"."NormalizedEmail", "a"."NormalizedUserName", "a"."PasswordHash", "a"."PhoneNumber", "a"."PhoneNumberConfirmed", "a"."ProfileCompletedAtUtc", "a"."ProfileImagePath", "a"."SecurityStamp", "a"."TwoFactorEnabled", "a"."UserName"
+      FROM "AspNetUsers" AS "a"
+      WHERE "a"."NormalizedUserName" = @__normalizedUserName_0
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@p24='?' (Size = 36), @p0='?' (DbType = Int32), @p1='?' (DbType = Guid), @p2='?' (Size = 36), @p25='?' (Size = 36), @p3='?' (DbType = DateTime), @p4='?' (Size = 5), @p5='?' (Size = 17), @p6='?' (DbType = Boolean), @p7='?' (Size = 5), @p8='?' (DbType = Boolean), @p9='?', @p10='?' (DbType = Boolean), @p11='?' (DbType = DateTimeOffset), @p12='?' (DbType = Int32), @p13='?' (DbType = DateTime), @p14='?' (Size = 17), @p15='?' (Size = 5), @p16='?' (Size = 84), @p17='?', @p18='?' (DbType = Boolean), @p19='?' (DbType = DateTime), @p20='?', @p21='?' (Size = 32), @p22='?' (DbType = Boolean), @p23='?' (Size = 5)], CommandType='Text', CommandTimeout='30']
+      UPDATE "AspNetUsers" SET "AccessFailedCount" = @p0, "CompanyId" = @p1, "ConcurrencyStamp" = @p2, "CreatedAtUtc" = @p3, "DisplayName" = @p4, "Email" = @p5, "EmailConfirmed" = @p6, "FirstName" = @p7, "IsCompanyAdmin" = @p8, "LastName" = @p9, "LockoutEnabled" = @p10, "LockoutEnd" = @p11, "NameChangeCount" = @p12, "NameLastChangedAtUtc" = @p13, "NormalizedEmail" = @p14, "NormalizedUserName" = @p15, "PasswordHash" = @p16, "PhoneNumber" = @p17, "PhoneNumberConfirmed" = @p18, "ProfileCompletedAtUtc" = @p19, "ProfileImagePath" = @p20, "SecurityStamp" = @p21, "TwoFactorEnabled" = @p22, "UserName" = @p23
+      WHERE "Id" = @p24 AND "ConcurrencyStamp" = @p25
+      RETURNING 1;
+info: DatabaseSeeder[0]
+      Updated admin account to admin@bugence.com
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__user_CompanyId_Value_0='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "CompanyProfiles" AS "c"
+          WHERE "c"."Id" = @__user_CompanyId_Value_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__normalizedEmail_0='?' (Size = 17)], CommandType='Text', CommandTimeout='30']
+      SELECT "a"."Id", "a"."AccessFailedCount", "a"."CompanyId", "a"."ConcurrencyStamp", "a"."CreatedAtUtc", "a"."DisplayName", "a"."Email", "a"."EmailConfirmed", "a"."FirstName", "a"."IsCompanyAdmin", "a"."LastName", "a"."LockoutEnabled", "a"."LockoutEnd", "a"."NameChangeCount", "a"."NameLastChangedAtUtc", "a"."NormalizedEmail", "a"."NormalizedUserName", "a"."PasswordHash", "a"."PhoneNumber", "a"."PhoneNumberConfirmed", "a"."ProfileCompletedAtUtc", "a"."ProfileImagePath", "a"."SecurityStamp", "a"."TwoFactorEnabled", "a"."UserName"
+      FROM "AspNetUsers" AS "a"
+      WHERE "a"."NormalizedEmail" = @__normalizedEmail_0
+      LIMIT 2
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__normalizedEmail_0='?' (Size = 23)], CommandType='Text', CommandTimeout='30']
+      SELECT "a"."Id", "a"."AccessFailedCount", "a"."CompanyId", "a"."ConcurrencyStamp", "a"."CreatedAtUtc", "a"."DisplayName", "a"."Email", "a"."EmailConfirmed", "a"."FirstName", "a"."IsCompanyAdmin", "a"."LastName", "a"."LockoutEnabled", "a"."LockoutEnd", "a"."NameChangeCount", "a"."NameLastChangedAtUtc", "a"."NormalizedEmail", "a"."NormalizedUserName", "a"."PasswordHash", "a"."PhoneNumber", "a"."PhoneNumberConfirmed", "a"."ProfileCompletedAtUtc", "a"."ProfileImagePath", "a"."SecurityStamp", "a"."TwoFactorEnabled", "a"."UserName"
+      FROM "AspNetUsers" AS "a"
+      WHERE "a"."NormalizedEmail" = @__normalizedEmail_0
+      LIMIT 2
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__user_CompanyId_Value_0='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "CompanyProfiles" AS "c"
+          WHERE "c"."Id" = @__user_CompanyId_Value_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@__user_CompanyId_Value_0='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "CompanyProfiles" AS "c"
+          WHERE "c"."Id" = @__user_CompanyId_Value_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "a"."Id", "a"."CompanyId"
+      FROM "AspNetUsers" AS "a"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "u"."Id", "u"."CompanyId", "u"."Data", "u"."Description", "u"."DisplayName", "u"."FolderName", "u"."LastPublishedAtUtc", "u"."OriginalFileName", "u"."PublishStoragePath", "u"."RepoUrl", "u"."SizeBytes", "u"."Slug", "u"."Status", "u"."UploadedAtUtc", "u"."UserId"
+      FROM "UploadedProjects" AS "u"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "w"."Id", "w"."ApplicationId", "w"."AttachmentPath", "w"."Caption", "w"."CompanyId", "w"."CreatedAtUtc", "w"."CreatedByName", "w"."DefinitionJson", "w"."Description", "w"."Dguid", "w"."Diagram", "w"."DisplayId", "w"."FileListId", "w"."InActive", "w"."KpiActivity", "w"."Name", "w"."OwnerUserId", "w"."StartupArgument1", "w"."StartupArgument2", "w"."StartupType", "w"."Status", "w"."TriggerConfigJson", "w"."TriggerType", "w"."UpdatedAtUtc", "w"."ViewOnApplication", "w"."WorkflowType"
+      FROM "Workflows" AS "w"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "t"."Id", "t"."DisplayName", "t"."Email", "t"."JoinedAtUtc", "t"."LastActiveAtUtc", "t"."OwnerUserId", "t"."Phone", "t"."Role", "t"."Status", "t"."Title", "t"."UserId"
+      FROM "TeamMembers" AS "t"
+      WHERE "t"."UserId" IS NOT NULL
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__seed_Slug_0='?' (Size = 5)], CommandType='Text', CommandTimeout='30']
+      SELECT "s0"."Id", "s0"."CreatedAtUtc", "s0"."Description", "s0"."HeroImagePath", "s0"."Name", "s0"."Slug", "s0"."UpdatedAtUtc", "p"."Id", "p"."ContentType", "p"."ContentValue", "p"."CssSelector", "p"."DisplayOrder", "p"."IsLocked", "p"."LastPublishedAtUtc", "p"."MediaAltText", "p"."MediaPath", "p"."SectionKey", "p"."SitePageId", "p"."Title", "p"."UpdatedAtUtc"
+      FROM (
+          SELECT "s"."Id", "s"."CreatedAtUtc", "s"."Description", "s"."HeroImagePath", "s"."Name", "s"."Slug", "s"."UpdatedAtUtc"
+          FROM "SitePages" AS "s"
+          WHERE "s"."Slug" = @__seed_Slug_0
+          LIMIT 1
+      ) AS "s0"
+      LEFT JOIN "PageSections" AS "p" ON "s0"."Id" = "p"."SitePageId"
+      ORDER BY "s0"."Id"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__seed_Slug_0='?' (Size = 11)], CommandType='Text', CommandTimeout='30']
+      SELECT "s0"."Id", "s0"."CreatedAtUtc", "s0"."Description", "s0"."HeroImagePath", "s0"."Name", "s0"."Slug", "s0"."UpdatedAtUtc", "p"."Id", "p"."ContentType", "p"."ContentValue", "p"."CssSelector", "p"."DisplayOrder", "p"."IsLocked", "p"."LastPublishedAtUtc", "p"."MediaAltText", "p"."MediaPath", "p"."SectionKey", "p"."SitePageId", "p"."Title", "p"."UpdatedAtUtc"
+      FROM (
+          SELECT "s"."Id", "s"."CreatedAtUtc", "s"."Description", "s"."HeroImagePath", "s"."Name", "s"."Slug", "s"."UpdatedAtUtc"
+          FROM "SitePages" AS "s"
+          WHERE "s"."Slug" = @__seed_Slug_0
+          LIMIT 1
+      ) AS "s0"
+      LEFT JOIN "PageSections" AS "p" ON "s0"."Id" = "p"."SitePageId"
+      ORDER BY "s0"."Id"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__seed_Slug_0='?' (Size = 11)], CommandType='Text', CommandTimeout='30']
+      SELECT "s0"."Id", "s0"."CreatedAtUtc", "s0"."Description", "s0"."HeroImagePath", "s0"."Name", "s0"."Slug", "s0"."UpdatedAtUtc", "p"."Id", "p"."ContentType", "p"."ContentValue", "p"."CssSelector", "p"."DisplayOrder", "p"."IsLocked", "p"."LastPublishedAtUtc", "p"."MediaAltText", "p"."MediaPath", "p"."SectionKey", "p"."SitePageId", "p"."Title", "p"."UpdatedAtUtc"
+      FROM (
+          SELECT "s"."Id", "s"."CreatedAtUtc", "s"."Description", "s"."HeroImagePath", "s"."Name", "s"."Slug", "s"."UpdatedAtUtc"
+          FROM "SitePages" AS "s"
+          WHERE "s"."Slug" = @__seed_Slug_0
+          LIMIT 1
+      ) AS "s0"
+      LEFT JOIN "PageSections" AS "p" ON "s0"."Id" = "p"."SitePageId"
+      ORDER BY "s0"."Id"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__seed_Slug_0='?' (Size = 14)], CommandType='Text', CommandTimeout='30']
+      SELECT "s0"."Id", "s0"."CreatedAtUtc", "s0"."Description", "s0"."HeroImagePath", "s0"."Name", "s0"."Slug", "s0"."UpdatedAtUtc", "p"."Id", "p"."ContentType", "p"."ContentValue", "p"."CssSelector", "p"."DisplayOrder", "p"."IsLocked", "p"."LastPublishedAtUtc", "p"."MediaAltText", "p"."MediaPath", "p"."SectionKey", "p"."SitePageId", "p"."Title", "p"."UpdatedAtUtc"
+      FROM (
+          SELECT "s"."Id", "s"."CreatedAtUtc", "s"."Description", "s"."HeroImagePath", "s"."Name", "s"."Slug", "s"."UpdatedAtUtc"
+          FROM "SitePages" AS "s"
+          WHERE "s"."Slug" = @__seed_Slug_0
+          LIMIT 1
+      ) AS "s0"
+      LEFT JOIN "PageSections" AS "p" ON "s0"."Id" = "p"."SitePageId"
+      ORDER BY "s0"."Id"
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@p1='?' (DbType = Guid), @p0='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+      UPDATE "PageSections" SET "UpdatedAtUtc" = @p0
+      WHERE "Id" = @p1
+      RETURNING 1;
+info: DatabaseSeeder[0]
+      Seeded site pages and sections for mission control experience.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT "p0"."Id", "p0"."ApexRoot", "p0"."CertificateKeyPath", "p0"."CertificatePath", "p0"."ConsecutiveFailureCount", "p0"."CreatedAtUtc", "p0"."DomainName", "p0"."DomainType", "p0"."FailureReason", "p0"."LastCheckedAtUtc", "p0"."LastFailureNotifiedAtUtc", "p0"."LastSslRenewalAtUtc", "p0"."NormalizedDomain", "p0"."SslStatus", "p0"."Status", "p0"."UpdatedAtUtc", "p0"."UploadedProjectId", "p0"."VerificationToken", "p0"."VerifiedAtUtc", "u"."Id", "u"."CompanyId", "u"."Data", "u"."Description", "u"."DisplayName", "u"."FolderName", "u"."LastPublishedAtUtc", "u"."OriginalFileName", "u"."PublishStoragePath", "u"."RepoUrl", "u"."SizeBytes", "u"."Slug", "u"."Status", "u"."UploadedAtUtc", "u"."UserId", "p1"."Id", "p1"."CreatedAtUtc", "p1"."ExternalRecordId", "p1"."IsRequired", "p1"."IsSatisfied", "p1"."LastCheckedAtUtc", "p1"."Name", "p1"."ProjectDomainId", "p1"."Purpose", "p1"."RecordType", "p1"."Value"
+      FROM (
+          SELECT "p"."Id", "p"."ApexRoot", "p"."CertificateKeyPath", "p"."CertificatePath", "p"."ConsecutiveFailureCount", "p"."CreatedAtUtc", "p"."DomainName", "p"."DomainType", "p"."FailureReason", "p"."LastCheckedAtUtc", "p"."LastFailureNotifiedAtUtc", "p"."LastSslRenewalAtUtc", "p"."NormalizedDomain", "p"."SslStatus", "p"."Status", "p"."UpdatedAtUtc", "p"."UploadedProjectId", "p"."VerificationToken", "p"."VerifiedAtUtc"
+          FROM "ProjectDomains" AS "p"
+          WHERE "p"."DomainType" = 1 AND "p"."Status" IN (0, 1)
+          ORDER BY "p"."UpdatedAtUtc"
+          LIMIT @__p_0
+      ) AS "p0"
+      INNER JOIN "UploadedProjects" AS "u" ON "p0"."UploadedProjectId" = "u"."Id"
+      LEFT JOIN "ProjectDomainDnsRecords" AS "p1" ON "p0"."Id" = "p1"."ProjectDomainId"
+      ORDER BY "p0"."UpdatedAtUtc", "p0"."Id", "u"."Id"
+warn: BugenceEditConsole.Infrastructure.ViteDevServerHostedService[0]
+      Skipping Vite dev server launch because pnpm could not be located. Install pnpm (e.g. `corepack enable pnpm`) or set BUGENCE_PNPM_EXECUTABLE to the pnpm executable path.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: https://localhost:7299
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      
+CREATE TABLE IF NOT EXISTS DebugPanelErrors (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    OwnerUserId TEXT NULL,
+    Source TEXT NOT NULL,
+    ShortDescription TEXT NOT NULL,
+    LongDescription TEXT NULL,
+    Path TEXT NULL,
+    CreatedAtUtc TEXT NOT NULL
+);
+fail: Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddleware[1]
+      An unhandled exception has occurred while executing the request.
+      System.ArgumentException: The value cannot be an empty string. (Parameter 'ClientId')
+         at System.ArgumentException.ThrowNullOrEmptyException(String argument, String paramName)
+         at System.ArgumentException.ThrowIfNullOrEmpty(String argument, String paramName)
+         at Microsoft.AspNetCore.Authentication.OAuth.OAuthOptions.Validate()
+         at Microsoft.AspNetCore.Authentication.RemoteAuthenticationOptions.Validate(String scheme)
+         at Microsoft.AspNetCore.Authentication.AuthenticationBuilder.<>c__DisplayClass4_0`2.<AddSchemeHelper>b__1(TOptions o)
+         at Microsoft.Extensions.Options.ValidateOptions`1.Validate(String name, TOptions options)
+         at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+         at Microsoft.Extensions.Options.OptionsMonitor`1.<>c.<Get>b__10_0(String name, IOptionsFactory`1 factory)
+         at Microsoft.Extensions.Options.OptionsCache`1.<>c__DisplayClass3_1`1.<GetOrAdd>b__2()
+         at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+         at System.Lazy`1.ExecutionAndPublication(LazyHelper executionAndPublication, Boolean useDefaultConstructor)
+         at System.Lazy`1.CreateValue()
+         at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+         at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+         at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+         at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+         at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+         at Program.<>c__DisplayClass0_0.<<<Main>$>b__13>d.MoveNext() in C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\Program.cs:line 426
+      --- End of stack trace from previous location ---
+         at BugenceEditConsole.Infrastructure.PublishedSiteMiddleware.InvokeAsync(HttpContext context, IDomainRouter router, ApplicationDbContext db, RepeaterTemplateService repeaterService, DebugPanelLogService debugLogService, IAnalyticsIngestService analyticsIngest) in C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\Infrastructure\PublishedSiteMiddleware.cs:line 38
+         at BugenceEditConsole.Infrastructure.DebugPanelExceptionLoggingMiddleware.InvokeAsync(HttpContext context, DebugPanelLogService debugLogService, UserManager`1 userManager) in C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\Infrastructure\DebugPanelExceptionLoggingMiddleware.cs:line 23
+         at BugenceEditConsole.Infrastructure.DebugPanelExceptionLoggingMiddleware.InvokeAsync(HttpContext context, DebugPanelLogService debugLogService, UserManager`1 userManager) in C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\Infrastructure\DebugPanelExceptionLoggingMiddleware.cs:line 49
+         at Program.<>c__DisplayClass0_0.<<<Main>$>b__12>d.MoveNext() in C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\Program.cs:line 412
+      --- End of stack trace from previous location ---
+         at Program.<>c.<<<Main>$>b__0_11>d.MoveNext() in C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\Program.cs:line 305
+      --- End of stack trace from previous location ---
+         at Program.<>c.<<<Main>$>b__0_11>d.MoveNext() in C:\Development\Global Bugence Visual Editor\Global Bugence Visual Editor\BugenceEditConsole\Program.cs:line 312
+      --- End of stack trace from previous location ---
+         at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)

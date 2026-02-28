@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ContentChangeLog> ContentChangeLogs => Set<ContentChangeLog>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<PasswordResetTicket> PasswordResetTickets => Set<PasswordResetTicket>();
+    public DbSet<SupportRequest> SupportRequests => Set<SupportRequest>();
     public DbSet<CompanyProfile> CompanyProfiles => Set<CompanyProfile>();
     public DbSet<UploadedProject> UploadedProjects => Set<UploadedProject>();
     public DbSet<UploadedProjectFile> UploadedProjectFiles => Set<UploadedProjectFile>();
@@ -30,6 +31,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AnalyticsSession> AnalyticsSessions => Set<AnalyticsSession>();
     public DbSet<AnalyticsPageView> AnalyticsPageViews => Set<AnalyticsPageView>();
     public DbSet<AnalyticsEvent> AnalyticsEvents => Set<AnalyticsEvent>();
+    public DbSet<AnalyticsSavedView> AnalyticsSavedViews => Set<AnalyticsSavedView>();
+    public DbSet<AnalyticsCustomFunnel> AnalyticsCustomFunnels => Set<AnalyticsCustomFunnel>();
+    public DbSet<AnalyticsSeoSnapshot> AnalyticsSeoSnapshots => Set<AnalyticsSeoSnapshot>();
     public DbSet<TeamInvite> TeamInvites => Set<TeamInvite>();
     public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
     public DbSet<Workflow> Workflows => Set<Workflow>();
@@ -46,6 +50,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<DynamicVeActionBinding> DynamicVeActionBindings => Set<DynamicVeActionBinding>();
     public DbSet<DynamicVePublishArtifact> DynamicVePublishArtifacts => Set<DynamicVePublishArtifact>();
     public DbSet<DynamicVeAuditLog> DynamicVeAuditLogs => Set<DynamicVeAuditLog>();
+    public DbSet<IntegrationConnection> IntegrationConnections => Set<IntegrationConnection>();
+    public DbSet<FacebookIntegrationAssetCache> FacebookIntegrationAssetCaches => Set<FacebookIntegrationAssetCache>();
+    public DbSet<WorkflowTriggerConfig> WorkflowTriggerConfigs => Set<WorkflowTriggerConfig>();
+    public DbSet<WorkflowFieldMappingPreset> WorkflowFieldMappingPresets => Set<WorkflowFieldMappingPreset>();
+    public DbSet<WorkflowLeadDedupeState> WorkflowLeadDedupeStates => Set<WorkflowLeadDedupeState>();
+    public DbSet<WorkflowTriggerEventLog> WorkflowTriggerEventLogs => Set<WorkflowTriggerEventLog>();
+    public DbSet<MktMetaPage> MktMetaPages => Set<MktMetaPage>();
+    public DbSet<MktMetaForm> MktMetaForms => Set<MktMetaForm>();
+    public DbSet<MktMetaCampaign> MktMetaCampaigns => Set<MktMetaCampaign>();
+    public DbSet<MktMetaAdset> MktMetaAdsets => Set<MktMetaAdset>();
+    public DbSet<MktMetaAd> MktMetaAds => Set<MktMetaAd>();
+    public DbSet<MktMetaLead> MktMetaLeads => Set<MktMetaLead>();
+    public DbSet<MktLeadActivity> MktLeadActivities => Set<MktLeadActivity>();
+    public DbSet<MktAutoRule> MktAutoRules => Set<MktAutoRule>();
+    public DbSet<MktWorkflowRun> MktWorkflowRuns => Set<MktWorkflowRun>();
+    public DbSet<MktSyncState> MktSyncStates => Set<MktSyncState>();
+    public DbSet<MktSyncLog> MktSyncLogs => Set<MktSyncLog>();
+    public DbSet<MktDeadLetterEvent> MktDeadLetterEvents => Set<MktDeadLetterEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -102,6 +124,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<PasswordResetTicket>()
             .HasIndex(t => t.ExpiresAtUtc);
+
+        builder.Entity<SupportRequest>()
+            .HasIndex(t => t.DisplayId)
+            .IsUnique();
+
+        builder.Entity<SupportRequest>()
+            .HasIndex(t => new { t.OwnerUserId, t.CreatedAtUtc });
+
+        builder.Entity<SupportRequest>()
+            .HasIndex(t => new { t.Category, t.Status, t.CreatedAtUtc });
 
         builder.Entity<UserNotification>()
             .HasIndex(n => new { n.UserId, n.CreatedAtUtc });
@@ -195,17 +227,49 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasIndex(s => s.SessionId)
             .IsUnique();
 
+        builder.Entity<AnalyticsSession>()
+            .HasIndex(s => new { s.ProjectId, s.Channel, s.DeviceType, s.CountryCode, s.LastSeenUtc });
+
         builder.Entity<AnalyticsPageView>()
             .HasIndex(v => new { v.OwnerUserId, v.CompanyId, v.ProjectId, v.OccurredAtUtc });
 
         builder.Entity<AnalyticsPageView>()
             .HasIndex(v => new { v.ProjectId, v.Path, v.OccurredAtUtc });
 
+        builder.Entity<AnalyticsPageView>()
+            .HasIndex(v => new { v.ProjectId, v.LandingPath, v.OccurredAtUtc });
+
+        builder.Entity<AnalyticsPageView>()
+            .HasIndex(v => new { v.ProjectId, v.PageTitle, v.OccurredAtUtc });
+
         builder.Entity<AnalyticsEvent>()
             .HasIndex(e => new { e.OwnerUserId, e.CompanyId, e.ProjectId, e.OccurredAtUtc });
 
         builder.Entity<AnalyticsEvent>()
             .HasIndex(e => new { e.ProjectId, e.EventName, e.OccurredAtUtc });
+
+        builder.Entity<AnalyticsEvent>()
+            .HasIndex(e => new { e.ProjectId, e.EventType, e.OccurredAtUtc });
+
+        builder.Entity<AnalyticsEvent>()
+            .HasIndex(e => new { e.ProjectId, e.UtmSource, e.UtmMedium, e.OccurredAtUtc });
+
+        builder.Entity<AnalyticsSavedView>()
+            .HasIndex(v => new { v.OwnerUserId, v.CompanyId, v.ProjectId, v.Name })
+            .IsUnique();
+
+        builder.Entity<AnalyticsSavedView>()
+            .HasIndex(v => new { v.OwnerUserId, v.CompanyId, v.ProjectId, v.UpdatedAtUtc });
+
+        builder.Entity<AnalyticsCustomFunnel>()
+            .HasIndex(x => new { x.OwnerUserId, x.CompanyId, x.ProjectId, x.Name })
+            .IsUnique();
+
+        builder.Entity<AnalyticsCustomFunnel>()
+            .HasIndex(x => new { x.OwnerUserId, x.CompanyId, x.ProjectId, x.UpdatedAtUtc });
+
+        builder.Entity<AnalyticsSeoSnapshot>()
+            .HasIndex(x => new { x.OwnerUserId, x.CompanyId, x.ProjectId, x.SnapshotType, x.CapturedAtUtc });
 
         builder.Entity<ProjectDeploySnapshot>()
             .HasIndex(s => new { s.UploadedProjectId, s.Environment, s.CreatedAtUtc });
@@ -332,5 +396,97 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<DynamicVeAuditLog>()
             .HasIndex(x => new { x.ProjectId, x.AtUtc });
+
+        builder.Entity<IntegrationConnection>()
+            .HasIndex(x => new { x.OwnerUserId, x.Provider, x.ExternalAccountId })
+            .IsUnique();
+
+        builder.Entity<IntegrationConnection>()
+            .HasIndex(x => new { x.OwnerUserId, x.CompanyId, x.Provider, x.UpdatedAtUtc });
+
+        builder.Entity<FacebookIntegrationAssetCache>()
+            .HasIndex(x => new { x.ConnectionId, x.AssetType, x.ExternalId })
+            .IsUnique();
+
+        builder.Entity<FacebookIntegrationAssetCache>()
+            .HasIndex(x => new { x.ConnectionId, x.AssetType, x.ParentExternalId });
+
+        builder.Entity<WorkflowTriggerConfig>()
+            .HasIndex(x => new { x.WorkflowId, x.ActionNodeId, x.TriggerType })
+            .IsUnique();
+
+        builder.Entity<WorkflowTriggerConfig>()
+            .HasIndex(x => new { x.OwnerUserId, x.CompanyId, x.TriggerType, x.UpdatedAtUtc });
+
+        builder.Entity<WorkflowFieldMappingPreset>()
+            .HasIndex(x => new { x.OwnerUserId, x.CompanyId, x.TriggerType, x.Name });
+
+        builder.Entity<WorkflowLeadDedupeState>()
+            .HasIndex(x => new { x.WorkflowId, x.ActionNodeId, x.DedupeKeyType, x.DedupeKeyValueHash })
+            .IsUnique();
+
+        builder.Entity<WorkflowTriggerEventLog>()
+            .HasIndex(x => new { x.WorkflowId, x.ActionNodeId, x.ProcessedAtUtc });
+
+        builder.Entity<WorkflowTriggerEventLog>()
+            .HasIndex(x => new { x.WorkflowId, x.ActionNodeId, x.ExternalEventId, x.LeadId });
+
+        builder.Entity<MktMetaPage>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.PageId })
+            .IsUnique();
+
+        builder.Entity<MktMetaForm>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.FormId })
+            .IsUnique();
+
+        builder.Entity<MktMetaCampaign>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.CampaignId })
+            .IsUnique();
+
+        builder.Entity<MktMetaAdset>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.AdsetId })
+            .IsUnique();
+
+        builder.Entity<MktMetaAd>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.AdId })
+            .IsUnique();
+
+        builder.Entity<MktMetaAd>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.AdId, x.LastLeadAtUtc });
+
+        builder.Entity<MktMetaLead>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.LeadId })
+            .IsUnique();
+
+        builder.Entity<MktMetaLead>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.AdId, x.CreatedTime });
+
+        builder.Entity<MktMetaLead>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.NormalizedEmail });
+
+        builder.Entity<MktMetaLead>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.NormalizedPhone });
+
+        builder.Entity<MktMetaLead>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.Status });
+
+        builder.Entity<MktLeadActivity>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.LeadPkId, x.CreatedAtUtc });
+
+        builder.Entity<MktAutoRule>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.Channel, x.EventType });
+
+        builder.Entity<MktWorkflowRun>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.WorkflowId, x.CreatedAtUtc });
+
+        builder.Entity<MktSyncState>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.Scope })
+            .IsUnique();
+
+        builder.Entity<MktSyncLog>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.Scope, x.StartedAtUtc });
+
+        builder.Entity<MktDeadLetterEvent>()
+            .HasIndex(x => new { x.TenantId, x.WorkspaceId, x.IntegrationConnectionId, x.EventType, x.CreatedAtUtc });
     }
 }

@@ -1037,11 +1037,21 @@ public class IndexModel : PageModel
 
     private static string ResolvePreviewUrl(UploadedProject project, IEnumerable<UploadedProjectFile> files)
     {
-        var firstHtml = files
+        var htmlFiles = files
             .Where(f => f.UploadedProjectId == project.Id
                 && !f.IsFolder
                 && (f.RelativePath.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
                     || f.RelativePath.EndsWith(".htm", StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        var configuredLanding = NormalizePreviewProjectPath(project.FolderName, project.LocalPreviewPath);
+        var selectedHtml = htmlFiles
+            .FirstOrDefault(file => string.Equals(
+                NormalizePreviewProjectPath(project.FolderName, file.RelativePath),
+                configuredLanding,
+                StringComparison.OrdinalIgnoreCase));
+
+        var firstHtml = selectedHtml ?? htmlFiles
             .OrderBy(f => f.RelativePath.ToLowerInvariant().Contains("index") ? 0 : 1)
             .ThenBy(f => f.RelativePath.Length)
             .FirstOrDefault();
@@ -1058,6 +1068,23 @@ public class IndexModel : PageModel
             rel = rel[prefix.Length..];
         }
         return BuildPreviewUrl(project.Id, rel);
+    }
+
+    private static string NormalizePreviewProjectPath(string folderName, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return string.Empty;
+        }
+
+        var normalized = path.Replace("\\", "/").Trim().TrimStart('/');
+        var prefix = folderName.Replace("\\", "/").Trim('/');
+        if (!string.IsNullOrWhiteSpace(prefix) && normalized.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized[(prefix.Length + 1)..];
+        }
+
+        return normalized;
     }
 
     private static long ResolveProjectSizeBytes(UploadedProject project, IEnumerable<UploadedProjectFile> files, string uploadsRoot)

@@ -31,6 +31,7 @@
     var chartData = new
     {
         range = Model.SelectedRange,
+        generatedAtUtc = Model.Snapshot.GeneratedAtUtc,
         data24h = Model.Snapshot.Traffic24h,
         data7d = Model.Snapshot.Traffic7d,
         data30d = Model.Snapshot.Traffic30d
@@ -39,133 +40,156 @@
 
 @section Head {
 <style>
-    :root { --bg:#040404; --card:#0a0a0a; --border:rgba(255,255,255,.08); --muted:#9aa0ac; --text:#fff; --accent:#06b6d4; }
-    .analytics-shell { padding:30px 36px; }
-    .header-row { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:14px; }
-    .title h1 { margin:0 0 6px; font-family:'Cabinet Grotesk',sans-serif; font-size:2.1rem; }
-    .title p { margin:0; color:var(--muted); }
-    .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .project-select { background:var(--card); border:1px solid var(--border); color:#fff; border-radius:10px; padding:9px 12px; min-width:290px; }
-    .range-link { text-decoration:none; color:var(--muted); border:1px solid var(--border); border-radius:9px; padding:7px 11px; font-weight:700; }
-    .range-link.active { color:#fff; border-color:rgba(125,211,252,.7); background:rgba(56,189,248,.12); }
-    .export-btn { text-decoration:none; background:var(--accent); color:#031018; font-weight:800; border-radius:10px; padding:9px 13px; border:none; display:inline-flex; gap:8px; align-items:center; }
-    .domain-badge { margin-top:8px; display:inline-flex; align-items:center; gap:7px; color:#a5f3fc; border:1px solid rgba(6,182,212,.4); border-radius:999px; padding:4px 10px; font-size:.8rem; }
-
-    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:18px 0 12px; }
-    .metric { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:0 12px 28px rgba(0,0,0,.4); }
-    .metric-title { text-transform:uppercase; letter-spacing:.06em; font-size:.78rem; color:var(--muted); margin:0 0 6px; }
-    .metric-value { font-family:'Cabinet Grotesk',sans-serif; font-size:1.9rem; margin:0; color:#fff; }
-    .metric-sub { margin-top:4px; font-size:.85rem; font-weight:700; }
-    .metric-sub.up { color:#22c55e; }
-    .metric-sub.down { color:#ef4444; }
-    .metric-sub.flat { color:#94a3b8; }
-    .metric.realtime {
-        background: linear-gradient(145deg, rgba(16,185,129,0.15), rgba(10,10,10,0.85));
-        border-color: rgba(34,197,94,0.4);
-        position: relative;
-        overflow: hidden;
-    }
-    .live-label {
-        display:flex;
-        align-items:center;
-        gap:8px;
-        color:#bbf7d0;
-        letter-spacing:0.1em;
-        font-size:0.78rem;
-        text-transform:uppercase;
-    }
-    .live-dot {
-        width:9px;
-        height:9px;
-        border-radius:50%;
-        background:#22c55e;
-        box-shadow:0 0 10px rgba(34,197,94,0.9);
-        animation:pulseDot 1.6s ease-in-out infinite;
-    }
-    @@keyframes pulseDot {
-        0% { transform: scale(0.95); box-shadow:0 0 8px rgba(34,197,94,0.8); }
-        50% { transform: scale(1.2); box-shadow:0 0 16px rgba(34,197,94,0.9); }
-        100% { transform: scale(0.95); box-shadow:0 0 8px rgba(34,197,94,0.8); }
-    }
-
-    .chip-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:2px; }
-    .chip {
-        background:#0b1016;
-        border:1px solid var(--border);
-        border-radius:10px;
-        padding:10px 12px;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-    }
-    .chip .label { color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; }
-    .chip .value { color:#fff; font-weight:800; }
-
-    .panel { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; box-shadow:0 14px 30px rgba(0,0,0,.42); }
-    .panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-    .chart-shell { padding:12px; border-radius:12px; background:linear-gradient(180deg,rgba(59,130,246,.18),rgba(59,130,246,.05)); border:1px solid rgba(255,255,255,.05); }
-    #trafficChart { width:100%; height:260px; }
-
-    .grid { display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-top:12px; }
-    .grid-funnel { display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-top:12px; }
-    .subgrid { display:grid; grid-template-columns:1fr; gap:12px; }
-    .funnel-steps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
-    .funnel-step { background:#0b1016; border:1px solid var(--border); border-radius:10px; padding:10px; }
-    .funnel-step .k { color:var(--muted); font-size:.76rem; text-transform:uppercase; letter-spacing:.06em; }
-    .funnel-step .v { color:#fff; font-size:1.25rem; font-weight:800; margin-top:4px; }
-    .funnel-step .d { color:#fca5a5; font-size:.75rem; margin-top:6px; }
-    .ok { color:#22c55e; }
-    .warn { color:#f59e0b; }
-    .bad { color:#ef4444; }
-
-    table { width:100%; border-collapse:collapse; }
-    th, td { border-bottom:1px solid rgba(255,255,255,.06); padding:9px 8px; text-align:left; }
-    th { color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; }
-    .bar { height:6px; background:#1f1f1f; border-radius:6px; position:relative; overflow:hidden; }
-    .bar span { position:absolute; left:0; top:0; bottom:0; border-radius:6px; background:linear-gradient(90deg,#0ea5e9,#3b82f6); }
-
-    .source-legend { display:flex; gap:14px; margin-top:10px; }
-    .source-pill { flex:1; background:#0b0f14; border:1px solid var(--border); border-radius:8px; padding:8px; text-align:center; }
-    .source-pill strong { display:block; font-size:1rem; }
-    .source-pill span { color:var(--muted); font-size:.75rem; }
-
-    .empty { background:var(--card); border:1px dashed rgba(255,255,255,.25); border-radius:14px; padding:22px; margin-top:14px; }
-    .empty h3 { margin:0 0 8px; }
-    .empty p { margin:0 0 14px; color:var(--muted); }
-    .empty a { display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:var(--accent); color:#031018; font-weight:800; padding:10px 14px; border-radius:10px; }
-
-    .meta-line { color:var(--muted); font-size:.84rem; margin-top:4px; }
-
-    @@media (max-width: 1100px) {
-        .analytics-shell { padding:16px 12px; }
-        .header-row { flex-direction:column; align-items:stretch; }
-        .project-select { min-width:0; width:100%; }
-        .metrics { grid-template-columns:1fr; }
-        .grid { grid-template-columns:1fr; }
-        .grid-funnel { grid-template-columns:1fr; }
-        .funnel-steps { grid-template-columns:1fr; }
-        .chip-row { grid-template-columns:1fr; }
-    }
+.page-analytics-index{--bg:#020202;--bg-soft:#070707;--surface:#0b0b0b;--surface-2:#111111;--surface-3:#151515;--border:rgba(255,255,255,.09);--border-strong:rgba(255,255,255,.16);--text:#f4f4f1;--muted:#8f939c;--accent:#b20f28;--accent-2:#5c0915;--ok:#45e3a4;--bad:#ff6b78}
+.page-analytics-index{background:radial-gradient(circle at 0% 0%,rgba(178,15,40,.16),transparent 24%),radial-gradient(circle at 100% 0%,rgba(108,8,24,.16),transparent 24%),linear-gradient(180deg,#010101,#030303 35%,#020202);color:var(--text)}
+.page-analytics-index::before,.page-analytics-index::after{content:"";position:fixed;pointer-events:none;z-index:0}
+.page-analytics-index::before{inset:0;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(180deg,rgba(0,0,0,.8),transparent 95%)}
+.page-analytics-index::after{inset:auto 8% 6% auto;width:32rem;height:32rem;border-radius:50%;background:radial-gradient(circle,rgba(178,15,40,.16),transparent 68%);filter:blur(90px)}
+.analytics-shell{position:relative;z-index:1;max-width:1420px;padding:28px 32px 48px;margin:0 auto;overflow-x:hidden}
+.deck-card{background:linear-gradient(180deg,rgba(15,15,15,.98),rgba(7,7,7,.98));border:1px solid var(--border);border-radius:22px;box-shadow:0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.03);transition:border-color .22s ease,transform .22s ease,box-shadow .22s ease}
+.deck-card:hover{border-color:rgba(178,15,40,.28);transform:translateY(-1px);box-shadow:0 26px 90px rgba(0,0,0,.62),0 0 0 1px rgba(178,15,40,.08)}
+.hero{padding:26px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:22px;margin-bottom:16px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.02),transparent);transform:translateX(-100%);animation:heroSweep 9s linear infinite}
+@@keyframes heroSweep{to{transform:translateX(100%)}}
+.hero h1{margin:0;font-size:3.2rem;line-height:.96;font-weight:900;letter-spacing:-.05em}
+.eyebrow{margin:0 0 10px;color:#d8dbe2;font-size:.74rem;letter-spacing:.32em;text-transform:uppercase}
+.hero p{margin:0;color:var(--muted);max-width:60ch;font-size:1rem;line-height:1.55}
+.hero-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.meta-pill,.sync-pill,.tab-link,.module-tab,.toggle-btn,.seg-select,.filter-btn,.table-btn,.table-input,.table-select,.project-select,.range-link{min-height:42px}
+.meta-pill{display:inline-flex;align-items:center;gap:8px;padding:0 14px;border-radius:999px;border:1px solid rgba(178,15,40,.26);background:rgba(178,15,40,.1);color:#ffe8ec;font-size:.82rem}
+.sync-pill{display:inline-flex;align-items:center;gap:9px;padding:0 14px;border-radius:999px;border:1px solid rgba(69,227,164,.28);background:rgba(69,227,164,.09);color:#dcffee;font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.sync-pill.syncing{border-color:rgba(255,214,102,.28);background:rgba(255,214,102,.09);color:#fff0bb}
+.sync-pill.error{border-color:rgba(255,107,120,.3);background:rgba(255,107,120,.08);color:#ffd7db}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 16px currentColor;animation:pulseDot 1.6s ease-in-out infinite}
+@@keyframes pulseDot{0%{transform:scale(.92);opacity:.7}50%{transform:scale(1.18);opacity:1}100%{transform:scale(.92);opacity:.7}}
+.sync-time,.subtle{color:var(--muted);font-size:.84rem}
+.metric-help{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:6px;border-radius:50%;border:1px solid rgba(255,255,255,.18);font-size:.62rem;font-weight:700;color:#d7dde7;position:relative;cursor:help;vertical-align:middle}
+.metric-help::after{display:none}
+.metric-help-tooltip{position:fixed;left:0;top:0;max-width:min(320px,calc(100vw - 24px));padding:10px 12px;border-radius:12px;border:1px solid rgba(178,15,40,.22);background:#050608;color:#fff1f3;font-size:.74rem;line-height:1.45;box-shadow:0 16px 40px rgba(0,0,0,.58);opacity:0;pointer-events:none;transform:translateY(4px);transition:opacity .14s ease,transform .14s ease;z-index:4000}
+.metric-help-tooltip.show{opacity:1;transform:translateY(0)}
+.hero-controls{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;min-width:0}
+.project-select,.seg-select,.table-select,.filter-drawer input,.filter-drawer select,.table-input{width:100%;padding:0 14px;border-radius:14px;background:#090909;color:var(--text);border:1px solid var(--border);font-size:.86rem}
+.project-select:focus,.seg-select:focus,.table-select:focus,.table-input:focus,.filter-drawer input:focus,.filter-drawer select:focus{outline:none;border-color:rgba(178,15,40,.45);box-shadow:0 0 0 3px rgba(178,15,40,.12)}
+.range-group{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.range-link{display:inline-flex;align-items:center;justify-content:center;padding:0 14px;text-decoration:none;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.015);color:#d8dce3;font-size:.84rem;font-weight:800;letter-spacing:.04em}
+.range-link:hover,.tab-link:hover,.module-tab:hover,.toggle-btn:hover,.filter-btn:hover,.table-btn:hover{border-color:rgba(255,255,255,.26);color:#fff}
+.range-link.active{border-color:rgba(178,15,40,.48);background:linear-gradient(180deg,rgba(178,15,40,.2),rgba(92,9,21,.12));box-shadow:inset 0 0 0 1px rgba(178,15,40,.1)}
+.export-btn{display:inline-flex;align-items:center;gap:10px;padding:0 18px;min-height:48px;border-radius:16px;text-decoration:none;color:#fff7f8;font-weight:900;letter-spacing:.02em;background:linear-gradient(135deg,#d11835,#6e0919);box-shadow:0 14px 30px rgba(0,0,0,.28)}
+.ga-control-row{display:flex;align-items:flex-start;justify-content:flex-start;gap:14px;flex-wrap:wrap;padding:18px 20px;margin-bottom:14px}
+.ga-control-left,.ga-control-right,.table-left,.table-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.ga-control-left{flex-direction:column;align-items:stretch;max-width:430px;width:100%}
+.ga-control-left .toggle-btn,.ga-control-left .seg-select{width:100%;justify-content:space-between}
+.toggle-btn,.filter-btn,.table-btn,.save-btn{display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border-radius:14px;border:1px solid var(--border);background:#0b0b0b;color:var(--text);font-size:.82rem}
+.tab-strip{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.tab-link{display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border-radius:999px;border:1px solid var(--border);background:#080808;color:#9ea4ad;text-decoration:none;font-size:.82rem;font-weight:800;letter-spacing:.02em}
+.tab-link.active{border-color:rgba(178,15,40,.56);background:linear-gradient(180deg,rgba(178,15,40,.24),rgba(92,9,21,.08));color:#fff;box-shadow:0 0 0 1px rgba(178,15,40,.08),0 12px 30px rgba(95,10,20,.18)}
+.analytics-tab-panel{display:none}
+.analytics-tab-panel.active{display:block}
+.tab-shell,.panel,.kpi-card{padding:18px}
+.tab-shell > h3{margin:0 0 6px;font-size:2.1rem;letter-spacing:-.04em}
+.filter-drawer{position:fixed;top:0;right:-420px;height:100%;width:min(400px,96vw);background:linear-gradient(180deg,#070707,#030303);border-left:1px solid var(--border-strong);z-index:20;transition:right .24s ease;padding:22px;display:grid;align-content:start;gap:12px;box-shadow:-20px 0 80px rgba(0,0,0,.62)}
+.filter-drawer.open{right:0}
+.filter-drawer h3{margin:0 0 4px;font-size:1.35rem}
+.filter-drawer label{display:grid;gap:6px;font-size:.78rem;color:var(--muted)}
+.table-ux{display:grid;gap:14px;margin-top:14px}
+.table-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.table-input{min-width:280px}
+.th-sort{display:inline-flex;align-items:center;gap:8px;border:none;background:transparent;color:inherit;padding:0;font-size:inherit;cursor:pointer;font-weight:700}
+.th-sort .arrow{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 6px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:#0c0c0c;color:#c9a8ae;font-size:.63rem;letter-spacing:.08em}
+.table-pager{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.column-picker details{border:1px solid var(--border);border-radius:14px;padding:10px 12px;background:#090909}
+.column-picker summary{cursor:pointer;font-size:.78rem;color:#dce1e8}
+.column-picker-list{margin-top:10px;display:grid;gap:8px;max-height:220px;overflow:auto;min-width:220px}
+.column-picker-item{display:flex;align-items:center;gap:8px;font-size:.78rem;color:#dbe3ee}
+.module-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.module-tab{display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border-radius:999px;border:1px solid var(--border);background:#090909;color:#a1a7b0;font-size:.8rem;font-weight:700}
+.module-tab.active{border-color:rgba(178,15,40,.5);background:rgba(178,15,40,.14);color:#fff}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 14px}
+.metric-tile,.source-box{position:relative;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border-radius:18px;padding:16px;overflow:hidden}
+.metric-tile .k,.source-box span,.kpi-label,.stat-key{font-size:.74rem;color:#9399a3;text-transform:uppercase;letter-spacing:.14em}
+.metric-tile .v,.source-box strong{margin-top:8px;font-size:1.7rem;font-weight:900;letter-spacing:-.03em;color:#fff;display:block}
+.metric-tile .d{margin-top:8px;font-size:.78rem;color:#a4b6c9}
+.geo-map{margin-top:14px;border:1px solid var(--border);border-radius:20px;background:radial-gradient(circle at 0% 0%,rgba(178,15,40,.12),transparent 28%),linear-gradient(180deg,#12070a,#060606);padding:8px}
+.geo-map svg{width:100%;height:220px;display:block}
+.geo-dot{fill:#d11835;opacity:.92}
+.geo-label{font-size:10px;fill:#ffe4e8}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.kpi-card{position:relative;overflow:hidden}
+.kpi-card::after,.metric-tile::after,.source-box::after{content:"";position:absolute;inset:auto -20% -55% auto;width:180px;height:180px;background:radial-gradient(circle,rgba(178,15,40,.16),transparent 68%);filter:blur(6px);pointer-events:none}
+.kpi-card.realtime{border-color:rgba(69,227,164,.28);background:linear-gradient(180deg,rgba(9,32,24,.94),rgba(7,7,7,.98))}
+.kpi-label{margin:0}
+.kpi-label.live{display:inline-flex;align-items:center;gap:8px;color:#dffef1}
+.kpi-value{margin:12px 0 0;font-size:2.6rem;font-weight:900;letter-spacing:-.05em}
+.kpi-delta{margin-top:8px;font-size:.84rem;font-weight:700}.kpi-delta.up{color:var(--ok)}.kpi-delta.down{color:var(--bad)}.kpi-delta.flat{color:#9eb3cf}
+.strip-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.panel-head h3,.panel h4{margin:0;font-size:1.18rem;letter-spacing:-.02em}
+.stat-list{display:grid;gap:10px}.stat-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid rgba(255,255,255,.06);border-radius:16px;background:rgba(255,255,255,.015)}
+.stat-value{font-size:1.05rem;font-weight:900}
+.panel-grid{display:grid;grid-template-columns:1.35fr .95fr;gap:14px;align-items:start}.panel-col,.rail-col{display:grid;gap:14px}
+.chart-shell{border-radius:20px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(178,15,40,.12),rgba(92,9,21,.06) 45%,rgba(255,255,255,.015));padding:10px}#trafficChart{width:100%;height:280px;display:block}
+.funnel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.funnel-step{border:1px solid var(--border);background:rgba(255,255,255,.015);border-radius:18px;padding:14px}.funnel-key{color:#979ea9;font-size:.74rem;text-transform:uppercase;letter-spacing:.12em}.funnel-value{margin-top:10px;font-size:1.8rem;font-weight:900;letter-spacing:-.04em}.funnel-drop{margin-top:8px;font-size:.78rem;color:#ffbb86}
+table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border-bottom:1px solid rgba(255,255,255,.06);padding:12px 10px;text-align:left;vertical-align:middle}th{color:#9097a1;font-size:.74rem;text-transform:uppercase;letter-spacing:.14em}.panel table th,.panel table td,.table-ux table th,.table-ux table td{overflow:hidden;text-overflow:ellipsis}
+.panel table,.table-ux table{white-space:nowrap}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.table-scroll table{min-width:100%}.table-ux .table-scroll table{min-width:1100px}.td-num,.th-num{text-align:center}
+.bar{position:relative;overflow:hidden;background:rgba(255,255,255,.08);border-radius:999px;height:8px}.bar>span{position:absolute;left:0;top:0;bottom:0;border-radius:inherit;background:linear-gradient(90deg,#6f0817,#d11835 55%,#ff667d)}
+.metrics-table{table-layout:auto}
+.metrics-table th:nth-child(2),.metrics-table td:nth-child(2){width:108px;text-align:right}
+.metrics-table th:nth-child(3),.metrics-table td:nth-child(3){width:210px}
+.metrics-table td{white-space:normal}
+.metrics-table .bar-cell{display:flex;align-items:center;gap:10px}
+.metrics-table .bar{flex:1 1 auto;min-width:92px}
+.bar-value{min-width:48px;text-align:right;color:#d7dbe2;font-size:.76rem;font-variant-numeric:tabular-nums}
+.rail-col .table-scroll table{min-width:100%}
+.metric-heading{display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.table-note{margin:12px 0 0;padding:12px 14px;border:1px dashed rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.02);color:#9ea6b1;font-size:.82rem;line-height:1.5}
+.table-ux th,.table-ux td{text-align:left}
+.table-ux th:first-child,.table-ux td:first-child{width:19rem;min-width:19rem;text-align:left}
+.table-ux td:first-child{white-space:normal}
+.table-ux th:not(:first-child),.table-ux td:not(:first-child){text-align:center}
+.overview-summary-table{table-layout:auto}
+.overview-summary-table th:first-child,.overview-summary-table td:first-child{width:auto;text-align:left}
+.overview-summary-table th:nth-child(2),.overview-summary-table td:nth-child(2){width:112px;text-align:right}
+.overview-summary-table th:nth-child(3),.overview-summary-table td:nth-child(3){width:210px}
+.overview-summary-table td{white-space:normal}
+.overview-summary-table .bar-cell{display:flex;align-items:center;gap:10px}
+.overview-summary-table .bar{flex:1 1 auto;min-width:96px}
+.source-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.empty{padding:28px}.empty h3{margin:0 0 8px;font-size:1.6rem}.empty p{margin:0 0 14px;color:var(--muted);max-width:50ch}.empty a{display:inline-flex;align-items:center;gap:8px;padding:0 16px;min-height:46px;border-radius:14px;text-decoration:none;background:linear-gradient(135deg,#d11835,#6e0919);color:#fff7f8;font-weight:900}
+.zero-note{padding:18px;border:1px dashed rgba(255,255,255,.12);border-radius:18px;background:rgba(255,255,255,.02);color:var(--muted)}
+.kpi-flash{animation:kpiFlash .75s ease}@@keyframes kpiFlash{0%{transform:translateY(0)}30%{transform:translateY(-2px);color:#dff9ff;text-shadow:0 0 20px rgba(209,24,53,.32)}100%{transform:translateY(0)}}
+@@keyframes revealUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.hero,.ga-control-row,.kpi-grid .deck-card,.strip-grid .deck-card,.panel-grid .deck-card,.analytics-tab-panel .deck-card{animation:revealUp .42s ease both}
+@@media (max-width:1280px){.hero{grid-template-columns:1fr}.hero-controls{grid-template-columns:1fr}.panel-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.funnel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@@media (max-width:820px){.analytics-shell{padding:16px 12px 40px}.hero{padding:18px}.hero h1{font-size:2.2rem}.kpi-grid,.strip-grid,.panel-grid,.source-grid,.funnel-grid{grid-template-columns:1fr}.ga-control-row,.ga-control-left,.ga-control-right,.table-left,.table-right,.range-group{width:100%}.range-group{justify-content:flex-start}.tab-strip,.module-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}.toggle-btn,.seg-select,.filter-btn,.table-btn,.table-input,.table-select,.project-select,.range-link,.export-btn{width:100%}.table-pager{justify-content:space-between;width:100%}.filter-drawer{width:100vw;max-width:100vw;right:-100vw}.tab-link,.module-tab{flex:0 0 auto}}
+@@media (max-width:480px){.tab-shell,.panel,.kpi-card{padding:14px}.metric-tile,.source-box,.stat-row,.funnel-step{padding:14px}.column-picker details{width:100%}}
 </style>
 }
-
 <div class="analytics-shell">
-    <div class="header-row">
-        <div class="title">
+    <div class="hero deck-card">
+        <div class="hero-title">
+            <p class="eyebrow">Live Intelligence</p>
             <h1>Analytics</h1>
-            <p>Real-time traffic and performance insights per connected project domain.</p>
+            <p>Professional real-time visibility into traffic, conversions, and attribution for every connected domain.</p>
+
             @if (Model.HasEligibleProjects)
             {
-                <div class="domain-badge"><i class="fa-solid fa-globe"></i> @Model.SelectedDomainName</div>
-                <div class="meta-line" id="lastEventSeenLabel">Last event seen: @(Model.Snapshot.LastEventSeenUtc?.ToLocalTime().ToString("MMM d, h:mm tt") ?? "No events yet")</div>
+                <div class="hero-meta">
+                    <span class="meta-pill"><i class="fa-solid fa-globe"></i> @Model.SelectedDomainName</span>
+                    <span class="sync-pill" id="syncStatusBadge"><span class="sync-dot"></span><span id="syncStatusText">LIVE</span></span>
+                    <span class="sync-time" id="syncTime">snapshot loaded</span>
+                </div>
+                <div class="subtle" id="lastEventSeenLabel">Last event seen: @(Model.Snapshot.LastEventSeenUtc?.ToLocalTime().ToString("MMM d, HH:mm") ?? "No events yet")</div>
             }
         </div>
 
         @if (Model.HasEligibleProjects)
         {
-            <div class="controls">
+            <div class="hero-controls">
                 <form method="get" id="projectSwitchForm">
                     <input type="hidden" name="range" value="@Model.SelectedRange" />
+                    <input type="hidden" name="tab" value="@Model.SelectedTab" />
+                    <input type="hidden" name="compare" value="@(Model.CompareEnabled ? "1" : "0")" />
+                    <input type="hidden" name="segment" value="@Model.SelectedSegment" />
                     <select id="projectId" name="projectId" class="project-select" onchange="this.form.submit()">
                         @foreach (var project in Model.Projects)
                         {
@@ -180,19 +204,19 @@
                         }
                     </select>
                 </form>
-
-                <a class="range-link @(Model.SelectedRange == "24h" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=24h">24H</a>
-                <a class="range-link @(Model.SelectedRange == "7d" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=7d">7D</a>
-                <a class="range-link @(Model.SelectedRange == "30d" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=30d">30D</a>
-
-                <a class="export-btn" href="?handler=Export&projectId=@Model.SelectedProjectId&range=@Model.SelectedRange"><i class="fa-solid fa-download"></i> Export CSV</a>
+                <div class="range-group">
+                    <a class="range-link @(Model.SelectedRange == "24h" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=24h&tab=@Model.SelectedTab&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">24H</a>
+                    <a class="range-link @(Model.SelectedRange == "7d" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=7d&tab=@Model.SelectedTab&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">7D</a>
+                    <a class="range-link @(Model.SelectedRange == "30d" ? "active" : string.Empty)" href="?projectId=@Model.SelectedProjectId&range=30d&tab=@Model.SelectedTab&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">30D</a>
+                    <a class="export-btn" href="?handler=Export&projectId=@Model.SelectedProjectId&range=@Model.SelectedRange"><i class="fa-solid fa-download"></i> Export CSV</a>
+                </div>
             </div>
         }
     </div>
 
     @if (!Model.HasEligibleProjects)
     {
-        <div class="empty">
+        <div class="deck-card empty">
             <h3>No eligible project found</h3>
             <p>Analytics appears after a project has a custom domain connected with active SSL.</p>
             <a href="/Settings/Domains"><i class="fa-solid fa-link"></i> Connect a Custom Domain</a>
@@ -200,343 +224,409 @@
     }
     else
     {
-        <div class="metrics">
-            <div class="metric">
-                <div class="metric-title">Unique Visitors</div>
-                <div class="metric-value" id="kpiUniqueVisitors">@FmtNumber(Model.Snapshot.Current.UniqueVisitors)</div>
-                <div class="metric-sub @DeltaClass(Model.UniqueVisitorsDeltaPercent)" id="kpiUniqueDelta">@DeltaText(Model.UniqueVisitorsDeltaPercent)</div>
+        <form id="analyticsAntiForgeryForm" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
+        <div class="ga-control-row deck-card tab-shell">
+            <div class="ga-control-left">
+                <button type="button" id="compareToggle" class="toggle-btn" data-compare="@(Model.CompareEnabled ? "1" : "0")">Compare to previous period: <strong id="compareLabel">@(Model.CompareEnabled ? "On" : "Off")</strong></button>
+                <select id="segmentSelect" class="seg-select">
+                    <option value="all" selected="@(Model.SelectedSegment == "all" ? "selected" : null)">All Users</option>
+                    <option value="paid" selected="@(Model.SelectedSegment == "paid" ? "selected" : null)">Paid</option>
+                    <option value="organic" selected="@(Model.SelectedSegment == "organic" ? "selected" : null)">Organic</option>
+                    <option value="direct" selected="@(Model.SelectedSegment == "direct" ? "selected" : null)">Direct</option>
+                    <option value="referral" selected="@(Model.SelectedSegment == "referral" ? "selected" : null)">Referral</option>
+                </select>
+                <button type="button" class="filter-btn" id="openFilterDrawer"><i class="fa-solid fa-filter"></i> Filters</button>
             </div>
-            <div class="metric">
-                <div class="metric-title">Avg. Session Duration</div>
-                <div class="metric-value" id="kpiAvgSession">@FmtDuration(Model.Snapshot.Current.AvgSession)</div>
-                <div class="metric-sub @DeltaClass(Model.AvgSessionDeltaPercent)" id="kpiAvgDelta">@DeltaText(Model.AvgSessionDeltaPercent)</div>
+
+        </div>
+
+        <div class="tab-strip">
+            <a class="tab-link @(Model.SelectedTab == "overview" ? "active" : string.Empty)" data-tab="overview" href="?projectId=@Model.SelectedProjectId&range=@Model.SelectedRange&tab=overview&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">Overview</a>
+            <a class="tab-link @(Model.SelectedTab == "realtime" ? "active" : string.Empty)" data-tab="realtime" href="?projectId=@Model.SelectedProjectId&range=@Model.SelectedRange&tab=realtime&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">Realtime</a>
+            <a class="tab-link @(Model.SelectedTab == "acquisition" ? "active" : string.Empty)" data-tab="acquisition" href="?projectId=@Model.SelectedProjectId&range=@Model.SelectedRange&tab=acquisition&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">Acquisition</a>
+            <a class="tab-link @(Model.SelectedTab == "engagement" ? "active" : string.Empty)" data-tab="engagement" href="?projectId=@Model.SelectedProjectId&range=@Model.SelectedRange&tab=engagement&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">Engagement</a>
+            <a class="tab-link @(Model.SelectedTab == "audience" ? "active" : string.Empty)" data-tab="audience" href="?projectId=@Model.SelectedProjectId&range=@Model.SelectedRange&tab=audience&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">Audience</a>
+            <a class="tab-link @(Model.SelectedTab == "conversions" ? "active" : string.Empty)" data-tab="conversions" href="?projectId=@Model.SelectedProjectId&range=@Model.SelectedRange&tab=conversions&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">Conversions</a>
+            <a class="tab-link @(Model.SelectedTab == "seo" ? "active" : string.Empty)" data-tab="seo" href="?projectId=@Model.SelectedProjectId&range=@Model.SelectedRange&tab=seo&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">SEO / Search Console</a>
+            <a class="tab-link @(Model.SelectedTab == "pages" ? "active" : string.Empty)" data-tab="pages" href="?projectId=@Model.SelectedProjectId&range=@Model.SelectedRange&tab=pages&compare=@(Model.CompareEnabled ? "1" : "0")&segment=@Model.SelectedSegment">Pages</a>
+        </div>
+
+        <div class="analytics-tab-panel @(Model.SelectedTab == "overview" ? "active" : string.Empty)" id="tabPanel-overview">
+        <div class="kpi-grid">
+            <div class="deck-card kpi-card">
+                <p class="kpi-label">Unique Visitors</p>
+                <h2 class="kpi-value" id="kpiUniqueVisitors">@FmtNumber(Model.Snapshot.Current.UniqueVisitors)</h2>
+                <div class="kpi-delta @DeltaClass(Model.UniqueVisitorsDeltaPercent)" id="kpiUniqueDelta">@DeltaText(Model.UniqueVisitorsDeltaPercent)</div>
             </div>
-            <div class="metric">
-                <div class="metric-title">Bounce Rate</div>
-                <div class="metric-value" id="kpiBounceRate">@Model.Snapshot.Current.BounceRatePercent.ToString("0.##")%</div>
-                <div class="metric-sub @DeltaClass(Model.BounceRateDeltaPercent, lowerIsBetter: true)" id="kpiBounceDelta">@DeltaText(Model.BounceRateDeltaPercent)</div>
+            <div class="deck-card kpi-card">
+                <p class="kpi-label">Avg. Session Duration</p>
+                <h2 class="kpi-value" id="kpiAvgSession">@FmtDuration(Model.Snapshot.Current.AvgSession)</h2>
+                <div class="kpi-delta @DeltaClass(Model.AvgSessionDeltaPercent)" id="kpiAvgDelta">@DeltaText(Model.AvgSessionDeltaPercent)</div>
             </div>
-            <div class="metric realtime">
-                <div class="metric-title live-label"><span class="live-dot"></span> Active Users Right Now</div>
-                <div class="metric-value" id="kpiActiveUsers">@Model.Snapshot.ActiveUsersNow.ToString("N0")</div>
-                <div class="metric-sub flat">Pageviews per minute: <strong id="kpiPpm">@Model.Snapshot.PageviewsPerMinute.ToString("N0")</strong></div>
+            <div class="deck-card kpi-card">
+                <p class="kpi-label">Bounce Rate <span class="metric-help" tabindex="0" data-tip="Bounce rate shows what percentage of sessions ended after a single page view, without deeper navigation.">i</span></p>
+                <h2 class="kpi-value" id="kpiBounceRate">@Model.Snapshot.Current.BounceRatePercent.ToString("0.##")%</h2>
+                <div class="kpi-delta @DeltaClass(Model.BounceRateDeltaPercent, lowerIsBetter: true)" id="kpiBounceDelta">@DeltaText(Model.BounceRateDeltaPercent)</div>
+            </div>
+            <div class="deck-card kpi-card realtime">
+                <p class="kpi-label live"><span class="sync-dot"></span> Active Users Right Now</p>
+                <h2 class="kpi-value" id="kpiActiveUsers">@Model.Snapshot.ActiveUsersNow.ToString("N0")</h2>
+                <div class="kpi-delta flat">Pageviews per minute: <strong id="kpiPpm">@Model.Snapshot.PageviewsPerMinute.ToString("N0")</strong></div>
             </div>
         </div>
 
-        <div class="chip-row">
-            <div class="chip"><span class="label">Pageviews</span><span class="value" id="kpiPageviews">@FmtNumber(Model.Snapshot.Current.Pageviews)</span></div>
-            <div class="chip"><span class="label">Sessions</span><span class="value" id="kpiSessions">@FmtNumber(Model.Snapshot.Current.Sessions)</span></div>
-            <div class="chip"><span class="label">Conversions</span><span class="value" id="kpiConversions">@FmtNumber(Model.Snapshot.ConversionCount)</span></div>
-            <div class="chip"><span class="label">Conversion Rate</span><span class="value" id="kpiConversionRate">@Model.Snapshot.ConversionRatePercent.ToString("0.##")%</span></div>
-            <div class="chip"><span class="label">Leads / 100 Sessions</span><span class="value" id="kpiLeadsPer100">@Model.Snapshot.LeadsPer100Sessions.ToString("0.##")</span></div>
-            <div class="chip"><span class="label">Overall Funnel Conversion</span><span class="value">@Model.Snapshot.Funnel.OverallConversionRatePercent.ToString("0.##")%</span></div>
-        </div>
-
-        <div class="chip-row" style="margin-top:12px;">
-            <div class="chip"><span class="label">Conversion Delta</span><span class="value @DeltaClass(Model.ConversionDeltaPercent)" id="kpiConversionDelta">@DeltaText(Model.ConversionDeltaPercent)</span></div>
-            <div class="chip"><span class="label">Conv. Rate Delta</span><span class="value @DeltaClass(Model.ConversionRateDeltaPercent)" id="kpiConversionRateDelta">@DeltaText(Model.ConversionRateDeltaPercent)</span></div>
-            <div class="chip"><span class="label">Leads/100 Delta</span><span class="value @DeltaClass(Model.LeadsPer100DeltaPercent)" id="kpiLeadsPer100Delta">@DeltaText(Model.LeadsPer100DeltaPercent)</span></div>
-            <div class="chip">
-                <span class="label">Tracking Status</span>
-                <span class="value @(Model.Readiness.HasTraffic ? (Model.Readiness.HasConversions ? "ok" : "warn") : "bad")">
-                    @(Model.Readiness.HasTraffic ? (Model.Readiness.HasConversions ? "Healthy" : "Traffic only") : "No traffic")
-                </span>
+        <div class="strip-grid">
+            <div class="deck-card panel">
+                <div class="panel-head"><h3>Traffic + Conversion Pulse</h3></div>
+                <div class="stat-list">
+                    <div class="stat-row"><span class="stat-key">Pageviews</span><span class="stat-value" id="kpiPageviews">@FmtNumber(Model.Snapshot.Current.Pageviews)</span></div>
+                    <div class="stat-row"><span class="stat-key">Sessions</span><span class="stat-value" id="kpiSessions">@FmtNumber(Model.Snapshot.Current.Sessions)</span></div>
+                    <div class="stat-row"><span class="stat-key">Conversions <span class="metric-help" tabindex="0" data-tip="Conversions are tracked completion events such as contact form submissions and mapped business goals.">i</span></span><span class="stat-value" id="kpiConversions">@FmtNumber(Model.Snapshot.ConversionCount)</span></div>
+                    <div class="stat-row"><span class="stat-key">Conversion Rate <span class="metric-help" tabindex="0" data-tip="Conversion rate is conversions divided by total sessions in the selected time range.">i</span></span><span class="stat-value" id="kpiConversionRate">@Model.Snapshot.ConversionRatePercent.ToString("0.##")%</span></div>
+                    <div class="stat-row"><span class="stat-key">Leads / 100 Sessions</span><span class="stat-value" id="kpiLeadsPer100">@Model.Snapshot.LeadsPer100Sessions.ToString("0.##")</span></div>
+                    <div class="stat-row"><span class="stat-key">Funnel Conversion <span class="metric-help" tabindex="0" data-tip="Funnel conversion measures how many users reach the final funnel stage from initial funnel entry.">i</span></span><span class="stat-value" id="kpiFunnelOverall">@Model.Snapshot.Funnel.OverallConversionRatePercent.ToString("0.##")%</span></div>
+                </div>
+            </div>
+            <div class="deck-card panel">
+                <div class="panel-head"><h3>Performance Delta</h3></div>
+                <div class="stat-list">
+                    <div class="stat-row"><span class="stat-key">Conversion Delta</span><span class="stat-value @DeltaClass(Model.ConversionDeltaPercent)" id="kpiConversionDelta">@DeltaText(Model.ConversionDeltaPercent)</span></div>
+                    <div class="stat-row"><span class="stat-key">Conv. Rate Delta</span><span class="stat-value @DeltaClass(Model.ConversionRateDeltaPercent)" id="kpiConversionRateDelta">@DeltaText(Model.ConversionRateDeltaPercent)</span></div>
+                    <div class="stat-row"><span class="stat-key">Leads/100 Delta</span><span class="stat-value @DeltaClass(Model.LeadsPer100DeltaPercent)" id="kpiLeadsPer100Delta">@DeltaText(Model.LeadsPer100DeltaPercent)</span></div>
+                    <div class="stat-row"><span class="stat-key">Tracking Status</span><span class="stat-value" id="trackingStatusValue">Healthy</span></div>
+                </div>
             </div>
         </div>
 
-        @if (Model.Readiness.HasTraffic && !Model.Readiness.HasConversions)
-        {
-            <div class="empty" style="margin-top:12px; border-style:solid; border-color:rgba(245,158,11,.3);">
-                <h3 style="margin-bottom:6px;">Traffic detected, no conversions yet.</h3>
-                <p style="margin-bottom:0;">Submit the project contact form once on the live domain to validate conversion tracking.</p>
-            </div>
-        }
-
-        <div class="panel" style="margin-top:12px;">
-            <div class="panel-head">
-                <h3 style="margin:0;">Traffic Overview</h3>
-                <span class="meta-line">Window: @Model.SelectedRange.ToUpperInvariant()</span>
-            </div>
-            <div class="chart-shell">
-                <svg id="trafficChart" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-label="Traffic trend chart">
-                    <defs>
-                        <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.55"/>
-                            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.05"/>
-                        </linearGradient>
-                    </defs>
-                    <path id="areaPath" d="" fill="url(#lineGradient)" stroke="none"></path>
-                    <path id="linePath" d="" fill="none" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-            </div>
-        </div>
-
-        <div class="grid-funnel">
-            <div class="panel">
-                <h4 style="margin:0 0 10px;">Conversion Funnel</h4>
-                @if (Model.Snapshot.Funnel.Steps.Count == 0)
-                {
-                    <div class="meta-line">No funnel activity in this range.</div>
-                }
-                else
-                {
-                    <div class="funnel-steps">
-                        @foreach (var step in Model.Snapshot.Funnel.Steps)
-                        {
-                            <div class="funnel-step">
-                                <div class="k">@step.Label</div>
-                                <div class="v">@step.Sessions.ToString("N0")</div>
-                                <div class="d">Drop-off: @step.DropoffCount.ToString("N0") (@step.DropoffPercent.ToString("0.##")%)</div>
-                            </div>
-                        }
+        <div class="panel-grid">
+            <div class="panel-col">
+                <div class="deck-card panel">
+                    <div class="panel-head"><h3>Traffic Trajectory</h3><span class="subtle">Window: @Model.SelectedRange.ToUpperInvariant()</span></div>
+                    <div class="chart-shell">
+                        <svg id="trafficChart" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-label="Traffic trend chart">
+                            <defs><linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d11835" stop-opacity="0.72"/><stop offset="100%" stop-color="#d11835" stop-opacity="0.04"/></linearGradient></defs>
+                            <path id="areaPath" d="" fill="url(#lineGradient)" stroke="none"></path>
+                            <path id="linePath" d="" fill="none" stroke="#d11835" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
                     </div>
-                }
-            </div>
-            <div class="panel">
-                <h4 style="margin:0 0 10px;">Tracking Readiness</h4>
-                <table>
-                    <tbody>
-                        <tr><td>Domain Connected</td><td>@(Model.Readiness.DomainConnected ? "Yes" : "No")</td></tr>
-                        <tr><td>SSL Active</td><td>@(Model.Readiness.SslActive ? "Yes" : "No")</td></tr>
-                        <tr><td>Traffic Seen</td><td>@(Model.Readiness.HasTraffic ? "Yes" : "No")</td></tr>
-                        <tr><td>Conversions Seen</td><td>@(Model.Readiness.HasConversions ? "Yes" : "No")</td></tr>
-                        <tr><td>Tracker Active</td><td>@(Model.Readiness.TrackerLikelyActive ? "Likely" : "Check publish")</td></tr>
-                    </tbody>
-                </table>
-                <div class="meta-line" style="margin-top:8px;">@Model.Readiness.StatusText</div>
-                <div class="meta-line">Last event: @(Model.Readiness.LastEventSeenUtc?.ToLocalTime().ToString("MMM d, h:mm tt") ?? "No events yet")</div>
-            </div>
-        </div>
+                </div>
 
-        <div class="grid">
-            <div class="panel">
-                <h4 style="margin:0 0 10px;">Top Pages</h4>
-                <table>
-                    <thead>
-                        <tr><th>Page</th><th>Visits</th><th>Share</th></tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.Snapshot.TopPages.Count == 0)
+                <div class="deck-card panel">
+                    <div class="panel-head"><h3>Conversion Funnel <span class="metric-help" tabindex="0" data-tip="This funnel shows step-by-step progression, where users drop off, and the overall completion ratio.">i</span></h3><span class="subtle">Overall: <strong id="funnelOverallConversion">@Model.Snapshot.Funnel.OverallConversionRatePercent.ToString("0.##")%</strong></span></div>
+                    <div class="funnel-grid" id="funnelStepsWrap">
+                        @if (Model.Snapshot.Funnel.Steps.Count == 0)
                         {
-                            <tr><td colspan="3" class="meta-line">No traffic yet for this range.</td></tr>
+                            <div class="subtle" style="grid-column:1 / -1;">No funnel activity in this range.</div>
                         }
                         else
                         {
-                            @foreach (var item in Model.Snapshot.TopPages)
+                            @foreach (var step in Model.Snapshot.Funnel.Steps)
                             {
-                                <tr>
-                                    <td><span style="color:#67e8f9;">@item.Path</span></td>
-                                    <td>@item.Visits.ToString("N0")</td>
-                                    <td><div class="bar"><span style="width:@item.Percent.ToString("0.##")%;"></span></div></td>
-                                </tr>
+                                <div class="funnel-step"><div class="funnel-key">@step.Label</div><div class="funnel-value">@step.Sessions.ToString("N0")</div><div class="funnel-drop">Drop-off: @step.DropoffCount.ToString("N0") (@step.DropoffPercent.ToString("0.##")%)</div></div>
                             }
                         }
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="subgrid">
-                <div class="panel">
-                    <h4 style="margin:0 0 10px;">Traffic Source</h4>
-                    <div class="source-legend">
-                        <div class="source-pill"><strong>@Model.Snapshot.Sources.NaPercent%</strong><span>North America</span></div>
-                        <div class="source-pill"><strong>@Model.Snapshot.Sources.EuPercent%</strong><span>Europe</span></div>
-                        <div class="source-pill"><strong>@Model.Snapshot.Sources.AsiaPercent%</strong><span>Asia</span></div>
                     </div>
                 </div>
 
-                <div class="panel">
+                <div class="deck-card panel">
+                    <h4 style="margin:0 0 10px;">Top Pages</h4>
+                    <div class="table-scroll"><table class="overview-summary-table">
+                        <thead><tr><th>Page</th><th>Visits</th><th>Share</th></tr></thead>
+                        <tbody id="topPagesBody">
+                            @if (Model.Snapshot.TopPages.Count == 0)
+                            {
+                                <tr><td colspan="3" class="subtle">No traffic yet for this range.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in Model.Snapshot.TopPages.Take(8))
+                                {
+                                    <tr>
+                                        <td><span style="color:#ffd7dd;">@row.Path</span></td>
+                                        <td class="td-num">@row.Visits.ToString("N0")</td>
+                                        <td><div class="bar-cell"><div class="bar"><span style="width:@row.Percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@row.Percent.ToString("0.#")%</span></div></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table></div>
+                </div>
+            </div>
+
+            <div class="rail-col">
+                <div class="deck-card panel">
+                    <h4 style="margin:0 0 10px;">Tracking Readiness</h4>
+                    <div class="table-scroll"><table><tbody>
+                        <tr><td>Domain Connected</td><td id="readinessDomain">@(Model.Readiness.DomainConnected ? "Yes" : "No")</td></tr>
+                        <tr><td>SSL Active</td><td id="readinessSsl">@(Model.Readiness.SslActive ? "Yes" : "No")</td></tr>
+                        <tr><td>Traffic Seen</td><td id="readinessTraffic">@(Model.Readiness.HasTraffic ? "Yes" : "No")</td></tr>
+                        <tr><td>Conversions Seen</td><td id="readinessConversions">@(Model.Readiness.HasConversions ? "Yes" : "No")</td></tr>
+                        <tr><td>Tracker Active</td><td id="readinessTracker">@(Model.Readiness.TrackerLikelyActive ? "Likely" : "Check publish")</td></tr>
+                    </tbody></table></div>
+                    <div class="subtle" style="margin-top:8px;" id="readinessStatusText">@Model.Readiness.StatusText</div>
+                    <div class="subtle" id="readinessLastEvent">Last event: @(Model.Readiness.LastEventSeenUtc?.ToLocalTime().ToString("MMM d, HH:mm") ?? "No events yet")</div>
+                </div>
+
+                <div class="deck-card panel"><h4 style="margin:0 0 10px;">Traffic Source Mix</h4><div class="source-grid"><div class="source-box"><strong id="sourceNa">@Model.Snapshot.Sources.NaPercent%</strong><span>North America</span></div><div class="source-box"><strong id="sourceEu">@Model.Snapshot.Sources.EuPercent%</strong><span>Europe</span></div><div class="source-box"><strong id="sourceAsia">@Model.Snapshot.Sources.AsiaPercent%</strong><span>Asia</span></div></div></div>
+
+                <div class="deck-card panel">
                     <h4 style="margin:0 0 10px;">Top Referrers</h4>
-                    <table>
+                    <div class="table-scroll"><table class="overview-summary-table">
                         <thead><tr><th>Referrer</th><th>Visits</th></tr></thead>
-                        <tbody>
+                        <tbody id="topReferrersBody">
                             @if (Model.TopReferrers.Count == 0)
                             {
-                                <tr><td colspan="2" class="meta-line">No referrer data in this range.</td></tr>
+                                <tr><td colspan="2" class="subtle">No referrer data in this range.</td></tr>
                             }
                             else
                             {
-                                @foreach (var item in Model.TopReferrers)
+                                @foreach (var row in Model.TopReferrers.Take(8))
                                 {
-                                    <tr><td>@item.Host</td><td>@item.Visits.ToString("N0")</td></tr>
+                                    <tr><td>@row.Host</td><td class="td-num">@row.Visits.ToString("N0")</td></tr>
                                 }
                             }
                         </tbody>
-                    </table>
+                    </table></div>
                 </div>
-
-                <div class="panel">
+                <div class="deck-card panel">
                     <h4 style="margin:0 0 10px;">Conversion Referrers</h4>
-                    <table>
-                        <thead><tr><th>Referrer</th><th>Conversions</th></tr></thead>
-                        <tbody>
+                    <div class="table-scroll"><table class="metrics-table">
+                        <thead><tr><th>Referrer</th><th>Conversions</th><th>Share</th></tr></thead>
+                        <tbody id="conversionReferrersBody">
                             @if (Model.ConversionReferrers.Count == 0)
                             {
-                                <tr><td colspan="2" class="meta-line">No conversion referrer data in this range.</td></tr>
+                                <tr><td colspan="3" class="subtle">No conversion referrer data in this range.</td></tr>
                             }
                             else
                             {
-                                @foreach (var item in Model.ConversionReferrers)
+                                @foreach (var row in Model.ConversionReferrers.Take(8))
                                 {
-                                    <tr><td>@item.Host</td><td>@item.Visits.ToString("N0")</td></tr>
+                                    <tr><td>@row.Host</td><td class="td-num">@row.Visits.ToString("N0")</td><td><div class="bar-cell"><div class="bar"><span style="width:@row.Percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@row.Percent.ToString("0.#")%</span></div></td></tr>
                                 }
                             }
                         </tbody>
-                    </table>
+                    </table></div>
                 </div>
-
-                <div class="panel">
+                <div class="deck-card panel">
                     <h4 style="margin:0 0 10px;">Top Countries</h4>
-                    <table>
+                    <div class="table-scroll"><table class="overview-summary-table">
                         <thead><tr><th>Country</th><th>Visits</th><th>Share</th></tr></thead>
-                        <tbody>
+                        <tbody id="topCountriesBody">
                             @if (Model.TopCountries.Count == 0)
                             {
-                                <tr><td colspan="3" class="meta-line">No country data in this range.</td></tr>
+                                <tr><td colspan="3" class="subtle">No country data in this range.</td></tr>
                             }
                             else
                             {
-                                @foreach (var item in Model.TopCountries)
+                                @foreach (var row in Model.TopCountries.Take(8))
                                 {
                                     <tr>
-                                        <td>@item.Label (@item.Code)</td>
-                                        <td>@item.Visits.ToString("N0")</td>
-                                        <td><div class="bar"><span style="width:@item.Percent.ToString("0.##")%;"></span></div></td>
+                                        <td>@row.Label (@row.Code)</td>
+                                        <td class="td-num">@row.Visits.ToString("N0")</td>
+                                        <td><div class="bar-cell"><div class="bar"><span style="width:@row.Percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@row.Percent.ToString("0.#")%</span></div></td>
                                     </tr>
                                 }
                             }
                         </tbody>
-                    </table>
+                    </table></div>
                 </div>
-
-                <div class="panel">
-                    <h4 style="margin:0 0 10px;">Conversion Countries</h4>
-                    <table>
+                <div class="deck-card panel">
+                    <h4 style="margin:0 0 10px;">Conversion Countries <span class="metric-help" tabindex="0" data-tip="Shows where conversion events came from geographically, with each country's share of total conversions.">i</span></h4>
+                    <div class="table-scroll"><table class="overview-summary-table">
                         <thead><tr><th>Country</th><th>Conversions</th><th>Share</th></tr></thead>
-                        <tbody>
+                        <tbody id="conversionCountriesBody">
                             @if (Model.ConversionCountries.Count == 0)
                             {
-                                <tr><td colspan="3" class="meta-line">No conversion country data in this range.</td></tr>
+                                <tr><td colspan="3" class="subtle">No conversion country data in this range.</td></tr>
                             }
                             else
                             {
-                                @foreach (var item in Model.ConversionCountries)
+                                @foreach (var row in Model.ConversionCountries.Take(8))
                                 {
                                     <tr>
-                                        <td>@item.Label (@item.Code)</td>
-                                        <td>@item.Visits.ToString("N0")</td>
-                                        <td><div class="bar"><span style="width:@item.Percent.ToString("0.##")%;"></span></div></td>
+                                        <td>@row.Label (@row.Code)</td>
+                                        <td class="td-num">@row.Visits.ToString("N0")</td>
+                                        <td><div class="bar-cell"><div class="bar"><span style="width:@row.Percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@row.Percent.ToString("0.#")%</span></div></td>
                                     </tr>
                                 }
                             }
                         </tbody>
-                    </table>
+                    </table></div>
                 </div>
-
-                <div class="panel">
+                <div class="deck-card panel">
                     <h4 style="margin:0 0 10px;">Conversion Devices</h4>
-                    <table>
+                    <div class="table-scroll"><table class="overview-summary-table">
                         <thead><tr><th>Device</th><th>Conversions</th><th>Share</th></tr></thead>
-                        <tbody>
+                        <tbody id="conversionDevicesBody">
                             @if (Model.ConversionDevices.Count == 0)
                             {
-                                <tr><td colspan="3" class="meta-line">No conversion device data in this range.</td></tr>
+                                <tr><td colspan="3" class="subtle">No conversion device data in this range.</td></tr>
                             }
                             else
                             {
-                                @foreach (var item in Model.ConversionDevices)
+                                @foreach (var row in Model.ConversionDevices.Take(8))
                                 {
                                     <tr>
-                                        <td>@DeviceLabel(item.DeviceType)</td>
-                                        <td>@item.Conversions.ToString("N0")</td>
-                                        <td><div class="bar"><span style="width:@item.Percent.ToString("0.##")%;"></span></div></td>
+                                        <td>@DeviceLabel(row.DeviceType)</td>
+                                        <td class="td-num">@row.Conversions.ToString("N0")</td>
+                                        <td><div class="bar-cell"><div class="bar"><span style="width:@row.Percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@row.Percent.ToString("0.#")%</span></div></td>
                                     </tr>
                                 }
                             }
                         </tbody>
-                    </table>
+                    </table></div>
                 </div>
-
-                <div class="panel">
+                <div class="deck-card panel">
                     <h4 style="margin:0 0 10px;">Device Types</h4>
-                    <table>
+                    <div class="table-scroll"><table class="overview-summary-table">
                         <thead><tr><th>Device</th><th>Visits</th><th>Share</th></tr></thead>
-                        <tbody>
+                        <tbody id="deviceTypesBody">
                             <tr>
                                 <td>Desktop</td>
-                                <td>@Model.Devices.Desktop.ToString("N0")</td>
-                                <td><div class="bar"><span style="width:@Model.Devices.DesktopPercent.ToString("0.#")%;"></span></div></td>
+                                <td class="td-num">@Model.Devices.Desktop.ToString("N0")</td>
+                                <td><div class="bar-cell"><div class="bar"><span style="width:@Model.Devices.DesktopPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@Model.Devices.DesktopPercent.ToString("0.#")%</span></div></td>
                             </tr>
                             <tr>
                                 <td>Mobile</td>
-                                <td>@Model.Devices.Mobile.ToString("N0")</td>
-                                <td><div class="bar"><span style="width:@Model.Devices.MobilePercent.ToString("0.#")%;"></span></div></td>
+                                <td class="td-num">@Model.Devices.Mobile.ToString("N0")</td>
+                                <td><div class="bar-cell"><div class="bar"><span style="width:@Model.Devices.MobilePercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@Model.Devices.MobilePercent.ToString("0.#")%</span></div></td>
                             </tr>
                             <tr>
                                 <td>Tablet</td>
-                                <td>@Model.Devices.Tablet.ToString("N0")</td>
-                                <td><div class="bar"><span style="width:@Model.Devices.TabletPercent.ToString("0.#")%;"></span></div></td>
+                                <td class="td-num">@Model.Devices.Tablet.ToString("N0")</td>
+                                <td><div class="bar-cell"><div class="bar"><span style="width:@Model.Devices.TabletPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@Model.Devices.TabletPercent.ToString("0.#")%</span></div></td>
                             </tr>
                             @if (Model.Devices.Other > 0)
                             {
                                 <tr>
                                     <td>Other</td>
-                                    <td>@Model.Devices.Other.ToString("N0")</td>
-                                    <td><div class="bar"><span style="width:@Model.Devices.OtherPercent.ToString("0.#")%;"></span></div></td>
+                                    <td class="td-num">@Model.Devices.Other.ToString("N0")</td>
+                                    <td><div class="bar-cell"><div class="bar"><span style="width:@Model.Devices.OtherPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></span></div><span class="bar-value">@Model.Devices.OtherPercent.ToString("0.#")%</span></div></td>
                                 </tr>
                             }
                         </tbody>
-                    </table>
+                    </table></div>
                 </div>
             </div>
         </div>
+        </div>
+
+        <div class="analytics-tab-panel @(Model.SelectedTab == "realtime" ? "active" : string.Empty)" id="tabPanel-realtime">
+            <div class="deck-card panel tab-shell"><h3>Realtime</h3><div class="subtle">Live traffic pulse, event flow, page activity, and incoming referrers updated every few seconds.</div><div id="dynamic-realtime"></div></div>
+        </div>
+        <div class="analytics-tab-panel @(Model.SelectedTab == "acquisition" ? "active" : string.Empty)" id="tabPanel-acquisition">
+            <div class="deck-card panel tab-shell"><h3>Acquisition</h3><div class="subtle">Channel mix and trusted source / medium performance for the selected traffic slice.</div><div id="dynamic-acquisition"></div></div>
+        </div>
+        <div class="analytics-tab-panel @(Model.SelectedTab == "engagement" ? "active" : string.Empty)" id="tabPanel-engagement">
+            <div class="deck-card panel tab-shell"><h3>Engagement</h3><div class="subtle">Pages & screens metrics with search, sorting, and pagination.</div><div id="dynamic-engagement"></div></div>
+        </div>
+        <div class="analytics-tab-panel @(Model.SelectedTab == "audience" ? "active" : string.Empty)" id="tabPanel-audience">
+            <div class="deck-card panel tab-shell"><h3>Audience</h3><div class="subtle">Audience distribution by country, city, device, and browser with sortable report detail.</div><div id="dynamic-audience"></div></div>
+        </div>
+        <div class="analytics-tab-panel @(Model.SelectedTab == "conversions" ? "active" : string.Empty)" id="tabPanel-conversions">
+            <div class="deck-card panel tab-shell"><h3>Conversions</h3><div class="subtle">Conversion journey, key event volume, and attribution signals based on tracked sessions.</div><div id="dynamic-conversions"></div></div>
+        </div>
+        <div class="analytics-tab-panel @(Model.SelectedTab == "seo" ? "active" : string.Empty)" id="tabPanel-seo">
+            <div class="deck-card panel tab-shell"><h3>SEO / Search Console</h3><div class="subtle">Connector-ready status, indexing cards, issues, and sitemap status.</div><div id="dynamic-seo"></div></div>
+        </div>
+        <div class="analytics-tab-panel @(Model.SelectedTab == "pages" ? "active" : string.Empty)" id="tabPanel-pages">
+            <div class="deck-card panel tab-shell"><h3>Pages</h3><div class="subtle">Full Pages & screens table with expanded row depth.</div><div id="dynamic-pages"></div></div>
+        </div>
+
+        <aside class="filter-drawer" id="filterDrawer">
+            <h3>Filters</h3>
+            <label>Country<input id="fltCountry" value="@Model.ActiveFilters.Country" placeholder="US" /></label>
+            <label>Device
+                <select id="fltDevice">
+                    <option value="">Any</option>
+                    <option value="desktop" selected="@(Model.ActiveFilters.Device == "desktop" ? "selected" : null)">Desktop</option>
+                    <option value="mobile" selected="@(Model.ActiveFilters.Device == "mobile" ? "selected" : null)">Mobile</option>
+                    <option value="tablet" selected="@(Model.ActiveFilters.Device == "tablet" ? "selected" : null)">Tablet</option>
+                </select>
+            </label>
+            <label>Landing page<input id="fltLanding" value="@Model.ActiveFilters.LandingPage" placeholder="/contact" /></label>
+            <label>Referrer<input id="fltReferrer" value="@Model.ActiveFilters.Referrer" placeholder="google.com" /></label>
+            <label>UTM source<input id="fltUtmSource" value="@Model.ActiveFilters.UtmSource" placeholder="google" /></label>
+            <label>UTM medium<input id="fltUtmMedium" value="@Model.ActiveFilters.UtmMedium" placeholder="organic" /></label>
+            <label>UTM campaign<input id="fltUtmCampaign" value="@Model.ActiveFilters.UtmCampaign" placeholder="spring_sale" /></label>
+            <div class="ga-control-right">
+                <button type="button" class="filter-btn" id="applyFiltersBtn">Apply</button>
+                <button type="button" class="filter-btn" id="closeFilterDrawer">Close</button>
+            </div>
+        </aside>
     }
 </div>
-
 @section Scripts {
 <script>
 (() => {
     if (!document.body.classList.contains('page-analytics-index')) return;
 
-    const payload = @Html.Raw(JsonSerializer.Serialize(chartData));
     const selectedProjectId = @Model.SelectedProjectId;
+    if (!selectedProjectId) return;
+
+    const payload = @Html.Raw(JsonSerializer.Serialize(chartData));
     const activeRange = (payload?.range || '30d').toLowerCase();
+    let activeTab = '@Model.SelectedTab';
+    let compareEnabled = @Model.CompareEnabled.ToString().ToLowerInvariant();
+    let activeSegment = '@Model.SelectedSegment';
     const series = activeRange === '24h' ? (payload?.data24h || []) : (activeRange === '7d' ? (payload?.data7d || []) : (payload?.data30d || []));
 
     const lp = document.getElementById('linePath');
     const ap = document.getElementById('areaPath');
-    if (lp && ap && Array.isArray(series) && series.length > 0) {
+    const syncStatusBadge = document.getElementById('syncStatusBadge');
+    const syncStatusText = document.getElementById('syncStatusText');
+    const syncTime = document.getElementById('syncTime');
+    const compareToggle = document.getElementById('compareToggle');
+    const compareLabel = document.getElementById('compareLabel');
+    const segmentSelect = document.getElementById('segmentSelect');
+    const filterDrawer = document.getElementById('filterDrawer');
+    const openFilterDrawer = document.getElementById('openFilterDrawer');
+    const closeFilterDrawer = document.getElementById('closeFilterDrawer');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const savedViewsDrawer = document.getElementById('savedViewsDrawer');
+    const manageViewsBtn = document.getElementById('manageViewsBtn');
+    const closeSavedViewsDrawer = document.getElementById('closeSavedViewsDrawer');
+    const savedViewsList = document.getElementById('savedViewsList');
+    const antiforgeryToken = document.querySelector('#analyticsAntiForgeryForm input[name=\"__RequestVerificationToken\"]')?.value || '';
+
+    let lastSyncAt = null;
+    let inFlight = false;
+    let intervalId = null;
+    if (payload?.generatedAtUtc) {
+        const initialSync = new Date(payload.generatedAtUtc);
+        if (!Number.isNaN(initialSync.getTime())) {
+            lastSyncAt = initialSync.getTime();
+        }
+    }
+
+    const renderTrafficSeries = (seriesData) => {
+        if (!lp || !ap || !Array.isArray(seriesData) || seriesData.length === 0) return;
         const width = 1000;
         const base = 240;
-        const min = Math.min(...series);
-        const max = Math.max(...series);
+        const min = Math.min(...seriesData);
+        const max = Math.max(...seriesData);
         const span = Math.max(1, max - min);
-        const step = width / Math.max(1, series.length - 1);
+        const step = width / Math.max(1, seriesData.length - 1);
 
-        const points = series.map((n, i) => {
+        const points = seriesData.map((n, i) => {
             const x = i * step;
             const y = base - (((n - min) / span) * 180);
             return [x, y];
         });
 
-        const linePath = points.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' ');
-        const areaPath = `M0 ${base} ${points.map((p) => `L${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' ')} L${width} ${base} Z`;
-
-        lp.setAttribute('d', linePath);
-        ap.setAttribute('d', areaPath);
-    }
-
-    const numFmt = (n) => {
-        if (!Number.isFinite(n)) return '0';
-        return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K` : Math.round(n).toString();
+        lp.setAttribute('d', points.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' '));
+        ap.setAttribute('d', `M0 ${base} ${points.map((p) => `L${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' ')} L${width} ${base} Z`);
     };
-    const secFmt = (seconds) => {
+    renderTrafficSeries(series);
+
+    const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+    const compact = (n) => { const value = Number(n) || 0; return value >= 1000 ? `${(value / 1000).toFixed(1).replace(/\.0$/, '')}K` : Math.round(value).toString(); };
+    const secondsToLabel = (seconds) => {
         const safe = Math.max(0, Math.round(Number(seconds) || 0));
         const h = Math.floor(safe / 3600);
         const m = Math.floor((safe % 3600) / 60);
         const s = safe % 60;
-        if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
-        return `${m}m ${String(s).padStart(2, '0')}s`;
+        return h > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m ${String(s).padStart(2, '0')}s`;
     };
     const deltaText = (value) => {
         const n = Number(value) || 0;
@@ -547,68 +637,855 @@
         if (!el) return;
         el.classList.remove('up', 'down', 'flat');
         const n = Number(value) || 0;
-        if (Math.abs(n) < 0.01) {
-            el.classList.add('flat');
-            return;
-        }
+        if (Math.abs(n) < 0.01) { el.classList.add('flat'); return; }
         let positive = n > 0;
         if (lowerIsBetter) positive = !positive;
         el.classList.add(positive ? 'up' : 'down');
+    };
+    const flash = (el) => { if (!el) return; el.classList.remove('kpi-flash'); void el.offsetWidth; el.classList.add('kpi-flash'); };
+    const applyText = (el, value) => {
+        if (!el) return;
+        const next = String(value ?? '');
+        if (el.textContent !== next) { el.textContent = next; flash(el); }
+    };
+    const renderRows = (tbody, rows, renderRow, emptyText, colSpan) => {
+        if (!tbody) return;
+        if (!Array.isArray(rows) || rows.length === 0) { tbody.innerHTML = `<tr><td colspan="${colSpan}" class="subtle">${emptyText}</td></tr>`; return; }
+        tbody.innerHTML = rows.map(renderRow).join('');
+    };
+    const percentBarCell = (value) => {
+        const percent = Math.max(0, Math.min(100, Number(value) || 0));
+        return `<div class="bar-cell"><div class="bar"><span style="width:${percent.toFixed(2)}%;"></span></div><span class="bar-value">${percent.toFixed(1).replace(/\\.0$/, '')}%</span></div>`;
     };
     const toLocalLabel = (iso) => {
         if (!iso) return 'No events yet';
         const d = new Date(iso);
         if (Number.isNaN(d.getTime())) return 'No events yet';
-        return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
+    const setSyncState = (state, text) => {
+        if (!syncStatusBadge || !syncStatusText) return;
+        syncStatusBadge.classList.remove('syncing', 'error');
+        if (state === 'syncing') syncStatusBadge.classList.add('syncing');
+        if (state === 'error') syncStatusBadge.classList.add('error');
+        applyText(syncStatusText, text);
+    };
+    const refreshSyncTime = () => {
+        if (!syncTime) return;
+        if (!lastSyncAt) { applyText(syncTime, 'waiting for first sync...'); return; }
+        const elapsed = Math.max(0, Math.floor((Date.now() - lastSyncAt) / 1000));
+        applyText(syncTime, elapsed < 2 ? 'synced just now' : `synced ${elapsed}s ago`);
+    };
+    const filterState = () => ({
+        country: document.getElementById('fltCountry')?.value || '',
+        device: document.getElementById('fltDevice')?.value || '',
+        landingPage: document.getElementById('fltLanding')?.value || '',
+        referrer: document.getElementById('fltReferrer')?.value || '',
+        utmSource: document.getElementById('fltUtmSource')?.value || '',
+        utmMedium: document.getElementById('fltUtmMedium')?.value || '',
+        utmCampaign: document.getElementById('fltUtmCampaign')?.value || ''
+    });
+    const toQuery = () => {
+        const p = new URLSearchParams();
+        p.set('projectId', String(selectedProjectId));
+        p.set('range', activeRange);
+        p.set('tab', activeTab);
+        p.set('compare', compareEnabled ? '1' : '0');
+        p.set('segment', activeSegment || 'all');
+        const f = filterState();
+        Object.entries(f).forEach(([k, v]) => { if (v) p.set(k, v); });
+        return p;
+    };
+    const urlState = new URLSearchParams(window.location.search);
+    const numericColumnKeys = new Set(["sessions", "users", "views", "active_users", "new_users", "engaged_sessions", "engagement_rate", "avg_engagement", "avg_engagement_time", "event_count", "key_events", "revenue", "current", "previous", "count", "dropoff", "conversion_rate", "views_per_user"]);
+    const isNumericColumn = (key) => numericColumnKeys.has(String(key || "").toLowerCase());
+    const helpTextByKey = {
+        page: 'The page path or title that received traffic in the selected range.',
+        views: 'Total page views recorded for this row in the selected time window.',
+        active_users: 'Distinct users or sessions who visited this row during the selected range.',
+        views_per_user: 'Average number of views generated by each active user for this page.',
+        new_users: 'Visitors appearing as first-time users in the current grouping.',
+        engaged_sessions: 'Sessions with positive engagement instead of a quick bounce.',
+        engagement_rate: 'Percentage of sessions in this group that were engaged.',
+        avg_engagement: 'Average engaged time recorded for this row. If Bugence did not receive engagement beacons, this remains untracked.',
+        event_count: 'All tracked analytics events tied to this row in the selected range.',
+        key_events: 'High-value events such as contact submits, lead actions, pricing intent, calls, or WhatsApp clicks.',
+        revenue: 'Tracked monetary value. This stays untracked until purchase or value metadata is sent with events.',
+        events: 'Total tracked analytics events captured in the selected range.',
+        countries: 'Number of grouped rows returned for the selected audience dimension.',
+        devices: 'Distinct detected device categories represented in the selected range.',
+        browsers: 'Distinct browser families represented in the selected range.',
+        funnel_rate: 'Overall completion rate from the first funnel step to the final conversion step.',
+        unique_converters: 'Distinct users or sessions that completed a conversion-tagged event.',
+        step: 'A configured step in the conversion journey.',
+        sessions: 'How many sessions reached this row or step in the selected range.',
+        dropoff: 'Percentage of sessions that did not progress beyond this step.',
+        dimension: 'The selected audience dimension used to group this report.',
+        country: 'Visitor country detected for the session.',
+        city: 'Visitor city detected for the session.',
+        device: 'Device category detected from the visitor user agent.',
+        browser: 'Browser family used by the visitor.',
+        source_medium: 'The acquisition source and medium associated with the session.',
+        landing_page: 'The first page captured in the session.',
+        conversion_rate: 'Conversions divided by total sessions in the current row.',
+        referrer: 'The referring host that sent traffic or conversions.',
+        conversions: 'Total conversion events recorded for the row.',
+        current: 'Current selected period value.',
+        previous: 'Previous comparison period value.'
+    };
+    const helpTextByLabel = {
+        'page title / url': helpTextByKey.page,
+        'views': helpTextByKey.views,
+        'active users': helpTextByKey.active_users,
+        'views / active user': helpTextByKey.views_per_user,
+        'new users': helpTextByKey.new_users,
+        'engaged sessions': helpTextByKey.engaged_sessions,
+        'engagement rate': helpTextByKey.engagement_rate,
+        'avg engagement time': helpTextByKey.avg_engagement,
+        'event count': helpTextByKey.event_count,
+        'key events': helpTextByKey.key_events,
+        'revenue': helpTextByKey.revenue,
+        'country': helpTextByKey.country,
+        'city': helpTextByKey.city,
+        'device': helpTextByKey.device,
+        'browser': helpTextByKey.browser,
+        'step': helpTextByKey.step,
+        'sessions': helpTextByKey.sessions,
+        'drop-off %': helpTextByKey.dropoff,
+        'drop-off': helpTextByKey.dropoff,
+        'source / medium': helpTextByKey.source_medium,
+        'channel': helpTextByKey.source_medium,
+        'landing page': helpTextByKey.landing_page,
+        'conversion rate': helpTextByKey.conversion_rate,
+        'referrer': helpTextByKey.referrer,
+        'conversions': helpTextByKey.conversions,
+        'share': 'Relative share of the leading value inside the current card or table.',
+        'users': 'Total users in the selected row or report.',
+        'label': 'The label for the current row in the comparison table.',
+        'count': 'Total count for the current metric.'
+    };
+    const countryDisplay = (() => {
+        try {
+            return typeof Intl !== 'undefined' && Intl.DisplayNames ? new Intl.DisplayNames(['en'], { type: 'region' }) : null;
+        } catch {
+            return null;
+        }
+    })();
+    const getCountryLabel = (value) => {
+        const raw = String(value || '').trim();
+        if (!raw) return raw;
+        const match = raw.match(/^[A-Z]{2}$/);
+        if (match && countryDisplay) {
+            const label = countryDisplay.of(raw);
+            return label ? `${label} (${raw})` : raw;
+        }
+        return raw;
+    };
+    const helpIcon = (text) => text ? `<span class="metric-help" tabindex="0" data-tip="${escapeHtml(text)}">i</span>` : '';
+    const headingWithHelp = (label, key, explicitHelp) => `<span class="metric-heading">${escapeHtml(label)}${helpIcon(explicitHelp || helpTextByKey[String(key || '').toLowerCase()] || helpTextByLabel[String(label || '').toLowerCase()])}</span>`;
+    const formatDisplayValue = (tabKey, columnKey, value) => {
+        const raw = value ?? '';
+        if (tabKey === 'audience' && String(columnKey || '').toLowerCase() === 'dimension') {
+            return getCountryLabel(raw);
+        }
+        return raw;
+    };
+    const formatCellHtml = (tabPayload, column, rawValue) => {
+        const columnKey = String(column?.key || '').toLowerCase();
+        const displayValue = formatDisplayValue(tabPayload?.tab, columnKey, rawValue);
+        const signals = tabPayload?.extras?.signalStatus || {};
+        if ((columnKey === 'avg_engagement' || columnKey === 'avg_engagement_time') && !signals.hasEngagementSignals) {
+            return '<span class="subtle">Not tracked</span>';
+        }
+        if (columnKey === 'revenue' && !signals.hasRevenueSignals) {
+            return '<span class="subtle">Not tracked</span>';
+        }
+        return escapeHtml(displayValue);
+    };
+    const buildSignalNote = (tabPayload) => {
+        const signals = tabPayload?.extras?.signalStatus;
+        if (!signals) return '';
+        const notes = [];
+        if (tabPayload.tab === 'engagement' || tabPayload.tab === 'pages' || tabPayload.tab === 'audience') {
+            if (!signals.hasEngagementSignals) notes.push('Avg engagement time is untracked in this range because no engagement-time beacon was recorded.');
+            if (!signals.hasTrackedEvents) notes.push('Event count and key events are zero because no analytics event rows were captured in the selected time window.');
+            if (signals.hasRevenueSignals === false) notes.push('Revenue remains untracked until purchase or value metadata is sent with events.');
+        }
+        if (tabPayload.tab === 'conversions') {
+            if (!signals.hasConversionEvents) notes.push('Unique converters and attribution are empty because no conversion-tagged events were recorded in this range.');
+            if (!signals.hasKeyEvents) notes.push('Key conversion events is empty because no mapped key events were captured in the selected window.');
+        }
+        return notes.length ? `<div class="table-note">${notes.join(' ')}</div>` : '';
+    };
+    const decorateHeaderTips = (root = document) => {
+        root.querySelectorAll('th').forEach((th) => {
+            if (th.dataset.helpBound === '1') return;
+            const raw = (th.textContent || '').replace(/\s+/g, ' ').trim();
+            const help = helpTextByLabel[raw.toLowerCase()];
+            if (!help) return;
+            th.dataset.helpBound = '1';
+            th.innerHTML = headingWithHelp(raw, raw, help);
+        });
+    };
+    const metricHelpTooltip = document.createElement('div');
+    metricHelpTooltip.className = 'metric-help-tooltip';
+    document.body.appendChild(metricHelpTooltip);
+    let activeMetricHelp = null;
+    const hideMetricHelpTooltip = () => {
+        activeMetricHelp = null;
+        metricHelpTooltip.classList.remove('show');
+    };
+    const positionMetricHelpTooltip = (target) => {
+        if (!target) return;
+        const rect = target.getBoundingClientRect();
+        const tooltipWidth = metricHelpTooltip.offsetWidth || 280;
+        const tooltipHeight = metricHelpTooltip.offsetHeight || 0;
+        const gutter = 12;
+        let left = rect.right + 10;
+        let top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+        if (left + tooltipWidth > window.innerWidth - gutter) {
+            left = rect.left - tooltipWidth - 10;
+        }
+        if (left < gutter) {
+            left = Math.max(gutter, Math.min(window.innerWidth - tooltipWidth - gutter, rect.left));
+            top = rect.bottom + 10;
+        }
+        if (top + tooltipHeight > window.innerHeight - gutter) {
+            top = window.innerHeight - tooltipHeight - gutter;
+        }
+        if (top < gutter) {
+            top = gutter;
+        }
+        metricHelpTooltip.style.left = `${left}px`;
+        metricHelpTooltip.style.top = `${top}px`;
+    };
+    const showMetricHelpTooltip = (target) => {
+        const text = target?.getAttribute('data-tip');
+        if (!text) return;
+        activeMetricHelp = target;
+        metricHelpTooltip.textContent = text;
+        metricHelpTooltip.classList.add('show');
+        positionMetricHelpTooltip(target);
+    };
+    document.addEventListener('mouseover', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('.metric-help') : null;
+        if (!target) return;
+        showMetricHelpTooltip(target);
+    });
+    document.addEventListener('focusin', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('.metric-help') : null;
+        if (!target) return;
+        showMetricHelpTooltip(target);
+    });
+    document.addEventListener('mouseout', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('.metric-help') : null;
+        const next = event.relatedTarget instanceof Element ? event.relatedTarget.closest('.metric-help') : null;
+        if (target && target !== next) hideMetricHelpTooltip();
+    });
+    document.addEventListener('focusout', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('.metric-help') : null;
+        const next = event.relatedTarget instanceof Element ? event.relatedTarget.closest('.metric-help') : null;
+        if (target && target !== next) hideMetricHelpTooltip();
+    });
+    window.addEventListener('scroll', () => {
+        if (activeMetricHelp) positionMetricHelpTooltip(activeMetricHelp);
+    }, true);
+    window.addEventListener('resize', () => {
+        if (activeMetricHelp) positionMetricHelpTooltip(activeMetricHelp);
+    });
+    const tabState = {
+        realtime: { page: Math.max(1, Number(urlState.get('page')) || 1), pageSize: Math.max(1, Number(urlState.get('pageSize')) || 20) },
+        acquisition: { module: urlState.get('module') || 'source_medium', page: Math.max(1, Number(urlState.get('page')) || 1), pageSize: Math.max(1, Number(urlState.get('pageSize')) || 25), search: urlState.get('search') || '', sortBy: urlState.get('sortBy') || 'sessions', sortDir: urlState.get('sortDir') || 'desc', visibleColumns: null },
+        engagement: { page: Math.max(1, Number(urlState.get('page')) || 1), pageSize: Math.max(1, Number(urlState.get('pageSize')) || 25), search: urlState.get('search') || '', sortBy: urlState.get('sortBy') || 'views', sortDir: urlState.get('sortDir') || 'desc', visibleColumns: null },
+        audience: { dimension: urlState.get('dimension') || 'country', page: Math.max(1, Number(urlState.get('page')) || 1), pageSize: Math.max(1, Number(urlState.get('pageSize')) || 25), search: urlState.get('search') || '', sortBy: urlState.get('sortBy') || 'active_users', sortDir: urlState.get('sortDir') || 'desc', visibleColumns: null },
+        conversions: { funnelMode: urlState.get('funnelMode') || 'open', funnelId: urlState.get('funnelId') || null },
+        seo: {},
+        pages: { page: Math.max(1, Number(urlState.get('page')) || 1), pageSize: Math.max(1, Number(urlState.get('pageSize')) || 25), search: urlState.get('search') || '', sortBy: urlState.get('sortBy') || 'views', sortDir: urlState.get('sortDir') || 'desc', visibleColumns: null }
+    };
+    const getTabState = (tab) => tabState[tab] || {};
+    const refreshDynamicTab = async (tab) => {
+        if (tab === 'overview') return;
+        const state = getTabState(tab);
+        const q = toQuery();
+        q.set('tab', tab);
+        if (state.page) q.set('page', String(state.page));
+        if (state.pageSize) q.set('pageSize', String(state.pageSize));
+        if (state.search !== undefined) q.set('search', state.search || '');
+        if (state.sortBy) q.set('sortBy', state.sortBy);
+        if (state.sortDir) q.set('sortDir', state.sortDir);
+        if (state.module) q.set('module', state.module);
+        if (state.dimension) q.set('dimension', state.dimension);
+        if (state.funnelMode) q.set('funnelMode', state.funnelMode);
+        if (state.funnelId) q.set('funnelId', String(state.funnelId));
+        const r = await fetch(`/Analytics?handler=Tab&${q.toString()}`, { credentials: 'same-origin', cache: 'no-store' });
+        const p = await r.json().catch(() => null);
+        if (!r.ok || !p?.success || !p?.tab) return;
+        renderDynamicTab(p.tab);
+    };
+    const setTab = (tab) => {
+        activeTab = tab;
+        document.querySelectorAll('.tab-link').forEach((el) => el.classList.toggle('active', el.dataset.tab === tab));
+        document.querySelectorAll('.analytics-tab-panel').forEach((el) => el.classList.toggle('active', el.id === `tabPanel-${tab}`));
+        tick();
+    };
+    const syncUrlState = () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('projectId', String(selectedProjectId));
+        url.searchParams.set('range', activeRange);
+        url.searchParams.set('tab', activeTab);
+        url.searchParams.set('compare', compareEnabled ? '1' : '0');
+        url.searchParams.set('segment', activeSegment || 'all');
+        const state = getTabState(activeTab);
+        if (state?.module) url.searchParams.set('module', state.module); else url.searchParams.delete('module');
+        if (state?.dimension) url.searchParams.set('dimension', state.dimension); else url.searchParams.delete('dimension');
+        if (state?.funnelMode) url.searchParams.set('funnelMode', state.funnelMode); else url.searchParams.delete('funnelMode');
+        if (state?.funnelId) url.searchParams.set('funnelId', String(state.funnelId)); else url.searchParams.delete('funnelId');
+        window.history.replaceState({}, '', url);
+    };
+    const metricTileHtml = (metric) => {
+        const value = Number(metric?.value ?? 0);
+        const prev = metric?.previousValue;
+        const formattedValue = metric?.unit === '%' ? `${value.toFixed(2).replace(/\.00$/, '')}%` : value.toLocaleString();
+        let delta = '';
+        if (prev !== null && prev !== undefined) {
+            const p = Number(prev) || 0;
+            const ch = p === 0 ? (value > 0 ? 100 : 0) : ((value - p) / Math.max(1, p)) * 100;
+            delta = `<div class="d">${ch >= 0 ? '+' : ''}${ch.toFixed(1)}% vs prev</div>`;
+        }
+        return `<div class="metric-tile"><div class="k">${headingWithHelp(metric?.label || metric?.key || 'Metric', metric?.key)}</div><div class="v">${formattedValue}</div>${delta}</div>`;
+    };
+    const payloadHasSignal = (tabPayload) => {
+        const metrics = Array.isArray(tabPayload?.metrics) ? tabPayload.metrics : [];
+        const lists = Array.isArray(tabPayload?.lists) ? tabPayload.lists : [];
+        const series = Array.isArray(tabPayload?.series) ? tabPayload.series : [];
+        const tableRows = Array.isArray(tabPayload?.table?.rows) ? tabPayload.table.rows : [];
+        return metrics.some((m) => Number(m?.value ?? 0) > 0 || Number(m?.previousValue ?? 0) > 0)
+            || lists.some((m) => Number(m?.value ?? 0) > 0)
+            || series.some((m) => Number(m?.value ?? 0) > 0 || Number(m?.previousValue ?? 0) > 0)
+            || tableRows.length > 0;
+    };
+    const renderEmptyState = (title, text) => `<div class="zero-note"><strong>${escapeHtml(title)}</strong><div style="margin-top:6px">${escapeHtml(text)}</div></div>`;
+    const toMercator = (lat, lon, w, h) => {
+        const clampedLat = Math.max(-85, Math.min(85, Number(lat) || 0));
+        const lambda = Number(lon) || 0;
+        const x = ((lambda + 180) / 360) * w;
+        const rad = clampedLat * Math.PI / 180;
+        const y = (h / 2) - (w * Math.log(Math.tan(Math.PI / 4 + rad / 2)) / (2 * Math.PI));
+        return [x, Math.max(0, Math.min(h, y))];
+    };
+    const renderGeoDotsMap = (geoDots) => {
+        const width = 960;
+        const height = 190;
+        const dots = (Array.isArray(geoDots) ? geoDots : [])
+            .filter((d) => d?.lat !== null && d?.lat !== undefined && d?.lon !== null && d?.lon !== undefined)
+            .slice(0, 20)
+            .map((d) => {
+                const [x, y] = toMercator(d.lat, d.lon, width, height);
+                const r = Math.max(2, Math.min(10, Math.sqrt(Number(d.activeUsers || 1)) * 1.6));
+                return `<circle class="geo-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"></circle><text class="geo-label" x="${(x + 6).toFixed(1)}" y="${(y - 6).toFixed(1)}">${escapeHtml(d.country || '')}</text>`;
+            }).join('');
+        return `<div class="geo-map"><svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><rect x="0" y="0" width="${width}" height="${height}" fill="rgba(255,255,255,.03)"></rect><path d="M0 95 L960 95" stroke="rgba(255,255,255,.08)" stroke-width="1"></path>${dots || '<text x="20" y="26" class="geo-label">Geo dots appear when country signals are available.</text>'}</svg></div>`;
+    };
+    const renderSeriesCompare = (series, title) => {
+        const rows = Array.isArray(series) ? series : [];
+        if (!rows.length) return '';
+        return `<div class="deck-card panel" style="margin-top:10px;"><h4 style="margin:0 0 10px;">${escapeHtml(title || 'Trend')}</h4><div class="table-scroll"><table><thead><tr><th>${headingWithHelp('Label', 'label')}</th><th class="th-num">${headingWithHelp('Current', 'current')}</th><th class="th-num">${headingWithHelp('Previous', 'previous')}</th></tr></thead><tbody>${rows.slice(0, 20).map((s) => `<tr><td>${escapeHtml(s.label || '')}</td><td class="td-num">${Number(s.value || 0).toLocaleString()}</td><td class="td-num">${s.previousValue === null || s.previousValue === undefined ? '-' : Number(s.previousValue || 0).toLocaleString()}</td></tr>`).join('')}</tbody></table></div></div>`;
+    };
+    const bindRichTable = (host, tabPayload, searchPlaceholder) => {
+        const state = getTabState(tabPayload.tab);
+        const table = tabPayload.table;
+        if (!state || !table?.columns?.length) return;
+        if (!payloadHasSignal(tabPayload) && !(Array.isArray(table.rows) && table.rows.length)) {
+            host.innerHTML = renderEmptyState('No report data yet', 'This report will populate after Bugence records enough traffic for the selected date range and filters.');
+            return;
+        }
+        if (!state.visibleColumns) {
+            state.visibleColumns = new Set(table.columns.map((c) => c.key));
+        }
+        const visibleCols = table.columns.filter((c) => state.visibleColumns.has(c.key));
+        const totalRows = Number(table.totalRows || 0);
+        const pageSize = Number(table.pageSize || state.pageSize || 25);
+        const page = Number(table.page || state.page || 1);
+        const totalPages = Math.max(1, Math.ceil(totalRows / Math.max(1, pageSize)));
+        host.innerHTML = `
+            <div class="metric-grid">${(tabPayload.metrics || []).map(metricTileHtml).join('')}</div>
+            <div class="table-ux">
+                <div class="table-toolbar">
+                    <div class="table-left">
+                        <input class="table-input" data-table-search value="${escapeHtml(state.search || '')}" placeholder="${escapeHtml(searchPlaceholder || 'Search')}" />
+                        <button class="table-btn" data-table-search-btn>Search</button>
+                    </div>
+                    <div class="table-right">
+                        <select class="table-select" data-table-page-size>
+                            ${[10, 25, 50, 100].map((n) => `<option value="${n}" ${pageSize === n ? 'selected' : ''}>${n} / page</option>`).join('')}
+                        </select>
+                        <div class="column-picker">
+                            <details>
+                                <summary>Columns</summary>
+                                <div class="column-picker-list">
+                                    ${table.columns.map((c) => `<label class="column-picker-item"><input type="checkbox" data-col-key="${escapeHtml(c.key)}" ${state.visibleColumns.has(c.key) ? 'checked' : ''} /> ${escapeHtml(c.label || c.key)}</label>`).join('')}
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-scroll"><table>
+                    <thead><tr>${visibleCols.map((c) => {
+                        const active = state.sortBy === c.key;
+                        const arrow = !active ? 'SORT' : (state.sortDir === 'asc' ? 'ASC' : 'DESC');
+                        const cls = isNumericColumn(c.key) ? 'th-num' : '';
+                        return `<th class="${cls}"><button class="th-sort" data-sort-key="${escapeHtml(c.key)}">${headingWithHelp(c.label || c.key, c.key, c.helpText)} <span class="arrow">${arrow}</span></button></th>`;
+                    }).join('')}</tr></thead>
+                    <tbody>${(Array.isArray(table.rows) && table.rows.length)
+                        ? table.rows.map((r) => `<tr>${visibleCols.map((c) => `<td class="${isNumericColumn(c.key) ? 'td-num' : ''}">${formatCellHtml(tabPayload, c, r.cells?.[c.key] ?? '')}</td>`).join('')}</tr>`).join('')
+                        : `<tr><td colspan="${Math.max(1, visibleCols.length)}" class="subtle">No rows matched the current query.</td></tr>`}
+                    </tbody>
+                </table></div>
+                <div class="table-pager">
+                    <button class="table-btn" data-page-prev ${page <= 1 ? 'disabled' : ''}>Prev</button>
+                    <span class="subtle">Page ${page} of ${totalPages}</span>
+                    <button class="table-btn" data-page-next ${page >= totalPages ? 'disabled' : ''}>Next</button>
+                </div>
+            </div>${buildSignalNote(tabPayload)}`;
+
+        host.querySelector('[data-table-search-btn]')?.addEventListener('click', async () => {
+            state.search = host.querySelector('[data-table-search]')?.value?.trim?.() || '';
+            state.page = 1;
+            await refreshDynamicTab(tabPayload.tab);
+        });
+        host.querySelector('[data-table-page-size]')?.addEventListener('change', async (event) => {
+            state.pageSize = Math.max(1, Math.min(100, Number(event.target.value) || 25));
+            state.page = 1;
+            await refreshDynamicTab(tabPayload.tab);
+        });
+        host.querySelectorAll('[data-sort-key]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const key = btn.getAttribute('data-sort-key');
+                if (!key) return;
+                if (state.sortBy === key) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+                else { state.sortBy = key; state.sortDir = 'desc'; }
+                state.page = 1;
+                await refreshDynamicTab(tabPayload.tab);
+            });
+        });
+        host.querySelectorAll('[data-col-key]').forEach((chk) => {
+            chk.addEventListener('change', () => {
+                const key = chk.getAttribute('data-col-key');
+                if (!key) return;
+                if (chk.checked) state.visibleColumns.add(key); else state.visibleColumns.delete(key);
+                bindRichTable(host, tabPayload, searchPlaceholder);
+            });
+        });
+        host.querySelector('[data-page-prev]')?.addEventListener('click', async () => { state.page = Math.max(1, Number(state.page || 1) - 1); await refreshDynamicTab(tabPayload.tab); });
+        host.querySelector('[data-page-next]')?.addEventListener('click', async () => { state.page = Number(state.page || 1) + 1; await refreshDynamicTab(tabPayload.tab); });
+        host.querySelector('[data-table-search]')?.addEventListener('keydown', async (event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            state.search = event.target.value?.trim?.() || '';
+            state.page = 1;
+            await refreshDynamicTab(tabPayload.tab);
+        });
+    };
+    const renderDynamicTab = (tabPayload) => {
+        if (!tabPayload || !tabPayload.tab) return;
+        const host = document.getElementById(`dynamic-${tabPayload.tab}`);
+        if (!host) return;
+        const metrics = Array.isArray(tabPayload.metrics) ? tabPayload.metrics : [];
+        const table = tabPayload.table;
+        const lists = Array.isArray(tabPayload.lists) ? tabPayload.lists : [];
+        const hasSignal = payloadHasSignal(tabPayload);
+
+        if (tabPayload.tab === 'engagement' || tabPayload.tab === 'pages') {
+            bindRichTable(host, tabPayload, tabPayload.tab === 'pages' ? 'Search pages / URLs' : 'Search pages & screens');
+            return;
+        }
+
+        if (tabPayload.tab === 'acquisition') {
+            if (!hasSignal) {
+                host.innerHTML = renderEmptyState('Acquisition data is still warming up', 'Once traffic arrives with referrer or UTM signals, Bugence will show source and channel performance here.');
+                return;
+            }
+            bindRichTable(host, tabPayload, 'Search source / medium');
+            const compareHtml = renderSeriesCompare(tabPayload.series, 'Channel compare');
+            if (compareHtml) {
+                host.insertAdjacentHTML('beforeend', compareHtml);
+            }
+            return;
+        }
+
+        if (tabPayload.tab === 'audience') {
+            const state = getTabState('audience');
+            const toggles = Array.isArray(tabPayload.extras?.dimensionToggles) ? tabPayload.extras.dimensionToggles : ['country'];
+            const labels = { country: 'country', city: 'city', device: 'device', browser: 'browser' };
+            if (!hasSignal) {
+                host.innerHTML = renderEmptyState('Audience report is waiting for session depth', 'Country, city, device, and browser breakdowns appear after enough attributed sessions are collected.');
+                return;
+            }
+            const trend = Array.isArray(tabPayload.series) ? tabPayload.series : [];
+            host.innerHTML = `<div class="module-tabs">${toggles.map((m) => `<button class="module-tab ${state.dimension === m ? 'active' : ''}" data-audience-dim="${escapeHtml(m)}">${escapeHtml(labels[m] || m)}</button>`).join('')}</div>${trend.length ? `<div class="metric-grid">${trend.slice(0, 8).map((s) => `<div class="metric-tile"><div class="k">${escapeHtml(s.label || '')}</div><div class="v">${Number(s.value || 0).toLocaleString()}</div>${s.previousValue !== undefined && s.previousValue !== null ? `<div class="d">Prev: ${Number(s.previousValue || 0).toLocaleString()}</div>` : ''}</div>`).join('')}</div>` : ''}<div id="audienceTableHost"></div>`;
+            host.querySelectorAll('[data-audience-dim]').forEach((btn) => btn.addEventListener('click', async () => {
+                state.dimension = btn.getAttribute('data-audience-dim') || 'country';
+                state.page = 1;
+                state.visibleColumns = null;
+                syncUrlState();
+                await refreshDynamicTab('audience');
+            }));
+            bindRichTable(host.querySelector('#audienceTableHost'), tabPayload, 'Search audience dimension');
+            const compareHtml = renderSeriesCompare(tabPayload.series, 'Audience compare');
+            if (compareHtml) {
+                host.insertAdjacentHTML('beforeend', compareHtml);
+            }
+            return;
+        }
+
+        if (tabPayload.tab === 'realtime') {
+            const topReferrers = Array.isArray(tabPayload.extras?.topReferrers) ? tabPayload.extras.topReferrers : [];
+            if (!hasSignal) {
+                host.innerHTML = renderEmptyState('Realtime feed is idle', 'No active sessions were detected in the last few minutes for this project and filter set.');
+                return;
+            }
+            host.innerHTML = `<div class="metric-grid">${metrics.map(metricTileHtml).join('')}</div>${renderGeoDotsMap(tabPayload.extras?.geoDots)}<div class="strip-grid"><div class="deck-card panel"><h4 style="margin:0 0 10px;">Live events stream</h4><div class="table-scroll"><table><thead><tr>${table?.columns?.map((c) => `<th>${headingWithHelp(c.label || c.key, c.key, c.helpText)}</th>`).join('') || ''}</tr></thead><tbody>${table?.rows?.map((r) => `<tr>${table.columns.map((c) => `<td class="${isNumericColumn(c.key) ? 'td-num' : ''}">${formatCellHtml(tabPayload, c, r.cells?.[c.key] || '')}</td>`).join('')}</tr>`).join('') || '<tr><td class="subtle" colspan="3">No events in the last 5 minutes.</td></tr>'}</tbody></table></div></div><div class="deck-card panel"><h4 style="margin:0 0 10px;">Live top referrers</h4><div class="table-scroll"><table><thead><tr><th>${headingWithHelp('Referrer', 'referrer')}</th><th class="th-num">${headingWithHelp('Users', 'users')}</th></tr></thead><tbody>${topReferrers.map((r) => `<tr><td>${escapeHtml(r.label || '')}</td><td class="td-num">${Number(r.value || 0).toLocaleString()}</td></tr>`).join('') || '<tr><td class="subtle" colspan="2">No referrers yet.</td></tr>'}</tbody></table></div></div></div>`;
+            return;
+        }
+
+        if (tabPayload.tab === 'conversions') {
+            const state = getTabState('conversions');
+            const modes = Array.isArray(tabPayload.extras?.funnelModes) ? tabPayload.extras.funnelModes : ['open', 'closed'];
+            const attr = Array.isArray(tabPayload.extras?.attribution) ? tabPayload.extras.attribution : [];
+            if (!hasSignal) {
+                host.innerHTML = renderEmptyState('No conversions captured yet', 'Tracked conversion events will unlock the journey table, key events, and attribution view here.');
+                return;
+            }
+            host.innerHTML = `<div class="metric-grid">${metrics.map(metricTileHtml).join('')}</div>${buildSignalNote(tabPayload)}<div class="module-tabs">${modes.map((m) => `<button class="module-tab ${state.funnelMode === m ? 'active' : ''}" data-funnel-mode="${escapeHtml(m)}">${escapeHtml(m)} journey</button>`).join('')}</div><div class="strip-grid"><div class="deck-card panel"><h4 style="margin:0 0 10px;">Conversion journey</h4><div class="subtle" style="margin-bottom:12px;">The journey report shows step progression and drop-off based on tracked page and event completions.</div><div class="table-scroll"><table><thead><tr>${table?.columns?.map((c) => `<th>${headingWithHelp(c.label || c.key, c.key, c.helpText)}</th>`).join('') || ''}</tr></thead><tbody>${table?.rows?.map((r) => `<tr>${table.columns.map((c) => `<td class="${isNumericColumn(c.key) ? 'td-num' : ''}">${formatCellHtml(tabPayload, c, r.cells?.[c.key] || '')}</td>`).join('')}</tr>`).join('') || '<tr><td class="subtle" colspan="3">No conversion journey rows yet.</td></tr>'}</tbody></table></div></div><div class="deck-card panel"><h4 style="margin:0 0 10px;">Key conversion events</h4><div class="subtle" style="margin-bottom:12px;">Shows the mapped goal events captured in this range. Empty means Bugence did not receive any key-event records for the selected window.</div><div class="table-scroll"><table><thead><tr><th>${headingWithHelp('Event', 'key_events')}</th><th class="th-num">${headingWithHelp('Count', 'count')}</th></tr></thead><tbody>${lists.map((r) => `<tr><td>${escapeHtml(r.label || '')}</td><td class="td-num">${Number(r.value || 0).toLocaleString()}</td></tr>`).join('') || '<tr><td class="subtle" colspan="2">No key events in this range.</td></tr>'}</tbody></table></div></div></div><div class="strip-grid"><div class="deck-card panel"><h4 style="margin:0 0 10px;">Attribution by channel</h4><div class="subtle" style="margin-bottom:12px;">Shows which acquisition channels produced conversion-tagged events. Empty means no attributable conversion event was captured in this range.</div><div class="table-scroll"><table><thead><tr><th>${headingWithHelp('Channel', 'source_medium')}</th><th class="th-num">${headingWithHelp('Conversions', 'conversions')}</th></tr></thead><tbody>${attr.map((r) => `<tr><td>${escapeHtml(r.label || '')}</td><td class="td-num">${Number(r.value || 0).toLocaleString()}</td></tr>`).join('') || '<tr><td class="subtle" colspan="2">No attribution data yet.</td></tr>'}</tbody></table></div></div><div>${renderSeriesCompare(tabPayload.series, 'Journey compare') || renderEmptyState('No compare series yet', 'Enable compare mode to inspect current and previous conversion steps side by side.')}</div></div>`;
+            host.querySelectorAll('[data-funnel-mode]').forEach((btn) => btn.addEventListener('click', async () => {
+                state.funnelMode = btn.getAttribute('data-funnel-mode') || 'open';
+                syncUrlState();
+                await refreshDynamicTab('conversions');
+            }));
+            return;
+        }
+
+        if (tabPayload.tab === 'seo') {
+            host.innerHTML = '<div class="subtle">Loading connector status...</div>';
+            fetch(`/Analytics?handler=SeoConnectorStatus&projectId=${encodeURIComponent(String(selectedProjectId))}`, { credentials: 'same-origin', cache: 'no-store' })
+                .then((r) => r.json())
+                .then(async (seo) => {
+                    if (!seo?.success) { host.innerHTML = renderEmptyState('SEO connector unavailable', 'Bugence could not load the Search Console connector state for this project.'); return; }
+                    host.innerHTML = `<div class="metric-grid"><div class="metric-tile"><div class="k">Connector</div><div class="v">${seo.connected ? 'Connected' : 'Disconnected'}</div></div><div class="metric-tile"><div class="k">Property</div><div class="v">${escapeHtml(seo.selectedProperty || 'Not selected')}</div></div><div class="metric-tile"><div class="k">Last sync</div><div class="v">${seo.lastSyncUtc ? escapeHtml(new Date(seo.lastSyncUtc).toLocaleString()) : 'Never'}</div></div></div><div class="ga-control-right" style="margin:8px 0 10px;">${seo.connected ? '<button class="filter-btn" id="seoSyncBtn">Sync now</button><button class="filter-btn" id="seoLoadPropsBtn">Load properties</button>' : '<button class="filter-btn" id="seoConnectBtn">Connect Google Search Console</button>'}</div><div id="seoPropertiesHost"></div><div id="seoReportHost" class="subtle">No synced SEO snapshot yet.</div>`;
+                    if (!seo.connected) {
+                        host.querySelector('#seoConnectBtn')?.addEventListener('click', async () => {
+                            const connectBody = new URLSearchParams({ projectId: String(selectedProjectId) });
+                            const res = await fetch('/Analytics?handler=SeoConnect', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': antiforgeryToken }, body: connectBody.toString() });
+                            const p = await res.json().catch(() => null);
+                            if (p?.connectUrl) window.location.href = p.connectUrl;
+                        });
+                        return;
+                    }
+                    host.querySelector('#seoLoadPropsBtn')?.addEventListener('click', async () => {
+                        const res = await fetch(`/Analytics?handler=SeoProperties&projectId=${encodeURIComponent(String(selectedProjectId))}`, { credentials: 'same-origin' });
+                        const p = await res.json().catch(() => null);
+                        if (!p?.success) return;
+                        const rows = Array.isArray(p.properties) ? p.properties : [];
+                        const ph = host.querySelector('#seoPropertiesHost');
+                        if (!ph) return;
+                        ph.innerHTML = `<label class="subtle">Select property</label><select id="seoPropSelect" class="table-select" style="display:block;margin-top:6px;">${rows.map((x) => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select><button class="table-btn" id="seoPropSaveBtn" style="margin-top:8px;">Apply property</button>`;
+                        ph.querySelector('#seoPropSaveBtn')?.addEventListener('click', async () => {
+                            const selected = ph.querySelector('#seoPropSelect')?.value || '';
+                            if (!selected) return;
+                            const body = new URLSearchParams({ projectId: String(selectedProjectId), propertyUri: selected });
+                            await fetch('/Analytics?handler=SeoSelectProperty', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': antiforgeryToken }, body: body.toString() });
+                            await refreshDynamicTab('seo');
+                        });
+                    });
+                    host.querySelector('#seoSyncBtn')?.addEventListener('click', async () => {
+                        const body = new URLSearchParams({ projectId: String(selectedProjectId) });
+                        const sync = await fetch('/Analytics?handler=SeoSync', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': antiforgeryToken }, body: body.toString() });
+                        const result = await sync.json().catch(() => null);
+                        if (!result?.success) return;
+                        const report = await fetch(`/Analytics?handler=SeoReport&projectId=${encodeURIComponent(String(selectedProjectId))}`, { credentials: 'same-origin', cache: 'no-store' });
+                        const payload = await report.json().catch(() => null);
+                        const rh = host.querySelector('#seoReportHost');
+                        if (!rh) return;
+                        const rows = payload?.performance?.rows ?? [];
+                        const sitemapRows = payload?.sitemaps?.sitemap ?? [];
+                        rh.classList.remove('subtle');
+                        rh.innerHTML = `<div class="strip-grid"><div class="deck-card panel"><h4 style="margin:0 0 10px;">Sitemaps</h4><div class="table-scroll"><table><thead><tr><th>Path</th><th>Last submitted</th></tr></thead><tbody>${Array.isArray(sitemapRows) && sitemapRows.length ? sitemapRows.slice(0, 12).map((s) => `<tr><td>${escapeHtml(s.path || '-')}</td><td>${escapeHtml(s.lastSubmitted || '-')}</td></tr>`).join('') : '<tr><td colspan="2" class="subtle">No sitemaps in API response.</td></tr>'}</tbody></table></div></div><div class="deck-card panel"><h4 style="margin:0 0 10px;">Top queries</h4><div class="table-scroll"><table><thead><tr><th>Query</th><th>Clicks</th><th>Impressions</th><th>Position</th></tr></thead><tbody>${Array.isArray(rows) && rows.length ? rows.slice(0, 20).map((r) => `<tr><td>${escapeHtml(r.keys?.[0] || '')}</td><td>${Number(r.clicks || 0).toLocaleString()}</td><td>${Number(r.impressions || 0).toLocaleString()}</td><td>${Number(r.position || 0).toFixed(2)}</td></tr>`).join('') : '<tr><td colspan="4" class="subtle">No search query rows yet.</td></tr>'}</tbody></table></div></div></div>`;
+                    });
+                });
+            return;
+        }
+
+        if (!hasSignal) {
+            host.innerHTML = renderEmptyState('No report data yet', 'Bugence has not collected enough analytics data for this section in the current range.');
+            return;
+        }
+
+        let html = '';
+        if (metrics.length) {
+            html += `<div class="source-grid">${metrics.map((m) => `<div class="source-box"><strong>${escapeHtml((m.value ?? 0).toLocaleString?.() || String(m.value ?? 0))}</strong><span>${escapeHtml(m.label || m.key || 'Metric')}</span></div>`).join('')}</div>`;
+        }
+        if (lists.length) {
+            html += `<div class="table-scroll"><table><thead><tr><th>${headingWithHelp('Label', 'label')}</th><th class="th-num">${headingWithHelp('Value', 'count')}</th><th class="th-num">${headingWithHelp('Share', 'conversion_rate')}</th></tr></thead><tbody>${lists.map((r) => `<tr><td>${escapeHtml(r.label || '')}</td><td class="td-num">${Number(r.value || 0).toLocaleString()}</td><td class="td-num">${Number(r.percent || 0).toFixed(1)}%</td></tr>`).join('')}</tbody></table></div>`;
+        }
+        if (table?.columns?.length && table?.rows?.length) {
+            html += `<div class="table-scroll"><table><thead><tr>${table.columns.map((c) => `<th>${headingWithHelp(c.label || c.key, c.key, c.helpText)}</th>`).join('')}</tr></thead><tbody>${table.rows.map((r) => `<tr>${table.columns.map((c) => `<td class="${isNumericColumn(c.key) ? 'td-num' : ''}">${formatCellHtml(tabPayload, c, r.cells?.[c.key] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+        }
+        host.innerHTML = html;
+    };    const renderTrackingStatus = (ready) => {
+        const target = document.getElementById('trackingStatusValue');
+        if (!target || !ready) return;
+        let statusClass = 'bad';
+        let label = 'No traffic';
+        if (ready.hasTraffic && ready.hasConversions) { statusClass = 'good'; label = 'Healthy'; }
+        else if (ready.hasTraffic) { statusClass = 'warn'; label = 'Traffic only'; }
+        target.innerHTML = `<span><span class="status-dot ${statusClass}"></span>${label}</span>`;
+    };
+    const renderFunnel = (funnel) => {
+        const wrap = document.getElementById('funnelStepsWrap');
+        const overall = document.getElementById('funnelOverallConversion');
+        const overallKpi = document.getElementById('kpiFunnelOverall');
+        const overallVal = `${(Number(funnel?.overallConversionRate) || 0).toFixed(2).replace(/\.00$/, '')}%`;
+        if (overall) applyText(overall, overallVal);
+        if (overallKpi) applyText(overallKpi, overallVal);
+        if (!wrap) return;
+        const steps = Array.isArray(funnel?.steps) ? funnel.steps : [];
+        if (!steps.length) { wrap.innerHTML = '<div class="subtle" style="grid-column:1 / -1;">No funnel activity in this range.</div>'; return; }
+        wrap.innerHTML = steps.map((step) => {
+            const label = escapeHtml(step.label || step.key || 'Step');
+            const sessions = Number(step.sessions || 0).toLocaleString();
+            const dropCount = Number(step.dropoffCount || 0).toLocaleString();
+            const dropPercent = (Number(step.dropoffPercent) || 0).toFixed(2).replace(/\.00$/, '');
+            return `<div class="funnel-step"><div class="funnel-key">${label}</div><div class="funnel-value">${sessions}</div><div class="funnel-drop">Drop-off: ${dropCount} (${dropPercent}%)</div></div>`;
+        }).join('');
+    };
+    const renderDeviceTypes = (devices) => {
+        const tbody = document.getElementById('deviceTypesBody');
+        if (!tbody || !devices) return;
+        const rows = [
+            { label: 'Desktop', visits: Number(devices.desktop || 0), percent: Number(devices.desktopPercent || 0) },
+            { label: 'Mobile', visits: Number(devices.mobile || 0), percent: Number(devices.mobilePercent || 0) },
+            { label: 'Tablet', visits: Number(devices.tablet || 0), percent: Number(devices.tabletPercent || 0) }
+        ];
+        if (Number(devices.other || 0) > 0) rows.push({ label: 'Other', visits: Number(devices.other || 0), percent: Number(devices.otherPercent || 0) });
+        tbody.innerHTML = rows.map((row) => `<tr><td>${row.label}</td><td class="td-num">${row.visits.toLocaleString()}</td><td>${percentBarCell(row.percent)}</td></tr>`).join('');
     };
 
     const tick = async () => {
+        if (inFlight) return;
+        inFlight = true;
+        setSyncState('syncing', 'SYNCING');
         try {
-            const url = `/Analytics?handler=Live&projectId=${encodeURIComponent(String(selectedProjectId))}&range=${encodeURIComponent(activeRange)}`;
-            const r = await fetch(url, { credentials: 'same-origin' });
+            const url = `/Analytics?handler=Live&${toQuery().toString()}`;
+            const r = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
             const p = await r.json().catch(() => null);
-            if (!r.ok || !p?.success) return;
+            if (!r.ok || !p?.success) throw new Error('analytics sync failed');
 
-            const uv = document.getElementById('kpiUniqueVisitors');
-            const uvd = document.getElementById('kpiUniqueDelta');
-            const av = document.getElementById('kpiAvgSession');
-            const avd = document.getElementById('kpiAvgDelta');
-            const br = document.getElementById('kpiBounceRate');
-            const brd = document.getElementById('kpiBounceDelta');
-            const au = document.getElementById('kpiActiveUsers');
-            const ppm = document.getElementById('kpiPpm');
-            const pv = document.getElementById('kpiPageviews');
-            const ss = document.getElementById('kpiSessions');
-            const cv = document.getElementById('kpiConversions');
-            const cr = document.getElementById('kpiConversionRate');
-            const lp100 = document.getElementById('kpiLeadsPer100');
-            const cvd = document.getElementById('kpiConversionDelta');
-            const crd = document.getElementById('kpiConversionRateDelta');
-            const lpd = document.getElementById('kpiLeadsPer100Delta');
-            const ls = document.getElementById('lastEventSeenLabel');
+            applyText(document.getElementById('kpiUniqueVisitors'), compact(p.uniqueVisitors));
+            applyText(document.getElementById('kpiAvgSession'), secondsToLabel(p.avgSessionSeconds));
+            applyText(document.getElementById('kpiBounceRate'), `${(Number(p.bounceRate) || 0).toFixed(2).replace(/\.00$/, '')}%`);
+            applyText(document.getElementById('kpiActiveUsers'), (Number(p.activeUsers) || 0).toLocaleString());
+            applyText(document.getElementById('kpiPpm'), (Number(p.pageviewsPerMinute) || 0).toLocaleString());
+            applyText(document.getElementById('kpiPageviews'), compact(p.pageviews));
+            applyText(document.getElementById('kpiSessions'), compact(p.sessions));
+            applyText(document.getElementById('kpiConversions'), compact(p.conversions));
+            applyText(document.getElementById('kpiConversionRate'), `${(Number(p.conversionRate) || 0).toFixed(2).replace(/\.00$/, '')}%`);
+            applyText(document.getElementById('kpiLeadsPer100'), (Number(p.leadsPer100) || 0).toFixed(2).replace(/\.00$/, ''));
 
-            if (uv) uv.textContent = numFmt(Number(p.uniqueVisitors));
-            if (uvd) { uvd.textContent = deltaText(Number(p.uniqueVisitorsDelta)); setDeltaClass(uvd, Number(p.uniqueVisitorsDelta)); }
-            if (av) av.textContent = secFmt(Number(p.avgSessionSeconds));
-            if (avd) { avd.textContent = deltaText(Number(p.avgSessionDelta)); setDeltaClass(avd, Number(p.avgSessionDelta)); }
-            if (br) br.textContent = `${(Number(p.bounceRate) || 0).toFixed(2).replace(/\.00$/, '')}%`;
-            if (brd) { brd.textContent = deltaText(Number(p.bounceRateDelta)); setDeltaClass(brd, Number(p.bounceRateDelta), true); }
-            if (au) au.textContent = (Number(p.activeUsers) || 0).toLocaleString();
-            if (ppm) ppm.textContent = (Number(p.pageviewsPerMinute) || 0).toLocaleString();
-            if (pv) pv.textContent = numFmt(Number(p.pageviews));
-            if (ss) ss.textContent = numFmt(Number(p.sessions));
-            if (cv) cv.textContent = numFmt(Number(p.conversions));
-            if (cr) cr.textContent = `${(Number(p.conversionRate) || 0).toFixed(2).replace(/\.00$/, '')}%`;
-            if (lp100) lp100.textContent = (Number(p.leadsPer100) || 0).toFixed(2).replace(/\.00$/, '');
-            if (cvd) { cvd.textContent = deltaText(Number(p.conversionDelta)); setDeltaClass(cvd, Number(p.conversionDelta)); }
-            if (crd) { crd.textContent = deltaText(Number(p.conversionRateDelta)); setDeltaClass(crd, Number(p.conversionRateDelta)); }
-            if (lpd) { lpd.textContent = deltaText(Number(p.leadsPer100Delta)); setDeltaClass(lpd, Number(p.leadsPer100Delta)); }
-            if (ls) ls.textContent = `Last event seen: ${toLocalLabel(p.lastEventSeenUtc)}`;
+            const uniqueDelta = document.getElementById('kpiUniqueDelta');
+            if (uniqueDelta) { applyText(uniqueDelta, deltaText(p.uniqueVisitorsDelta)); setDeltaClass(uniqueDelta, p.uniqueVisitorsDelta); }
+            const avgDelta = document.getElementById('kpiAvgDelta');
+            if (avgDelta) { applyText(avgDelta, deltaText(p.avgSessionDelta)); setDeltaClass(avgDelta, p.avgSessionDelta); }
+            const bounceDelta = document.getElementById('kpiBounceDelta');
+            if (bounceDelta) { applyText(bounceDelta, deltaText(p.bounceRateDelta)); setDeltaClass(bounceDelta, p.bounceRateDelta, true); }
+            const convDelta = document.getElementById('kpiConversionDelta');
+            if (convDelta) { applyText(convDelta, deltaText(p.conversionDelta)); setDeltaClass(convDelta, p.conversionDelta); }
+            const convRateDelta = document.getElementById('kpiConversionRateDelta');
+            if (convRateDelta) { applyText(convRateDelta, deltaText(p.conversionRateDelta)); setDeltaClass(convRateDelta, p.conversionRateDelta); }
+            const leadsDelta = document.getElementById('kpiLeadsPer100Delta');
+            if (leadsDelta) { applyText(leadsDelta, deltaText(p.leadsPer100Delta)); setDeltaClass(leadsDelta, p.leadsPer100Delta); }
+
+            applyText(document.getElementById('lastEventSeenLabel'), `Last event seen: ${toLocalLabel(p.lastEventSeenUtc)}`);
+            applyText(document.getElementById('readinessLastEvent'), `Last event: ${toLocalLabel(p.lastEventSeenUtc)}`);
+            if (p.readiness) {
+                applyText(document.getElementById('readinessDomain'), p.readiness.domainConnected ? 'Yes' : 'No');
+                applyText(document.getElementById('readinessSsl'), p.readiness.sslActive ? 'Yes' : 'No');
+                applyText(document.getElementById('readinessTraffic'), p.readiness.hasTraffic ? 'Yes' : 'No');
+                applyText(document.getElementById('readinessConversions'), p.readiness.hasConversions ? 'Yes' : 'No');
+                applyText(document.getElementById('readinessTracker'), p.readiness.trackerLikelyActive ? 'Likely' : 'Check publish');
+                applyText(document.getElementById('readinessStatusText'), p.readiness.statusText || '');
+                renderTrackingStatus(p.readiness);
+            }
+            if (p.sources) {
+                applyText(document.getElementById('sourceNa'), `${Number(p.sources.naPercent || 0)}%`);
+                applyText(document.getElementById('sourceEu'), `${Number(p.sources.euPercent || 0)}%`);
+                applyText(document.getElementById('sourceAsia'), `${Number(p.sources.asiaPercent || 0)}%`);
+            }
+
+            renderTrafficSeries(Array.isArray(p.trafficSeries) ? p.trafficSeries : []);
+            renderFunnel(p.funnel);
+            renderDeviceTypes(p.devices);
+
+            renderRows(document.getElementById('topPagesBody'), p.topPages || [], (row) => `<tr><td><span style="color:#7fdfff;">${escapeHtml(row.path)}</span></td><td class="td-num">${Number(row.visits || 0).toLocaleString()}</td><td>${percentBarCell(row.percent)}</td></tr>`, 'No traffic yet for this range.', 3);
+            renderRows(document.getElementById('topReferrersBody'), p.topReferrers || [], (row) => `<tr><td>${escapeHtml(row.host)}</td><td class="td-num">${Number(row.visits || 0).toLocaleString()}</td></tr>`, 'No referrer data in this range.', 2);
+            renderRows(document.getElementById('conversionReferrersBody'), p.conversionReferrers || [], (row) => `<tr><td>${escapeHtml(row.host)}</td><td class="td-num">${Number(row.visits || 0).toLocaleString()}</td><td>${percentBarCell(row.percent)}</td></tr>`, 'No conversion referrer data in this range.', 3);
+            renderRows(document.getElementById('topCountriesBody'), p.topCountries || [], (row) => `<tr><td>${escapeHtml(row.label)} (${escapeHtml(row.code)})</td><td class="td-num">${Number(row.visits || 0).toLocaleString()}</td><td>${percentBarCell(row.percent)}</td></tr>`, 'No country data in this range.', 3);
+            renderRows(document.getElementById('conversionCountriesBody'), p.conversionCountries || [], (row) => `<tr><td>${escapeHtml(row.label)} (${escapeHtml(row.code)})</td><td class="td-num">${Number(row.visits || 0).toLocaleString()}</td><td>${percentBarCell(row.percent)}</td></tr>`, 'No conversion country data in this range.', 3);
+            renderRows(document.getElementById('conversionDevicesBody'), p.conversionDevices || [], (row) => `<tr><td>${escapeHtml(row.label || row.deviceType || 'Other')}</td><td class="td-num">${Number(row.conversions || 0).toLocaleString()}</td><td>${percentBarCell(row.percent)}</td></tr>`, 'No conversion device data in this range.', 3);
+            if (activeTab === 'overview') {
+                renderDynamicTab(p.tabPayload);
+            } else {
+                await refreshDynamicTab(activeTab);
+            }
+            syncUrlState();
+
+            lastSyncAt = Date.now();
+            refreshSyncTime();
+            setSyncState('live', 'LIVE');
         } catch {
+            setSyncState('error', 'RETRYING');
+        } finally {
+            inFlight = false;
         }
     };
 
-    setInterval(tick, 12000);
+    const restartInterval = () => {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = window.setInterval(tick, document.hidden ? 15000 : 5000);
+    };
+
+    document.querySelectorAll('.tab-link').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const next = link.dataset.tab;
+            if (next) {
+                setTab(next);
+                syncUrlState();
+            }
+        });
+    });
+
+    compareToggle?.addEventListener('click', () => {
+        compareEnabled = !compareEnabled;
+        if (compareLabel) compareLabel.textContent = compareEnabled ? 'On' : 'Off';
+        syncUrlState();
+        tick();
+    });
+    segmentSelect?.addEventListener('change', () => {
+        activeSegment = segmentSelect.value || 'all';
+        syncUrlState();
+        tick();
+    });
+    openFilterDrawer?.addEventListener('click', () => filterDrawer?.classList.add('open'));
+    closeFilterDrawer?.addEventListener('click', () => filterDrawer?.classList.remove('open'));
+    applyFiltersBtn?.addEventListener('click', () => { filterDrawer?.classList.remove('open'); tick(); });
+
+    const applySavedView = async (viewId) => {
+        const form = new URLSearchParams({ viewId });
+        const apply = await fetch('/Analytics?handler=ApplyView', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': antiforgeryToken }, body: form.toString() });
+        const payload = await apply.json().catch(() => null);
+        if (!payload?.success || !payload?.view) return false;
+        activeTab = payload.view.tab || 'overview';
+        compareEnabled = !!payload.view.compare;
+        activeSegment = payload.view.segment || 'all';
+        if (compareLabel) compareLabel.textContent = compareEnabled ? 'On' : 'Off';
+        if (segmentSelect) segmentSelect.value = activeSegment;
+        try {
+            const f = JSON.parse(payload.view.filtersJson || '{}');
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+            set('fltCountry', f.country);
+            set('fltDevice', f.device);
+            set('fltLanding', f.landingPage);
+            set('fltReferrer', f.referrer);
+            set('fltUtmSource', f.utmSource);
+            set('fltUtmMedium', f.utmMedium);
+            set('fltUtmCampaign', f.utmCampaign);
+        } catch { }
+        setTab(activeTab);
+        return true;
+    };
+
+    const loadSavedViews = async () => {
+        const r = await fetch(`/Analytics?handler=SavedViews&projectId=${encodeURIComponent(String(selectedProjectId))}`, { credentials: 'same-origin' });
+        const p = await r.json().catch(() => null);
+        if (!p?.success) return [];
+        const views = Array.isArray(p.views) ? p.views : [];
+        if (savedViewsList) {
+            savedViewsList.innerHTML = views.length
+                ? views.map((v) => `<div class="stat-row"><span class="stat-key">${escapeHtml(v.name || '')}</span><span class="ga-control-right"><button class="table-btn" data-apply-view="${escapeHtml(v.id)}">Apply</button>${v.isSystemPreset ? '' : `<button class="table-btn" data-delete-view="${escapeHtml(v.id)}">Delete</button>`}</span></div>`).join('')
+                : '<div class="subtle">No saved views.</div>';
+            savedViewsList.querySelectorAll('[data-apply-view]').forEach((btn) => btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-apply-view');
+                if (!id) return;
+                await applySavedView(id);
+                savedViewsDrawer?.classList.remove('open');
+            }));
+            savedViewsList.querySelectorAll('[data-delete-view]').forEach((btn) => btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-delete-view');
+                if (!id) return;
+                const body = new URLSearchParams({ viewId: id });
+                await fetch('/Analytics?handler=DeleteView', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': antiforgeryToken }, body: body.toString() });
+                await loadSavedViews();
+            }));
+        }
+        return views;
+    };
+
+    manageViewsBtn?.addEventListener('click', async () => {
+        await loadSavedViews();
+        savedViewsDrawer?.classList.add('open');
+    });
+    closeSavedViewsDrawer?.addEventListener('click', () => savedViewsDrawer?.classList.remove('open'));
+
+    document.querySelectorAll('[data-preset]').forEach((chip) => {
+        chip.addEventListener('click', async () => {
+            const preset = chip.getAttribute('data-preset') || '';
+            const views = await loadSavedViews();
+            const match = views.find((x) => (x.name || '').toLowerCase() === preset.toLowerCase());
+            if (!match) return;
+            await applySavedView(match.id);
+        });
+    });
+
+    document.getElementById('saveCurrentView')?.addEventListener('click', async () => {
+        const name = window.prompt('Saved view name');
+        if (!name) return;
+        const f = filterState();
+        const body = new URLSearchParams({
+            projectId: String(selectedProjectId),
+            name,
+            tab: activeTab,
+            range: activeRange,
+            compare: compareEnabled ? '1' : '0',
+            segment: activeSegment,
+            country: f.country,
+            device: f.device,
+            landingPage: f.landingPage,
+            referrer: f.referrer,
+            utmSource: f.utmSource,
+            utmMedium: f.utmMedium,
+            utmCampaign: f.utmCampaign
+        });
+        await fetch('/Analytics?handler=SaveView', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': antiforgeryToken }, body: body.toString() });
+        await loadSavedViews();
+    });
+
+    refreshSyncTime();
+    decorateHeaderTips(document);
+    tick();
+    restartInterval();
+    window.setInterval(refreshSyncTime, 1000);
+    document.addEventListener('visibilitychange', () => { restartInterval(); if (!document.hidden) tick(); });
 })();
 </script>
 }
+
+
+
+
+
+
+
+
+
+
+

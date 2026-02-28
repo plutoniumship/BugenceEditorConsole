@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carolina Gandrud | Private Client Group</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#050505',
+                        charcoal: '#0F0F0F',
+                        gold: '#C5A059', 
+                        goldLight: '#E6C985',
+                        subtle: '#333333'
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Montserrat"', 'sans-serif'],
+                    },
+                    letterSpacing: {
+                        widest: '.25em',
+                    },
+                    backgroundImage: {
+                        'gradient-gold': 'linear-gradient(135deg, #C5A059 0%, #E6C985 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- CORE STYLES --- */
+        body {
+            background-color: #050505;
+            color: #f3f3f3;
+            overflow-x: hidden;
+        }
+
+        /* Custom Selection Color */
+        ::selection {
+            background: #C5A059;
+            color: #000;
+        }
+
+        /* --- MENU ANIMATIONS --- */
+        #menu-overlay {
+            clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+            transition: clip-path 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        #menu-overlay.open {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+
+        .menu-link {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        #menu-overlay.open .menu-link {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Hover Reveal Effect for Menu */
+        .menu-item:hover .menu-line {
+            width: 100%;
+        }
+
+        /* --- BUTTONS --- */
+        .btn-luxury {
+            position: relative;
+            overflow: hidden;
+            transition: color 0.4s;
+            z-index: 1;
+        }
+        .btn-luxury::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #C5A059;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s cubic-bezier(0.8, 0, 0.2, 1);
+            z-index: -1;
+        }
+        .btn-luxury:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+        .btn-luxury:hover {
+            color: black;
+            border-color: #C5A059;
+        }
+
+        /* --- SCROLL REVEAL --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- PARALLAX HERO --- */
+        .hero-bg {
+            background-image: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Simple CSS Parallax */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu-overlay" class="fixed inset-0 bg-obsidian z-40 flex flex-col justify-center items-center h-screen w-screen">
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-5 pointer-events-none flex items-center justify-center">
+            <span class="text-[20vw] font-serif font-bold text-white whitespace-nowrap">CAROLINA</span>
+        </div>
+
+        <div class="z-50 flex flex-col items-center space-y-8 text-center">
+            <div class="overflow-hidden">
+                <a href="#about" onclick="toggleMenu()" class="menu-link block text-5xl md:text-7xl font-serif text-white hover:text-gold transition-colors duration-300 italic">About</a>
+            </div>
+            <div class="overflow-hidden">
+                <a href="#featured" onclick="toggleMenu()" class="menu-link block text-5xl md:text-7xl font-serif text-white hover:text-gold transition-colors duration-300 italic" style="transition-delay: 0.1s;">Properties</a>
+            </div>
+            <div class="overflow-hidden">
+                <a href="#valuation" onclick="toggleMenu()" class="menu-link block text-5xl md:text-7xl font-serif text-white hover:text-gold transition-colors duration-300 italic" style="transition-delay: 0.2s;">Valuation</a>
+            </div>
+            <div class="overflow-hidden">
+                <a href="#contact" onclick="toggleMenu()" class="menu-link block text-5xl md:text-7xl font-serif text-white hover:text-gold transition-colors duration-300 italic" style="transition-delay: 0.3s;">Contact</a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 flex space-x-6 text-xs tracking-widest text-gray-500 uppercase">
+            <span>Instagram</span>
+            <span>LinkedIn</span>
+            <span>Corcoran HM</span>
+        </div>
+    </div>
+
+    <nav class="fixed top-0 w-full z-50 px-6 py-6 md:px-12 flex justify-between items-center mix-blend-difference text-white transition-all duration-300" id="navbar">
+        <a href="#" class="text-lg md:text-xl font-serif tracking-widest uppercase z-50">
+            C. Gandrud
+        </a>
+
+        <button onclick="toggleMenu()" class="group flex items-center gap-3 z-50 focus:outline-none">
+            <span id="menu-text" class="hidden md:block text-xs uppercase tracking-widest font-medium group-hover:text-gold transition-colors">Menu</span>
+            <div class="relative w-8 h-8 flex flex-col justify-center items-end gap-1.5 overflow-hidden">
+                <span id="line1" class="w-full h-[1px] bg-white transition-all duration-300"></span>
+                <span id="line2" class="w-2/3 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
+            </div>
+        </button>
+    </nav>
+
+    <header class="relative h-screen w-full overflow-hidden">
+        <div class="absolute inset-0 hero-bg"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-obsidian"></div>
+        
+        <div class="relative z-10 h-full flex flex-col justify-center items-center text-center px-4">
+            <p class="text-gold text-xs md:text-sm tracking-[0.4em] uppercase mb-6 reveal">Corcoran HM Properties</p>
+            <h1 class="text-6xl md:text-8xl lg:text-9xl font-serif text-white mb-6 leading-[0.9] reveal" style="transition-delay: 0.2s;">
+                Find Your <br> <span class="italic text-gold">Place.</span>
+            </h1>
+            <p class="max-w-xl text-gray-300 font-light text-sm md:text-base leading-relaxed mb-10 reveal" style="transition-delay: 0.4s;">
+                Expert guidance for buyers and sellers in North & South Carolina. Serving Ballantyne, South Park, and Lake Norman.
+            </p>
+            
+            <div class="flex gap-6 reveal" style="transition-delay: 0.6s;">
+                <a href="#search" class="btn-luxury border border-white/30 text-white px-10 py-4 text-xs tracking-widest uppercase">
+                    Search Homes
+                </a>
+                <a href="#valuation" class="text-white border-b border-gold pb-1 text-xs tracking-widest uppercase hover:text-gold transition-colors self-center">
+                    Get Valuation
+                </a>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-0 left-1/2 w-[1px] h-24 bg-gradient-to-b from-white to-transparent transform -translate-x-1/2"></div>
+    </header>
+
+    <section id="about" class="py-32 bg-obsidian relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <div class="lg:col-span-5 relative z-10">
+                <div class="reveal">
+                    <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-4">The Agent</span>
+                    <h2 class="text-4xl md:text-5xl font-serif text-white leading-tight mb-8">
+                        Global Perspective. <br>
+                        <span class="text-gray-500 italic">Local Expertise.</span>
+                    </h2>
+                    <p class="text-gray-400 font-light leading-relaxed mb-6">
+                        Carolina Gandrud helps families navigate Charlotte's real estate market with confidence. A former Fortune 500 operations manager with an MBA from Penn State, she blends corporate precision with high-end service.
+                    </p>
+                    <p class="text-gray-400 font-light leading-relaxed mb-8">
+                        Fluent in English, Spanish, and German, she is the bridge for Charlotte's diverse population.
+                    </p>
+                    <a href="#about" class="btn-luxury inline-block border border-gray-700 px-8 py-3 text-white text-xs tracking-widest uppercase">
+                        Read Biography
+                    </a>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 relative">
+                <div class="grid grid-cols-2 gap-4">
+                    <img src="https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" class="reveal w-full h-[500px] object-cover grayscale hover:grayscale-0 transition-all duration-700" style="margin-top: 4rem;">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" class="reveal w-full h-[400px] object-cover grayscale hover:grayscale-0 transition-all duration-700">
+                        <div class="absolute -bottom-10 -left-10 bg-charcoal p-8 border border-gray-800 reveal" style="transition-delay: 0.2s;">
+                            <p class="font-serif text-3xl text-gold">MBA</p>
+                            <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Penn State Alumna</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="about-carolina" class="py-32 bg-charcoal border-t border-white/5">
+        <div class="max-w-5xl mx-auto px-6 md:px-12">
+            <div class="reveal">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-4">About Carolina Gandrud</span>
+                <h2 class="text-4xl md:text-5xl font-serif text-white leading-tight mb-8">
+                    A global perspective with Charlotte precision.
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 text-gray-400 font-light leading-relaxed">
+                <div class="lg:col-span-7 reveal">
+                    <p class="mb-6">
+                        Carolina Gandrud helps families navigate Charlotte's real estate market with confidence. As a realtor with Corcoran HM Properties, she brings a unique perspective shaped by international relocations and years managing complex operations for Fortune 500 companies.
+                    </p>
+                    <p class="mb-6">
+                        Carolina is a highly accomplished and dynamic real estate agent who understands what families and individuals need when settling in a new city, with a proven track record of success. Her corporate background with companies like Tyco Electronics and The Hershey Company, combined with an MBA from Penn State, gives her sharp negotiation skills and the ability to navigate contract details clearly.
+                    </p>
+                    <p>
+                        Her expertise, drive, and commitment make her the ideal partner for all your real estate needs, whether you're buying, selling, or investing.
+                    </p>
+                </div>
+                <div class="lg:col-span-5 reveal" style="transition-delay: 0.2s;">
+                    <p class="mb-6">
+                        Carolina analyzes pricing trends and with her extensive knowledge of the South Charlotte area and her strategic and organized approach, along with her systems and multitasking abilities, which set her apart from other brokers, she is the perfect broker to help you in your real estate goals.
+                    </p>
+                    <p class="mb-6">
+                        Carolina is devoted to providing practical guidance and careful attention to her clients' success, resulting in multiple successful transactions. Fluent in English, Spanish, and some German, she connects easily with Charlotte's diverse population and welcomes relocating families from across the country and around the world.
+                    </p>
+                    <p>
+                        Carolina knows what makes each Charlotte neighborhood unique. Working with Carolina guarantees a top-notch experience. She is dedicated to providing the highest level of customer service and ensuring your satisfaction throughout the buying or selling process. As a consistent top-producing agent, Carolina delivers amazing results with a streamlined process. You can expect exceptional service and remarkable outcomes when working with her.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="featured" class="py-32 bg-charcoal border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 mb-16 flex justify-between items-end reveal">
+            <div>
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-2">Curated Listings</span>
+                <h2 class="text-4xl font-serif text-white">Featured Collection</h2>
+            </div>
+            <a href="#" class="hidden md:block text-xs text-gray-400 hover:text-gold uppercase tracking-widest border-b border-gray-600 pb-1">View All Inventory</a>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-y-12 gap-x-8">
+            
+            <div class="group cursor-pointer reveal">
+                <div class="relative overflow-hidden mb-6 aspect-[3/4]">
+                    <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all duration-500 z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000 ease-out">
+                    <span class="absolute top-6 left-6 z-20 text-xs font-bold text-black bg-white px-3 py-1 uppercase tracking-widest">Active</span>
+                </div>
+                <h3 class="text-2xl font-serif text-white group-hover:text-gold transition-colors">Providence Estate</h3>
+                <p class="text-sm text-gray-500 mt-2 uppercase tracking-wide">Charlotte, NC • $2,450,000</p>
+            </div>
+
+            <div class="group cursor-pointer reveal" style="transition-delay: 0.2s;">
+                <div class="relative overflow-hidden mb-6 aspect-[3/4]">
+                    <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000 ease-out">
+                </div>
+                <h3 class="text-2xl font-serif text-white group-hover:text-gold transition-colors">Ballantyne Club</h3>
+                <p class="text-sm text-gray-500 mt-2 uppercase tracking-wide">Ballantyne, NC • $1,875,000</p>
+            </div>
+
+            <div class="group cursor-pointer reveal" style="transition-delay: 0.4s;">
+                <div class="relative overflow-hidden mb-6 aspect-[3/4]">
+                    <div class="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                        <span class="text-white border border-white px-6 py-2 uppercase text-xs tracking-widest">Sold</span>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1600596542815-27b88e54e46f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000 ease-out grayscale">
+                </div>
+                <h3 class="text-2xl font-serif text-gray-400 group-hover:text-gold transition-colors">Monument Point</h3>
+                <p class="text-sm text-gray-600 mt-2 uppercase tracking-wide">Fort Mill, SC • Sold</p>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="valuation" class="py-32 bg-obsidian relative border-t border-white/5">
+        <div class="max-w-4xl mx-auto px-6 text-center reveal">
+            <h2 class="text-4xl md:text-6xl font-serif text-white mb-8">What is your home worth?</h2>
+            <p class="text-gray-400 mb-12 max-w-xl mx-auto">
+                Leverage Carolina's strategic pricing trends and extensive knowledge of the South Charlotte market to maximize your investment.
+            </p>
+            <form class="flex flex-col md:flex-row gap-4 max-w-lg mx-auto border-b border-gray-700 pb-2">
+                <input type="text" placeholder="Enter your address..." class="bg-transparent w-full text-white placeholder-gray-600 focus:outline-none py-2">
+                <button class="text-gold uppercase text-xs font-bold tracking-widest whitespace-nowrap hover:text-white transition-colors">Get Analysis</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="testimonials" class="py-32 bg-charcoal border-t border-white/5 relative overflow-hidden">
+        <div class="absolute -top-20 -right-20 w-64 h-64 border border-white/10 rounded-full"></div>
+        <div class="absolute -bottom-24 -left-16 w-72 h-72 border border-gold/20 rounded-full"></div>
+
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="mb-16 reveal">
+                <span class="text-gold text-xs tracking-[0.3em] uppercase block mb-3">Client Words</span>
+                <h2 class="text-4xl md:text-5xl font-serif text-white">Testimonials</h2>
+                <p class="text-gray-500 max-w-2xl mt-4">
+                    A private, white-glove experience from first showing to closing day.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="reveal border border-white/10 bg-black/40 p-10 backdrop-blur-sm">
+                    <p class="text-xs uppercase tracking-[0.3em] text-gold mb-6">Buyers • Charlotte</p>
+                    <p class="text-gray-300 leading-relaxed italic">
+                        “Carolina led with clarity, negotiating terms that protected us while keeping the process calm and efficient.”
+                    </p>
+                    <div class="mt-8 pt-6 border-t border-white/10">
+                        <p class="text-white font-serif text-lg">Liam &amp; Avery R.</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">Providence Hills</p>
+                    </div>
+                </div>
+
+                <div class="reveal border border-white/10 bg-black/40 p-10 backdrop-blur-sm" style="transition-delay: 0.2s;">
+                    <p class="text-xs uppercase tracking-[0.3em] text-gold mb-6">Sellers • South Park</p>
+                    <p class="text-gray-300 leading-relaxed italic">
+                        “A refined strategy, stunning presentation, and a seamless close. We felt represented at every step.”
+                    </p>
+                    <div class="mt-8 pt-6 border-t border-white/10">
+                        <p class="text-white font-serif text-lg">Nora W.</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">South Park Estate</p>
+                    </div>
+                </div>
+
+                <div class="reveal border border-white/10 bg-black/40 p-10 backdrop-blur-sm" style="transition-delay: 0.4s;">
+                    <p class="text-xs uppercase tracking-[0.3em] text-gold mb-6">Relocation • Lake Norman</p>
+                    <p class="text-gray-300 leading-relaxed italic">
+                        “Her market insights were precise. We landed in the right neighborhood with confidence and ease.”
+                    </p>
+                    <div class="mt-8 pt-6 border-t border-white/10">
+                        <p class="text-white font-serif text-lg">Marco &amp; Elise T.</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-widest mt-1">The Peninsula</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-black py-20 border-t border-gray-900 text-center md:text-left">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-start gap-12">
+            <div>
+                <p class="font-serif text-2xl text-white mb-4">CAROLINA GANDRUD</p>
+                <p class="text-xs text-gray-500 uppercase tracking-widest">Luxury Realtor • Corcoran HM Properties</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-12 text-xs uppercase tracking-widest text-gray-400">
+                <div class="flex flex-col gap-4">
+                    <span class="text-white font-bold">Contact</span>
+                    <a href="#" class="hover:text-gold transition-colors">hello@carolinagandrud.com</a>
+                    <span>+1 (704) 555 0123</span>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <span class="text-white font-bold">Social</span>
+                    <a href="#" class="hover:text-gold transition-colors">Instagram</a>
+                    <a href="#" class="hover:text-gold transition-colors">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 md:px-12 mt-20 pt-8 border-t border-gray-900 text-[10px] text-gray-600 uppercase flex justify-between">
+            <p>© 2024 All Rights Reserved.</p>
+            <p>Designed for Luxury.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Menu Toggle Logic
+        const menuOverlay = document.getElementById('menu-overlay');
+        const line1 = document.getElementById('line1');
+        const line2 = document.getElementById('line2');
+        const menuText = document.getElementById('menu-text');
+        const body = document.body;
+        let isMenuOpen = false;
+
+        function toggleMenu() {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                menuOverlay.classList.add('open');
+                line1.classList.add('rotate-45', 'translate-y-[2px]');
+                line2.classList.add('-rotate-45', '-translate-y-[5px]', '!w-full');
+                menuText.innerText = "Close";
+                body.style.overflow = 'hidden'; // Prevent scrolling
+            } else {
+                menuOverlay.classList.remove('open');
+                line1.classList.remove('rotate-45', 'translate-y-[2px]');
+                line2.classList.remove('-rotate-45', '-translate-y-[5px]', '!w-full');
+                menuText.innerText = "Menu";
+                body.style.overflow = 'auto'; // Enable scrolling
+            }
+        }
+
+        // Scroll Reveal Logic (Intersection Observer)
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+    </script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+@page "/social/reports"
+@model BugenceEditConsole.Pages.Social.Reports.IndexModel
+@{
+    ViewData["Title"] = "Report & Attribution";
+    ViewData["BodyClass"] = "page-social-reports";
+}
+
+@if (!Model.Enabled)
+{
+    <div class="alert alert-warning">Social Marketing module is disabled by feature flags.</div>
+    return;
+}
+
+<style>
+    :root {
+        --rep-text: #f5f7fa;
+        --rep-muted: #8993a4;
+        --rep-cyan: #6cecff;
+        --rep-blue: #6ea8ff;
+        --rep-green: #4ade80;
+        --rep-gold: #f6c85f;
+        --rep-red: #fb7185;
+    }
+
+    .rep-shell { max-width: 1720px; margin: 0 auto; display: grid; gap: 18px; padding-bottom: 32px; }
+    .rep-hero, .rep-panel {
+        border-radius: 30px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background:
+            radial-gradient(760px 280px at -8% -18%, rgba(108,236,255,0.14), transparent 54%),
+            radial-gradient(580px 220px at 108% 0%, rgba(110,168,255,0.16), transparent 58%),
+            linear-gradient(145deg, rgba(10,10,10,0.985), rgba(4,4,4,0.995));
+        box-shadow: 0 30px 80px rgba(0,0,0,0.48);
+    }
+    .rep-hero { padding: 28px; }
+    .rep-hero-grid { display:grid; grid-template-columns: minmax(0,1.2fr) 420px; gap:18px; }
+    .rep-kicker, .rep-panel-kicker {
+        display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px;
+        border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:var(--rep-cyan);
+        font-size:.72rem; font-weight:900; letter-spacing:.18em; text-transform:uppercase;
+    }
+    .rep-title { margin:14px 0 12px; color:var(--rep-text); font-family:"Cabinet Grotesk",sans-serif; font-size:clamp(2rem,3vw,3rem); line-height:1.02; letter-spacing:-.04em; }
+    .rep-copy, .rep-panel-copy { margin:0; color:var(--rep-muted); line-height:1.7; }
+    .rep-lead { margin:0 0 10px; color:var(--rep-muted); line-height:1.7; max-width:780px; }
+    .rep-command { border-radius:24px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); padding:18px; display:grid; gap:12px; }
+    .rep-field { display:grid; gap:7px; }
+    .rep-field label { color:#7a8492; font-size:.72rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+    .rep-input, .rep-select {
+        width:100%; height:48px; border-radius:16px; border:1px solid rgba(255,255,255,.12);
+        background:rgba(255,255,255,.03); color:var(--rep-text); padding:0 14px; font-size:.92rem;
+    }
+    .rep-btn, .rep-btn-accent {
+        height:46px; padding:0 16px; border-radius:16px; border:1px solid rgba(255,255,255,.12);
+        display:inline-flex; align-items:center; justify-content:center; gap:10px; text-decoration:none; cursor:pointer;
+        font-size:.84rem; font-weight:900;
+    }
+    .rep-btn { background:rgba(255,255,255,.04); color:var(--rep-text); }
+    .rep-btn-accent { background:linear-gradient(135deg, var(--rep-cyan), var(--rep-blue)); color:#031116; border-color:rgba(108,236,255,.18); }
+    .rep-band { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; }
+    .rep-stat, .rep-panel { padding:22px; }
+    .rep-stat { border-radius:22px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg, rgba(10,10,10,.96), rgba(6,6,6,.97)); }
+    .rep-stat-label { color:#788394; font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; font-weight:900; }
+    .rep-stat-value { margin-top:12px; color:var(--rep-text); font-size:2rem; font-weight:900; letter-spacing:-.05em; }
+    .rep-stat-meta { margin-top:10px; color:var(--rep-muted); font-size:.82rem; }
+    .rep-grid-2 { display:grid; grid-template-columns:1.05fr .95fr; gap:18px; }
+    .rep-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+    .rep-panel-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:16px; }
+    .rep-panel-kicker { padding:7px 12px; font-size:.68rem; letter-spacing:.16em; }
+    .rep-panel-title { margin:10px 0 6px; color:var(--rep-text); font-family:"Cabinet Grotesk",sans-serif; font-size:clamp(1.3rem,2vw,2rem); line-height:1; letter-spacing:-.04em; }
+    .rep-bars, .rep-list { display:grid; gap:12px; }
+    .rep-bar { display:grid; gap:8px; }
+    .rep-bar-meta, .rep-item-head { display:flex; justify-content:space-between; gap:12px; }
+    .rep-bar-track { height:10px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden; }
+    .rep-bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg, var(--rep-cyan), var(--rep-blue)); }
+    .rep-item { border-radius:18px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.025); padding:14px; }
+    .rep-item-title { color:var(--rep-text); font-weight:800; }
+    .rep-item-sub { color:var(--rep-muted); font-size:.8rem; margin-top:4px; }
+    .rep-item-metrics { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; color:#d9e3ef; font-size:.82rem; }
+    .rep-timeline { display:grid; gap:12px; }
+    .rep-time-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+    .rep-time-row:last-child { border-bottom:0; }
+    .rep-empty { color:var(--rep-muted); text-align:center; padding:30px 0; }
+    .rep-status { min-height:22px; color:#9ed9ff; font-weight:700; }
+
+    @@media (max-width: 1400px) {
+        .rep-band { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .rep-grid-2, .rep-grid-3, .rep-hero-grid { grid-template-columns:1fr; }
+    }
+    @@media (max-width: 760px) {
+        .rep-band { grid-template-columns:1fr; }
+        .rep-hero, .rep-panel { padding:18px; border-radius:24px; }
+    }
+</style>
+
+<div class="rep-shell">
+    <section class="rep-hero">
+        <div class="rep-hero-grid">
+            <div>
+                <span class="rep-kicker">Attribution and Performance</span>
+                <h1 class="rep-title">Report & Attribution</h1>
+                <p class="rep-lead">See which ads create pipeline, where speed breaks down, and which operators convert demand.</p>
+                <p class="rep-copy">This reporting surface turns your Facebook Marketing data into operational signal: lead volume, qualification, booking velocity, duplicate pressure, and workflow execution health.</p>
+            </div>
+            <aside class="rep-command">
+                <div class="rep-field">
+                    <label for="integrationConnectionId">Integration Account</label>
+                    <select id="integrationConnectionId" class="rep-select">
+                        @foreach (var c in Model.Connections)
+                        {
+                            <option value="@c.Id">@c.DisplayName (@c.Status)</option>
+                        }
+                    </select>
+                </div>
+                <div class="rep-field">
+                    <label for="dateFrom">From</label>
+                    <input id="dateFrom" class="rep-input" type="date" />
+                </div>
+                <div class="rep-field">
+                    <label for="dateTo">To</label>
+                    <input id="dateTo" class="rep-input" type="date" />
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button type="button" id="refreshReportBtn" class="rep-btn-accent">Refresh Report</button>
+                    <a href="/social/facebook" class="rep-btn">Open Facebook Ops</a>
+                </div>
+                <div class="rep-status" id="reportStatus"></div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="rep-band">
+        <article class="rep-stat"><div class="rep-stat-label">Total Leads</div><div class="rep-stat-value" id="ovTotal">0</div><div class="rep-stat-meta">Captured submissions in range.</div></article>
+        <article class="rep-stat"><div class="rep-stat-label">Contacted %</div><div class="rep-stat-value" id="ovContacted">0%</div><div class="rep-stat-meta">Leads that received a first touch.</div></article>
+        <article class="rep-stat"><div class="rep-stat-label">Qualified %</div><div class="rep-stat-value" id="ovQualified">0%</div><div class="rep-stat-meta">Leads promoted into real opportunity.</div></article>
+        <article class="rep-stat"><div class="rep-stat-label">Booked %</div><div class="rep-stat-value" id="ovBooked">0%</div><div class="rep-stat-meta">Leads that reached booked outcome.</div></article>
+        <article class="rep-stat"><div class="rep-stat-label">Duplicate %</div><div class="rep-stat-value" id="ovDuplicate">0%</div><div class="rep-stat-meta">Repeat submissions linked to prior leads.</div></article>
+        <article class="rep-stat"><div class="rep-stat-label">Avg Response</div><div class="rep-stat-value" id="ovResponse">0m</div><div class="rep-stat-meta">Time from capture to latest first action.</div></article>
+    </section>
+
+    <section class="rep-grid-2">
+        <article class="rep-panel">
+            <div class="rep-panel-head">
+                <div>
+                    <span class="rep-panel-kicker">Conversion Trend</span>
+                    <h2 class="rep-panel-title">Daily movement</h2>
+                    <p class="rep-panel-copy">Lead, qualified, and booked volume across the selected period.</p>
+                </div>
+            </div>
+            <div id="trendList" class="rep-bars"><div class="rep-empty">No trend data yet.</div></div>
+        </article>
+        <article class="rep-panel">
+            <div class="rep-panel-head">
+                <div>
+                    <span class="rep-panel-kicker">Stage Distribution</span>
+                    <h2 class="rep-panel-title">Where leads are landing</h2>
+                    <p class="rep-panel-copy">Current lead-state pressure across the marketing funnel.</p>
+                </div>
+            </div>
+            <div id="stageList" class="rep-bars"><div class="rep-empty">No stage data yet.</div></div>
+        </article>
+    </section>
+
+    <section class="rep-grid-3">
+        <article class="rep-panel">
+            <div class="rep-panel-head">
+                <div>
+                    <span class="rep-panel-kicker">Best Ads</span>
+                    <h2 class="rep-panel-title">Top performers</h2>
+                    <p class="rep-panel-copy">Ads ranked by lead output and conversion quality.</p>
+                </div>
+            </div>
+            <div id="topAdsList" class="rep-list"><div class="rep-empty">No ad data yet.</div></div>
+        </article>
+        <article class="rep-panel">
+            <div class="rep-panel-head">
+                <div>
+                    <span class="rep-panel-kicker">Agent Performance</span>
+                    <h2 class="rep-panel-title">Ownership leaderboard</h2>
+                    <p class="rep-panel-copy">Which owners are working and converting the captured queue.</p>
+                </div>
+            </div>
+            <div id="agentList" class="rep-list"><div class="rep-empty">No owner data yet.</div></div>
+        </article>
+        <article class="rep-panel">
+            <div class="rep-panel-head">
+                <div>
+                    <span class="rep-panel-kicker">Automation Health</span>
+                    <h2 class="rep-panel-title">Workflow execution</h2>
+                    <p class="rep-panel-copy">Success and failure distribution from automation runs plus recent operational events.</p>
+                </div>
+            </div>
+            <div id="automationList" class="rep-bars"><div class="rep-empty">No automation data yet.</div></div>
+            <div style="height:14px;"></div>
+            <div id="timelineList" class="rep-timeline"><div class="rep-empty">No recent events yet.</div></div>
+        </article>
+    </section>
+</div>
+
+<script>
+(() => {
+    const q = (id) => document.getElementById(id);
+    const esc = (v) => (v ?? "").toString().replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+    const today = new Date();
+    const toIso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+    if (!q("dateTo").value) q("dateTo").value = toIso(today);
+    if (!q("dateFrom").value) {
+        const from = new Date(today);
+        from.setDate(from.getDate() - 29);
+        q("dateFrom").value = toIso(from);
+    }
+
+    const fmtPct = (v) => `${Number(v || 0).toFixed(0)}%`;
+    const fmtNum = (v) => Number(v || 0).toLocaleString();
+
+    async function loadReport() {
+        const connectionId = q("integrationConnectionId")?.value || "";
+        if (!connectionId) {
+            q("reportStatus").textContent = "Connect a Facebook integration first.";
+            return;
+        }
+        q("reportStatus").textContent = "Loading report...";
+        const params = new URLSearchParams({
+            integrationConnectionId: connectionId,
+            dateFrom: q("dateFrom").value,
+            dateTo: q("dateTo").value
+        });
+        const res = await fetch(`/api/social/reports/overview?${params.toString()}`, { credentials: "same-origin" });
+        const data = await res.json();
+        const overview = data.overview || {};
+        q("ovTotal").textContent = fmtNum(overview.totalLeads);
+        q("ovContacted").textContent = fmtPct(overview.contactedRate);
+        q("ovQualified").textContent = fmtPct(overview.qualifiedRate);
+        q("ovBooked").textContent = fmtPct(overview.bookedRate);
+        q("ovDuplicate").textContent = fmtPct(overview.duplicateRate);
+        q("ovResponse").textContent = `${Number(overview.avgResponseMinutes || 0).toFixed(0)}m`;
+
+        const trend = Array.isArray(data.trend) ? data.trend : [];
+        q("trendList").innerHTML = trend.length ? trend.map(row => {
+            const max = Math.max(...trend.map(x => Number(x.leads || 0)), 1);
+            const width = Math.max(6, Math.round((Number(row.leads || 0) / max) * 100));
+            return `<div class="rep-bar"><div class="rep-bar-meta"><strong>${esc(row.day)}</strong><span>${fmtNum(row.leads)} leads | ${fmtNum(row.qualified)} qualified | ${fmtNum(row.booked)} booked</span></div><div class="rep-bar-track"><div class="rep-bar-fill" style="width:${width}%;"></div></div></div>`;
+        }).join("") : `<div class="rep-empty">No trend data yet.</div>`;
+
+        const stages = Array.isArray(data.stageBreakdown) ? data.stageBreakdown : [];
+        q("stageList").innerHTML = stages.length ? stages.map(row => {
+            const max = Math.max(...stages.map(x => Number(x.count || 0)), 1);
+            const width = Math.max(6, Math.round((Number(row.count || 0) / max) * 100));
+            return `<div class="rep-bar"><div class="rep-bar-meta"><strong>${esc(row.stage)}</strong><span>${fmtNum(row.count)}</span></div><div class="rep-bar-track"><div class="rep-bar-fill" style="width:${width}%;"></div></div></div>`;
+        }).join("") : `<div class="rep-empty">No stage data yet.</div>`;
+
+        const topAds = Array.isArray(data.topAds) ? data.topAds : [];
+        q("topAdsList").innerHTML = topAds.length ? topAds.map(row => `
+            <div class="rep-item">
+                <div class="rep-item-head"><div><div class="rep-item-title">${esc(row.adName || row.adId)}</div><div class="rep-item-sub">${esc(row.campaignId || "-")} | ${esc(row.formId || "-")}</div></div></div>
+                <div class="rep-item-metrics"><span>${fmtNum(row.leads)} leads</span><span>${fmtPct(row.qualifiedRate)} qualified</span><span>${fmtPct(row.bookedRate)} booked</span><span>${Number(row.avgScore || 0).toFixed(0)} score</span></div>
+            </div>
+        `).join("") : `<div class="rep-empty">No ad data yet.</div>`;
+
+        const agents = Array.isArray(data.agentLeaderboard) ? data.agentLeaderboard : [];
+        q("agentList").innerHTML = agents.length ? agents.map(row => `
+            <div class="rep-item">
+                <div class="rep-item-title">${esc(row.owner)}</div>
+                <div class="rep-item-sub">${esc(row.assignedUserId)}</div>
+                <div class="rep-item-metrics"><span>${fmtNum(row.leads)} leads</span><span>${fmtNum(row.qualified)} qualified</span><span>${fmtNum(row.booked)} booked</span><span>${Number(row.avgResponseMinutes || 0).toFixed(0)}m avg response</span></div>
+            </div>
+        `).join("") : `<div class="rep-empty">No owner data yet.</div>`;
+
+        const automation = Array.isArray(data.automationSummary) ? data.automationSummary : [];
+        q("automationList").innerHTML = automation.length ? automation.map(row => {
+            const max = Math.max(...automation.map(x => Number(x.count || 0)), 1);
+            const width = Math.max(6, Math.round((Number(row.count || 0) / max) * 100));
+            return `<div class="rep-bar"><div class="rep-bar-meta"><strong>${esc(row.status)}</strong><span>${fmtNum(row.count)}</span></div><div class="rep-bar-track"><div class="rep-bar-fill" style="width:${width}%;"></div></div></div>`;
+        }).join("") : `<div class="rep-empty">No automation data yet.</div>`;
+
+        const timeline = Array.isArray(data.recentTimeline) ? data.recentTimeline : [];
+        q("timelineList").innerHTML = timeline.length ? timeline.map(row => `
+            <div class="rep-time-row">
+                <div>
+                    <div class="rep-item-title">${esc(row.type)}</div>
+                    <div class="rep-item-sub">${esc(row.createdBy || "system")} | lead ${esc(row.leadPkId)}</div>
+                </div>
+                <div class="rep-item-sub">${new Date(row.createdAtUtc).toLocaleString()}</div>
+            </div>
+        `).join("") : `<div class="rep-empty">No recent events yet.</div>`;
+
+        q("reportStatus").textContent = "Report updated.";
+    }
+
+    ["integrationConnectionId", "dateFrom", "dateTo"].forEach(id => q(id)?.addEventListener("change", loadReport));
+    q("refreshReportBtn")?.addEventListener("click", loadReport);
+    if (q("integrationConnectionId")?.value) loadReport();
+})();
+</script>

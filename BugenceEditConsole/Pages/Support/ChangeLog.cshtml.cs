@@ -44,7 +44,14 @@ public class ChangeLogModel : PageModel
         public string LocalTimeText { get; set; } = string.Empty;
         public string SearchText { get; set; } = string.Empty;
         public IReadOnlyList<string> DetailLines { get; set; } = Array.Empty<string>();
+        public IReadOnlyList<DiffLineItem> DiffLines { get; set; } = Array.Empty<DiffLineItem>();
         public string? DeployLogsUrl { get; set; }
+    }
+
+    public sealed class DiffLineItem
+    {
+        public string Type { get; set; } = "context";
+        public string Text { get; set; } = string.Empty;
     }
 
     public sealed class DateGroup
@@ -129,7 +136,7 @@ public class ChangeLogModel : PageModel
         SelectedProjectId = projectExists ? projectId!.Value : Projects[0].Id;
         SelectedProjectName = Projects.First(p => p.Id == SelectedProjectId).Name;
 
-        var loaded = await BuildEntriesAsync(SelectedProjectId, cancellationToken);
+        var loaded = await BuildEntriesAsync(SelectedProjectId, user, cancellationToken);
         Entries = loaded;
         Groups = loaded
             .GroupBy(e => e.AtUtc.ToLocalTime().Date)
@@ -176,7 +183,7 @@ public class ChangeLogModel : PageModel
         return query.Where(_ => false);
     }
 
-    private async Task<List<ActivityItem>> BuildEntriesAsync(int projectId, CancellationToken cancellationToken)
+    private async Task<List<ActivityItem>> BuildEntriesAsync(int projectId, ApplicationUser? user, CancellationToken cancellationToken)
     {
         const int take = 120;
         var project = await _db.UploadedProjects.FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
@@ -202,9 +209,33 @@ public class ChangeLogModel : PageModel
             .Take(take)
             .ToListAsync(cancellationToken);
 
+        var contentLogsQuery = _db.ContentChangeLogs.AsNoTracking().AsQueryable();
+        if (user?.CompanyId != null)
+        {
+            var companyUserIds = await _db.Users
+                .Where(u => u.CompanyId == user.CompanyId)
+                .Select(u => u.Id)
+                .ToListAsync(cancellationToken);
+
+            if (companyUserIds.Count > 0)
+            {
+                contentLogsQuery = contentLogsQuery.Where(log => companyUserIds.Contains(log.PerformedByUserId));
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(user?.Id))
+        {
+            contentLogsQuery = contentLogsQuery.Where(log => log.PerformedByUserId == user.Id);
+        }
+
+        var contentLogs = await contentLogsQuery
+            .OrderByDescending(log => log.PerformedAtUtc)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+
         var actorUserIds = snapshots
             .Select(s => s.CreatedByUserId)
             .Concat(dynamicLogs.Select(l => l.ActorUserId))
+            .Concat(contentLogs.Select(l => l.PerformedByUserId))
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.Ordinal)
             .Cast<string>()
@@ -229,6 +260,11 @@ public class ChangeLogModel : PageModel
         foreach (var log in dynamicLogs)
         {
             entries.Add(MapDynamic(projectId, projectName, log, usersById));
+        }
+
+        foreach (var log in contentLogs)
+        {
+            entries.Add(MapContent(projectId, projectName, log, usersById));
         }
 
         return entries
@@ -361,7 +397,47 @@ public class ChangeLogModel : PageModel
             LocalTimeText = atUtc.ToLocalTime().ToString("MMM d, h:mm tt"),
             RelativeTime = RelativeTimeFromNow(atUtc),
             DetailLines = BuildPayloadLines(log.PayloadJson),
+            DiffLines = BuildDiffLinesFromPayload(log.PayloadJson),
             SearchText = $"{title} {subtitle} {actor} {action}".ToLowerInvariant(),
+            DeployLogsUrl = null
+        };
+    }
+
+    private static ActivityItem MapContent(int projectId, string projectName, ContentChangeLog log, IReadOnlyDictionary<string, string> usersById)
+    {
+        var actor = ResolveActor(log.PerformedByUserId, usersById);
+        var hasNew = !string.IsNullOrWhiteSpace(log.NewValue);
+        var hasPrevious = !string.IsNullOrWhiteSpace(log.PreviousValue);
+        var title = hasPrevious && !hasNew
+            ? $"Removed content from {log.FieldKey}"
+            : hasPrevious && hasNew
+                ? $"Updated {log.FieldKey}"
+                : $"Added content to {log.FieldKey}";
+
+        var subtitle = string.IsNullOrWhiteSpace(log.ChangeSummary)
+            ? $"Field: {log.FieldKey}"
+            : log.ChangeSummary!;
+
+        var diffLines = BuildLineDiff(log.PreviousValue, log.NewValue);
+        var atUtc = log.PerformedAtUtc;
+        return new ActivityItem
+        {
+            EntryId = $"content-{log.Id:N}",
+            ProjectId = projectId,
+            ProjectName = projectName,
+            Actor = actor,
+            ActorInitials = Initials(actor),
+            TypeKey = "content",
+            TypeLabel = "Content",
+            CardTypeClass = hasPrevious && !hasNew ? "type-delete" : "type-code",
+            Title = title,
+            Subtitle = subtitle,
+            AtUtc = atUtc,
+            LocalTimeText = atUtc.ToLocalTime().ToString("MMM d, h:mm tt"),
+            RelativeTime = RelativeTimeFromNow(atUtc),
+            DetailLines = Array.Empty<string>(),
+            DiffLines = diffLines,
+            SearchText = $"{title} {subtitle} {actor} {log.FieldKey}".ToLowerInvariant(),
             DeployLogsUrl = null
         };
     }
@@ -606,5 +682,88 @@ public class ChangeLogModel : PageModel
         }
 
         return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value);
+    }
+
+    private static IReadOnlyList<DiffLineItem> BuildDiffLinesFromPayload(string? json)
+    {
+        var payload = ParsePayload(json);
+        if (payload is not JsonElement element || element.ValueKind != JsonValueKind.Object)
+        {
+            return Array.Empty<DiffLineItem>();
+        }
+
+        static string? read(JsonElement source, string key)
+        {
+            return source.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.String
+                ? value.GetString()
+                : null;
+        }
+
+        var before = read(element, "before")
+            ?? read(element, "oldValue")
+            ?? read(element, "previousValue")
+            ?? read(element, "oldText");
+        var after = read(element, "after")
+            ?? read(element, "newValue")
+            ?? read(element, "currentValue")
+            ?? read(element, "newText");
+
+        return BuildLineDiff(before, after);
+    }
+
+    private static IReadOnlyList<DiffLineItem> BuildLineDiff(string? before, string? after)
+    {
+        if (string.Equals(before, after, StringComparison.Ordinal))
+        {
+            return Array.Empty<DiffLineItem>();
+        }
+
+        var beforeLines = SplitLines(before);
+        var afterLines = SplitLines(after);
+
+        if (beforeLines.Count == 0 && afterLines.Count == 0)
+        {
+            return Array.Empty<DiffLineItem>();
+        }
+
+        var lines = new List<DiffLineItem>(Math.Max(beforeLines.Count, afterLines.Count) * 2);
+        var max = Math.Max(beforeLines.Count, afterLines.Count);
+        for (var i = 0; i < max; i++)
+        {
+            var oldLine = i < beforeLines.Count ? beforeLines[i] : null;
+            var newLine = i < afterLines.Count ? afterLines[i] : null;
+
+            if (oldLine is not null && newLine is not null && string.Equals(oldLine, newLine, StringComparison.Ordinal))
+            {
+                lines.Add(new DiffLineItem { Type = "context", Text = oldLine });
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(oldLine))
+            {
+                lines.Add(new DiffLineItem { Type = "removed", Text = oldLine! });
+            }
+
+            if (!string.IsNullOrWhiteSpace(newLine))
+            {
+                lines.Add(new DiffLineItem { Type = "added", Text = newLine! });
+            }
+        }
+
+        return lines;
+    }
+
+    private static List<string> SplitLines(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return new List<string>();
+        }
+
+        return value
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n')
+            .Split('\n', StringSplitOptions.None)
+            .ToList();
     }
 }

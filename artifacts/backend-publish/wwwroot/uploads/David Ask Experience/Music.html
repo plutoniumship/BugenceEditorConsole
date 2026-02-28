@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUSIC | DAVID ASK EXPERIENCE</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700&family=Playfair+Display:ital,wght@0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --dark: #050505;
+            --soft-white: #f5f5f5;
+            --primary-gold: #c5a059;
+            --dark-bg: #050505;
+        }
+
+        /* --- CUSTOM SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: var(--gold); }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            cursor: none;
+        }
+
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        .text-gold { color: var(--gold); }
+
+        /* --- LUXURY CUSTOM CURSOR --- */
+        #cursor { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; position: fixed; pointer-events: none; z-index: 10000; }
+        #cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transition: all 0.1s ease-out; }
+
+        /* --- MAGNETIC BUTTONS --- */
+        .magnetic-wrap { display: inline-flex; align-items: center; justify-content: center; position: relative; padding: 15px; }
+        .btn-luxury {
+            background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 18px 45px;
+            text-transform: uppercase; letter-spacing: 4px; font-size: 0.7rem; font-weight: 600;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); position: relative; z-index: 1; overflow: hidden; display: inline-block; text-decoration: none !important;
+        }
+        .btn-luxury:hover { color: black !important; border-color: var(--gold); }
+        .btn-luxury::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gold); transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); z-index: -1; }
+        .btn-luxury:hover::before { left: 0; }
+        .btn-luxury-gold { background: var(--gold); color: black !important; border-color: var(--gold); }
+
+        /* --- HERO TEXT REVEAL --- */
+        .text-reveal-hero {
+            background: linear-gradient(to right, #fff 50%, #333 50%);
+            background-size: 200% 100%;
+            background-position: 100% 0;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: heroReveal 2.5s forwards cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        @keyframes heroReveal { to { background-position: 0 0; } }
+
+        /* --- SECTION 2: PULSE REVEAL --- */
+        .pulse-section { height: 100vh; display: flex; align-items: center; position: relative; }
+        .pulse-line { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: linear-gradient(to bottom, transparent, var(--gold), transparent); opacity: 0.2; }
+
+        /* --- SECTION 3: KINETIC TRACKS --- */
+        .track-slate {
+            position: relative;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 60px;
+            height: 100%;
+            overflow: hidden;
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .track-slate:hover {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.03);
+            transform: translateY(-10px) scale(1.02);
+        }
+        .track-icon {
+            font-size: 4rem;
+            color: var(--gold);
+            opacity: 0.1;
+            position: absolute;
+            top: 40px; right: 40px;
+            transition: 0.5s ease;
+        }
+        .track-slate:hover .track-icon { opacity: 0.4; transform: rotate(15deg); }
+
+        /* --- NAVIGATION --- */
+        .nav-link-custom { color: rgba(255, 255, 255, 0.6); text-decoration: none; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3em; transition: all 0.4s ease; }
+        .nav-link-custom:hover { color: var(--gold); }
+        .nav-scrolled { background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(20px); padding: 1.2rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        /* --- OPT-IN --- */
+        .optin-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding: 20px 0; color: #fff; font-size: 1.25rem; text-align: center; transition: border-color 0.6s ease; }
+        .optin-input:focus { outline: none; border-color: var(--gold); }
+
+        /* --- FILM NOISE OVERLAY --- */
+        body::after { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.03; pointer-events: none; z-index: 9997; }
+    </style>
+</head>
+
+<body class="bg-[#050505]">
+
+    <div id="cursor"></div>
+    <div id="cursor-outline"></div>
+
+    <nav id="main-nav" class="fixed top-0 w-full z-[100] px-12 py-10 flex justify-between items-center mix-blend-difference transition-all duration-500">
+        <a href="index.html" class="text-white no-underline tracking-[0.5em] uppercase serif text-xl font-bold">
+            David <span class="text-[#D4AF37]">Ask</span>
+        </a>
+        <div class="hidden lg:flex items-center gap-12">
+            <ul class="flex gap-10 mb-0 list-none">
+                <li><a href="/index.html" class="nav-link-custom">Home</a></li>
+                <li><a href="/Podcast.html" class="nav-link-custom">Podcast</a></li>
+                <li><a href="/Book.html" class="nav-link-custom">The Book</a></li>
+                <li><a href="/Music.html" class="nav-link-custom text-gold">Music</a></li>
+            </ul>
+            <div class="magnetic-wrap">
+                <a href="#optin" class="btn-luxury !py-2 !px-8 text-[0.6rem]">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="h-screen relative flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1514320298574-2c9d81791a5e?auto=format&fit=crop&q=80&w=1600" class="w-full h-full object-cover opacity-20 scale-110 grayscale" alt="Music Experience">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent"></div>
+        </div>
+        <div class="relative z-10 text-center container px-6">
+            <h4 class="text-gold uppercase tracking-[0.8em] text-[0.6rem] mb-12" data-aos="fade-up">https://linktr.ee/davidaskmusic</h4>
+            <h1 class="serif italic text-reveal-hero mb-12" style="font-size: clamp(2rem, 5vw, 4rem); line-height: 1.2; max-width: 1000px; margin: 0 auto;">
+                We tell ourselves a story all day every day and I think there is a music/soundtrack that plays for us. I am part of something grand and beautiful. 
+            </h1>
+            <p class="max-w-2xl mx-auto text-xl text-white/40 font-light leading-relaxed mb-16" data-aos="fade-up" data-aos-delay="400">
+                Suggestions for the play list. What song reflects what is going on with you? The music that is playing inside of you is beautiful and grand and uplifting.
+            </p>
+            <div class="magnetic-wrap" data-aos="fade-up" data-aos-delay="600">
+                <a href="https://linktr.ee/davidaskmusic" target="_blank" class="btn-luxury btn-luxury-gold">Listen Now</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="pulse-section">
+        <div class="pulse-line"></div>
+        <div class="container mx-auto px-6">
+            <div class="row align-items-center">
+                <div class="col-lg-5" data-aos="fade-right">
+                    <p class="text-gold uppercase tracking-[0.8em] text-[0.6rem] mb-8">The Resonance</p>
+                    <h2 class="text-7xl md:text-8xl serif italic mb-10 tracking-tighter">Why Music <br>Matters Here</h2>
+                </div>
+                <div class="col-lg-6 offset-lg-1" data-aos="fade-left">
+                    <p class="text-3xl md:text-4xl text-white/70 font-light leading-tight mb-10">
+                        Fatherhood often asks you to do your inner work alone. Music creates space for reflection and grounding.
+                    </p>
+                    <p class="text-xl text-white/30 italic serif leading-relaxed">
+                        These tracks are crafted to accompany you through the quiet moments—when you're thinking, driving, praying, journaling, or simply trying to be the father you want to be.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-40 bg-[#0a0a0a]">
+        <div class="container mx-auto px-6">
+            <div class="mb-32">
+                <p class="text-gold tracking-[0.5em] uppercase text-[0.65rem] mb-6">https://linktr.ee/davidaskmusic</p>
+                <h2 class="text-7xl md:text-9xl serif italic" data-aos="fade-up">Featured Music</h2>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8" data-aos="fade-up">
+                    <div class="track-slate group">
+                        <i class="bi bi-vinyl track-icon"></i>
+                        <h3 class="text-5xl serif italic mb-6">“Guardians Theme”</h3>
+                        <p class="text-xl text-white/40 font-light max-w-xl mb-12">A reflective instrumental inspired by the heart of the project.</p>
+                        <div class="magnetic-wrap">
+                            <a href="#" class="btn-luxury !py-2 !px-10 text-[0.6rem]">Listen</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="track-slate group">
+                        <i class="bi bi-mic track-icon"></i>
+                        <h3 class="text-4xl serif italic mb-6">“Father to Son”</h3>
+                        <p class="text-white/40 font-light mb-12">A song about presence, legacy, and the questions that shape a life.</p>
+                        <div class="magnetic-wrap">
+                            <a href="#" class="btn-luxury !py-2 !px-10 text-[0.6rem]">Listen</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4" data-aos="fade-up">
+                    <div class="track-slate group">
+                        <i class="bi bi-wind track-icon"></i>
+                        <h3 class="text-4xl serif italic mb-6">“The Quiet Work”</h3>
+                        <p class="text-white/40 font-light mb-12">Instrumental background for journaling or decompressing.</p>
+                        <div class="magnetic-wrap">
+                            <a href="#" class="btn-luxury !py-2 !px-10 text-[0.6rem]">Listen</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8" data-aos="fade-up" data-aos-delay="200">
+                    <div class="track-slate opacity-40 grayscale group">
+                        <h3 class="text-5xl serif italic mb-6">“Legacy Unfolds”</h3>
+                        <p class="text-xl text-white/40 font-light mb-12">Coming Soon: An orchestral journey into the next chapter.</p>
+                        <span class="text-gold uppercase tracking-widest text-[0.6rem]">Winter 2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-40 bg-black overflow-hidden relative">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-5xl serif italic mb-20" data-aos="fade-up">Listen Here</h2>
+            <div class="max-w-5xl mx-auto relative p-2" data-aos="zoom-in">
+                <div class="absolute inset-0 bg-gold/5 blur-3xl rounded-full"></div>
+                <div class="relative bg-[#0a0a0a] border border-white/5 p-20 backdrop-blur-xl">
+                    <p class="text-white/20 uppercase tracking-[0.5em] text-[0.65rem] mb-12">Audio Player Embed Area</p>
+                    <div class="flex justify-center gap-10">
+                        <i class="bi bi-spotify text-5xl text-white/10"></i>
+                        <i class="bi bi-apple text-5xl text-white/10"></i>
+                        <i class="bi bi-youtube text-5xl text-white/10"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="optin" class="py-40 bg-black text-center relative overflow-hidden">
+        <div class="container relative z-10 px-6">
+            <h4 class="text-gold uppercase tracking-[0.6em] text-[0.6rem] mb-12" data-aos="fade-up">Musical Connection</h4>
+            <h2 class="serif italic mb-8" style="font-size: clamp(3rem, 6vw, 6rem);">Get New Music First</h2>
+            <p class="text-xl text-white/40 font-light mb-20 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up">
+                Join the music list for early access to new tracks, behind-the-scenes notes, and upcoming releases.
+            </p>
+            <div class="max-w-[600px] mx-auto" data-aos="fade-up">
+                <form action="#" class="flex flex-col gap-12">
+                    <input type="email" placeholder="ENTER YOUR EMAIL ADDRESS" class="optin-input" required>
+                    <div class="magnetic-wrap mx-auto">
+                        <button type="submit" class="btn-luxury btn-luxury-gold !px-20">Join the Music List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="pt-40 pb-20 bg-black border-t border-white/5">
+        <div class="container mx-auto px-10">
+            <div class="row justify-between mb-20">
+                <div class="col-lg-4">
+                    <h2 class="text-4xl serif italic mb-8">David Ask.</h2>
+                    <p class="text-zinc-600 text-sm mb-10 leading-relaxed">The Ask Experience · For fathers who are learning as they go. Dedicated to the art of raising grounded men.</p>
+                    <div class="flex gap-4">
+                        <a href="#" class="nav-link-custom text-xl"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="nav-link-custom text-xl"><i class="bi bi-spotify"></i></a>
+                        <a href="#" class="nav-link-custom text-xl"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row">
+                        <div class="col-md-4 mb-10">
+                            <p class="text-gold uppercase tracking-widest text-[0.6rem] mb-6">Navigation</p>
+                            <ul class="list-none p-0 space-y-3">
+                                <li><a href="podcast.html" class="nav-link-custom text-xs">Podcast</a></li>
+                                <li><a href="music.html" class="nav-link-custom text-xs">Music</a></li>
+                                <li><a href="book.html" class="nav-link-custom text-xs">The Book</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mb-10">
+                            <p class="text-gold uppercase tracking-widest text-[0.6rem] mb-6">Contact</p>
+                            <ul class="list-none p-0 space-y-3">
+                                <li><a href="#" class="nav-link-custom text-xs">Speaking</a></li>
+                                <li><a href="#" class="nav-link-custom text-xs">Collaborations</a></li>
+                                <li><a href="#" class="nav-link-custom text-xs">Email</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-10 border-t border-white/5 text-center md:text-left">
+                <p class="text-[0.6rem] text-zinc-700 tracking-[0.3em] uppercase">© 2025 THE ASK EXPERIENCE. ALL RIGHTS RESERVED.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1200, once: true });
+        gsap.registerPlugin(ScrollTrigger);
+
+        const cursor = document.getElementById('cursor');
+        const outline = document.getElementById('cursor-outline');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, {x: e.clientX, y: e.clientY, duration: 0.1});
+            gsap.to(outline, {x: e.clientX - 16, y: e.clientY - 16, duration: 0.2});
+        });
+
+        // Track Slate Parallax Tilt
+        document.querySelectorAll('.track-slate').forEach(slate => {
+            slate.addEventListener('mousemove', (e) => {
+                const rect = slate.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                gsap.to(slate, { rotateX: -y * 0.05, rotateY: x * 0.05, duration: 0.5 });
+            });
+            slate.addEventListener('mouseleave', () => {
+                gsap.to(slate, { rotateX: 0, rotateY: 0, duration: 1 });
+            });
+        });
+
+        const magnets = document.querySelectorAll('.magnetic-wrap');
+        magnets.forEach(m => {
+            m.addEventListener('mousemove', (e) => {
+                const rect = m.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                gsap.to(m, { x: x * 0.4, y: y * 0.4, duration: 0.3 });
+            });
+            m.addEventListener('mouseleave', () => {
+                gsap.to(m, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+            });
+        });
+
+        const interactive = document.querySelectorAll('a, button, .track-slate');
+        interactive.forEach(l => {
+            l.addEventListener('mouseenter', () => {
+                gsap.to(cursor, { scale: 4, background: 'rgba(212, 175, 55, 0.2)', duration: 0.3 });
+                gsap.to(outline, { opacity: 0, duration: 0.3 });
+            });
+            l.addEventListener('mouseleave', () => {
+                gsap.to(cursor, { scale: 1, background: '#D4AF37', duration: 0.3 });
+                gsap.to(outline, { opacity: 1, duration: 0.3 });
+            });
+        });
+
+        const nav = document.getElementById('main-nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) nav.classList.add('nav-scrolled');
+            else nav.classList.remove('nav-scrolled');
+        });
+    </script>
+</body>
+
+</html>

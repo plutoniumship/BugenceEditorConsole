@@ -30,6 +30,21 @@ public class AnalyticsSession
     [MaxLength(16)]
     public string? DeviceType { get; set; }
 
+    [MaxLength(120)]
+    public string? City { get; set; }
+
+    [MaxLength(24)]
+    public string? Language { get; set; }
+
+    [MaxLength(64)]
+    public string? Browser { get; set; }
+
+    [MaxLength(64)]
+    public string? Os { get; set; }
+
+    [MaxLength(32)]
+    public string? Channel { get; set; }
+
     [MaxLength(450)]
     public string? OwnerUserId { get; set; }
 

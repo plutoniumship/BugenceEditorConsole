@@ -1,270 +1,111 @@
-@page
+﻿@page
 @model BugenceEditConsole.Pages.Settings.GlobalSettingsModel
 @{
-    ViewData["Title"] = "GlobalSettings";
+    ViewData["Title"] = "Global Settings";
     ViewData["BodyClass"] = "page-settings-globalsettings";
-
-    var userName = (User?.Identity?.IsAuthenticated == true && !string.IsNullOrWhiteSpace(User.Identity?.Name))
-        ? User.Identity!.Name!
-        : "Administrator";
-    var userInitials = new string(userName
-        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-        .Where(part => !string.IsNullOrWhiteSpace(part))
-        .Select(part => char.ToUpperInvariant(part[0]))
-        .Take(2)
-        .ToArray());
-    if (string.IsNullOrWhiteSpace(userInitials))
-    {
-        userInitials = "AD";
-    }
-    var userEmail = User?.Claims?.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
-    if (string.IsNullOrWhiteSpace(userEmail))
-    {
-        userEmail = "Bugence";
-    }
+    var selectedProject = Model.SelectedProject;
 }
-
 @section Head {
 <style>
-        :root { --bg:#050505; --surface:#0a0a0a; --border:rgba(255,255,255,0.08); --text:#fff; --muted:#a1a1aa; --accent:#06b6d4; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --purple:#8b5cf6; }
-        * { box-sizing:border-box; outline:none; }
-        body { margin:0; background:var(--bg); color:var(--text); font-family:'Satoshi',sans-serif; display:flex; height:100vh; overflow:hidden; }
-        .shell { display:flex; width:100%; height:100%; }
-        aside { width:260px; flex-shrink:0; background:var(--bg); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; z-index:10; overflow-y:auto; }
-        main { flex-grow:1; padding:40px 60px; overflow-y:auto; background: radial-gradient(circle at 0% 0%, rgba(6,182,212,0.03), transparent 40%); position:relative; }
-        .brand { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:1.2rem; color:white; text-decoration:none; margin-bottom:40px; display:flex; gap:10px; align-items:center; }
-        .menu-cat { font-size:0.7rem; color:#555; font-weight:700; margin:15px 0 5px 10px; text-transform:uppercase; letter-spacing:1px; }
-        .nav-item { padding:10px 14px; color:var(--muted); text-decoration:none; display:flex; gap:12px; align-items:center; font-weight:600; border-radius:8px; margin-bottom:2px; transition:0.2s; font-size:0.9rem; }
-        .nav-item:hover { background:rgba(255,255,255,0.05); color:white; }
-        .nav-item.active { background:rgba(6,182,212,0.1); color:var(--accent); }
-        .profile-block { margin-top:auto; padding-top:20px; border-top:1px solid var(--border); position:relative; }
-        .profile-card { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; cursor:pointer; position:relative; }
-        .profile-card .avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#22d3ee); display:grid; place-items:center; font-weight:800; color:#00131a; }
-        .profile-menu { position:absolute; left:0; right:0; bottom:calc(100% + 8px); background:#0b0e14; border:1px solid var(--border); border-radius:12px; padding:8px 0; display:none; box-shadow:0 20px 40px rgba(0,0,0,0.45); }
-        .profile-card.show .profile-menu { display:block; }
-        .profile-menu a { display:block; padding:8px 12px; color:white; text-decoration:none; font-weight:600; }
-        .profile-menu a:hover { background:rgba(255,255,255,0.05); }
-        .header-row { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px; padding-bottom:20px; border-bottom:1px solid var(--border); }
-        .header h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:2.5rem; margin:0 0 5px; }
-        .header p { color:var(--muted); margin:0; }
-        .project-switcher { display:inline-flex; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:10px; cursor:pointer; transition:0.2s; position:relative; width:250px; }
-        .project-switcher:hover { border-color:var(--accent); }
-        .project-select { appearance:none; -webkit-appearance:none; background:transparent; border:none; color:white; font-family:inherit; font-weight:700; font-size:0.95rem; cursor:pointer; width:100%; padding:10px 40px 10px 16px; z-index:2; position:relative; }
-        .project-select option { background-color:#111; color:white; padding:12px; }
-        .select-arrow { position:absolute; right:16px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--muted); font-size:0.8rem; z-index:1; }
-        .settings-layout { display:grid; grid-template-columns:240px 1fr; gap:40px; }
-        .settings-menu { display:flex; flex-direction:column; gap:4px; position:sticky; top:0; }
-        .settings-link { padding:12px 15px; border-radius:8px; color:var(--muted); font-weight:600; cursor:pointer; transition:0.2s; font-size:0.9rem; display:flex; align-items:center; gap:12px; }
-        .settings-link:hover { color:white; background:rgba(255,255,255,0.03); }
-        .settings-link.active { color:var(--accent); background:rgba(6,182,212,0.1); }
-        .settings-link i { width:18px; text-align:center; }
-        .settings-content { animation: fadein 0.3s; }
-        @@keyframes fadein { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
-        .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:30px; margin-bottom:30px; }
-        .card-title { font-size:1.1rem; font-weight:700; margin:0 0 20px; border-bottom:1px solid var(--border); padding-bottom:15px; display:flex; justify-content:space-between; align-items:center; }
-        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
-        .form-group { margin-bottom:20px; }
-        .label { display:block; color:var(--muted); font-size:0.85rem; margin-bottom:8px; font-weight:600; }
-        .input { width:100%; background:#111; border:1px solid var(--border); padding:12px; border-radius:8px; color:white; font-family:inherit; transition:0.2s; }
-        .input:focus { border-color:var(--accent); }
-        textarea.input { resize:vertical; min-height:80px; }
-        .btn-save { background:var(--accent); color:black; border:none; padding:10px 24px; border-radius:8px; font-weight:700; cursor:pointer; transition:0.2s; float:right; }
-        .btn-save:hover { background:#0891b2; color:white; }
-        .btn-outline { background:transparent; border:1px solid var(--border); color:white; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; transition:0.2s; }
-        .btn-outline:hover { border-color:white; }
-        .payment-card { display:flex; align-items:center; justify-content:space-between; padding:15px; border:1px solid var(--border); border-radius:8px; margin-bottom:10px; background:rgba(255,255,255,0.02); }
-        .card-brand { font-size:1.5rem; margin-right:15px; width:40px; text-align:center; }
-        .card-dots { letter-spacing:2px; margin-right:10px; color:var(--muted); }
-        .token-item { display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1a1a1a; }
-        .token-item:last-child { border-bottom:none; }
-        .token-meta h4 { margin:0 0 4px; font-size:0.9rem; }
-        .token-meta p { margin:0; color:var(--muted); font-size:0.75rem; }
-        .token-val { font-family:monospace; background:#222; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:var(--accent); }
-        .log-table { width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:15px; }
-        .log-table th { text-align:left; color:var(--muted); padding:8px 0; border-bottom:1px solid var(--border); font-size:0.7rem; text-transform:uppercase; }
-        .log-table td { padding:10px 0; border-bottom:1px solid #1a1a1a; color:#ddd; }
-        .status-badge { padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.7rem; }
-        .st-200 { background:rgba(16,185,129,0.1); color:var(--success); }
-        .st-500 { background:rgba(239,68,68,0.1); color:var(--danger); }
-        .int-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
-        .int-card { padding:20px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; gap:15px; }
-        .int-header { display:flex; align-items:center; gap:12px; }
-        .int-icon { width:40px; height:40px; background:white; border-radius:8px; display:grid; place-items:center; font-size:1.2rem; color:black; }
-        .switch { position:relative; display:inline-block; width:40px; height:22px; }
-        .switch input { opacity:0; width:0; height:0; }
-        .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#333; transition:.4s; border-radius:24px; }
-        .slider:before { position:absolute; content:""; height:16px; width:16px; left:3px; bottom:3px; background-color:white; transition:.4s; border-radius:50%; }
-        input:checked + .slider { background-color:var(--accent); }
-        input:checked + .slider:before { transform:translateX(18px); }
-        .hidden { display:none; }
-        .audit-filter { display:flex; gap:10px; margin-bottom:20px; }
-        .filter-select { background:#111; color:white; border:1px solid var(--border); padding:8px 12px; border-radius:6px; font-size:0.85rem; }
-    </style>
+:root{--bg:#020202;--panel:#080808;--panel-2:#0d0d0d;--panel-3:#111111;--line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.14);--text:#f3f4f6;--muted:#9ca3af;--muted-2:#6b7280;--accent:#f4f4f5;--accent-soft:rgba(255,255,255,.06);--success:#34d399;--warning:#fbbf24;--danger:#f87171}
+.page-settings-globalsettings{background:#020202;color:var(--text)}
+.gs-shell{color:var(--text);padding:28px 0 48px}
+.gs-hero,.gs-card,.gs-panel-hero,.gs-tab,.gs-item,.gs-int,.gs-stat,.gs-control,.gs-copy{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));box-shadow:none}
+.gs-hero{display:flex;justify-content:space-between;gap:24px;padding:28px;border-radius:24px;background:linear-gradient(180deg,#0d0d0d,#070707)}
+.gs-kicker,.gs-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:999px;font-size:.76rem;font-weight:700}
+.gs-kicker{border:1px solid var(--line-strong);background:var(--accent-soft);color:#e5e7eb;text-transform:uppercase;letter-spacing:.14em}
+.gs-hero h1,.gs-panel-hero h2,.gs-card h3{font-family:'Cabinet Grotesk','Satoshi',sans-serif;letter-spacing:-.035em}
+.gs-hero h1{margin:14px 0 10px;font-size:3rem;line-height:1}
+.gs-hero p,.gs-panel-hero p,.gs-soft{margin:0;color:var(--muted);line-height:1.6}
+.gs-side{min-width:320px;display:grid;gap:12px}
+.gs-control,.gs-copy{padding:16px 18px;border-radius:18px}
+.gs-label{display:block;margin-bottom:10px;color:var(--muted-2);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.14em}
+.gs-select,.gs-code,.gs-btn,.gs-filter{border:1px solid var(--line-strong);border-radius:12px;background:#050505;color:var(--text);font:inherit}
+.gs-select{width:100%;padding:14px 16px}
+.gs-copyrow,.gs-actions,.gs-pills,.gs-meta,.gs-filters{display:flex;gap:10px;flex-wrap:wrap}
+.gs-code{flex:1;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e5e7eb}
+.gs-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;font-weight:700;text-decoration:none;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease}
+.gs-btn:hover,.gs-filter:hover,.gs-tab:hover{border-color:rgba(255,255,255,.22)}
+.gs-btn.primary{background:#f5f5f5;color:#090909;border-color:#f5f5f5}
+.gs-btn.secondary{background:#090909;color:var(--text)}
+.gs-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:18px 0 22px}
+.gs-stat{padding:18px;border-radius:20px}
+.gs-stat .v{margin:8px 0 4px;font-size:1.9rem;font-weight:800;letter-spacing:-.035em;color:#fff}
+.t-cyan,.t-gold,.t-blue,.t-violet,.t-green{color:#fff}
+.gs-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px}
+.gs-tabs{position:sticky;top:18px;display:grid;gap:10px;align-self:start}
+.gs-tab{padding:16px 18px;border-radius:18px;color:var(--muted);text-align:left;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease}
+.gs-tab strong{display:flex;align-items:center;gap:10px;color:#e5e7eb;margin-bottom:6px}
+.gs-tab span{font-size:.84rem;line-height:1.45}
+.gs-tab.active{background:linear-gradient(180deg,#141414,#0d0d0d);border-color:rgba(255,255,255,.18);color:#fff;box-shadow:inset 3px 0 0 #f5f5f5}
+.gs-panel{display:none;gap:16px}
+.gs-panel.active{display:grid}
+.gs-panel-hero,.gs-card{padding:22px;border-radius:22px}
+.gs-panel-hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;background:linear-gradient(180deg,#101010,#080808)}
+.gs-grid2,.gs-grid3,.gs-intgrid{display:grid;gap:16px}
+.gs-grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.gs-grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.gs-intgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.gs-meta .box{flex:1 1 180px;padding:16px;border:1px solid var(--line);border-radius:16px;background:#0b0b0b}
+.gs-meta .box b{display:block;font-size:1rem;line-height:1.35}
+.gs-meta .box small,.gs-mini{color:var(--muted)}
+.gs-list{display:grid;gap:12px;margin-top:16px}
+.gs-item{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding:16px 18px;border-radius:18px;background:#0a0a0a}
+.gs-item main{flex:1;min-width:0}
+.gs-item strong{display:block;margin-bottom:4px}
+.gs-badge{border:1px solid var(--line-strong);background:#0d0d0d;color:#e5e7eb}
+.gs-badge.good{color:#d1fae5;border-color:rgba(52,211,153,.24);background:rgba(52,211,153,.08)}
+.gs-badge.warn{color:#fef3c7;border-color:rgba(251,191,36,.24);background:rgba(251,191,36,.08)}
+.gs-badge.bad{color:#fee2e2;border-color:rgba(248,113,113,.24);background:rgba(248,113,113,.08)}
+.gs-progress{height:10px;border-radius:999px;background:#050505;overflow:hidden;border:1px solid var(--line)}
+.gs-progress>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#737373,#f5f5f5)}
+.gs-int{padding:18px;border-radius:20px;display:grid;gap:14px;background:#0a0a0a}
+.gs-inthead{display:flex;justify-content:space-between;gap:14px}
+.gs-inttitle{display:flex;gap:14px;align-items:center}
+.gs-inticon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:1.1rem;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.gs-filter{padding:10px 14px;font-size:.82rem;font-weight:700;color:var(--muted);cursor:pointer}
+.gs-filter.active{color:#fff;border-color:rgba(255,255,255,.2);background:#111111}
+.gs-empty{padding:10px 0;color:var(--muted)}
+.sev-success{color:#d1fae5}
+.sev-warning{color:#fef3c7}
+.sev-accent{color:#e5e7eb}
+.sev-neutral{color:#dbe4ef}
+@@media(max-width:1400px){.gs-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.gs-grid3,.gs-intgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@@media(max-width:1100px){.gs-hero,.gs-layout,.gs-panel-hero{display:grid;grid-template-columns:1fr}.gs-summary,.gs-grid2,.gs-grid3,.gs-intgrid{grid-template-columns:1fr}.gs-tabs{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}.gs-side{min-width:0}}
+</style>
 }
-
-<div class="header-row">
-                <div class="header">
-                    <h1>Global Settings</h1>
-                    <p>Workspace configuration for <span id="headerProjectName" style="color:white; font-weight:700;">High-Tech Heroes</span></p>
-                </div>
-                <div class="project-switcher">
-                    <select id="projectSelect" class="project-select">
-                        <option value="High-Tech Heroes">High-Tech Heroes</option>
-                        <option value="Bugence Static">Bugence Static</option>
-                        <option value="SaaS Dashboard">SaaS Dashboard</option>
-                    </select>
-                    <i class="fa-solid fa-chevron-down select-arrow"></i>
-                </div>
-            </div>
-            <div class="settings-layout">
-                <div class="settings-menu">
-                    <div class="settings-link active" onclick="showTab('general', this)"><i class="fa-solid fa-sliders"></i> General</div>
-                    <div class="settings-link" onclick="showTab('billing', this)"><i class="fa-solid fa-credit-card"></i> Billing & Plans</div>
-                    <div class="settings-link" onclick="showTab('api', this)"><i class="fa-solid fa-key"></i> API Access</div>
-                    <div class="settings-link" onclick="showTab('webhooks', this)"><i class="fa-solid fa-bolt"></i> Webhooks</div>
-                    <div class="settings-link" onclick="showTab('notifications', this)"><i class="fa-regular fa-bell"></i> Notifications</div>
-                    <div class="settings-link" onclick="showTab('security', this)"><i class="fa-solid fa-shield-halved"></i> Security & SSO</div>
-                    <div class="settings-link" onclick="showTab('integrations', this)"><i class="fa-brands fa-hubspot"></i> Integrations</div>
-                    <div class="settings-link" onclick="showTab('audit', this)"><i class="fa-solid fa-clock-rotate-left"></i> Audit Logs</div>
-                </div>
-                <div class="settings-content-wrapper">
-                    <div id="tab-general" class="settings-content">
-                        <div class="card">
-                            <div class="card-title">Workspace Identity</div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="label">Display Name</label>
-                                    <input type="text" class="input" id="inpName" value="High-Tech Heroes">
-                                </div>
-                                <div class="form-group">
-                                    <label class="label">Slug URL</label>
-                                    <input type="text" class="input" id="inpSlug" value="hightech-heroes" readonly>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="label">Timezone</label>
-                                    <select class="input" style="appearance:none;"><option>UTC (Coordinated Universal Time)</option><option>EST (Eastern Standard Time)</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="label">Primary Language</label>
-                                    <select class="input" style="appearance:none;"><option>English (US)</option><option>French</option></select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="label">Workspace ID (Unique Identifier)</label>
-                                <div style="display:flex; gap:10px;">
-                                    <input type="text" class="input" value="ws_8273641928" readonly style="font-family:monospace; color:var(--muted);">
-                                    <button class="btn-outline">Copy</button>
-                                </div>
-                            </div>
-                            <div style="border-top:1px solid var(--border); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <div style="font-weight:700;">Data Export</div>
-                                    <div style="font-size:0.8rem; color:var(--muted);">Download all project data (GDPR).</div>
-                                </div>
-                                <button class="btn-outline">Start Export</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="tab-billing" class="settings-content hidden">
-                        <div class="card">
-                            <div class="card-title"><span>Current Month Estimate</span><span style="font-size:1.2rem; font-weight:800; color:var(--success);">$29.00</span></div>
-                            <p style="color:var(--muted); font-size:0.9rem;">Your next invoice will be issued on Jan 1, 2026.</p>
-                            <div style="height:10px; background:#333; border-radius:5px; margin-top:15px; overflow:hidden;"><div style="width:45%; height:100%; background:var(--accent);"></div></div>
-                            <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:0.8rem; color:var(--muted);"><span>45% of included usage</span><span>100 GB Limit</span></div>
-                        </div>
-                        <div class="card">
-                            <div class="card-title">Payment Methods <button class="btn-outline" style="font-size:0.7rem;">+ Add New</button></div>
-                            <div class="payment-card">
-                                <div style="display:flex; align-items:center;">
-                                    <div class="card-brand"><i class="fa-brands fa-cc-visa" style="color:white;"></i></div>
-                                    <div><div style="font-weight:700;">Visa ending in 4242</div><div style="font-size:0.8rem; color:var(--muted);">Expires 12/28 � Default</div></div>
-                                </div>
-                                <button class="btn-outline" style="border:none; color:var(--muted);"><i class="fa-solid fa-ellipsis"></i></button>
-                            </div>
-                            <div class="payment-card">
-                                <div style="display:flex; align-items:center;">
-                                    <div class="card-brand"><i class="fa-brands fa-cc-mastercard" style="color:#eb001b;"></i></div>
-                                    <div><div style="font-weight:700;">Mastercard ending in 8899</div><div style="font-size:0.8rem; color:var(--muted);">Expires 09/26</div></div>
-                                </div>
-                                <button class="btn-outline" style="border:none; color:var(--muted);"><i class="fa-solid fa-ellipsis"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="tab-api" class="settings-content hidden">
-                        <div class="card">
-                            <div class="card-title">Access Tokens <button class="btn-save" style="width:auto; padding:8px 16px; font-size:0.8rem;">Generate New Token</button></div>
-                            <div class="token-item">
-                                <div class="token-meta"><h4>CI/CD Pipeline</h4><p>Last used 2 hours ago � <span class="token-val">Read/Write</span></p></div>
-                                <div style="display:flex; gap:10px;"><span class="token-val">bug_ci_...a9z</span><button class="btn-outline" style="border:none; color:var(--danger);">Revoke</button></div>
-                            </div>
-                            <div class="token-item">
-                                <div class="token-meta"><h4>Developer Local (John)</h4><p>Last used 5 mins ago � <span class="token-val">Full Access</span></p></div>
-                                <div style="display:flex; gap:10px;"><span class="token-val">bug_dev_...1b2</span><button class="btn-outline" style="border:none; color:var(--danger);">Revoke</button></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="tab-webhooks" class="settings-content hidden">
-                        <div class="card">
-                            <div class="card-title">Active Webhooks <button class="btn-outline">Add Endpoint</button></div>
-                            <div class="webhook-item">
-                                <div><div style="font-weight:700; margin-bottom:4px;">Slack Notifications</div><div class="webhook-url">https://hooks.slack.com/services/T000...</div></div>
-                                <div style="text-align:right;"><span class="status-badge st-200">Active</span></div>
-                            </div>
-                            <h4 style="margin:20px 0 10px; color:var(--muted); font-size:0.8rem; text-transform:uppercase;">Recent Deliveries</h4>
-                            <table class="log-table"><thead><tr><th>Status</th><th>Event</th><th>Time</th><th>Duration</th></tr></thead><tbody>
-                                <tr><td><span class="status-badge st-200">200 OK</span></td><td>deployment.success</td><td>2m ago</td><td>120ms</td></tr>
-                                <tr><td><span class="status-badge st-500">500 ERR</span></td><td>build.failed</td><td>1h ago</td><td>500ms</td></tr>
-                                <tr><td><span class="status-badge st-200">200 OK</span></td><td>deployment.queued</td><td>1h 5m ago</td><td>90ms</td></tr>
-                            </tbody></table>
-                        </div>
-                    </div>
-                    <div id="tab-notifications" class="settings-content hidden">
-                        <div class="card">
-                            <div class="card-title">Notification Preferences</div>
-                            <div class="form-row">
-                                <div class="form-group"><label class="label">Deployment Emails</label><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-                                <div class="form-group"><label class="label">Incident Alerts</label><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-                            </div>
-                            <div class="form-group"><label class="label">Slack Channel</label><input type="text" class="input" placeholder="#deployments"></div>
-                        </div>
-                    </div>
-                    <div id="tab-security" class="settings-content hidden">
-                        <div class="card">
-                            <div class="card-title">Authentication Config</div>
-                            <div style="margin-bottom:20px;">
-                                <label class="label">SAML SSO Configuration</label>
-                                <div class="form-row"><input type="text" class="input" placeholder="Entry Point URL (e.g. Okta)"><input type="text" class="input" placeholder="Issuer ID"></div>
-                                <textarea class="input" placeholder="X.509 Certificate"></textarea>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:20px;">
-                                <div><div style="font-weight:700;">Password Policy</div><div style="font-size:0.8rem; color:var(--muted);">Require symbols, numbers, and 12+ chars.</div></div>
-                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="tab-integrations" class="settings-content hidden">
-                        <div class="int-grid">
-                            <div class="int-card"><div class="int-header"><div class="int-icon"><i class="fa-brands fa-github"></i></div><div style="font-weight:700;">GitHub</div></div><div style="font-size:0.85rem; color:var(--muted);">Auto-deploy branches and PR previews.</div><button class="btn-outline" style="width:100%; border-color:var(--success); color:var(--success);">Connected</button></div>
-                            <div class="int-card"><div class="int-header"><div class="int-icon" style="color:#4A154B"><i class="fa-brands fa-slack"></i></div><div style="font-weight:700;">Slack</div></div><div style="font-size:0.85rem; color:var(--muted);">Deployment notifications channel.</div><button class="btn-outline" style="width:100%;">Connect</button></div>
-                            <div class="int-card"><div class="int-header"><div class="int-icon" style="color:black"><i class="fa-solid fa-triangle-exclamation"></i></div><div style="font-weight:700;">Vercel</div></div><div style="font-size:0.85rem; color:var(--muted);">Sync deployments to edge.</div><button class="btn-outline" style="width:100%;">Connect</button></div>
-                            <div class="int-card"><div class="int-header"><div class="int-icon" style="color:#362D59"><i class="fa-solid fa-bug"></i></div><div style="font-weight:700;">Sentry</div></div><div style="font-size:0.85rem; color:var(--muted);">Error tracking and performance.</div><button class="btn-outline" style="width:100%;">Connect</button></div>
-                        </div>
-                    </div>
-                    <div id="tab-audit" class="settings-content hidden">
-                        <div class="card">
-                            <div class="card-title"><span>Activity Log</span><button class="btn-outline"><i class="fa-solid fa-download"></i> Export CSV</button></div>
-                            <div class="audit-filter"><select class="filter-select"><option>All Users</option><option>Administrator</option></select><select class="filter-select"><option>All Events</option><option>Login</option><option>Deployment</option></select><input type="date" class="filter-select"></div>
-                            <table class="log-table" style="margin:0;"><thead><tr><th>Actor</th><th>Action</th><th>Target</th><th>Date</th></tr></thead><tbody>
-                                <tr><td><div style="display:flex; gap:8px; align-items:center;"><div style="width:20px; height:20px; background:#444; border-radius:50%;"></div> Administrator</div></td><td>Settings Update</td><td>Billing</td><td>10 mins ago</td></tr>
-                                <tr><td><div style="display:flex; gap:8px; align-items:center;"><div style="width:20px; height:20px; background:var(--accent); border-radius:50%;"></div> Sarah Des</div></td><td>API Key Created</td><td>CI/CD Token</td><td>2 hours ago</td></tr>
-                            </tbody></table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-
-
+<div class="gs-shell">
+<section class="gs-hero"><div><div class="gs-kicker"><i class="fa-solid fa-wave-square"></i> Workspace command center</div><h1>Global Settings</h1><p>Each tab now uses actual workspace data for <strong>@Model.Workspace.Name</strong> and is structured to expand into deeper controls later.</p></div><div class="gs-side"><form method="get" class="gs-control" id="gsProjectForm"><label class="gs-label" for="projectSelect">Project context</label><select class="gs-select" name="projectId" id="projectSelect"><option value="">Latest activity</option>@foreach (var project in Model.Projects){if (selectedProject?.Id == project.Id){<option value="@project.Id" selected>@project.Name</option>} else {<option value="@project.Id">@project.Name</option>}}</select></form><div class="gs-copy"><label class="gs-label">Workspace key</label><div class="gs-copyrow"><div class="gs-code" id="workspaceKey">@Model.Workspace.WorkspaceKey</div><button class="gs-btn secondary" type="button" data-copy="#workspaceKey">Copy</button></div></div></div></section>
+<section class="gs-summary"><article class="gs-stat"><div class="gs-label">Projects</div><div class="v t-cyan">@Model.Workspace.ProjectCount</div><div class="gs-mini">@Model.Workspace.PublishedProjectCount published</div></article><article class="gs-stat"><div class="gs-label">Team</div><div class="v t-gold">@Model.Workspace.TeamCount</div><div class="gs-mini">@Model.Workspace.PendingInviteCount pending invites</div></article><article class="gs-stat"><div class="gs-label">Domains</div><div class="v t-blue">@Model.Workspace.DomainCount</div><div class="gs-mini">Delivery surfaces</div></article><article class="gs-stat"><div class="gs-label">Traffic 7D</div><div class="v t-violet">@Model.Workspace.PageViews7d</div><div class="gs-mini">@Model.Workspace.Events7d tracked events</div></article><article class="gs-stat"><div class="gs-label">Storage</div><div class="v t-green">@Model.Workspace.StorageUsedLabel</div><div class="gs-mini">@Model.Workspace.ConnectedProviderCount integrations</div></article></section>
+<section class="gs-layout"><aside class="gs-tabs">
+<button class="gs-tab active" type="button" data-tab="general"><strong><i class="fa-solid fa-compass"></i> General</strong><span>Identity, scope, and workspace footprint.</span></button>
+<button class="gs-tab" type="button" data-tab="billing"><strong><i class="fa-solid fa-credit-card"></i> Billing & Plans</strong><span>Plan status, storage, and payment posture.</span></button>
+<button class="gs-tab" type="button" data-tab="api"><strong><i class="fa-solid fa-key"></i> API Access</strong><span>Live access surface and future token layer.</span></button>
+<button class="gs-tab" type="button" data-tab="webhooks"><strong><i class="fa-solid fa-bolt"></i> Webhooks</strong><span>Triggers, deliveries, and automation reliability.</span></button>
+<button class="gs-tab" type="button" data-tab="notifications"><strong><i class="fa-regular fa-bell"></i> Notifications</strong><span>Inbox state and recent alerts.</span></button>
+<button class="gs-tab" type="button" data-tab="security"><strong><i class="fa-solid fa-shield-halved"></i> Security & SSO</strong><span>Auth posture and access readiness.</span></button>
+<button class="gs-tab" type="button" data-tab="integrations"><strong><i class="fa-solid fa-plug-circle-bolt"></i> Integrations</strong><span>Connected providers and planned slots.</span></button>
+<button class="gs-tab" type="button" data-tab="audit"><strong><i class="fa-solid fa-clock-rotate-left"></i> Audit Logs</strong><span>Unified activity stream.</span></button>
+</aside><div class="gs-panels">
+<section class="gs-panel active" data-panel="general"><div class="gs-panel-hero"><div><h2>Workspace identity and operating context</h2><p>Real workspace metadata, management scope, and project signals in one place.</p></div><div class="gs-pills"><span class="gs-badge @(Model.Workspace.CanManageWorkspace ? "good" : "warn")">@Model.Workspace.ScopeLabel</span><span class="gs-badge">Owner: @Model.Workspace.OwnerName</span></div></div><div class="gs-grid2"><article class="gs-card"><h3>Workspace profile</h3><div class="gs-meta"><div class="box"><small class="gs-label">Workspace</small><b>@Model.Workspace.Name</b><small>@Model.Workspace.Subtitle</small></div><div class="box"><small class="gs-label">Owner email</small><b>@Model.Workspace.OwnerEmail</b><small>Primary account authority</small></div><div class="box"><small class="gs-label">Location</small><b>@Model.Workspace.Location</b><small>Company profile footprint</small></div><div class="box"><small class="gs-label">Scope</small><b>@Model.Workspace.ScopeLabel</b><small>Workspace visibility model</small></div></div></article><article class="gs-card"><h3>Selected project spotlight</h3>@if (selectedProject is null){<p class="gs-empty">No uploaded project exists yet for this workspace.</p>} else {<div class="gs-pills" style="margin-bottom:14px;"><span class="gs-badge good">@selectedProject.EnvironmentLabel</span><span class="gs-badge">@selectedProject.Status</span><span class="gs-badge">@selectedProject.SizeLabel</span></div><div class="gs-meta"><div class="box"><small class="gs-label">Project</small><b>@selectedProject.Name</b><small>/@selectedProject.Slug</small></div><div class="box"><small class="gs-label">Files</small><b>@selectedProject.FileCount</b><small>Tracked uploaded files</small></div><div class="box"><small class="gs-label">Domains</small><b>@selectedProject.DomainCount</b><small>Attached domain entries</small></div><div class="box"><small class="gs-label">Preflight</small><b>@(selectedProject.PreflightScore?.ToString() ?? "No run")</b><small>@(selectedProject.PreflightSafe == true ? "Safe" : selectedProject.PreflightSafe == false ? "Needs review" : "No recent signal")</small></div></div><p class="gs-soft" style="margin-top:14px;">@selectedProject.ActivityLabel</p>}</article></div><article class="gs-card"><h3>Workspace projects</h3><p class="gs-soft">Current uploaded project records with their real delivery signals.</p><div class="gs-list">@if (Model.Projects.Count == 0){<p class="gs-empty">No projects found for this workspace.</p>} else {@foreach (var project in Model.Projects.Take(6)){<article class="gs-item"><main><strong>@project.Name</strong><div class="gs-mini">/@project.Slug • @project.ActivityLabel</div></main><div class="gs-pills"><span class="gs-badge">@project.EnvironmentLabel</span><span class="gs-badge">@project.FileCount files</span><span class="gs-badge">@project.DomainCount domains</span></div></article>}}</div></article></section>
+<section class="gs-panel" data-panel="billing"><div class="gs-panel-hero"><div><h2>Billing, plan posture, and storage</h2><p>Built from the actual subscription record and saved payment methods on the workspace owner account.</p></div><div class="gs-actions"><a class="gs-btn primary" href="/Settings/Billing">Open billing</a></div></div><div class="gs-grid2"><article class="gs-card"><h3>@Model.Billing.PlanName plan</h3><div class="gs-pills" style="margin-bottom:14px;"><span class="gs-badge good">@Model.Billing.Status</span><span class="gs-badge">@Model.Billing.IntervalLabel</span><span class="gs-badge">@Model.Billing.Provider</span></div><div class="gs-meta"><div class="box"><small class="gs-label">Estimated charge</small><b>@Model.Billing.EstimatedChargeLabel</b><small>Plan pricing posture</small></div><div class="box"><small class="gs-label">Renewal</small><b>@Model.Billing.RenewalLabel</b><small>Next billing checkpoint</small></div></div><div style="margin-top:18px;" class="gs-label">Storage usage</div><div class="gs-progress"><span style="width:@Model.Billing.UsagePercent%;"></span></div><div class="gs-pills" style="margin-top:12px;"><span class="gs-badge">@Model.Billing.StorageUsedLabel used</span><span class="gs-badge">@Model.Billing.StorageLimitLabel included</span></div></article><article class="gs-card"><h3>Payment methods</h3><div class="gs-list">@if (Model.Billing.PaymentMethods.Count == 0){<p class="gs-empty">No payment method is stored yet.</p>} else {@foreach (var method in Model.Billing.PaymentMethods){<article class="gs-item"><main><strong>@method.Brand ending in @method.Last4</strong><div class="gs-mini">Expires @method.Expiry • Added @method.AddedAtLabel</div></main><div class="gs-pills">@if (method.IsDefault){<span class="gs-badge good">Default</span>}<span class="gs-badge">@method.Provider</span></div></article>}}</div></article></div><article class="gs-card"><h3>Billing alerts</h3><div class="gs-list">@if (Model.Billing.Alerts.Count == 0){<p class="gs-empty">No billing alerts are active right now.</p>} else {@foreach (var alert in Model.Billing.Alerts){<div class="gs-badge warn">@alert</div>}}</div></article></section>
+<section class="gs-panel" data-panel="api"><div class="gs-panel-hero"><div><h2>API access surface and token-ready foundation</h2><p>Live workspace origin, automation surface, telemetry counts, and an explicit future token registry placeholder.</p></div><div class="gs-actions"><button class="gs-btn secondary" type="button" data-copy-value="@Model.ApiAccess.BaseOrigin">Copy origin</button></div></div><div class="gs-grid3"><article class="gs-card"><h3>@Model.ApiAccess.PageViews7d</h3><p class="gs-soft">Page views in the last 7 days.</p></article><article class="gs-card"><h3>@Model.ApiAccess.Events7d</h3><p class="gs-soft">Tracked events in the same window.</p></article><article class="gs-card"><h3>@Model.ApiAccess.WorkflowCount</h3><p class="gs-soft">Workflow automations with @Model.ApiAccess.TriggerCount configured triggers.</p></article></div><article class="gs-card"><h3>Access surfaces</h3><div class="gs-list">@foreach (var surface in Model.ApiAccess.Surfaces){<article class="gs-item"><main><strong>@surface.Name</strong><div class="gs-mini">@surface.Summary</div></main><div class="gs-pills"><span class="gs-badge">@surface.Value</span><span class="gs-badge good">@surface.Status</span></div></article>}</div></article></section>
+<section class="gs-panel" data-panel="webhooks"><div class="gs-panel-hero"><div><h2>Webhook and automation delivery</h2><p>Real trigger configuration rows and recent event log outcomes now feed this tab instead of hardcoded deliveries.</p></div><div class="gs-pills"><span class="gs-badge">@Model.Webhooks.ConfiguredSourceCount sources</span><span class="gs-badge @(Model.Webhooks.SuccessRate >= 80 ? "good" : "warn")">@Model.Webhooks.SuccessRate% success</span></div></div><div class="gs-grid2"><article class="gs-card"><h3>Configured sources</h3><div class="gs-list">@if (Model.Webhooks.Sources.Count == 0){<p class="gs-empty">No trigger sources are configured yet.</p>} else {@foreach (var source in Model.Webhooks.Sources){<article class="gs-item"><main><strong>@source.WorkflowName</strong><div class="gs-mini">@source.TriggerType • @source.EventName • @source.UpdatedAtLabel</div></main><span class="gs-badge">@source.Mode</span></article>}}</div></article><article class="gs-card"><h3>Recent deliveries</h3><div class="gs-list">@if (Model.Webhooks.Deliveries.Count == 0){<p class="gs-empty">No delivery logs have been recorded yet.</p>} else {@foreach (var delivery in Model.Webhooks.Deliveries){var deliveryClass = string.Equals(delivery.Outcome, "processed", StringComparison.OrdinalIgnoreCase) ? "good" : "warn";<article class="gs-item"><main><strong>@delivery.WorkflowName</strong><div class="gs-mini">@delivery.Provider • @delivery.Mode • @delivery.ProcessedAtLabel</div></main><span class="gs-badge @deliveryClass">@delivery.Outcome</span></article>}}</div></article></div></section>
+<section class="gs-panel" data-panel="notifications"><div class="gs-panel-hero"><div><h2>Notification center posture</h2><p>The counts and recent items below are pulled from the real notification inbox for the signed-in user.</p></div><div class="gs-actions"><a class="gs-btn secondary" href="/Support/Notifications">Open inbox</a></div></div><div class="gs-pills"><span class="gs-badge good">@Model.Notifications.UnreadCount unread</span><span class="gs-badge">@Model.Notifications.TotalCount total</span><span class="gs-badge">@Model.Notifications.InfoCount info</span><span class="gs-badge">@Model.Notifications.SuccessCount success</span><span class="gs-badge">@Model.Notifications.WarningCount warning</span><span class="gs-badge bad">@Model.Notifications.ErrorCount error</span></div><article class="gs-card"><h3>Recent notifications</h3><div class="gs-list">@if (Model.Notifications.Recent.Count == 0){<p class="gs-empty">No notifications are available for this user yet.</p>} else {@foreach (var item in Model.Notifications.Recent){var typeClass = (item.Type ?? string.Empty).ToLowerInvariant() switch { "success" => "good", "warning" => "warn", "error" => "bad", _ => string.Empty };<article class="gs-item"><main><strong>@item.Title</strong><div class="gs-mini">@item.Message</div></main><div class="gs-pills"><span class="gs-badge @typeClass">@item.Type</span><span class="gs-badge">@item.TimeLabel</span>@if (!item.IsRead){<span class="gs-badge good">Unread</span>}</div></article>}}</div></article></section>
+<section class="gs-panel" data-panel="security"><div class="gs-panel-hero"><div><h2>Security, recovery, and SSO foundation</h2><p>This tab is now driven by the actual identity state of the workspace owner instead of static toggles.</p></div><div class="gs-actions"><a class="gs-btn secondary" href="/Settings/ResetPassword">Reset password</a><a class="gs-btn secondary" href="/Settings/Teams">Manage team</a></div></div><div class="gs-grid3"><article class="gs-card"><h3>@(Model.Security.EmailConfirmed ? "Verified" : "Unverified")</h3><p class="gs-soft">Recovery email status for the workspace owner account.</p></article><article class="gs-card"><h3>@(Model.Security.TwoFactorEnabled ? "Enabled" : "Disabled")</h3><p class="gs-soft">Two-factor authentication state.</p></article><article class="gs-card"><h3>@Model.Security.ExternalLoginCount</h3><p class="gs-soft">External login providers attached to the owner account.</p></article></div><div class="gs-grid2"><article class="gs-card"><h3>Workspace access posture</h3><div class="gs-meta"><div class="box"><small class="gs-label">Admins</small><b>@Model.Security.AdminCount</b><small>Can manage workspace scope</small></div><div class="box"><small class="gs-label">Active members</small><b>@Model.Security.ActiveMemberCount</b><small>Current team footprint</small></div><div class="box"><small class="gs-label">Pending invites</small><b>@Model.Security.PendingInviteCount</b><small>Access not yet accepted</small></div><div class="box"><small class="gs-label">SSO</small><b>@Model.Security.SsoStatus</b><small>Enterprise identity expansion point</small></div></div></article><article class="gs-card"><h3>Recovery activity</h3><div class="gs-meta"><div class="box"><small class="gs-label">Password resets (30D)</small><b>@Model.Security.PasswordResetRequests30d</b><small>Recent recovery attempts</small></div><div class="box"><small class="gs-label">OTP requests (7D)</small><b>@Model.Security.OtpRequests7d</b><small>Recent email code generation</small></div><div class="box"><small class="gs-label">Phone</small><b>@(Model.Security.PhoneConfigured ? "Configured" : "Not configured")</b><small>Secondary identity channel</small></div><div class="box"><small class="gs-label">Recovery note</small><b>@Model.Security.RecoveryStatus</b><small>Current account readiness</small></div></div></article></div></section>
+<section class="gs-panel" data-panel="integrations"><div class="gs-panel-hero"><div><h2>External providers and expansion slots</h2><p>Connected providers are live. Planned slots remain visible so this tab can scale without redesigning its base structure later.</p></div><div class="gs-pills"><span class="gs-badge good">@Model.Integrations.ConnectedCount connected</span><span class="gs-badge">@Model.Integrations.Cards.Count total cards</span></div></div><div class="gs-intgrid">@foreach (var card in Model.Integrations.Cards){<article class="gs-int"><div class="gs-inthead"><div class="gs-inttitle"><div class="gs-inticon" style="background:@card.Accent;"><i class="@card.IconClass"></i></div><div><strong>@card.Name</strong><div class="gs-mini">@card.Summary</div></div></div><span class="gs-badge @(card.IsConnected ? "good" : "warn")">@card.Status</span></div><p class="gs-soft">@card.StatusMeta</p><a class="gs-btn secondary" href="@card.ActionUrl">@card.ActionLabel</a></article>}</div></section>
+<section class="gs-panel" data-panel="audit"><div class="gs-panel-hero"><div><h2>Unified activity log</h2><p>This stream consolidates Dynamic VE entries, workflow runs, invites, project events, and notifications into one expandable audit foundation.</p></div><div class="gs-pills"><span class="gs-badge">@Model.Audit.TotalCount records</span><span class="gs-badge">@Model.Audit.DynamicVeCount dynamic VE</span><span class="gs-badge">@Model.Audit.WorkflowCount workflow</span></div></div><div class="gs-filters"><button class="gs-filter active" type="button" data-audit-filter="all">All</button><button class="gs-filter" type="button" data-audit-filter="dynamicve">Dynamic VE</button><button class="gs-filter" type="button" data-audit-filter="workflow">Workflow</button><button class="gs-filter" type="button" data-audit-filter="team">Team</button><button class="gs-filter" type="button" data-audit-filter="project">Project</button><button class="gs-filter" type="button" data-audit-filter="notification">Notification</button></div><article class="gs-card"><h3>Recent audit stream</h3><div class="gs-list">@if (Model.Audit.Items.Count == 0){<p class="gs-empty">No audit items are available yet.</p>} else {@foreach (var item in Model.Audit.Items){var severityClass = item.Severity switch { "success" => "sev-success", "warning" => "sev-warning", "accent" => "sev-accent", _ => "sev-neutral" };<article class="gs-item" data-audit-item="@item.Category"><main><strong class="@severityClass">@item.Title</strong><div class="gs-mini">@item.Target • @item.Meta</div></main><div class="gs-pills"><span class="gs-badge">@item.Category</span><span class="gs-badge">@item.TimeUtc.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span></div></article>}}</div></article></section>
+</div></section></div>
+<script>
+(() => {
+ const tabs=[...document.querySelectorAll('[data-tab]')],panels=[...document.querySelectorAll('[data-panel]')];
+ const activate=(tab)=>{const t=tab||'general';tabs.forEach(b=>b.classList.toggle('active',b.dataset.tab===t));panels.forEach(p=>p.classList.toggle('active',p.dataset.panel===t));if(location.hash!==`#${t}`)history.replaceState(null,'',`#${t}`)};
+ tabs.forEach(b=>b.addEventListener('click',()=>activate(b.dataset.tab)));activate((location.hash||'#general').replace('#',''));
+ document.getElementById('projectSelect')?.addEventListener('change',()=>document.getElementById('gsProjectForm')?.submit());
+ const copy=async(v)=>{try{await navigator.clipboard.writeText(v);window.showToast&&window.showToast('Copied to clipboard.','success')}catch{window.showToast&&window.showToast('Unable to copy value.','warning')}};
+ document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{const target=document.querySelector(b.getAttribute('data-copy')); if(target) copy(target.textContent||'');}));
+ document.querySelectorAll('[data-copy-value]').forEach(b=>b.addEventListener('click',()=>copy(b.getAttribute('data-copy-value')||'')));
+ const filters=[...document.querySelectorAll('[data-audit-filter]')],items=[...document.querySelectorAll('[data-audit-item]')];
+ filters.forEach(b=>b.addEventListener('click',()=>{const f=b.getAttribute('data-audit-filter')||'all';filters.forEach(x=>x.classList.toggle('active',x===b));items.forEach(row=>row.style.display=f==='all'||row.getAttribute('data-audit-item')===f?'':'none');}));
+})();
+</script>

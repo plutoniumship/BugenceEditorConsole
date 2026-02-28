@@ -42,6 +42,13 @@
     .list-title { font-size:.76rem; color:#cbd5e1; margin:8px 0 4px; text-transform:uppercase; letter-spacing:.05em; }
     .modal-list { margin:0; padding-left:18px; color:#cbd5e1; font-size:.82rem; max-height:140px; overflow:auto; }
     .modal-list li { margin:2px 0; line-height:1.35; }
+    .dve-inline-actions { display:flex; gap:8px; margin-top:8px; }
+    .dve-inline-actions .dve-btn { width:auto; flex:1; }
+    .dve-readonly { background:#0b1220; color:#9ca3af; }
+    .dve-error { margin-top:8px; color:#fca5a5; font-size:.8rem; min-height:16px; }
+    .dve-summary { margin-top:8px; padding:8px; border:1px solid rgba(148,163,184,.25); border-radius:10px; background:#020617; }
+    .dve-summary .k { color:#94a3b8; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; margin-top:4px; }
+    .dve-summary .v { color:#e2e8f0; font-size:.82rem; word-break:break-word; }
 </style>
 }
 
@@ -104,12 +111,35 @@
             <option value="hybrid">Hybrid</option>
         </select>
         <div style="height:8px"></div>
+        <label class="dve-label">Workflow</label>
+        <select class="dve-select" id="workflowSelect">
+            <option value="">Select workflow</option>
+        </select>
+        <div class="dve-inline-actions">
+            <button class="dve-btn" id="refreshWorkflowBtn" type="button">Refresh</button>
+            <button class="dve-btn" id="openWorkflowEditorBtn" type="button">Open Editor</button>
+            <button class="dve-btn" id="copyWorkflowDguidBtn" type="button">Copy DGUID</button>
+        </div>
+        <div style="height:8px"></div>
         <label class="dve-label">Workflow ID</label>
-        <input class="dve-input" id="workflowId" placeholder="Workflow GUID" />
+        <input class="dve-input dve-readonly" id="workflowIdDisplay" readonly placeholder="(auto)" />
+        <div style="height:8px"></div>
+        <label class="dve-label">Workflow DGUID</label>
+        <input class="dve-input dve-readonly" id="workflowDguidDisplay" readonly placeholder="(auto)" />
         <div style="height:8px"></div>
         <label class="dve-label">Navigate URL</label>
         <input class="dve-input" id="navigateUrl" placeholder="https://... or /path" />
         <div style="height:8px"></div>
+        <label class="dve-label">Trigger Event</label>
+        <select class="dve-select" id="triggerEvent">
+            <option value="auto">Auto</option>
+            <option value="click">Click</option>
+            <option value="submit">Submit</option>
+        </select>
+        <div style="height:8px"></div>
+        <label class="dve-label">Validation JSON (Optional)</label>
+        <textarea class="dve-textarea" id="validationJson" placeholder='{"requiredFields":["email"]}'></textarea>
+        <div class="dve-error" id="actionValidationError"></div>
         <div class="dve-row">
             <button class="dve-btn primary" id="bindActionBtn" type="button">Bind Action</button>
             <button class="dve-btn" id="testBindingBtn" type="button">Test Binding</button>
@@ -118,6 +148,12 @@
         <div class="selection-box">
             <div class="trace-meta" id="bindingDebugMeta">No binding test yet.</div>
             <ol class="trace-list" id="bindingDebugTrace"><li>No trace events.</li></ol>
+        </div>
+        <div class="dve-summary" id="bindingSummary">
+            <div class="k">Mode</div><div class="v" id="summaryMode">-</div>
+            <div class="k">Workflow</div><div class="v" id="summaryWorkflow">-</div>
+            <div class="k">Trigger</div><div class="v" id="summaryTrigger">-</div>
+            <div class="k">Navigate URL</div><div class="v" id="summaryNavigate">-</div>
         </div>
     </section>
 
@@ -281,6 +317,22 @@
   const undoBtn = document.getElementById('undoBtn');
   const redoBtn = document.getElementById('redoBtn');
   const testBindingBtn = document.getElementById('testBindingBtn');
+  const actionType = document.getElementById('actionType');
+  const workflowSelect = document.getElementById('workflowSelect');
+  const workflowIdDisplay = document.getElementById('workflowIdDisplay');
+  const workflowDguidDisplay = document.getElementById('workflowDguidDisplay');
+  const triggerEvent = document.getElementById('triggerEvent');
+  const navigateUrlInput = document.getElementById('navigateUrl');
+  const validationJson = document.getElementById('validationJson');
+  const actionValidationError = document.getElementById('actionValidationError');
+  const refreshWorkflowBtn = document.getElementById('refreshWorkflowBtn');
+  const openWorkflowEditorBtn = document.getElementById('openWorkflowEditorBtn');
+  const copyWorkflowDguidBtn = document.getElementById('copyWorkflowDguidBtn');
+  const bindActionBtn = document.getElementById('bindActionBtn');
+  const summaryMode = document.getElementById('summaryMode');
+  const summaryWorkflow = document.getElementById('summaryWorkflow');
+  const summaryTrigger = document.getElementById('summaryTrigger');
+  const summaryNavigate = document.getElementById('summaryNavigate');
 
   const lineHeight = document.getElementById('lineHeight');
   const letterSpacing = document.getElementById('letterSpacing');
@@ -343,7 +395,8 @@
     reconcileQueued: false,
     commandStack: [],
     redoStack: [],
-    lastPreflight: null
+    lastPreflight: null,
+    workflows: []
   };
 
   const notify = (msg) => {
@@ -423,6 +476,101 @@
     const data = await res.json().catch(() => ({}));
     if (!res.ok || data?.success === false) throw new Error(data?.message || 'Request failed');
     return data;
+  };
+
+  const normalizeDguid = (value) => String(value || '').replace(/-/g, '').trim().toLowerCase();
+
+  const selectedWorkflow = () => {
+    const key = workflowSelect.value || '';
+    return state.workflows.find((w) => String(w.id) === key || normalizeDguid(w.dguid) === key) || null;
+  };
+
+  const refreshWorkflowDisplays = () => {
+    const wf = selectedWorkflow();
+    workflowIdDisplay.value = wf?.id || '';
+    workflowDguidDisplay.value = wf?.dguid ? normalizeDguid(wf.dguid) : '';
+  };
+
+  const updateBindingSummary = (binding) => {
+    summaryMode.textContent = binding?.actionType || '-';
+    summaryWorkflow.textContent = binding?.workflowNameSnapshot || binding?.workflowDguid || binding?.workflowId || '-';
+    summaryTrigger.textContent = binding?.triggerEvent || 'auto';
+    summaryNavigate.textContent = binding?.navigateUrl || '-';
+  };
+
+  const parseValidationJson = () => {
+    const raw = (validationJson.value || '').trim();
+    if (!raw) return { ok: true, value: {} };
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+        return { ok: false, message: 'Validation JSON must be an object.' };
+      }
+      return { ok: true, value: parsed };
+    } catch {
+      return { ok: false, message: 'Validation JSON is invalid.' };
+    }
+  };
+
+  const computeActionValidation = () => {
+    const mode = actionType.value;
+    const wf = selectedWorkflow();
+    const nav = (navigateUrlInput.value || '').trim();
+    const selectedTag = (state.selectedNode?.tagName || '').toLowerCase();
+    const selectedElementType = (state.selectedNode?.getAttribute?.('type') || '').toLowerCase();
+    const selectedRole = selectedTag || (state.selectedKey ? 'unknown' : '');
+    const trigger = (triggerEvent.value || 'auto').toLowerCase();
+
+    if (mode === 'workflow' || mode === 'hybrid') {
+      if (!wf) return 'Select a valid workflow.';
+    }
+    if ((mode === 'navigate' || mode === 'hybrid') && !nav) {
+      return 'Navigate URL is required for navigate/hybrid mode.';
+    }
+    if (trigger === 'submit') {
+      const submitCompatible = selectedTag === 'form' || (selectedTag === 'button' && (selectedElementType === '' || selectedElementType === 'submit')) || (selectedTag === 'input' && selectedElementType === 'submit');
+      if (!submitCompatible) {
+        return 'Submit trigger requires a form or submit button/input.';
+      }
+    }
+    const validation = parseValidationJson();
+    if (!validation.ok) return validation.message || 'Validation JSON is invalid.';
+    if ((mode === 'workflow' || mode === 'hybrid') && selectedRole === '') return 'Select an element to bind.';
+    return '';
+  };
+
+  const syncActionUiState = () => {
+    const mode = actionType.value;
+    const needsWorkflow = mode === 'workflow' || mode === 'hybrid';
+    const needsNavigate = mode === 'navigate' || mode === 'hybrid';
+
+    workflowSelect.disabled = !needsWorkflow;
+    refreshWorkflowBtn.disabled = !needsWorkflow;
+    openWorkflowEditorBtn.disabled = !needsWorkflow;
+    copyWorkflowDguidBtn.disabled = !needsWorkflow;
+    workflowIdDisplay.disabled = !needsWorkflow;
+    workflowDguidDisplay.disabled = !needsWorkflow;
+    navigateUrlInput.disabled = !needsNavigate;
+
+    const error = computeActionValidation();
+    actionValidationError.textContent = error;
+    bindActionBtn.disabled = Boolean(error) || !state.selectedKey;
+    testBindingBtn.disabled = !state.selectedKey;
+  };
+
+  const loadWorkflows = async () => {
+    const data = await api(`/api/dve/workflows/list?projectId=${encodeURIComponent(activeProject())}`);
+    state.workflows = Array.isArray(data?.workflows) ? data.workflows : [];
+    workflowSelect.innerHTML = '<option value="">Select workflow</option>';
+    state.workflows.forEach((wf) => {
+      const opt = document.createElement('option');
+      opt.value = String(wf.id || '');
+      const status = wf.inActive ? 'Inactive' : (wf.status || 'Active');
+      opt.textContent = `${wf.name || 'Workflow'} (${status})`;
+      workflowSelect.appendChild(opt);
+    });
+    refreshWorkflowDisplays();
+    syncActionUiState();
   };
 
   const rgbToHex = (rgb) => {
@@ -544,6 +692,22 @@
     selectionKey.textContent = `ElementKey: ${state.selectedKey}`;
     selectionCount.textContent = `Selected: ${state.selectedNodes.length}`;
     selectionConfidence.textContent = state.selectedConfidence ? `Confidence: ${(state.selectedConfidence * 100).toFixed(0)}%` : 'Confidence: -';
+    const binding = (state.overlay.bindings || []).find((x) => x.elementKey === state.selectedKey);
+    if (binding) {
+      actionType.value = binding.actionType || 'navigate';
+      navigateUrlInput.value = binding.navigateUrl || '';
+      triggerEvent.value = binding.triggerEvent || 'auto';
+      validationJson.value = binding.validationJson || '';
+      const workflowId = String(binding.workflowId || '');
+      const workflowDguid = normalizeDguid(binding.workflowDguid || '');
+      const wf = state.workflows.find((w) => String(w.id) === workflowId || normalizeDguid(w.dguid) === workflowDguid);
+      workflowSelect.value = wf ? String(wf.id) : '';
+      updateBindingSummary(binding);
+    } else {
+      updateBindingSummary(null);
+    }
+    refreshWorkflowDisplays();
+    syncActionUiState();
     updateOutline();
   };
 
@@ -793,6 +957,36 @@
     notify('Insert mode cancelled.');
   });
 
+  actionType.addEventListener('change', () => syncActionUiState());
+  workflowSelect.addEventListener('change', () => {
+    refreshWorkflowDisplays();
+    syncActionUiState();
+  });
+  navigateUrlInput.addEventListener('input', () => syncActionUiState());
+  triggerEvent.addEventListener('change', () => syncActionUiState());
+  validationJson.addEventListener('input', () => syncActionUiState());
+  refreshWorkflowBtn.addEventListener('click', async () => {
+    await withLock(refreshWorkflowBtn, async () => {
+      await loadWorkflows();
+      notify('Workflow list refreshed.');
+    });
+  });
+  openWorkflowEditorBtn.addEventListener('click', () => {
+    const wf = selectedWorkflow();
+    if (!wf?.id) return notify('Select a workflow first.');
+    window.open(`/Workflows/Editor?id=${encodeURIComponent(wf.id)}`, '_blank');
+  });
+  copyWorkflowDguidBtn.addEventListener('click', async () => {
+    const value = (workflowDguidDisplay.value || '').trim();
+    if (!value) return notify('No workflow DGUID selected.');
+    try {
+      await navigator.clipboard.writeText(value);
+      notify('Workflow DGUID copied.');
+    } catch {
+      notify('Clipboard copy failed.');
+    }
+  });
+
   document.getElementById('applyRuleBtn').addEventListener('click', async () => {
     if (!state.selectedNodes.length) return notify('Select an element first.');
     await withLock(document.getElementById('applyRuleBtn'), async () => {
@@ -868,29 +1062,41 @@
     });
   });
 
-  document.getElementById('bindActionBtn').addEventListener('click', async () => {
+  bindActionBtn.addEventListener('click', async () => {
     if (!state.selectedNode) return notify('Select an element first.');
-    const mode = document.getElementById('actionType').value;
-    const workflowIdRaw = (document.getElementById('workflowId').value || '').trim();
-    const navigateUrl = (document.getElementById('navigateUrl').value || '').trim();
-    if ((mode === 'workflow' || mode === 'hybrid') && !workflowIdRaw) return notify('Workflow ID required.');
-    if ((mode === 'navigate' || mode === 'hybrid') && !navigateUrl) return notify('Navigate URL required.');
-    await withLock(document.getElementById('bindActionBtn'), async () => {
+    const mode = actionType.value;
+    const workflow = selectedWorkflow();
+    const navigateUrl = (navigateUrlInput.value || '').trim();
+    const validation = parseValidationJson();
+    const actionError = computeActionValidation();
+    if (actionError) return notify(actionError);
+    if (!validation.ok) return notify(validation.message || 'Validation JSON is invalid.');
+    await withLock(bindActionBtn, async () => {
       const payload = {
         projectId: activeProject(),
         pagePath: activeFile(),
         elementKey: state.selectedKey,
         actionType: mode,
-        workflowId: workflowIdRaw || null,
+        workflowId: workflow?.id || null,
+        workflowDguid: workflow?.dguid ? normalizeDguid(workflow.dguid) : null,
         navigateUrl: navigateUrl || null,
+        triggerEvent: triggerEvent.value || 'auto',
+        validation: validation.value || {},
         behavior: { source: 'inspector', openInNewTab: false }
       };
-      await api('/api/dve/bind/action', 'POST', {
-        ...payload
-      });
+      const result = await api('/api/dve/bind/action', 'POST', payload);
+      const normalizedBinding = {
+        ...payload,
+        workflowNameSnapshot: result?.binding?.workflowName || workflow?.name || null,
+        workflowDguid: result?.binding?.workflowDguid || payload.workflowDguid,
+        triggerEvent: result?.binding?.triggerEvent || payload.triggerEvent,
+        validationJson: result?.binding?.validationJson || JSON.stringify(payload.validation || {})
+      };
       state.overlay.bindings = state.overlay.bindings.filter((x) => x.elementKey !== state.selectedKey);
-      state.overlay.bindings.push(payload);
+      state.overlay.bindings.push(normalizedBinding);
       pushCommand({ type: 'action-bind', undo: async () => {}, redo: async () => {} });
+      updateBindingSummary(normalizedBinding);
+      syncActionUiState();
       notify('Action binding saved.');
     });
   });
@@ -905,7 +1111,7 @@
         mockFields: { firstname: 'Test', lastname: 'User', email: 'qa@example.com' },
         mockEmail: 'qa@example.com'
       });
-      bindingDebugMeta.textContent = `Trace ${result.traceId} | Result: ${result.ok ? 'PASS' : 'FAIL'}`;
+      bindingDebugMeta.textContent = `Trace ${result.traceId} | Result: ${result.ok ? 'PASS' : 'FAIL'} | SMTP: ${result.smtpProfileUsed || 'n/a'} | Recipient: ${result.resolvedRecipient || 'n/a'}`;
       const events = [];
       const path = Array.isArray(result.executionPath) ? result.executionPath : [];
       if (path.length) {
@@ -916,9 +1122,14 @@
         events.push('1. No execution path emitted.');
       }
       const errors = Array.isArray(result.errors) ? result.errors.filter(Boolean) : [];
+      const warnings = Array.isArray(result.warnings) ? result.warnings.filter(Boolean) : [];
       if (errors.length) {
         errors.forEach((errorText, index) => events.push(`${path.length + index + 1}. ERROR: ${errorText}`));
-      } else {
+      }
+      if (warnings.length) {
+        warnings.forEach((warningText, index) => events.push(`${path.length + errors.length + index + 1}. WARN: ${warningText}`));
+      }
+      if (!errors.length && !warnings.length) {
         events.push(`${path.length + 1}. Completed with no errors.`);
       }
       bindingDebugTrace.innerHTML = '';
@@ -1003,6 +1214,7 @@
 
   const init = async () => {
     renderTemplates();
+    await loadWorkflows();
     const loaded = await api(`/api/dve/page/load?projectId=${encodeURIComponent(activeProject())}&path=${encodeURIComponent(activeFile())}&env=draft`);
     state.overlay = {
       rules: Array.isArray(loaded?.overlay?.rules) ? loaded.overlay.rules : [],
@@ -1026,9 +1238,11 @@
 
     frame.addEventListener('load', () => {
       bindCanvas();
+      syncActionUiState();
       notify('Canvas ready.');
     });
     if (frame.contentDocument?.readyState === 'complete') bindCanvas();
+    syncActionUiState();
   };
 
   init().catch((error) => notify(error.message || String(error)));

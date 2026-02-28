@@ -20,6 +20,9 @@ public class AnalyticsEvent
     [Required, MaxLength(1024)]
     public string Path { get; set; } = "/";
 
+    [MaxLength(1024)]
+    public string? PageTitle { get; set; }
+
     public DateTime OccurredAtUtc { get; set; } = DateTime.UtcNow;
 
     [MaxLength(8)]
@@ -33,6 +36,21 @@ public class AnalyticsEvent
 
     [MaxLength(2048)]
     public string? MetadataJson { get; set; }
+
+    [MaxLength(160)]
+    public string? UtmSource { get; set; }
+
+    [MaxLength(160)]
+    public string? UtmMedium { get; set; }
+
+    [MaxLength(200)]
+    public string? UtmCampaign { get; set; }
+
+    [MaxLength(200)]
+    public string? UtmTerm { get; set; }
+
+    [MaxLength(200)]
+    public string? UtmContent { get; set; }
 
     [MaxLength(450)]
     public string? OwnerUserId { get; set; }

@@ -36,7 +36,10 @@ public sealed class DynamicVeBindActionRequest
     public string ElementKey { get; set; } = string.Empty;
     public string ActionType { get; set; } = "navigate";
     public Guid? WorkflowId { get; set; }
+    public string? WorkflowDguid { get; set; }
     public string? NavigateUrl { get; set; }
+    public string TriggerEvent { get; set; } = "auto";
+    public JsonElement? Validation { get; set; }
     public JsonElement? Behavior { get; set; }
 }
 
@@ -92,4 +95,11 @@ public sealed class DynamicVeBindTestRequest
     public string ElementKey { get; set; } = string.Empty;
     public Dictionary<string, string?>? MockFields { get; set; }
     public string? MockEmail { get; set; }
+    public DynamicVeBindingTestOverrides? Overrides { get; set; }
+}
+
+public sealed class DynamicVeBindingTestOverrides
+{
+    public Dictionary<string, string?>? Fields { get; set; }
+    public string? Email { get; set; }
 }

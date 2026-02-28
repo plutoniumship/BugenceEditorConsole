@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Net.Http.Headers;
@@ -61,7 +62,12 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddDataProtection();
+var dataProtectionKeyPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtectionKeys");
+Directory.CreateDirectory(dataProtectionKeyPath);
+builder.Services
+    .AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyPath))
+    .SetApplicationName("BugenceEditConsole");
 builder.Services.AddScoped<ISensitiveDataProtector, SensitiveDataProtector>();
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
 builder.Services.Configure<DomainRoutingOptions>(builder.Configuration.GetSection("DomainRouting"));
@@ -78,6 +84,7 @@ builder.Services.AddScoped<IIisDomainBindingService, IisDomainBindingService>();
 builder.Services.AddScoped<IIisProjectSiteService, IisProjectSiteService>();
 builder.Services.AddScoped<IAnalyticsIngestService, AnalyticsService>();
 builder.Services.AddScoped<IAnalyticsQueryService, AnalyticsService>();
+builder.Services.AddScoped<IGoogleSearchConsoleService, GoogleSearchConsoleService>();
 builder.Services.AddScoped<IDocumentTextService, DocumentTextService>();
 builder.Services.AddScoped<RepeaterTemplateService>();
 builder.Services.AddScoped<DebugPanelLogService>();
@@ -106,8 +113,28 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IDomainRouter, DomainRouter>();
 builder.Services.AddHttpClient("certificate-webhook");
 builder.Services.AddHttpClient("document-text");
+builder.Services.AddHttpClient("gsc-api");
 builder.Services.AddScoped<WorkflowExecutionService>();
+builder.Services.AddScoped<MetaGraphClient>();
+builder.Services.AddScoped<LeadMappingService>();
+builder.Services.AddScoped<LeadDedupeService>();
+builder.Services.AddScoped<TriggerRoutingService>();
+builder.Services.AddScoped<FacebookLeadTriggerService>();
+builder.Services.AddScoped<SocialFacebookMarketingService>();
+builder.Services.AddScoped<IWhatsAppSender, WhatsAppWebhookSender>();
+builder.Services.AddScoped<ICrmPushService, WebhookCrmPushService>();
 builder.Services.AddScoped<ISessionNonceService, SessionNonceService>();
+builder.Services.AddScoped<IGoogleOAuthRuntimeConfigService, GoogleOAuthRuntimeConfigService>();
+builder.Services.AddSingleton<IPostConfigureOptions<OAuthOptions>, GoogleOAuthNamedOptionsSetup>();
+builder.Services.AddHostedService<GoogleSearchConsoleSyncWorker>();
+builder.Services.AddHostedService<SocialFacebookOpsWorker>();
+builder.Services.AddHttpClient("meta-graph", client =>
+{
+    client.BaseAddress = new Uri("https://graph.facebook.com");
+    client.Timeout = TimeSpan.FromSeconds(25);
+});
+builder.Services.AddHttpClient("whatsapp-api", client => client.Timeout = TimeSpan.FromSeconds(20));
+builder.Services.AddHttpClient("crm-webhook", client => client.Timeout = TimeSpan.FromSeconds(20));
 
 var githubClientId = builder.Configuration["Authentication:GitHub:ClientId"];
 var githubClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
@@ -177,61 +204,22 @@ if (!string.IsNullOrWhiteSpace(githubClientId) && !string.IsNullOrWhiteSpace(git
         });
 }
 
-var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
-var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-var googleCallbackPath = "/signin-google";
-var googleDbConfigValid = true;
-
-using (var bootstrapProvider = builder.Services.BuildServiceProvider())
-using (var scope = bootstrapProvider.CreateScope())
-{
-    try
-    {
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var protector = scope.ServiceProvider.GetRequiredService<ISensitiveDataProtector>();
-        var dbGoogle = await SystemPropertyOAuthLoader.TryLoadGoogleOAuthSettingsAsync(db, protector);
-        if (dbGoogle?.IsConfigured == true)
-        {
-            googleClientId = dbGoogle.ClientId;
-            googleClientSecret = dbGoogle.ClientSecret;
-
-            if (Uri.TryCreate(dbGoogle.RedirectUri, UriKind.Absolute, out var redirectUri) &&
-                string.Equals(redirectUri.AbsolutePath, "/signin-google", StringComparison.OrdinalIgnoreCase))
-            {
-                googleCallbackPath = redirectUri.AbsolutePath;
-            }
-            else if (string.Equals(dbGoogle.RedirectUri, "/signin-google", StringComparison.OrdinalIgnoreCase))
-            {
-                googleCallbackPath = dbGoogle.RedirectUri;
-            }
-            else
-            {
-                googleDbConfigValid = false;
-                Console.WriteLine("[GoogleOAuth] OAuthGoogle record found but Redirect URI must end with /signin-google.");
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[GoogleOAuth] Unable to load OAuthGoogle record from SystemProperties: {ex.Message}");
-    }
-}
-
-if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret) && googleDbConfigValid)
+var facebookClientId = builder.Configuration["Authentication:Facebook:ClientId"];
+var facebookClientSecret = builder.Configuration["Authentication:Facebook:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(facebookClientId) && !string.IsNullOrWhiteSpace(facebookClientSecret))
 {
     builder.Services.AddAuthentication()
-        .AddOAuth("Google", options =>
+        .AddOAuth("Facebook", options =>
         {
             options.SignInScheme = IdentityConstants.ExternalScheme;
-            options.ClientId = googleClientId;
-            options.ClientSecret = googleClientSecret;
-            options.CallbackPath = googleCallbackPath;
-            options.AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
-            options.TokenEndpoint = "https://oauth2.googleapis.com/token";
-            options.UserInformationEndpoint = "https://openidconnect.googleapis.com/v1/userinfo";
-            options.Scope.Add("openid");
+            options.ClientId = facebookClientId;
+            options.ClientSecret = facebookClientSecret;
+            options.CallbackPath = "/signin-facebook";
+            options.AuthorizationEndpoint = "https://www.facebook.com/v19.0/dialog/oauth";
+            options.TokenEndpoint = "https://graph.facebook.com/v19.0/oauth/access_token";
+            options.UserInformationEndpoint = "https://graph.facebook.com/me?fields=id,name,email,picture";
             options.Scope.Add("email");
-            options.Scope.Add("profile");
+            options.Scope.Add("public_profile");
             options.SaveTokens = true;
 
             options.Events = new OAuthEvents
@@ -247,35 +235,268 @@ if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(goo
 
                     var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
                     var root = payload.RootElement;
-
-                    var sub = root.TryGetProperty("sub", out var subProp) ? subProp.GetString() : null;
-                    var email = root.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+                    var id = root.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
                     var name = root.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null;
-                    var picture = root.TryGetProperty("picture", out var picProp) ? picProp.GetString() : null;
-
-                    if (!string.IsNullOrWhiteSpace(sub))
+                    var email = root.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+                    string? picture = null;
+                    if (root.TryGetProperty("picture", out var pictureProp)
+                        && pictureProp.TryGetProperty("data", out var dataProp)
+                        && dataProp.TryGetProperty("url", out var urlProp))
                     {
-                        context.Identity?.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, sub));
+                        picture = urlProp.GetString();
                     }
 
-                    if (!string.IsNullOrWhiteSpace(email))
+                    if (!string.IsNullOrWhiteSpace(id))
                     {
-                        context.Identity?.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email));
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.NameIdentifier, id));
+                        context.Identity?.AddClaim(new Claim("facebook:id", id));
                     }
-
                     if (!string.IsNullOrWhiteSpace(name))
                     {
-                        context.Identity?.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, name));
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.Name, name));
+                        context.Identity?.AddClaim(new Claim("facebook:name", name));
                     }
-
+                    if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.Email, email));
+                        context.Identity?.AddClaim(new Claim("facebook:email", email));
+                    }
                     if (!string.IsNullOrWhiteSpace(picture))
                     {
-                        context.Identity?.AddClaim(new System.Security.Claims.Claim("urn:google:avatar", picture));
+                        context.Identity?.AddClaim(new Claim("facebook:avatar", picture));
                     }
                 }
             };
         });
 }
+
+var linkedInClientId = builder.Configuration["Authentication:LinkedIn:ClientId"];
+var linkedInClientSecret = builder.Configuration["Authentication:LinkedIn:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(linkedInClientId) && !string.IsNullOrWhiteSpace(linkedInClientSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddOAuth("LinkedIn", options =>
+        {
+            options.SignInScheme = IdentityConstants.ExternalScheme;
+            options.ClientId = linkedInClientId;
+            options.ClientSecret = linkedInClientSecret;
+            options.CallbackPath = "/signin-linkedin";
+            options.AuthorizationEndpoint = "https://www.linkedin.com/oauth/v2/authorization";
+            options.TokenEndpoint = "https://www.linkedin.com/oauth/v2/accessToken";
+            options.UserInformationEndpoint = "https://api.linkedin.com/v2/userinfo";
+            options.Scope.Add("openid");
+            options.Scope.Add("profile");
+            options.Scope.Add("email");
+            options.SaveTokens = true;
+
+            options.Events = new OAuthEvents
+            {
+                OnCreatingTicket = async context =>
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                    using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                    response.EnsureSuccessStatusCode();
+
+                    var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
+                    var root = payload.RootElement;
+                    var sub = root.TryGetProperty("sub", out var subProp) ? subProp.GetString() : null;
+                    var name = root.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null;
+                    var email = root.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+                    var picture = root.TryGetProperty("picture", out var pictureProp) ? pictureProp.GetString() : null;
+
+                    if (!string.IsNullOrWhiteSpace(sub))
+                    {
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.NameIdentifier, sub));
+                        context.Identity?.AddClaim(new Claim("linkedin:id", sub));
+                    }
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.Name, name));
+                        context.Identity?.AddClaim(new Claim("linkedin:name", name));
+                    }
+                    if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.Email, email));
+                        context.Identity?.AddClaim(new Claim("linkedin:email", email));
+                    }
+                    if (!string.IsNullOrWhiteSpace(picture))
+                    {
+                        context.Identity?.AddClaim(new Claim("linkedin:avatar", picture));
+                    }
+                }
+            };
+        });
+}
+
+var instagramClientId = builder.Configuration["Authentication:Instagram:ClientId"];
+var instagramClientSecret = builder.Configuration["Authentication:Instagram:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(instagramClientId) && !string.IsNullOrWhiteSpace(instagramClientSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddOAuth("Instagram", options =>
+        {
+            options.SignInScheme = IdentityConstants.ExternalScheme;
+            options.ClientId = instagramClientId;
+            options.ClientSecret = instagramClientSecret;
+            options.CallbackPath = "/signin-instagram";
+            options.AuthorizationEndpoint = "https://api.instagram.com/oauth/authorize";
+            options.TokenEndpoint = "https://api.instagram.com/oauth/access_token";
+            options.UserInformationEndpoint = "https://graph.instagram.com/me?fields=id,username,account_type";
+            options.Scope.Add("user_profile");
+            options.SaveTokens = true;
+            options.UsePkce = true;
+
+            options.Events = new OAuthEvents
+            {
+                OnCreatingTicket = async context =>
+                {
+                    var endpoint = QueryHelpers.AddQueryString(
+                        "https://graph.instagram.com/me",
+                        new Dictionary<string, string?>()
+                        {
+                            ["fields"] = "id,username,account_type",
+                            ["access_token"] = context.AccessToken
+                        });
+                    using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                    response.EnsureSuccessStatusCode();
+
+                    var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
+                    var root = payload.RootElement;
+                    var id = root.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+                    var username = root.TryGetProperty("username", out var usernameProp) ? usernameProp.GetString() : null;
+                    var accountType = root.TryGetProperty("account_type", out var accountTypeProp) ? accountTypeProp.GetString() : null;
+
+                    if (!string.IsNullOrWhiteSpace(id))
+                    {
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.NameIdentifier, id));
+                        context.Identity?.AddClaim(new Claim("instagram:id", id));
+                    }
+                    if (!string.IsNullOrWhiteSpace(username))
+                    {
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.Name, username));
+                        context.Identity?.AddClaim(new Claim("instagram:username", username));
+                    }
+                    if (!string.IsNullOrWhiteSpace(accountType))
+                    {
+                        context.Identity?.AddClaim(new Claim("instagram:account_type", accountType));
+                    }
+                }
+            };
+        });
+}
+
+var whatsAppClientId = builder.Configuration["Authentication:WhatsApp:ClientId"];
+var whatsAppClientSecret = builder.Configuration["Authentication:WhatsApp:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(whatsAppClientId) && !string.IsNullOrWhiteSpace(whatsAppClientSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddOAuth("WhatsApp", options =>
+        {
+            options.SignInScheme = IdentityConstants.ExternalScheme;
+            options.ClientId = whatsAppClientId;
+            options.ClientSecret = whatsAppClientSecret;
+            options.CallbackPath = "/signin-whatsapp";
+            options.AuthorizationEndpoint = "https://www.facebook.com/v19.0/dialog/oauth";
+            options.TokenEndpoint = "https://graph.facebook.com/v19.0/oauth/access_token";
+            options.UserInformationEndpoint = "https://graph.facebook.com/me?fields=id,name";
+            options.Scope.Add("whatsapp_business_management");
+            options.Scope.Add("business_management");
+            options.SaveTokens = true;
+
+            options.Events = new OAuthEvents
+            {
+                OnCreatingTicket = async context =>
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                    using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                    response.EnsureSuccessStatusCode();
+
+                    var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
+                    var root = payload.RootElement;
+                    var id = root.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+                    var name = root.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null;
+
+                    if (!string.IsNullOrWhiteSpace(id))
+                    {
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.NameIdentifier, id));
+                        context.Identity?.AddClaim(new Claim("whatsapp:id", id));
+                    }
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        context.Identity?.AddClaim(new Claim(ClaimTypes.Name, name));
+                        context.Identity?.AddClaim(new Claim("whatsapp:name", name));
+                    }
+                }
+            };
+        });
+}
+
+builder.Services.AddAuthentication()
+    .AddOAuth("Google", options =>
+    {
+        options.SignInScheme = IdentityConstants.ExternalScheme;
+        options.ClientId = string.Empty;
+        options.ClientSecret = string.Empty;
+        options.CallbackPath = "/signin-google";
+        options.AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+        options.TokenEndpoint = "https://oauth2.googleapis.com/token";
+        options.UserInformationEndpoint = "https://openidconnect.googleapis.com/v1/userinfo";
+        options.Scope.Add("openid");
+        options.Scope.Add("email");
+        options.Scope.Add("profile");
+        options.Scope.Add("https://www.googleapis.com/auth/webmasters.readonly");
+        options.SaveTokens = true;
+
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = async context =>
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                response.EnsureSuccessStatusCode();
+
+                var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
+                var root = payload.RootElement;
+
+                var sub = root.TryGetProperty("sub", out var subProp) ? subProp.GetString() : null;
+                var email = root.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+                var name = root.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null;
+                var picture = root.TryGetProperty("picture", out var picProp) ? picProp.GetString() : null;
+
+                if (!string.IsNullOrWhiteSpace(sub))
+                {
+                    context.Identity?.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, sub));
+                }
+
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    context.Identity?.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email));
+                }
+
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    context.Identity?.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, name));
+                }
+
+                if (!string.IsNullOrWhiteSpace(picture))
+                {
+                    context.Identity?.AddClaim(new System.Security.Claims.Claim("urn:google:avatar", picture));
+                }
+            }
+        };
+    });
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -666,6 +887,16 @@ app.MapGet("/api/analytics/collect.gif", async Task<IResult> (
     var sidRaw = httpContext.Request.Query["sid"].FirstOrDefault();
     var ccRaw = httpContext.Request.Query["cc"].FirstOrDefault();
     var dtRaw = httpContext.Request.Query["dt"].FirstOrDefault();
+    var cityRaw = httpContext.Request.Query["city"].FirstOrDefault();
+    var langRaw = httpContext.Request.Query["lang"].FirstOrDefault();
+    var titleRaw = httpContext.Request.Query["title"].FirstOrDefault();
+    var lpRaw = httpContext.Request.Query["lp"].FirstOrDefault();
+    var etMsRaw = httpContext.Request.Query["etms"].FirstOrDefault();
+    var utmSourceRaw = httpContext.Request.Query["utm_source"].FirstOrDefault();
+    var utmMediumRaw = httpContext.Request.Query["utm_medium"].FirstOrDefault();
+    var utmCampaignRaw = httpContext.Request.Query["utm_campaign"].FirstOrDefault();
+    var utmTermRaw = httpContext.Request.Query["utm_term"].FirstOrDefault();
+    var utmContentRaw = httpContext.Request.Query["utm_content"].FirstOrDefault();
     var userAgent = httpContext.Request.Headers.UserAgent.ToString();
 
     if (int.TryParse(pidRaw, out var projectId) && projectId > 0 && !string.IsNullOrWhiteSpace(hostRaw))
@@ -723,7 +954,17 @@ app.MapGet("/api/analytics/collect.gif", async Task<IResult> (
                     SessionId: sessionId,
                     CountryCode: countryCode,
                     DeviceType: deviceType,
+                    City: cityRaw,
+                    Language: langRaw,
                     ReferrerHost: Uri.TryCreate(refRaw, UriKind.Absolute, out var refUri) ? refUri.Host : null,
+                    PageTitle: titleRaw,
+                    LandingPath: lpRaw,
+                    EngagementTimeMs: int.TryParse(etMsRaw, out var engagementMs) ? engagementMs : null,
+                    UtmSource: utmSourceRaw,
+                    UtmMedium: utmMediumRaw,
+                    UtmCampaign: utmCampaignRaw,
+                    UtmTerm: utmTermRaw,
+                    UtmContent: utmContentRaw,
                     UserAgent: userAgent,
                     IsBot: false,
                     OccurredAtUtc: DateTime.UtcNow,
@@ -753,6 +994,13 @@ app.MapGet("/api/analytics/event.gif", async Task<IResult> (
     var dtRaw = httpContext.Request.Query["dt"].FirstOrDefault();
     var etRaw = httpContext.Request.Query["et"].FirstOrDefault();
     var enRaw = httpContext.Request.Query["en"].FirstOrDefault();
+    var langRaw = httpContext.Request.Query["lang"].FirstOrDefault();
+    var titleRaw = httpContext.Request.Query["title"].FirstOrDefault();
+    var utmSourceRaw = httpContext.Request.Query["utm_source"].FirstOrDefault();
+    var utmMediumRaw = httpContext.Request.Query["utm_medium"].FirstOrDefault();
+    var utmCampaignRaw = httpContext.Request.Query["utm_campaign"].FirstOrDefault();
+    var utmTermRaw = httpContext.Request.Query["utm_term"].FirstOrDefault();
+    var utmContentRaw = httpContext.Request.Query["utm_content"].FirstOrDefault();
     var userAgent = httpContext.Request.Headers.UserAgent.ToString();
 
     if (int.TryParse(pidRaw, out var projectId) &&
@@ -807,10 +1055,17 @@ app.MapGet("/api/analytics/event.gif", async Task<IResult> (
                     EventType: etRaw!,
                     EventName: enRaw!,
                     Path: string.IsNullOrWhiteSpace(pathRaw) ? "/" : pathRaw!,
+                    PageTitle: titleRaw,
                     CountryCode: countryCode,
                     DeviceType: deviceType,
+                    Language: langRaw,
                     ReferrerHost: Uri.TryCreate(refRaw, UriKind.Absolute, out var refUri) ? refUri.Host : null,
                     MetadataJson: null,
+                    UtmSource: utmSourceRaw,
+                    UtmMedium: utmMediumRaw,
+                    UtmCampaign: utmCampaignRaw,
+                    UtmTerm: utmTermRaw,
+                    UtmContent: utmContentRaw,
                     OccurredAtUtc: DateTime.UtcNow,
                     OwnerUserId: project.UserId,
                     CompanyId: project.CompanyId), cancellationToken);
@@ -927,15 +1182,45 @@ app.MapPost("/api/workflows/trigger", async (
     }
 
     Workflow? workflow = null;
+    Workflow? workflowById = null;
+    Workflow? workflowByDguid = null;
+
     if (request.WorkflowId != Guid.Empty)
     {
-        workflow = await db.Workflows.FirstOrDefaultAsync(w => w.Id == request.WorkflowId, cancellationToken);
+        workflowById = await db.Workflows.FirstOrDefaultAsync(w => w.Id == request.WorkflowId, cancellationToken);
+    }
+
+    if (!string.IsNullOrWhiteSpace(normalizedDguid))
+    {
+        // Load candidates locally so normalization is deterministic across providers.
+        var dguidCandidates = await db.Workflows
+            .Where(w => w.Dguid != null && w.Dguid != string.Empty)
+            .ToListAsync(cancellationToken);
+        workflowByDguid = dguidCandidates.FirstOrDefault(w =>
+            w.Dguid != null &&
+            w.Dguid.Replace("-", string.Empty, StringComparison.Ordinal).Trim().ToLowerInvariant() == normalizedDguid);
+    }
+
+    // Resolution policy:
+    // 1) If both provided and ID points to unavailable workflow, prefer DGUID workflow if available.
+    // 2) If both available but different, prefer DGUID (latest binding identity for published pages).
+    // 3) Fallback to whichever exists.
+    static bool IsUnavailable(Workflow? w)
+        => w == null
+            || string.Equals(w.Status, "Archived", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(w.Status, "Deleted", StringComparison.OrdinalIgnoreCase);
+
+    if (workflowByDguid != null && workflowById != null && workflowByDguid.Id != workflowById.Id)
+    {
+        workflow = !IsUnavailable(workflowByDguid) ? workflowByDguid : workflowById;
+    }
+    else if (!IsUnavailable(workflowByDguid) && IsUnavailable(workflowById))
+    {
+        workflow = workflowByDguid;
     }
     else
     {
-        workflow = await db.Workflows.FirstOrDefaultAsync(
-            w => w.Dguid != null && w.Dguid.Replace("-", "").ToLower() == normalizedDguid,
-            cancellationToken);
+        workflow = workflowById ?? workflowByDguid;
     }
 
     if (workflow == null)
@@ -969,6 +1254,529 @@ app.MapPost("/api/workflows/trigger", async (
 
     return Results.Ok(new { success = true });
 });
+
+app.MapGet("/api/integrations/facebook/accounts", async (
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    await FacebookLeadTriggerSchemaService.EnsureSchemaAsync(db);
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var rows = await db.IntegrationConnections
+        .AsNoTracking()
+        .Where(x => x.OwnerUserId == user.Id && x.Provider == "facebook")
+        .OrderByDescending(x => x.UpdatedAtUtc)
+        .ToListAsync(cancellationToken);
+
+    if (rows.Count == 0)
+    {
+        var claims = await userManager.GetClaimsAsync(user);
+        var facebookId = claims.FirstOrDefault(c => c.Type == "facebook:id")?.Value;
+        var facebookName = claims.FirstOrDefault(c => c.Type == "facebook:name")?.Value
+            ?? claims.FirstOrDefault(c => c.Type == "facebook:email")?.Value;
+        if (!string.IsNullOrWhiteSpace(facebookId))
+        {
+            var tokenScopes = await userManager.GetAuthenticationTokenAsync(user, "Facebook", "scope");
+            var expires = await userManager.GetAuthenticationTokenAsync(user, "Facebook", "expires_at");
+            DateTime? expiresAtUtc = DateTime.TryParse(expires, out var parsedExpiry) ? DateTime.SpecifyKind(parsedExpiry, DateTimeKind.Utc) : null;
+            var status = "connected";
+            if (expiresAtUtc.HasValue && expiresAtUtc.Value <= DateTime.UtcNow) status = "disconnected";
+            else if (expiresAtUtc.HasValue && expiresAtUtc.Value <= DateTime.UtcNow.AddDays(7)) status = "expiring";
+
+            var row = new IntegrationConnection
+            {
+                Provider = "facebook",
+                DisplayName = string.IsNullOrWhiteSpace(facebookName) ? "Facebook Account" : facebookName,
+                ExternalAccountId = facebookId,
+                Status = status,
+                ScopesJson = JsonSerializer.Serialize((tokenScopes ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)),
+                ExpiresAtUtc = expiresAtUtc,
+                OwnerUserId = user.Id,
+                CompanyId = user.CompanyId,
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow
+            };
+            db.IntegrationConnections.Add(row);
+            await db.SaveChangesAsync(cancellationToken);
+            rows.Add(row);
+        }
+    }
+
+    var data = rows.Select(row =>
+    {
+        string[] scopes = [];
+        if (!string.IsNullOrWhiteSpace(row.ScopesJson))
+        {
+            try
+            {
+                scopes = JsonSerializer.Deserialize<string[]>(row.ScopesJson) ?? [];
+            }
+            catch
+            {
+                scopes = [];
+            }
+        }
+        return new FacebookIntegrationAccountDto
+        {
+            ConnectionId = row.Id,
+            Provider = row.Provider,
+            DisplayName = row.DisplayName,
+            ExternalAccountId = row.ExternalAccountId,
+            Status = row.Status,
+            Scopes = scopes,
+            ExpiresAtUtc = row.ExpiresAtUtc,
+            LastSyncedAtUtc = row.UpdatedAtUtc
+        };
+    });
+    return Results.Ok(new { success = true, accounts = data });
+}).RequireAuthorization().DisableAntiforgery();
+
+app.MapGet("/api/integrations/facebook/assets", async (
+    Guid connectionId,
+    string type,
+    string? parentId,
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    MetaGraphClient graphClient,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    await FacebookLeadTriggerSchemaService.EnsureSchemaAsync(db);
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+    var connection = await db.IntegrationConnections
+        .AsNoTracking()
+        .FirstOrDefaultAsync(x => x.Id == connectionId && x.OwnerUserId == user.Id && x.Provider == "facebook", cancellationToken);
+    if (connection == null)
+    {
+        return Results.NotFound(new { success = false, message = "Integration account not found." });
+    }
+    var normalizedType = (type ?? string.Empty).Trim().ToLowerInvariant();
+    if (normalizedType is not ("ad_account" or "page" or "form"))
+    {
+        return Results.BadRequest(new { success = false, message = "Unsupported asset type." });
+    }
+
+    var assets = await graphClient.GetAssetsAsync(user, normalizedType, parentId, cancellationToken);
+
+    var cacheRows = assets.Select(asset => new FacebookIntegrationAssetCache
+    {
+        ConnectionId = connection.Id,
+        AssetType = asset.Type,
+        ExternalId = asset.Id,
+        Name = asset.Name,
+        ParentExternalId = asset.ParentId,
+        RawJson = JsonSerializer.Serialize(asset),
+        FetchedAtUtc = DateTime.UtcNow
+    }).ToList();
+
+    if (cacheRows.Count > 0)
+    {
+        var externalIds = cacheRows.Select(x => x.ExternalId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var oldRows = await db.FacebookIntegrationAssetCaches
+            .Where(x => x.ConnectionId == connection.Id && x.AssetType == normalizedType && externalIds.Contains(x.ExternalId))
+            .ToListAsync(cancellationToken);
+        if (oldRows.Count > 0)
+        {
+            db.FacebookIntegrationAssetCaches.RemoveRange(oldRows);
+        }
+        db.FacebookIntegrationAssetCaches.AddRange(cacheRows);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    return Results.Ok(new { success = true, assets });
+}).RequireAuthorization().DisableAntiforgery();
+
+app.MapGet("/api/workflows/{workflowId:guid}/triggers/{actionNodeId}", async (
+    Guid workflowId,
+    string actionNodeId,
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    await WorkflowSchemaService.EnsureLegacyColumnsAsync(db);
+    await FacebookLeadTriggerSchemaService.EnsureSchemaAsync(db);
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var workflow = await db.Workflows
+        .AsNoTracking()
+        .FirstOrDefaultAsync(w => w.Id == workflowId
+            && w.OwnerUserId == user.Id
+            && (user.CompanyId.HasValue ? w.CompanyId == user.CompanyId : w.CompanyId == null), cancellationToken);
+    if (workflow == null)
+    {
+        return Results.NotFound(new { success = false, message = "Workflow not found." });
+    }
+
+    var row = await db.WorkflowTriggerConfigs
+        .AsNoTracking()
+        .FirstOrDefaultAsync(x => x.WorkflowId == workflowId && x.ActionNodeId == actionNodeId && x.TriggerType == "facebook_lead", cancellationToken);
+
+    if (row == null)
+    {
+        return Results.Ok(new
+        {
+            success = true,
+            config = new FacebookLeadTriggerConfigDto
+            {
+                WorkflowId = workflowId,
+                ActionNodeId = actionNodeId,
+                TriggerType = "facebook_lead",
+                Mode = "test",
+                TriggerEvent = "leadgen.form.submit",
+                MappingMode = "Lead Fields",
+                MappingRules = [],
+                Validation = new TriggerValidationConfigDto { RequireConsent = false, ReplayWindowMinutes = 10, RouteMissingContactToNeedsEnrichment = true },
+                SplitFullName = true,
+                NormalizePhone = true,
+                ValidateEmail = true,
+                DetectCountryFromPhone = true
+            }
+        });
+    }
+
+    List<LeadMappingRuleDto> rules = [];
+    try
+    {
+        rules = JsonSerializer.Deserialize<List<LeadMappingRuleDto>>(row.MappingJson ?? "[]") ?? [];
+    }
+    catch { }
+
+    TriggerValidationConfigDto validation;
+    try
+    {
+        validation = JsonSerializer.Deserialize<TriggerValidationConfigDto>(row.ValidationConfigJson ?? "{}") ?? new TriggerValidationConfigDto();
+    }
+    catch
+    {
+        validation = new TriggerValidationConfigDto();
+    }
+
+    var dto = new FacebookLeadTriggerConfigDto
+    {
+        WorkflowId = row.WorkflowId,
+        ActionNodeId = row.ActionNodeId,
+        TriggerType = row.TriggerType,
+        Mode = row.Mode,
+        ConnectionId = row.ConnectionId,
+        AdAccountId = row.AdAccountId,
+        PageId = row.PageId,
+        FormId = row.FormId,
+        TriggerEvent = row.TriggerEvent,
+        MappingMode = row.MappingMode,
+        MappingRules = rules,
+        Validation = validation,
+        SplitFullName = true,
+        NormalizePhone = true,
+        ValidateEmail = true,
+        DetectCountryFromPhone = true
+    };
+
+    return Results.Ok(new { success = true, config = dto });
+}).RequireAuthorization().DisableAntiforgery();
+
+app.MapPut("/api/workflows/{workflowId:guid}/triggers/{actionNodeId}", async (
+    Guid workflowId,
+    string actionNodeId,
+    FacebookLeadTriggerConfigDto request,
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    await WorkflowSchemaService.EnsureLegacyColumnsAsync(db);
+    await FacebookLeadTriggerSchemaService.EnsureSchemaAsync(db);
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var workflow = await db.Workflows
+        .FirstOrDefaultAsync(w => w.Id == workflowId
+            && w.OwnerUserId == user.Id
+            && (user.CompanyId.HasValue ? w.CompanyId == user.CompanyId : w.CompanyId == null), cancellationToken);
+    if (workflow == null)
+    {
+        return Results.NotFound(new { success = false, message = "Workflow not found." });
+    }
+
+    var row = await db.WorkflowTriggerConfigs.FirstOrDefaultAsync(x =>
+        x.WorkflowId == workflowId &&
+        x.ActionNodeId == actionNodeId &&
+        x.TriggerType == "facebook_lead", cancellationToken);
+    if (row == null)
+    {
+        row = new WorkflowTriggerConfig
+        {
+            WorkflowId = workflowId,
+            ActionNodeId = actionNodeId,
+            TriggerType = "facebook_lead",
+            OwnerUserId = user.Id,
+            CompanyId = user.CompanyId
+        };
+        db.WorkflowTriggerConfigs.Add(row);
+    }
+
+    row.Mode = string.IsNullOrWhiteSpace(request.Mode) ? "test" : request.Mode.Trim().ToLowerInvariant();
+    row.ConnectionId = request.ConnectionId;
+    row.AdAccountId = request.AdAccountId;
+    row.PageId = request.PageId;
+    row.FormId = request.FormId;
+    row.TriggerEvent = string.IsNullOrWhiteSpace(request.TriggerEvent) ? "leadgen.form.submit" : request.TriggerEvent.Trim();
+    row.MappingMode = string.IsNullOrWhiteSpace(request.MappingMode) ? "Lead Fields" : request.MappingMode.Trim();
+    row.MappingJson = JsonSerializer.Serialize(request.MappingRules ?? []);
+    row.RequireConsent = request.Validation?.RequireConsent ?? false;
+    row.ReplayWindowMinutes = request.Validation?.ReplayWindowMinutes > 0 ? request.Validation.ReplayWindowMinutes : 10;
+    row.ValidationConfigJson = JsonSerializer.Serialize(request.Validation ?? new TriggerValidationConfigDto());
+    row.OutputRoutingConfigJson = JsonSerializer.Serialize(new
+    {
+        primary = "Out",
+        needs_enrichment = "Needs Enrichment",
+        compliance_review = "Compliance Review",
+        duplicate = "Out"
+    });
+    row.UpdatedAtUtc = DateTime.UtcNow;
+
+    await db.SaveChangesAsync(cancellationToken);
+    return Results.Ok(new { success = true, configId = row.Id, updatedAt = row.UpdatedAtUtc });
+}).RequireAuthorization().DisableAntiforgery();
+
+app.MapPost("/api/workflows/{workflowId:guid}/triggers/{actionNodeId}/test-replay", async (
+    Guid workflowId,
+    string actionNodeId,
+    FacebookLeadTriggerReplayRequest request,
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    FacebookLeadTriggerService triggerService,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    await WorkflowSchemaService.EnsureLegacyColumnsAsync(db);
+    await FacebookLeadTriggerSchemaService.EnsureSchemaAsync(db);
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var workflow = await db.Workflows
+        .FirstOrDefaultAsync(w => w.Id == workflowId
+            && w.OwnerUserId == user.Id
+            && (user.CompanyId.HasValue ? w.CompanyId == user.CompanyId : w.CompanyId == null), cancellationToken);
+    if (workflow == null)
+    {
+        return Results.NotFound(new { success = false, message = "Workflow not found." });
+    }
+
+    var config = await db.WorkflowTriggerConfigs.FirstOrDefaultAsync(x =>
+        x.WorkflowId == workflowId &&
+        x.ActionNodeId == actionNodeId &&
+        x.TriggerType == "facebook_lead", cancellationToken);
+    if (config == null)
+    {
+        config = new WorkflowTriggerConfig
+        {
+            WorkflowId = workflowId,
+            ActionNodeId = actionNodeId,
+            TriggerType = "facebook_lead",
+            OwnerUserId = user.Id,
+            CompanyId = user.CompanyId,
+            Mode = "test",
+            TriggerEvent = "leadgen.form.submit",
+            MappingMode = "Lead Fields",
+            MappingJson = "[]",
+            ValidationConfigJson = "{}",
+            OutputRoutingConfigJson = "{}"
+        };
+        db.WorkflowTriggerConfigs.Add(config);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    var result = await triggerService.ExecuteTestReplayAsync(workflow, config, request, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization().DisableAntiforgery();
+
+app.MapGet("/api/workflows/triggers/presets", async (
+    string? triggerType,
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    await FacebookLeadTriggerSchemaService.EnsureSchemaAsync(db);
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+    var normalizedType = string.IsNullOrWhiteSpace(triggerType) ? "facebook_lead" : triggerType.Trim().ToLowerInvariant();
+    var rows = await db.WorkflowFieldMappingPresets
+        .AsNoTracking()
+        .Where(x => x.OwnerUserId == user.Id && x.TriggerType == normalizedType)
+        .OrderByDescending(x => x.IsDefault)
+        .ThenBy(x => x.Name)
+        .ToListAsync(cancellationToken);
+    var presets = rows.Select(x =>
+    {
+        IReadOnlyList<LeadMappingRuleDto> rules = [];
+        try
+        {
+            rules = JsonSerializer.Deserialize<List<LeadMappingRuleDto>>(x.MappingJson ?? "[]") ?? [];
+        }
+        catch { }
+        return new LeadMappingPresetDto
+        {
+            Id = x.Id,
+            Name = x.Name,
+            TriggerType = x.TriggerType,
+            TargetEntity = x.TargetEntity,
+            IsDefault = x.IsDefault,
+            Rules = rules
+        };
+    });
+    return Results.Ok(new { success = true, presets });
+}).RequireAuthorization().DisableAntiforgery();
+
+app.MapPost("/api/workflows/triggers/presets", async (
+    LeadMappingPresetDto preset,
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    await FacebookLeadTriggerSchemaService.EnsureSchemaAsync(db);
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+    if (string.IsNullOrWhiteSpace(preset.Name))
+    {
+        return Results.BadRequest(new { success = false, message = "Preset name is required." });
+    }
+
+    var row = new WorkflowFieldMappingPreset
+    {
+        Name = preset.Name.Trim(),
+        TriggerType = string.IsNullOrWhiteSpace(preset.TriggerType) ? "facebook_lead" : preset.TriggerType.Trim().ToLowerInvariant(),
+        TargetEntity = string.IsNullOrWhiteSpace(preset.TargetEntity) ? "lead" : preset.TargetEntity.Trim().ToLowerInvariant(),
+        MappingJson = JsonSerializer.Serialize(preset.Rules ?? []),
+        IsDefault = preset.IsDefault,
+        OwnerUserId = user.Id,
+        CompanyId = user.CompanyId,
+        CreatedAtUtc = DateTime.UtcNow,
+        UpdatedAtUtc = DateTime.UtcNow
+    };
+    db.WorkflowFieldMappingPresets.Add(row);
+    await db.SaveChangesAsync(cancellationToken);
+    return Results.Ok(new { success = true, id = row.Id });
+}).RequireAuthorization().DisableAntiforgery();
+
+app.MapMethods("/api/webhooks/meta/leadgen", ["GET", "POST"], async (
+    HttpContext httpContext,
+    IOptions<FeatureFlagOptions> featureFlags,
+    FacebookLeadTriggerService triggerService,
+    ILoggerFactory loggerFactory,
+    CancellationToken cancellationToken) =>
+{
+    var logger = loggerFactory.CreateLogger("MetaLeadgenWebhook");
+
+    if (HttpMethods.IsGet(httpContext.Request.Method))
+    {
+        var mode = httpContext.Request.Query["hub.mode"].ToString();
+        var token = httpContext.Request.Query["hub.verify_token"].ToString();
+        var challenge = httpContext.Request.Query["hub.challenge"].ToString();
+        var configuredToken = httpContext.RequestServices.GetRequiredService<IConfiguration>()["Authentication:Facebook:WebhookVerifyToken"];
+        if (string.Equals(mode, "subscribe", StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(configuredToken) &&
+            string.Equals(token, configuredToken, StringComparison.Ordinal))
+        {
+            return Results.Text(challenge);
+        }
+        return Results.BadRequest("Verification failed");
+    }
+
+    if (!featureFlags.Value.MetaWebhookLive)
+    {
+        return Results.Ok(new { success = true, mode = "disabled" });
+    }
+
+    using var reader = new StreamReader(httpContext.Request.Body);
+    var payload = await reader.ReadToEndAsync(cancellationToken);
+    if (string.IsNullOrWhiteSpace(payload))
+    {
+        return Results.Ok(new { success = true, message = "Empty payload." });
+    }
+
+    try
+    {
+        var root = JsonDocument.Parse(payload).RootElement;
+        if (root.TryGetProperty("entry", out var entryNode) && entryNode.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var entry in entryNode.EnumerateArray())
+            {
+                if (!entry.TryGetProperty("changes", out var changesNode) || changesNode.ValueKind != JsonValueKind.Array)
+                {
+                    continue;
+                }
+                foreach (var change in changesNode.EnumerateArray())
+                {
+                    var field = change.TryGetProperty("field", out var fieldNode) ? fieldNode.GetString() : null;
+                    if (!string.Equals(field, "leadgen", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                    var value = change.TryGetProperty("value", out var valueNode) ? valueNode : default;
+                    var leadgenId = value.ValueKind != JsonValueKind.Undefined && value.TryGetProperty("leadgen_id", out var leadNode) ? leadNode.GetString() : null;
+                    var workflowIdRaw = value.ValueKind != JsonValueKind.Undefined && value.TryGetProperty("workflow_id", out var workflowNode) ? workflowNode.GetString() : null;
+                    var actionNodeId = value.ValueKind != JsonValueKind.Undefined && value.TryGetProperty("action_node_id", out var actionNode) ? actionNode.GetString() : null;
+                    if (Guid.TryParse(workflowIdRaw, out var workflowId) && !string.IsNullOrWhiteSpace(actionNodeId) && !string.IsNullOrWhiteSpace(leadgenId))
+                    {
+                        await triggerService.HandleLiveWebhookAsync(workflowId, actionNodeId, leadgenId, cancellationToken);
+                    }
+                }
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Meta webhook payload parse failed.");
+    }
+
+    return Results.Ok(new { success = true });
+}).DisableAntiforgery();
+
+app.MapMethods("/api/webhooks/meta/verify", ["GET"], async (HttpContext httpContext) =>
+{
+    var mode = httpContext.Request.Query["hub.mode"].ToString();
+    var token = httpContext.Request.Query["hub.verify_token"].ToString();
+    var challenge = httpContext.Request.Query["hub.challenge"].ToString();
+    var configuredToken = httpContext.RequestServices.GetRequiredService<IConfiguration>()["Authentication:Facebook:WebhookVerifyToken"];
+    if (string.Equals(mode, "subscribe", StringComparison.OrdinalIgnoreCase) &&
+        !string.IsNullOrWhiteSpace(configuredToken) &&
+        string.Equals(token, configuredToken, StringComparison.Ordinal))
+    {
+        return Results.Text(challenge);
+    }
+    return Results.BadRequest("Verification failed");
+}).DisableAntiforgery();
+
+app.MapSocialFacebookApi();
 
 var dynamicVeApi = app.MapGroup("/api/dve").RequireAuthorization().DisableAntiforgery();
 
@@ -1028,10 +1836,18 @@ dynamicVeApi.MapGet("/page/load", async Task<IResult> (
     string? env,
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
+    IOptions<FeatureFlagOptions> featureFlags,
     IWebHostEnvironment webHostEnvironment,
     HttpContext httpContext,
     CancellationToken cancellationToken) =>
 {
+    if (!featureFlags.Value.DynamicVeWorkflowV2)
+    {
+        return Results.NotFound(new { success = false, message = "Dynamic VE workflow v2 is disabled." });
+    }
+
+    await DynamicVeSchemaService.EnsureActionBindingColumnsAsync(db);
+
     var project = await FindAccessibleProjectAsync(db, userManager, httpContext.User, projectId, cancellationToken);
     if (project == null)
     {
@@ -1170,7 +1986,11 @@ dynamicVeApi.MapGet("/page/load", async Task<IResult> (
             fallbackSelectors = maps.ContainsKey(x.ElementKey) ? ParseFallbackSelectors(maps[x.ElementKey].FallbackSelectorsJson) : Array.Empty<string>(),
             x.ActionType,
             x.WorkflowId,
+            x.WorkflowDguid,
+            x.WorkflowNameSnapshot,
             x.NavigateUrl,
+            x.TriggerEvent,
+            x.ValidationJson,
             x.BehaviorJson
         } as object).ToList();
     }
@@ -1193,6 +2013,74 @@ dynamicVeApi.MapGet("/page/load", async Task<IResult> (
         },
         resolutionSummary
     });
+});
+
+dynamicVeApi.MapGet("/workflows/list", async Task<IResult> (
+    int projectId,
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    IOptions<FeatureFlagOptions> featureFlags,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    if (!featureFlags.Value.DynamicVeWorkflowV2)
+    {
+        return Results.NotFound(new { success = false, message = "Dynamic VE workflow v2 is disabled." });
+    }
+
+    await DynamicVeSchemaService.EnsureActionBindingColumnsAsync(db);
+
+    var project = await FindAccessibleProjectAsync(db, userManager, httpContext.User, projectId, cancellationToken);
+    if (project == null)
+    {
+        return Results.NotFound(new { success = false, message = "Project not found." });
+    }
+
+    var user = await userManager.GetUserAsync(httpContext.User);
+    if (user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var workflows = await db.Workflows
+        .AsNoTracking()
+        .Where(w => w.OwnerUserId == user.Id
+            && (user.CompanyId.HasValue ? w.CompanyId == user.CompanyId : w.CompanyId == null)
+            && w.Status != "Archived"
+            && w.Status != "Deleted")
+        .OrderBy(w => w.Name)
+        .Select(w => new
+        {
+            id = w.Id,
+            dguid = w.Dguid,
+            name = w.Caption ?? w.Name,
+            status = w.Status,
+            inActive = w.InActive,
+            updatedAtUtc = w.UpdatedAtUtc,
+            triggerType = w.TriggerType
+        })
+        .ToListAsync(cancellationToken);
+
+    if (workflows.Count == 0)
+    {
+        workflows = await db.Workflows
+            .AsNoTracking()
+            .Where(w => w.Status != "Archived" && w.Status != "Deleted")
+            .OrderBy(w => w.Name)
+            .Select(w => new
+            {
+                id = w.Id,
+                dguid = w.Dguid,
+                name = w.Caption ?? w.Name,
+                status = w.Status,
+                inActive = w.InActive,
+                updatedAtUtc = w.UpdatedAtUtc,
+                triggerType = w.TriggerType
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    return Results.Ok(new { success = true, workflows });
 });
 
 dynamicVeApi.MapPost("/element/resolve", async Task<IResult> (
@@ -1384,9 +2272,17 @@ dynamicVeApi.MapPost("/bind/action", async Task<IResult> (
     DynamicVeBindActionRequest request,
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
+    IOptions<FeatureFlagOptions> featureFlags,
     HttpContext httpContext,
     CancellationToken cancellationToken) =>
 {
+    if (!featureFlags.Value.DynamicVeWorkflowV2)
+    {
+        return Results.NotFound(new { success = false, message = "Dynamic VE workflow v2 is disabled." });
+    }
+
+    await DynamicVeSchemaService.EnsureActionBindingColumnsAsync(db);
+
     var project = await FindAccessibleProjectTrackedAsync(db, userManager, httpContext.User, request.ProjectId, cancellationToken);
     if (project == null)
     {
@@ -1402,6 +2298,38 @@ dynamicVeApi.MapPost("/bind/action", async Task<IResult> (
 
     var elementKey = request.ElementKey.Trim();
     var actionType = string.IsNullOrWhiteSpace(request.ActionType) ? "navigate" : request.ActionType.Trim().ToLowerInvariant();
+    var definition = DynamicVeActionRegistry.Get(actionType);
+    if (definition == null)
+    {
+        return Results.BadRequest(new { success = false, message = $"Unsupported action type '{actionType}'." });
+    }
+
+    var triggerEvent = NormalizeTriggerEvent(request.TriggerEvent);
+    if (!definition.AllowedTriggerEvents.Contains(triggerEvent, StringComparer.OrdinalIgnoreCase))
+    {
+        return Results.BadRequest(new { success = false, message = $"Trigger event '{triggerEvent}' is not allowed for action '{actionType}'." });
+    }
+
+    if ((actionType is "navigate" or "hybrid") && string.IsNullOrWhiteSpace(request.NavigateUrl))
+    {
+        return Results.BadRequest(new { success = false, message = "Navigate URL required for navigate/hybrid actions." });
+    }
+
+    Workflow? resolvedWorkflow = null;
+    string normalizedWorkflowDguid = string.Empty;
+    if (actionType is "workflow" or "hybrid")
+    {
+        resolvedWorkflow = await ResolveWorkflowByIdOrDguidAsync(db, request.WorkflowId, request.WorkflowDguid, cancellationToken);
+        if (resolvedWorkflow == null)
+        {
+            return Results.BadRequest(new { success = false, message = "Valid workflow is required for workflow/hybrid actions." });
+        }
+        normalizedWorkflowDguid = NormalizeDguid(resolvedWorkflow.Dguid);
+    }
+
+    var validationJson = request.Validation.HasValue ? request.Validation.Value.GetRawText() : "{}";
+    var behaviorJson = request.Behavior.HasValue ? request.Behavior.Value.GetRawText() : "{}";
+
     var existingBinding = await db.DynamicVeActionBindings
         .FirstOrDefaultAsync(x => x.RevisionId == revision.Id && x.ElementKey == elementKey, cancellationToken);
     if (existingBinding == null)
@@ -1411,22 +2339,45 @@ dynamicVeApi.MapPost("/bind/action", async Task<IResult> (
             RevisionId = revision.Id,
             ElementKey = elementKey,
             ActionType = actionType,
-            WorkflowId = request.WorkflowId,
+            WorkflowId = resolvedWorkflow?.Id,
+            WorkflowDguid = string.IsNullOrWhiteSpace(normalizedWorkflowDguid) ? null : normalizedWorkflowDguid,
+            WorkflowNameSnapshot = resolvedWorkflow == null ? null : (resolvedWorkflow.Caption ?? resolvedWorkflow.Name),
             NavigateUrl = request.NavigateUrl,
-            BehaviorJson = request.Behavior.HasValue ? request.Behavior.Value.GetRawText() : "{}"
+            TriggerEvent = triggerEvent,
+            ValidationJson = validationJson,
+            BehaviorJson = behaviorJson
         });
     }
     else
     {
         existingBinding.ActionType = actionType;
-        existingBinding.WorkflowId = request.WorkflowId;
+        existingBinding.WorkflowId = resolvedWorkflow?.Id;
+        existingBinding.WorkflowDguid = string.IsNullOrWhiteSpace(normalizedWorkflowDguid) ? null : normalizedWorkflowDguid;
+        existingBinding.WorkflowNameSnapshot = resolvedWorkflow == null ? null : (resolvedWorkflow.Caption ?? resolvedWorkflow.Name);
         existingBinding.NavigateUrl = request.NavigateUrl;
-        existingBinding.BehaviorJson = request.Behavior.HasValue ? request.Behavior.Value.GetRawText() : "{}";
+        existingBinding.TriggerEvent = triggerEvent;
+        existingBinding.ValidationJson = validationJson;
+        existingBinding.BehaviorJson = behaviorJson;
     }
     await db.SaveChangesAsync(cancellationToken);
 
     await AppendDynamicVeAuditAsync(db, project.Id, revision.Id, userManager, httpContext.User, "action-bind", new { pagePath, request.ElementKey, request.ActionType }, cancellationToken);
-    return Results.Ok(new { success = true, revisionId = revision.Id });
+    return Results.Ok(new
+    {
+        success = true,
+        revisionId = revision.Id,
+        binding = new
+        {
+            elementKey,
+            actionType,
+            workflowId = resolvedWorkflow?.Id,
+            workflowDguid = string.IsNullOrWhiteSpace(normalizedWorkflowDguid) ? null : normalizedWorkflowDguid,
+            workflowName = resolvedWorkflow == null ? null : (resolvedWorkflow.Caption ?? resolvedWorkflow.Name),
+            navigateUrl = request.NavigateUrl,
+            triggerEvent,
+            validationJson
+        }
+    });
 });
 
 dynamicVeApi.MapPost("/bind/test", async Task<IResult> (
@@ -1434,9 +2385,18 @@ dynamicVeApi.MapPost("/bind/test", async Task<IResult> (
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
     WorkflowExecutionService workflowExecutionService,
+    ISensitiveDataProtector protector,
+    IOptions<FeatureFlagOptions> featureFlags,
     HttpContext httpContext,
     CancellationToken cancellationToken) =>
 {
+    if (!featureFlags.Value.DynamicVeWorkflowV2)
+    {
+        return Results.NotFound(new { success = false, message = "Dynamic VE workflow v2 is disabled." });
+    }
+
+    await DynamicVeSchemaService.EnsureActionBindingColumnsAsync(db);
+
     var project = await FindAccessibleProjectAsync(db, userManager, httpContext.User, request.ProjectId, cancellationToken);
     if (project == null)
     {
@@ -1450,7 +2410,7 @@ dynamicVeApi.MapPost("/bind/test", async Task<IResult> (
     var pagePath = NormalizeDynamicVePath(request.PagePath);
     var revision = await db.DynamicVePageRevisions
         .AsNoTracking()
-        .Where(r => r.UploadedProjectId == project.Id && r.PagePath == pagePath)
+        .Where(r => r.UploadedProjectId == project.Id && r.PagePath == pagePath && r.Environment == "draft")
         .OrderByDescending(r => r.CreatedAtUtc)
         .FirstOrDefaultAsync(cancellationToken);
     if (revision == null)
@@ -1469,43 +2429,63 @@ dynamicVeApi.MapPost("/bind/test", async Task<IResult> (
     var traceId = Guid.NewGuid().ToString("N");
     var actionType = binding.ActionType?.ToLowerInvariant() ?? "navigate";
     var errors = new List<string>();
+    var warnings = new List<string>();
     var executionPath = new List<string>();
+    string? resolvedRecipient = null;
+    string smtpProfileUsed = "app-fallback";
+    object? workflowMeta = null;
     bool ok = true;
 
     if (actionType is "workflow" or "hybrid")
     {
-        if (!binding.WorkflowId.HasValue)
+        var workflow = await ResolveWorkflowByIdOrDguidAsync(db, binding.WorkflowId, binding.WorkflowDguid, cancellationToken);
+        if (workflow == null)
         {
             ok = false;
-            errors.Add("Workflow id is missing.");
+            errors.Add("Workflow is missing for this binding.");
         }
         else
         {
-            var workflow = await db.Workflows
-                .AsNoTracking()
-                .FirstOrDefaultAsync(w => w.Id == binding.WorkflowId.Value, cancellationToken);
-            if (workflow == null)
+            var fields = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+            foreach (var pair in request.MockFields ?? new Dictionary<string, string?>())
+            {
+                fields[pair.Key] = pair.Value;
+            }
+            foreach (var pair in request.Overrides?.Fields ?? new Dictionary<string, string?>())
+            {
+                fields[pair.Key] = pair.Value;
+            }
+            var testEmail = request.Overrides?.Email ?? request.MockEmail;
+            var context = new WorkflowTriggerContext(
+                Email: testEmail,
+                Fields: fields,
+                SourceUrl: $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/{pagePath}",
+                ElementTag: "button",
+                ElementId: request.ElementKey);
+
+            resolvedRecipient = await ResolveWorkflowRecipientPreviewAsync(db, workflow, context, cancellationToken);
+            if (string.IsNullOrWhiteSpace(resolvedRecipient))
+            {
+                warnings.Add("Recipient could not be resolved from current test payload.");
+            }
+
+            smtpProfileUsed = await ResolveSmtpProfilePreviewNameAsync(db, protector, workflow, cancellationToken);
+            workflowMeta = new
+            {
+                id = workflow.Id,
+                dguid = workflow.Dguid,
+                name = workflow.Caption ?? workflow.Name,
+                status = workflow.Status,
+                triggerType = workflow.TriggerType
+            };
+
+            var (success, error) = await workflowExecutionService.ExecuteAsync(workflow, context);
+            if (!success)
             {
                 ok = false;
-                errors.Add("Workflow not found.");
+                errors.Add(error ?? "Workflow execution failed.");
             }
-            else
-            {
-                var fields = request.MockFields ?? new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-                var context = new WorkflowTriggerContext(
-                    Email: request.MockEmail,
-                    Fields: fields,
-                    SourceUrl: $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/{pagePath}",
-                    ElementTag: "button",
-                    ElementId: request.ElementKey);
-                var (success, error) = await workflowExecutionService.ExecuteAsync(workflow, context);
-                if (!success)
-                {
-                    ok = false;
-                    errors.Add(error ?? "Workflow execution failed.");
-                }
-                executionPath.Add("workflow");
-            }
+            executionPath.Add("workflow");
         }
     }
 
@@ -1542,7 +2522,11 @@ dynamicVeApi.MapPost("/bind/test", async Task<IResult> (
         ok,
         traceId,
         executionPath,
-        errors
+        errors,
+        warnings,
+        workflow = workflowMeta,
+        resolvedRecipient = MaskEmail(resolvedRecipient),
+        smtpProfileUsed
     });
 });
 
@@ -1699,6 +2683,8 @@ dynamicVeApi.MapPost("/preflight", async Task<IResult> (
     IPreflightPublishService preflightService,
     CancellationToken cancellationToken) =>
 {
+    await DynamicVeSchemaService.EnsureActionBindingColumnsAsync(db);
+
     var project = await FindAccessibleProjectAsync(db, userManager, httpContext.User, request.ProjectId, cancellationToken);
     if (project == null)
     {
@@ -1723,7 +2709,7 @@ dynamicVeApi.MapPost("/preflight", async Task<IResult> (
 
     var revision = await db.DynamicVePageRevisions
         .AsNoTracking()
-        .Where(r => r.UploadedProjectId == project.Id && r.PagePath == pagePath)
+        .Where(r => r.UploadedProjectId == project.Id && r.PagePath == pagePath && r.Environment == "draft")
         .OrderByDescending(r => r.CreatedAtUtc)
         .FirstOrDefaultAsync(cancellationToken);
     var diagnostics = new
@@ -1817,7 +2803,7 @@ dynamicVeApi.MapPost("/publish", async Task<IResult> (
     }
 
     var pagePath = NormalizeDynamicVePath(request.PagePath);
-    var revision = await EnsureDynamicVeDraftRevisionAsync(db, project, pagePath, cancellationToken);
+    var draftRevision = await EnsureDynamicVeDraftRevisionAsync(db, project, pagePath, cancellationToken);
     var webRoot = environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot");
     var projectRoot = Path.Combine(webRoot, "Uploads", project.FolderName);
     var fullPath = Path.Combine(projectRoot, pagePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
@@ -1845,25 +2831,24 @@ dynamicVeApi.MapPost("/publish", async Task<IResult> (
         });
     }
 
-    revision.Status = "published";
-    revision.Environment = "live";
+    var liveRevision = await CreateDynamicVeLiveRevisionFromDraftAsync(db, draftRevision, cancellationToken);
     var config = await EnsureDynamicVeConfigAsync(db, project.Id, cancellationToken);
-    config.LiveRevisionId = revision.Id;
+    config.LiveRevisionId = liveRevision.Id;
     config.UpdatedAtUtc = DateTime.UtcNow;
 
-    var artifact = await artifactService.BuildOverlayArtifactAsync(project, revision, db, cancellationToken);
+    var artifact = await artifactService.BuildOverlayArtifactAsync(project, liveRevision, db, cancellationToken);
     if (File.Exists(fullPath))
     {
         var updatedHtml = AttachDynamicVeRuntime(
             File.Exists(fullPath) ? await File.ReadAllTextAsync(fullPath, cancellationToken) : string.Empty,
             artifact.ArtifactPath,
             project.Id,
-            revision.Id);
+            liveRevision.Id);
         await File.WriteAllTextAsync(fullPath, updatedHtml, cancellationToken);
     }
     db.DynamicVePublishArtifacts.Add(new DynamicVePublishArtifact
     {
-        RevisionId = revision.Id,
+        RevisionId = liveRevision.Id,
         ArtifactType = "overlay-package",
         ArtifactPath = artifact.ArtifactPath,
         Checksum = artifact.Checksum,
@@ -1880,16 +2865,17 @@ dynamicVeApi.MapPost("/publish", async Task<IResult> (
         cancellationToken: cancellationToken);
     if (snapshot.Snapshot != null)
     {
-        revision.BaseSnapshotId = snapshot.Snapshot.Id;
+        liveRevision.BaseSnapshotId = snapshot.Snapshot.Id;
     }
 
     await db.SaveChangesAsync(cancellationToken);
-    await AppendDynamicVeAuditAsync(db, project.Id, revision.Id, userManager, httpContext.User, "publish", new { pagePath, artifact.ArtifactPath }, cancellationToken);
+    await AppendDynamicVeAuditAsync(db, project.Id, liveRevision.Id, userManager, httpContext.User, "publish", new { pagePath, artifact.ArtifactPath }, cancellationToken);
 
     return Results.Ok(new
     {
         success = true,
-        revisionId = revision.Id,
+        revisionId = liveRevision.Id,
+        draftRevisionId = draftRevision.Id,
         artifactPath = artifact.ArtifactPath,
         checksum = artifact.Checksum,
         preflight = new { preflight.Safe, preflight.Score, preflight.Blockers, preflight.Warnings },
@@ -3533,6 +4519,21 @@ static async Task<DynamicVePageRevision> EnsureDynamicVeDraftRevisionAsync(
     {
         revision = await db.DynamicVePageRevisions
             .FirstOrDefaultAsync(x => x.Id == config.DraftRevisionId.Value && x.UploadedProjectId == project.Id && x.PagePath == normalized, cancellationToken);
+        if (revision != null && (!string.Equals(revision.Environment, "draft", StringComparison.OrdinalIgnoreCase) || !string.Equals(revision.Status, "draft", StringComparison.OrdinalIgnoreCase)))
+        {
+            revision = null;
+        }
+    }
+
+    if (revision == null)
+    {
+        revision = await db.DynamicVePageRevisions
+            .Where(x => x.UploadedProjectId == project.Id
+                && x.PagePath == normalized
+                && x.Environment == "draft"
+                && x.Status == "draft")
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     if (revision == null)
@@ -3547,12 +4548,136 @@ static async Task<DynamicVePageRevision> EnsureDynamicVeDraftRevisionAsync(
         };
         db.DynamicVePageRevisions.Add(revision);
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    if (config.DraftRevisionId != revision.Id)
+    {
         config.DraftRevisionId = revision.Id;
         config.UpdatedAtUtc = DateTime.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
     }
 
     return revision;
+}
+
+static async Task<DynamicVePageRevision> CreateDynamicVeLiveRevisionFromDraftAsync(
+    ApplicationDbContext db,
+    DynamicVePageRevision draftRevision,
+    CancellationToken cancellationToken)
+{
+    var liveRevision = new DynamicVePageRevision
+    {
+        UploadedProjectId = draftRevision.UploadedProjectId,
+        PagePath = draftRevision.PagePath,
+        Environment = "live",
+        Status = "published",
+        BaseSnapshotId = draftRevision.BaseSnapshotId,
+        CreatedByUserId = draftRevision.CreatedByUserId,
+        CreatedAtUtc = DateTime.UtcNow
+    };
+    db.DynamicVePageRevisions.Add(liveRevision);
+    await db.SaveChangesAsync(cancellationToken);
+
+    var elementMaps = await db.DynamicVeElementMaps
+        .AsNoTracking()
+        .Where(x => x.RevisionId == draftRevision.Id)
+        .ToListAsync(cancellationToken);
+    foreach (var item in elementMaps)
+    {
+        db.DynamicVeElementMaps.Add(new DynamicVeElementMap
+        {
+            RevisionId = liveRevision.Id,
+            ElementKey = item.ElementKey,
+            PrimarySelector = item.PrimarySelector,
+            FallbackSelectorsJson = item.FallbackSelectorsJson,
+            FingerprintHash = item.FingerprintHash,
+            AnchorHash = item.AnchorHash,
+            Confidence = item.Confidence,
+            LastResolvedSelector = item.LastResolvedSelector,
+            LastResolvedAtUtc = item.LastResolvedAtUtc,
+            CreatedAtUtc = item.CreatedAtUtc
+        });
+    }
+
+    var patchRules = await db.DynamicVePatchRules
+        .AsNoTracking()
+        .Where(x => x.RevisionId == draftRevision.Id)
+        .ToListAsync(cancellationToken);
+    foreach (var item in patchRules)
+    {
+        db.DynamicVePatchRules.Add(new DynamicVePatchRule
+        {
+            RevisionId = liveRevision.Id,
+            ElementKey = item.ElementKey,
+            RuleType = item.RuleType,
+            Breakpoint = item.Breakpoint,
+            State = item.State,
+            Property = item.Property,
+            Value = item.Value,
+            Priority = item.Priority,
+            CreatedAtUtc = item.CreatedAtUtc
+        });
+    }
+
+    var textPatches = await db.DynamicVeTextPatches
+        .AsNoTracking()
+        .Where(x => x.RevisionId == draftRevision.Id)
+        .ToListAsync(cancellationToken);
+    foreach (var item in textPatches)
+    {
+        db.DynamicVeTextPatches.Add(new DynamicVeTextPatch
+        {
+            RevisionId = liveRevision.Id,
+            ElementKey = item.ElementKey,
+            TextMode = item.TextMode,
+            Content = item.Content,
+            CreatedAtUtc = item.CreatedAtUtc
+        });
+    }
+
+    var sections = await db.DynamicVeSectionInstances
+        .AsNoTracking()
+        .Where(x => x.RevisionId == draftRevision.Id)
+        .ToListAsync(cancellationToken);
+    foreach (var item in sections)
+    {
+        db.DynamicVeSectionInstances.Add(new DynamicVeSectionInstance
+        {
+            RevisionId = liveRevision.Id,
+            TemplateId = item.TemplateId,
+            InsertMode = item.InsertMode,
+            TargetElementKey = item.TargetElementKey,
+            MarkupJson = item.MarkupJson,
+            CssJson = item.CssJson,
+            JsJson = item.JsJson,
+            CreatedAtUtc = item.CreatedAtUtc
+        });
+    }
+
+    var actionBindings = await db.DynamicVeActionBindings
+        .AsNoTracking()
+        .Where(x => x.RevisionId == draftRevision.Id)
+        .ToListAsync(cancellationToken);
+    foreach (var item in actionBindings)
+    {
+        db.DynamicVeActionBindings.Add(new DynamicVeActionBinding
+        {
+            RevisionId = liveRevision.Id,
+            ElementKey = item.ElementKey,
+            ActionType = item.ActionType,
+            WorkflowId = item.WorkflowId,
+            WorkflowDguid = item.WorkflowDguid,
+            WorkflowNameSnapshot = item.WorkflowNameSnapshot,
+            NavigateUrl = item.NavigateUrl,
+            TriggerEvent = item.TriggerEvent,
+            ValidationJson = item.ValidationJson,
+            BehaviorJson = item.BehaviorJson,
+            CreatedAtUtc = item.CreatedAtUtc
+        });
+    }
+
+    await db.SaveChangesAsync(cancellationToken);
+    return liveRevision;
 }
 
 static async Task UpsertDynamicVeElementMapAsync(
@@ -3673,6 +4798,213 @@ static async Task AppendDynamicVeAuditAsync(
         AtUtc = DateTime.UtcNow
     });
     await db.SaveChangesAsync(cancellationToken);
+}
+
+static string NormalizeDguid(string? value)
+    => string.IsNullOrWhiteSpace(value)
+        ? string.Empty
+        : value.Replace("-", string.Empty, StringComparison.Ordinal).Trim().ToLowerInvariant();
+
+static string NormalizeTriggerEvent(string? triggerEvent)
+{
+    var normalized = (triggerEvent ?? "auto").Trim().ToLowerInvariant();
+    return normalized switch
+    {
+        "click" => "click",
+        "submit" => "submit",
+        _ => "auto"
+    };
+}
+
+static async Task<Workflow?> ResolveWorkflowByIdOrDguidAsync(
+    ApplicationDbContext db,
+    Guid? workflowId,
+    string? workflowDguid,
+    CancellationToken cancellationToken)
+{
+    if (workflowId.HasValue && workflowId.Value != Guid.Empty)
+    {
+        return await db.Workflows.FirstOrDefaultAsync(w => w.Id == workflowId.Value, cancellationToken);
+    }
+
+    var normalizedDguid = NormalizeDguid(workflowDguid);
+    if (string.IsNullOrWhiteSpace(normalizedDguid))
+    {
+        return null;
+    }
+
+    var candidates = await db.Workflows
+        .Where(w => w.Dguid != null && w.Dguid != string.Empty)
+        .ToListAsync(cancellationToken);
+    return candidates.FirstOrDefault(w => NormalizeDguid(w.Dguid) == normalizedDguid);
+}
+
+static async Task<string?> ResolveWorkflowRecipientPreviewAsync(
+    ApplicationDbContext db,
+    Workflow workflow,
+    WorkflowTriggerContext context,
+    CancellationToken cancellationToken)
+{
+    if (TryExtractWorkflowEmailNode(workflow.DefinitionJson) is not { } emailNode)
+    {
+        return context.Email;
+    }
+
+    if (!string.IsNullOrWhiteSpace(emailNode.EmailAddress) && emailNode.EmailAddress.Contains('@', StringComparison.Ordinal))
+    {
+        return emailNode.EmailAddress.Trim();
+    }
+
+    if (!string.IsNullOrWhiteSpace(emailNode.MailTo) &&
+        emailNode.MailTo.Equals("Current User", StringComparison.OrdinalIgnoreCase))
+    {
+        var ownerEmail = await db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == workflow.OwnerUserId)
+            .Select(u => u.Email)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (!string.IsNullOrWhiteSpace(ownerEmail))
+        {
+            return ownerEmail.Trim();
+        }
+    }
+
+    if (!string.IsNullOrWhiteSpace(emailNode.MailTo) &&
+        !emailNode.MailTo.Equals("Current User", StringComparison.OrdinalIgnoreCase) &&
+        emailNode.MailTo.Contains('@', StringComparison.Ordinal))
+    {
+        return emailNode.MailTo.Trim();
+    }
+
+    if (!string.IsNullOrWhiteSpace(emailNode.EmailAddressField) &&
+        context.Fields.TryGetValue(emailNode.EmailAddressField, out var mappedEmail) &&
+        !string.IsNullOrWhiteSpace(mappedEmail))
+    {
+        return mappedEmail.Trim();
+    }
+
+    if (!string.IsNullOrWhiteSpace(context.Email))
+    {
+        return context.Email.Trim();
+    }
+
+    if (context.Fields.TryGetValue("email", out var email) && !string.IsNullOrWhiteSpace(email))
+    {
+        return email.Trim();
+    }
+
+    var fallback = context.Fields
+        .FirstOrDefault(kvp => kvp.Key.Contains("email", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(kvp.Value));
+    return string.IsNullOrWhiteSpace(fallback.Value) ? null : fallback.Value.Trim();
+}
+
+static async Task<string> ResolveSmtpProfilePreviewNameAsync(
+    ApplicationDbContext db,
+    ISensitiveDataProtector protector,
+    Workflow workflow,
+    CancellationToken cancellationToken)
+{
+    if (TryExtractWorkflowEmailNode(workflow.DefinitionJson) is { } emailNode
+        && !string.IsNullOrWhiteSpace(emailNode.SmtpProfileDguid))
+    {
+        var selected = await SystemPropertySmtpLoader.FindProfileAsync(
+            db,
+            protector,
+            workflow.OwnerUserId,
+            workflow.CompanyId,
+            emailNode.SmtpProfileDguid,
+            cancellationToken);
+        if (selected != null)
+        {
+            return string.IsNullOrWhiteSpace(selected.Name) ? "selected-profile" : selected.Name;
+        }
+    }
+
+    var defaultProfile = await SystemPropertySmtpLoader.FindDefaultProfileAsync(
+        db,
+        protector,
+        workflow.OwnerUserId,
+        workflow.CompanyId,
+        cancellationToken);
+    if (defaultProfile != null)
+    {
+        return string.IsNullOrWhiteSpace(defaultProfile.Name) ? "default-system-profile" : defaultProfile.Name;
+    }
+
+    return "app-fallback";
+}
+
+static string? MaskEmail(string? email)
+{
+    if (string.IsNullOrWhiteSpace(email))
+    {
+        return email;
+    }
+
+    var at = email.IndexOf('@');
+    if (at <= 1 || at == email.Length - 1)
+    {
+        return "***";
+    }
+
+    var local = email[..at];
+    var domain = email[(at + 1)..];
+    var maskedLocal = local.Length <= 2
+        ? $"{local[0]}*"
+        : $"{local[0]}***{local[^1]}";
+    return $"{maskedLocal}@{domain}";
+}
+
+static (string? MailTo, string? EmailAddress, string? EmailAddressField, string? SmtpProfileDguid)? TryExtractWorkflowEmailNode(string? definitionJson)
+{
+    if (string.IsNullOrWhiteSpace(definitionJson))
+    {
+        return null;
+    }
+
+    try
+    {
+        using var doc = JsonDocument.Parse(definitionJson);
+        if (!doc.RootElement.TryGetProperty("nodes", out var nodes) || nodes.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        foreach (var node in nodes.EnumerateArray())
+        {
+            if (!node.TryGetProperty("type", out var typeProp) ||
+                !string.Equals(typeProp.GetString(), "email", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!node.TryGetProperty("data", out var data))
+            {
+                continue;
+            }
+
+            JsonElement? actionProps = data.TryGetProperty("actionProps", out var actionPropsProp) && actionPropsProp.ValueKind == JsonValueKind.Object
+                ? actionPropsProp
+                : null;
+
+            string? ActionPropString(string key)
+                => actionProps.HasValue && actionProps.Value.TryGetProperty(key, out var prop) && prop.ValueKind == JsonValueKind.String
+                    ? prop.GetString()
+                    : null;
+
+            return (
+                MailTo: ActionPropString("mailTo"),
+                EmailAddress: ActionPropString("emailAddress"),
+                EmailAddressField: ActionPropString("emailAddressField"),
+                SmtpProfileDguid: ActionPropString("smtpProfileDguid"));
+        }
+    }
+    catch
+    {
+        return null;
+    }
+
+    return null;
 }
 
 static object MapDomainDto(ProjectDomain domain, UploadedProject? project = null)

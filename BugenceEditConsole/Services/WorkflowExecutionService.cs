@@ -4,6 +4,7 @@ using BugenceEditConsole.Data;
 using BugenceEditConsole.Models;
 using System.Net;
 using System.Net.Mail;
+using Microsoft.EntityFrameworkCore;
 
 namespace BugenceEditConsole.Services;
 
@@ -12,7 +13,12 @@ public record WorkflowTriggerContext(
     IDictionary<string, string?> Fields,
     string? SourceUrl,
     string? ElementTag,
-    string? ElementId);
+    string? ElementId,
+    string? Provider = null,
+    string? BranchKey = null,
+    string? RawPayloadJson = null,
+    IDictionary<string, string?>? MappedFields = null,
+    IDictionary<string, bool>? ValidationFlags = null);
 
 public class WorkflowExecutionService
 {
@@ -47,7 +53,7 @@ public class WorkflowExecutionService
             return (false, "No email step found.");
         }
 
-        var recipient = ResolveRecipient(context, emailNode.MailTo, emailNode.EmailAddress, emailNode.EmailAddressField);
+        var recipient = await ResolveRecipientAsync(workflow, context, emailNode.MailTo, emailNode.EmailAddress, emailNode.EmailAddressField);
         if (string.IsNullOrWhiteSpace(recipient))
         {
             await LogAsync(workflow, "Failed", "Recipient email is missing.", context.SourceUrl);
@@ -155,6 +161,10 @@ public class WorkflowExecutionService
         {
             return (false, "Selected SMTP profile is incomplete (host/from address missing).");
         }
+        if (!string.IsNullOrWhiteSpace(profile.Username) && string.IsNullOrWhiteSpace(profile.Password))
+        {
+            return (false, "Selected SMTP profile password is missing or could not be decrypted. Re-save SMTP password in System Properties.");
+        }
 
         try
         {
@@ -190,7 +200,8 @@ public class WorkflowExecutionService
         }
     }
 
-    private static string? ResolveRecipient(
+    private async Task<string?> ResolveRecipientAsync(
+        Workflow workflow,
         WorkflowTriggerContext context,
         string? mailTo,
         string? emailAddress,
@@ -199,6 +210,19 @@ public class WorkflowExecutionService
         if (!string.IsNullOrWhiteSpace(emailAddress) && emailAddress.Contains('@', StringComparison.Ordinal))
         {
             return emailAddress.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(mailTo) &&
+            mailTo.Equals("Current User", StringComparison.OrdinalIgnoreCase))
+        {
+            var ownerEmail = await _db.Users
+                .Where(u => u.Id == workflow.OwnerUserId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrWhiteSpace(ownerEmail))
+            {
+                return ownerEmail.Trim();
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(mailTo) &&
@@ -237,14 +261,89 @@ public class WorkflowExecutionService
             ["email"] = context.Email,
             ["sourceUrl"] = context.SourceUrl,
             ["elementTag"] = context.ElementTag,
-            ["elementId"] = context.ElementId
+            ["elementId"] = context.ElementId,
+            ["provider"] = context.Provider,
+            ["branchKey"] = context.BranchKey
         };
         foreach (var field in context.Fields)
         {
             tokens[field.Key] = field.Value;
+            AddNormalizedTokenAliases(tokens, field.Key, field.Value);
+        }
+        if (context.MappedFields != null)
+        {
+            foreach (var field in context.MappedFields)
+            {
+                tokens[field.Key] = field.Value;
+                AddNormalizedTokenAliases(tokens, field.Key, field.Value);
+            }
+        }
+        if (context.ValidationFlags != null)
+        {
+            foreach (var flag in context.ValidationFlags)
+            {
+                tokens[flag.Key] = flag.Value ? "true" : "false";
+            }
+        }
+
+        // Canonical aliases for contact workflows
+        var details = FirstTokenValue(tokens, "details", "message", "inquiry", "comment", "description", "body", "text");
+        if (!string.IsNullOrWhiteSpace(details))
+        {
+            tokens["details"] = details;
+            if (!tokens.ContainsKey("message") || string.IsNullOrWhiteSpace(tokens["message"]))
+            {
+                tokens["message"] = details;
+            }
+        }
+
+        var fullName = FirstTokenValue(tokens, "fullName", "fullname", "full_name", "name");
+        if (!string.IsNullOrWhiteSpace(fullName))
+        {
+            tokens["fullName"] = fullName;
+            if (!tokens.ContainsKey("name") || string.IsNullOrWhiteSpace(tokens["name"]))
+            {
+                tokens["name"] = fullName;
+            }
         }
 
         return tokens;
+    }
+
+    private static string? FirstTokenValue(IReadOnlyDictionary<string, string?> tokens, params string[] keys)
+    {
+        foreach (var key in keys)
+        {
+            if (tokens.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    private static void AddNormalizedTokenAliases(IDictionary<string, string?> tokens, string key, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return;
+        }
+
+        var trimmed = key.Trim();
+        if (trimmed.Length == 0)
+        {
+            return;
+        }
+
+        var lower = trimmed.ToLowerInvariant();
+        tokens[lower] = value;
+
+        var compact = new string(lower.Where(char.IsLetterOrDigit).ToArray());
+        if (!string.IsNullOrWhiteSpace(compact))
+        {
+            tokens[compact] = value;
+        }
     }
 
     private static TokenApplyResult ApplyTokens(string template, IReadOnlyDictionary<string, string?> tokens, bool htmlEncodeValues)

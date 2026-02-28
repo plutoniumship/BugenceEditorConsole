@@ -1,0 +1,11 @@
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Date: Thu, 26 Feb 2026 03:07:53 GMT
+Server: Kestrel
+Cache-Control: no-cache, no-store
+Pragma: no-cache
+Set-Cookie: .AspNetCore.Antiforgery.MbNJfnfv9i0=CfDJ8IB4y26qkT9AicCeax_OK_KLOviu2IoO_U6C_PR0FkUa_YvmvKnrlZszxGvEn0VlZl_qa_j73CAosxklDa2Qj0aKrmkqKJPJNws-xHYXBl70VFyN7lVzVJpWt662DQL6n9mzJIURgV-8q4nV6IYjie4; path=/; samesite=strict; httponly
+Set-Cookie: .AspNetCore.Mvc.CookieTempDataProvider=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax; httponly
+Transfer-Encoding: chunked
+X-Frame-Options: SAMEORIGIN
+
